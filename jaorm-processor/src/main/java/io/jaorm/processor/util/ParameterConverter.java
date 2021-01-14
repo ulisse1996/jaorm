@@ -4,8 +4,8 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.function.Function;
 
-public enum Converter {
-    NONE(s -> null),
+public enum ParameterConverter {
+    NONE(s -> s),
     LONG(Long::valueOf),
     BOOLEAN(Boolean::valueOf),
     BIG_DECIMAL(BigDecimal::new),
@@ -14,7 +14,7 @@ public enum Converter {
 
     private final Function<String, ?> mapper;
 
-    Converter(Function<String, ?> mapper) {
+    ParameterConverter(Function<String, ?> mapper) {
         this.mapper = mapper;
     }
 

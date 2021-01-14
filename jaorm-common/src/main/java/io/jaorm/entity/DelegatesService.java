@@ -27,7 +27,8 @@ public abstract class DelegatesService {
     }
 
     public String getSql(Class<?> klass) {
-        return ""; // TODO
+        EntityDelegate<?> delegate = searchDelegate(klass).get();
+        return delegate.getBaseSql();
     }
 
     protected abstract Map<Class<?>, Supplier<? extends EntityDelegate<?>>> getDelegates();

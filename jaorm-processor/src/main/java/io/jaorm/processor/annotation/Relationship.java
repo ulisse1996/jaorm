@@ -1,6 +1,6 @@
 package io.jaorm.processor.annotation;
 
-import io.jaorm.processor.util.Converter;
+import io.jaorm.processor.util.ParameterConverter;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -11,14 +11,14 @@ import java.lang.annotation.Target;
 @Target(ElementType.FIELD)
 public @interface Relationship {
 
-    RelationshipColumns[] columns();
+    RelationshipColumn[] columns();
 
-    @interface RelationshipColumns {
+    @interface RelationshipColumn {
 
         int NONE = 0;
 
         String defaultValue() default "";
-        Converter converter() default Converter.NONE;
+        ParameterConverter converter() default ParameterConverter.NONE;
         String sourceColumn() default "";
         String targetColumn();
     }

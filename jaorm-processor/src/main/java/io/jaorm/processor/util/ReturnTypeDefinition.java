@@ -1,8 +1,5 @@
 package io.jaorm.processor.util;
 
-import com.squareup.javapoet.ClassName;
-import com.squareup.javapoet.TypeName;
-
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
@@ -17,7 +14,7 @@ public class ReturnTypeDefinition {
     private boolean collection;
     private boolean optional;
     private final boolean plain;
-    private TypeName realClass;
+    private TypeElement realClass;
 
     public ReturnTypeDefinition(ProcessingEnvironment processingEnvironment, TypeMirror typeMirror) {
         String typeName = typeMirror.toString();
@@ -28,12 +25,12 @@ public class ReturnTypeDefinition {
                 } else {
                     this.collection = true;
                 }
-                this.realClass = ClassName.get(asElement(processingEnvironment, regex, typeName));
+                this.realClass = asElement(processingEnvironment, regex, typeName);
             }
         }
         this.plain = !optional && !collection;
         if (this.plain) {
-            this.realClass = TypeName.get(typeMirror);
+            this.realClass = (TypeElement) processingEnvironment.getTypeUtils().asElement(typeMirror);
         }
     }
 
@@ -42,7 +39,7 @@ public class ReturnTypeDefinition {
                 typeName.replace(regex, "").replace("<", "").replace(">", ""));
     }
 
-    public TypeName getRealClass() {
+    public TypeElement getRealClass() {
         return realClass;
     }
 
