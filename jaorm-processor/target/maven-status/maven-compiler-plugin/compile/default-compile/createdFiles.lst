@@ -1,0 +1,16 @@
+io/jaorm/processor/QueriesBuilder.class
+io/jaorm/processor/JaormProcessor.class
+io/jaorm/processor/exception/ProcessorException.class
+io/jaorm/processor/util/ReturnTypeDefinition.class
+io/jaorm/processor/annotation/Table.class
+io/jaorm/processor/EntitiesBuilder.class
+io/jaorm/processor/annotation/Relationship.class
+io/jaorm/processor/annotation/Query.class
+io/jaorm/processor/annotation/Relationship$RelationshipColumns.class
+io/jaorm/processor/util/Preconditions.class
+io/jaorm/processor/annotation/Column.class
+io/jaorm/processor/annotation/Id.class
+io/jaorm/processor/util/Accessor.class
+io/jaorm/processor/util/Converter.class
+io/jaorm/processor/ValueProvider.class
+io/jaorm/processor/util/MethodUtils.class
