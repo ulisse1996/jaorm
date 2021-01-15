@@ -26,14 +26,14 @@ public class EntitiesBuilder {
 
     private static final String COL_NAME = "colName";
     private final Set<TypeElement> entities;
-    private ProcessingEnvironment processingEnv;
+    private final ProcessingEnvironment processingEnv;
 
-    public EntitiesBuilder(Set<TypeElement> entities) {
+    public EntitiesBuilder(ProcessingEnvironment processingEnv, Set<TypeElement> entities) {
         this.entities = entities;
+        this.processingEnv = processingEnv;
     }
 
-    public void process(ProcessingEnvironment processingEnv) throws ProcessorException {
-        this.processingEnv = processingEnv;
+    public void process() throws ProcessorException {
         for (TypeElement entity : entities) {
             String packageName = getPackage(entity);
             String delegate = entity.getSimpleName() + "Delegate";
@@ -377,8 +377,8 @@ public class EntitiesBuilder {
             buildJoinParam(column, builder, targetColumn, entity);
         }
         String wheres = createJoinWhere(columns);
-        return builder.addStatement("return $T.$L($T.class, $T.getCurrent().getSql($T.class) +  $S, params)",
-                QueryRunner.class, runnerMethod, definition.getRealClass(), DelegatesService.class,
+        return builder.addStatement("return $T.getInstance($T.class).$L($T.class, $T.getCurrent().getSql($T.class) +  $S, params)",
+                QueryRunner.class, definition.getRealClass(), runnerMethod, definition.getRealClass(), DelegatesService.class,
                 definition.getRealClass(), wheres)
                 .build();
     }

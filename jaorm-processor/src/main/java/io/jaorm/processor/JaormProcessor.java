@@ -40,12 +40,12 @@ public class JaormProcessor extends AbstractProcessor {
                 .map(TypeElement.class::cast)
                 .collect(Collectors.toSet());
         try {
-            new EntitiesBuilder(entities).process(processingEnv);
-            new QueriesBuilder(types).process(processingEnv);
+            new EntitiesBuilder(processingEnv, entities).process();
+            new QueriesBuilder(processingEnv, types).process();
             if (!entities.isEmpty()) {
                 buildDelegates(entities);
             }
-        } catch (ProcessorException ex) {
+        } catch (Exception ex) {
             processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, ex.getMessage());
             return false;
         }

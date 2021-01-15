@@ -40,7 +40,8 @@ public enum SqlAccessor {
     LOCAL_DATE(LocalDate.class, (rs, col) -> rs.getObject(col, LocalDate.class), PreparedStatement::setObject),
     LOCAL_TIME(LocalTime.class, (rs, col) -> rs.getObject(col, LocalTime.class), PreparedStatement::setObject),
     OFFSET_TIME(OffsetTime.class, (rs, col) -> rs.getObject(col, OffsetTime.class), PreparedStatement::setObject),
-    BIG_DECIMAL(BigDecimal.class, ResultSet::getBigDecimal, (pr, index, val) -> pr.setBigDecimal(index, (BigDecimal) val));
+    BIG_DECIMAL(BigDecimal.class, ResultSet::getBigDecimal, (pr, index, val) -> pr.setBigDecimal(index, (BigDecimal) val)),
+    NULL(void.class, (rs, colName) -> null, (pr, index, val) -> pr.setNull(index, JDBCType.NULL.getVendorTypeNumber()));
 
     private final Class<?> klass;
     private final SqlGetter<Object> getter;

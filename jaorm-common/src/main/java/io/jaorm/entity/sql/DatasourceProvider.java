@@ -6,15 +6,15 @@ import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
 
-public abstract class DatasourceProvider {
+public interface DatasourceProvider {
 
-    public static DatasourceProvider getCurrent() {
+    static DatasourceProvider getCurrent() {
         return ServiceFinder.loadService(DatasourceProvider.class);
     }
 
-    public abstract DataSource getDataSource();
+    DataSource getDataSource();
 
-    public Connection getConnection() throws SQLException {
+    default Connection getConnection() throws SQLException {
         return getDataSource().getConnection();
     }
 }
