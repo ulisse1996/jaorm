@@ -62,21 +62,16 @@ public enum QueryStrategy implements ParametersStrategy {
 
         @Override
         public int getParamNumber(String query) {
-            return new HashSet<>(getWords(query)).size();
-        }
-
-        private List<String> getWords(String query) {
-            List<String> foundWords = new ArrayList<>();
-            Matcher matcher = Pattern.compile(REGEX).matcher(query);
-            while (matcher.find()) {
-                foundWords.add(matcher.group().substring(1));
-            }
-            return foundWords;
+            return new HashSet<>(getWords(REGEX, query)).size();
         }
 
         @Override
         public List<CodeBlock> extract(ProcessingEnvironment procEnv, String query, ExecutableElement method) {
-            return getWords(query)
+            return getCodeBlocks(query, method);
+        }
+
+        private List<CodeBlock> getCodeBlocks(String query, ExecutableElement method) {
+            return getWords(REGEX, query)
                     .stream()
                     .map(s -> {
                         VariableElement element = getVariable(method, s);
@@ -86,17 +81,7 @@ public enum QueryStrategy implements ParametersStrategy {
         }
 
         private VariableElement getVariable(ExecutableElement method, String s) {
-            return method.getParameters()
-                    .stream()
-                    .filter(p -> {
-                        Param param = p.getAnnotation(Param.class);
-                        if (param != null) {
-                            return param.name().equalsIgnoreCase(s);
-                        } else {
-                            return p.getSimpleName().toString().equalsIgnoreCase(s);
-                        }
-                    }).findFirst()
-                    .orElseThrow(() -> new ProcessorException("Can't find parameter with name " + s));
+            return getVariableElement(method, s);
         }
 
         @Override
@@ -143,7 +128,68 @@ public enum QueryStrategy implements ParametersStrategy {
         public String replaceQuery(String query) {
             return Pattern.compile(REGEX).matcher(query).replaceAll("?");
         }
+    },
+    AT_NAMED {
+
+        private static final String REGEX = "@\\w*";
+
+        @Override
+        public boolean isValid(String query) {
+            return Pattern.compile(REGEX).matcher(query).find();
+        }
+
+        @Override
+        public int getParamNumber(String query) {
+            return new HashSet<>(QueryStrategy.getWords(REGEX, query)).size();
+        }
+
+        @Override
+        public List<CodeBlock> extract(ProcessingEnvironment procEnv, String query, ExecutableElement method) {
+            return getCodeBlocks(query, method);
+        }
+
+        private List<CodeBlock> getCodeBlocks(String query, ExecutableElement method) {
+            return getWords(REGEX, query)
+                    .stream()
+                    .map(s -> {
+                        VariableElement element = getVariable(method, s);
+                        TypeMirror type = element.asType();
+                        return getStatement(element, type);
+                    }).collect(Collectors.toList());
+        }
+
+        private VariableElement getVariable(ExecutableElement method, String s) {
+            return getVariableElement(method, s);
+        }
+
+        @Override
+        public String replaceQuery(String query) {
+            return Pattern.compile(REGEX).matcher(query).replaceAll("?");
+        }
     };
+
+    private static VariableElement getVariableElement(ExecutableElement method, String s) {
+        return method.getParameters()
+                .stream()
+                .filter(p -> {
+                    Param param = p.getAnnotation(Param.class);
+                    if (param != null) {
+                        return param.name().equalsIgnoreCase(s);
+                    } else {
+                        return p.getSimpleName().toString().equalsIgnoreCase(s);
+                    }
+                }).findFirst()
+                .orElseThrow(() -> new ProcessorException("Can't find parameter with name " + s));
+    }
+
+    private static List<String> getWords(String regex, String query) {
+        List<String> foundWords = new ArrayList<>();
+        Matcher matcher = Pattern.compile(regex).matcher(query);
+        while (matcher.find()) {
+            foundWords.add(matcher.group().substring(1));
+        }
+        return foundWords;
+    }
 
     private static CodeBlock getStatement(VariableElement element, TypeMirror type) {
         return CodeBlock.builder()
