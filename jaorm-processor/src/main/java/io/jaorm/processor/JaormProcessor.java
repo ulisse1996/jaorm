@@ -52,7 +52,7 @@ public class JaormProcessor extends AbstractProcessor {
         return true;
     }
 
-    private void buildDelegates(Set<TypeElement> types) throws ProcessorException {
+    private void buildDelegates(Set<TypeElement> types) {
         TypeSpec delegates = TypeSpec.classBuilder("Delegates")
                 .addModifiers(Modifier.PUBLIC)
                 .superclass(DelegatesService.class)
@@ -70,7 +70,7 @@ public class JaormProcessor extends AbstractProcessor {
         }
     }
 
-    private MethodSpec buildGetDelegates() throws ProcessorException {
+    private MethodSpec buildGetDelegates() {
         return MethodSpec.overriding(MethodUtils.getMethod(processingEnv, "getDelegates", DelegatesService.class))
                 .addStatement("return this.delegates")
                 .build();

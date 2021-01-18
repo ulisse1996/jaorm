@@ -21,14 +21,35 @@ public abstract class DelegatesService {
     }
 
     @SuppressWarnings("unchecked")
+    public <R> Arguments asWhere(R entity) {
+        EntityDelegate<R> entityDelegate = (EntityDelegate<R>) searchDelegate(entity.getClass()).get();
+        return entityDelegate.getEntityMapper().getKeys(entity);
+    }
+
+    @SuppressWarnings("unchecked")
     public <R> Arguments asArguments(R entity) {
-        EntityDelegate<R> entityDelegateSupplier = (EntityDelegate<R>) searchDelegate(entity.getClass()).get();
-        return entityDelegateSupplier.getEntityMapper().getKeys(entity);
+        EntityDelegate<R> entityDelegate = (EntityDelegate<R>) searchDelegate(entity.getClass()).get();
+        return entityDelegate.getEntityMapper().getColumns(entity);
     }
 
     public String getSql(Class<?> klass) {
         EntityDelegate<?> delegate = searchDelegate(klass).get();
-        return delegate.getBaseSql();
+        return delegate.getBaseSql() + delegate.getKeysWhere();
+    }
+
+    public String getSimpleSql(Class<?> klass) {
+        return searchDelegate(klass).get().getBaseSql();
+    }
+
+    public  <R> String getInsertSql(R entity) {
+        EntityDelegate<?> delegate = searchDelegate(entity.getClass()).get();
+        return delegate.getInsertSql();
+    }
+
+    @SuppressWarnings("unchecked")
+    public <R> Arguments asInsert(R entity) {
+        EntityDelegate<R> delegate = (EntityDelegate<R>) searchDelegate(entity.getClass()).get();
+        return delegate.getEntityMapper().getAllColumns(entity);
     }
 
     protected abstract Map<Class<?>, Supplier<? extends EntityDelegate<?>>> getDelegates();

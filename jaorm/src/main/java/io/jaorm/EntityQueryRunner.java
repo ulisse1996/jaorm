@@ -27,6 +27,11 @@ public class EntityQueryRunner implements QueryRunner {
     }
 
     @Override
+    public boolean isSimple() {
+        return false;
+    }
+
+    @Override
     @SuppressWarnings("unchecked")
     public <R> R read(Class<R> entity, String query, List<SqlParameter> params) {
         Supplier<EntityDelegate<?>> delegateSupplier = DelegatesService.getCurrent().searchDelegate(entity);
@@ -79,5 +84,21 @@ public class EntityQueryRunner implements QueryRunner {
         } catch (SQLException ex) {
             throw new JaormSqlException(ex);
         }
+    }
+
+    @Override
+    public <R> R insert(R entity, String query, List<SqlParameter> params) {
+        doUpdate(query, params);
+        return entity;
+    }
+
+    @Override
+    public void update(String query, List<SqlParameter> params) {
+        doUpdate(query, params);
+    }
+
+    @Override
+    public void delete(String query, List<SqlParameter> params) {
+        doUpdate(query, params);
     }
 }

@@ -51,10 +51,26 @@ public class EntityMapper<T> {
         }
     }
 
+
+    public Arguments getAllColumns(T entity) {
+        return Arguments.of(
+                mappers.stream()
+                    .map(c -> ArgumentPair.of(c.name, c.getter.apply(entity)))
+        );
+    }
+
     public Arguments getKeys(final T entity) {
         return Arguments.of(
                 mappers.stream()
                     .filter(c -> c.key)
+                    .map(c -> ArgumentPair.of(c.name, c.getter.apply(entity)))
+        );
+    }
+
+    public Arguments getColumns(final T entity) {
+        return Arguments.of(
+                mappers.stream()
+                    .filter(c -> !c.key)
                     .map(c -> ArgumentPair.of(c.name, c.getter.apply(entity)))
         );
     }

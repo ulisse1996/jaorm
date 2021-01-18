@@ -33,7 +33,7 @@ public class EntitiesBuilder {
         this.processingEnv = processingEnv;
     }
 
-    public void process() throws ProcessorException {
+    public void process() {
         for (TypeElement entity : entities) {
             String packageName = getPackage(entity);
             String delegate = entity.getSimpleName() + "Delegate";
@@ -54,7 +54,7 @@ public class EntitiesBuilder {
         return ClassName.get(entity).packageName();
     }
 
-    private TypeSpec build(TypeElement entity, String delegateName) throws ProcessorException {
+    private TypeSpec build(TypeElement entity, String delegateName) {
         TypeSpec.Builder builder = TypeSpec.classBuilder(ClassName.get(getPackage(entity), delegateName))
                 .addModifiers(Modifier.PUBLIC)
                 .superclass(entity.asType())
@@ -65,9 +65,16 @@ public class EntitiesBuilder {
         builder.addField(addTableName(entity));
         builder.addField(addBaseSql(entity));
         builder.addField(addKeysWhere());
+        builder.addField(addInsertSql());
         builder.addMethods(buildDelegation(entity));
         builder.addMethods(buildOverrideEntity(entity));
         return builder.build();
+    }
+
+    private FieldSpec addInsertSql() {
+        return FieldSpec.builder(String.class, "INSERT_SQL", Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
+                .initializer("Column.getInsertSql()")
+                .build();
     }
 
     private FieldSpec addKeysWhere() {
@@ -90,7 +97,7 @@ public class EntitiesBuilder {
                 .build();
     }
 
-    private Iterable<MethodSpec> buildOverrideEntity(TypeElement entity) throws ProcessorException {
+    private Iterable<MethodSpec> buildOverrideEntity(TypeElement entity) {
         MethodSpec supplierEntity = MethodSpec.overriding(MethodUtils.getMethod(processingEnv,"getEntityInstance", EntityDelegate.class))
                 .returns(ParameterizedTypeName.get(ClassName.get(Supplier.class), ClassName.get(entity)))
                 .addStatement("return $T::new", entity)
@@ -108,11 +115,14 @@ public class EntitiesBuilder {
         MethodSpec keysWhere = MethodSpec.overriding(MethodUtils.getMethod(processingEnv, "getKeysWhere", EntityDelegate.class))
                 .addStatement("return KEYS_WHERE")
                 .build();
-        return Stream.of(supplierEntity, entityMapper, setEntity, baseSql, keysWhere)
+        MethodSpec insertSql = MethodSpec.overriding(MethodUtils.getMethod(processingEnv, "getInsertSql", EntityDelegate.class))
+                .addStatement("return INSERT_SQL")
+                .build();
+        return Stream.of(supplierEntity, entityMapper, setEntity, baseSql, keysWhere, insertSql)
                 .collect(Collectors.toList());
     }
 
-    private TypeSpec buildColumnEnum(TypeElement entity) throws ProcessorException {
+    private TypeSpec buildColumnEnum(TypeElement entity) {
         List<Element> columns = entity.getEnclosedElements()
                 .stream()
                 .filter(ele -> ele.getAnnotation(Column.class) != null)
@@ -128,6 +138,7 @@ public class EntitiesBuilder {
         builder.addField(getEntityMapperType(entity), "ENTITY_MAPPER", Modifier.PRIVATE, Modifier.STATIC);
         builder.addField(String.class, "SELECTABLES", Modifier.PRIVATE, Modifier.STATIC);
         builder.addField(String.class, "KEYS_WHERE", Modifier.PRIVATE, Modifier.STATIC);
+        builder.addField(String.class, "INSERT_SQL", Modifier.PRIVATE, Modifier.STATIC);
         builder.addMethod(addColumnConstructor(entity));
         for (Accessor accessor : accessors) {
             builder.addEnumConstant(accessor.getName(), enumImpl(accessor, entity));
@@ -161,6 +172,13 @@ public class EntitiesBuilder {
                 .build()
         );
         builder.addMethod(
+                MethodSpec.methodBuilder("getInsertSql")
+                .returns(String.class)
+                .addModifiers(Modifier.STATIC, Modifier.SYNCHRONIZED)
+                .addCode(buildInsertSqlCodeBlock(entity.getAnnotation(Table.class).name()))
+                .build()
+        );
+        builder.addMethod(
                 MethodSpec.methodBuilder("findColumn")
                 .addModifiers(Modifier.PUBLIC)
                 .returns(ClassName.bestGuess("Column"))
@@ -170,6 +188,22 @@ public class EntitiesBuilder {
                 .build()
         );
         return builder.build();
+    }
+
+    private CodeBlock buildInsertSqlCodeBlock(String table) {
+        return CodeBlock.builder()
+                .beginControlFlow("if (INSERT_SQL == null)")
+                .addStatement("$T builder = new $T()", StringBuilder.class, StringBuilder.class)
+                .addStatement("builder.append($S)", "INSERT INTO " + table + " (")
+                .beginControlFlow("for (Column column : values())")
+                .addStatement("builder.append(column.colName).append($S)",",")
+                .endControlFlow()
+                .addStatement("String wildcards = Stream.of(values()).map(c -> $S).collect($T.joining($S))", "?", Collectors.class, ",")
+                .addStatement("builder.append($S).append(wildcards).append($S)", ") VALUES (", ")")
+                .addStatement("INSERT_SQL = builder.toString()")
+                .endControlFlow()
+                .addStatement("return INSERT_SQL")
+                .build();
     }
 
     private CodeBlock buildFindColumnCodeBlock() {
@@ -286,7 +320,7 @@ public class EntitiesBuilder {
         return ParameterizedTypeName.get(ClassName.get(ColumnGetter.class), TypeName.get(entity.asType()), WildcardTypeName.subtypeOf(Object.class));
     }
 
-    private List<Accessor> asAccessors(ProcessingEnvironment processingEnv, List<Element> columns) throws ProcessorException {
+    private List<Accessor> asAccessors(ProcessingEnvironment processingEnv, List<Element> columns) {
         List<Accessor> values = new ArrayList<>();
         for (Element column : columns) {
             boolean key = column.getAnnotation(Id.class) != null;
@@ -299,7 +333,7 @@ public class EntitiesBuilder {
         return values;
     }
 
-    private Iterable<MethodSpec> buildDelegation(TypeElement entity) throws ProcessorException {
+    private Iterable<MethodSpec> buildDelegation(TypeElement entity) {
         List<? extends Element> elements = entity.getEnclosedElements();
         List<? extends ExecutableElement> methods = elements.stream()
                 .filter(e -> e instanceof ExecutableElement)
@@ -352,7 +386,7 @@ public class EntitiesBuilder {
         return "";
     }
 
-    private MethodSpec buildJoinMethod(TypeElement entity, Map.Entry<Element, ExecutableElement> join) throws ProcessorException {
+    private MethodSpec buildJoinMethod(TypeElement entity, Map.Entry<Element, ExecutableElement> join) {
         ExecutableElement method = join.getValue();
         ReturnTypeDefinition definition = new ReturnTypeDefinition(processingEnv, method.getReturnType());
         String runnerMethod;
@@ -377,7 +411,7 @@ public class EntitiesBuilder {
             buildJoinParam(column, builder, targetColumn, entity);
         }
         String wheres = createJoinWhere(columns);
-        return builder.addStatement("return $T.getInstance($T.class).$L($T.class, $T.getCurrent().getSql($T.class) +  $S, params)",
+        return builder.addStatement("return $T.getInstance($T.class).$L($T.class, $T.getCurrent().getSimpleSql($T.class) +  $S, params)",
                 QueryRunner.class, definition.getRealClass(), runnerMethod, definition.getRealClass(), DelegatesService.class,
                 definition.getRealClass(), wheres)
                 .build();
@@ -401,7 +435,7 @@ public class EntitiesBuilder {
 
     private void buildJoinParam(Relationship.RelationshipColumn column, MethodSpec.Builder builder,
                                 Map.Entry<? extends Element, String> targetColumn,
-                                TypeElement entity) throws ProcessorException {
+                                TypeElement entity) {
         VariableElement element = (VariableElement) targetColumn.getKey();
         if (!column.sourceColumn().isEmpty()) {
             Map.Entry<? extends Element, String> sourceColumn = findColumn(entity, column.sourceColumn())
@@ -415,7 +449,7 @@ public class EntitiesBuilder {
         }
     }
 
-    private void checkColumns(TypeElement entity, TypeElement realClass, Relationship.RelationshipColumn[] columns) throws ProcessorException {
+    private void checkColumns(TypeElement entity, TypeElement realClass, Relationship.RelationshipColumn[] columns) {
         for (Relationship.RelationshipColumn column : columns) {
             if (column.sourceColumn().isEmpty() && column.defaultValue().isEmpty()) {
                 throw new ProcessorException("Source column or default value is mandatory");
@@ -447,7 +481,7 @@ public class EntitiesBuilder {
                 .findFirst();
     }
 
-    private ExecutableElement findGetter(Element element) throws ProcessorException {
+    private ExecutableElement findGetter(Element element) {
         String fieldName = element.getSimpleName().toString();
         fieldName = Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1);
         String getter = "get" + fieldName;
@@ -459,14 +493,14 @@ public class EntitiesBuilder {
         }
     }
 
-    private ExecutableElement findSetter(Element element) throws ProcessorException {
+    private ExecutableElement findSetter(Element element) {
         String fieldName = element.getSimpleName().toString();
         fieldName = Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1);
         String setter = "set" + fieldName;
         return findExecutable(element, setter, "Can't find setter for field " + element.getSimpleName());
     }
 
-    private ExecutableElement findExecutable(Element element, String name, String errorMessage) throws ProcessorException {
+    private ExecutableElement findExecutable(Element element, String name, String errorMessage) {
         return element.getEnclosingElement()
                 .getEnclosedElements()
                 .stream()

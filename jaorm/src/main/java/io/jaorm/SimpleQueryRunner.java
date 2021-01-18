@@ -25,6 +25,11 @@ public class SimpleQueryRunner implements QueryRunner {
     }
 
     @Override
+    public boolean isSimple() {
+        return true;
+    }
+
+    @Override
     @SuppressWarnings("unchecked")
     public <R> R read(Class<R> klass, String query, List<SqlParameter> params) {
         try (Connection connection = DatasourceProvider.getCurrent().getConnection();
@@ -67,5 +72,20 @@ public class SimpleQueryRunner implements QueryRunner {
         } catch (SQLException ex) {
             throw new JaormSqlException(ex);
         }
+    }
+
+    @Override
+    public <R> R insert(R entity, String query, List<SqlParameter> params) {
+        throw new UnsupportedOperationException("Insert on Simple Runner not supported");
+    }
+
+    @Override
+    public void update(String query, List<SqlParameter> params) {
+        doUpdate(query, params);
+    }
+
+    @Override
+    public void delete(String query, List<SqlParameter> params) {
+        doUpdate(query, params);
     }
 }

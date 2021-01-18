@@ -11,6 +11,7 @@ public interface EntityDelegate<T> {
     void setEntity(ResultSet rs) throws SQLException;
     String getBaseSql();
     String getKeysWhere();
+    String getInsertSql();
     default T toEntity(ResultSet rs) throws SQLException {
         return getEntityMapper().map(getEntityInstance(), rs);
     }

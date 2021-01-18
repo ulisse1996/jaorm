@@ -33,7 +33,7 @@ public class QueriesBuilder {
         this.processingEnvironment = processingEnvironment;
     }
 
-    public void process() throws ProcessorException {
+    public void process() {
         for (TypeElement query : types) {
             Set<MethodSpec> methods = new HashSet<>();
             for (Element ele : query.getEnclosedElements()) {
@@ -69,7 +69,7 @@ public class QueriesBuilder {
         return ClassName.get(entity).packageName();
     }
 
-    private Collection<MethodSpec> buildBaseDao(TypeElement query) throws ProcessorException {
+    private Collection<MethodSpec> buildBaseDao(TypeElement query) {
         String realClass = getBaseDaoGeneric(query);
         ClassName className = ClassName.bestGuess(realClass);
         MethodSpec read = MethodSpec.overriding(MethodUtils.getMethod(processingEnvironment, "read", BaseDao.class))
@@ -87,10 +87,18 @@ public class QueriesBuilder {
                 .addStatement("return $T.getInstance($T.class).readAll($T.class, $T.getCurrent().getSql($T.class), argumentsAsParameters($L))",
                         QueryRunner.class, className, className, DelegatesService.class, className, "arg0")
                 .build();
-        return Stream.of(read, readOpt, readAll).collect(Collectors.toList());
+        MethodSpec update = MethodSpec.overriding(MethodUtils.getMethod(processingEnvironment, "update", BaseDao.class))
+                .addStatement("$T.getInstance($T.class).update($T.getCurrent().getSql($T.class), argumentsAsParameters($L.addAll($L)))",
+                        QueryRunner.class, className, DelegatesService.class, className, "arg0", "arg1")
+                .build();
+        MethodSpec delete = MethodSpec.overriding(MethodUtils.getMethod(processingEnvironment, "delete", BaseDao.class))
+                .addStatement("$T.getInstance($T.class).delete($T.getCurrent().getSql($T.class), argumentsAsParameters($L))",
+                        QueryRunner.class, className, DelegatesService.class, className, "arg0")
+                .build();
+        return Stream.of(read, readOpt, readAll, update, delete).collect(Collectors.toList());
     }
 
-    private String getBaseDaoGeneric(TypeElement query) throws ProcessorException {
+    private String getBaseDaoGeneric(TypeElement query) {
         for (TypeMirror typeMirror : query.getInterfaces()) {
             if (typeMirror.toString().contains(BaseDao.class.getName())) {
                 return typeMirror.toString().replace(BaseDao.class.getName(), "")
@@ -114,7 +122,7 @@ public class QueriesBuilder {
         return false;
     }
 
-    private MethodSpec buildImpl(ExecutableElement executableElement) throws ProcessorException {
+    private MethodSpec buildImpl(ExecutableElement executableElement) {
         Query query = executableElement.getAnnotation(Query.class);
         String sql = query.sql();
         MethodSpec.Builder builder = MethodSpec.overriding(executableElement)
@@ -138,15 +146,29 @@ public class QueriesBuilder {
         throw new ProcessorException("Can't find query strategy");
     }
 
-    private Map.Entry<String, Object[]> checkType(String sql, ExecutableElement method) throws ProcessorException {
-        if (sql.toUpperCase().contains("SELECT")) {
+    private Map.Entry<String, Object[]> checkType(String sql, ExecutableElement method) {
+        if (sql.toUpperCase().startsWith("SELECT")) {
             return checkSelect(sql, method);
-        } else {
-            return new AbstractMap.SimpleImmutableEntry<>("return;", new Object[0]);
+        } else if (sql.toUpperCase().startsWith("DELETE")) {
+            assertVoid(method);
+            return new AbstractMap.SimpleImmutableEntry<>("$T.getSimple().delete($S, params)",
+                    new Object[] {QueryRunner.class, sql});
+        } else if (sql.toUpperCase().startsWith("UPDATE")) {
+            assertVoid(method);
+            return new AbstractMap.SimpleImmutableEntry<>("$T.getSimple().update($S, params)",
+                    new Object[] {QueryRunner.class, sql});
+        }
+
+        throw new ProcessorException(String.format("Operation not supported for sql [%s] in method [%s]", sql, method));
+    }
+
+    private void assertVoid(ExecutableElement method) {
+        if (!method.getReturnType().getKind().equals(TypeKind.VOID)) {
+            throw new ProcessorException("Can't use Delete or Update statement with a non-void method");
         }
     }
 
-    private Map.Entry<String, Object[]> checkSelect(String sql, ExecutableElement method) throws ProcessorException {
+    private Map.Entry<String, Object[]> checkSelect(String sql, ExecutableElement method) {
         if (method.getReturnType().getKind().equals(TypeKind.VOID)) {
             throw new ProcessorException(String.format("Select of method %s need a return type !", method));
         } else {
