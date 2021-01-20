@@ -11,5 +11,5 @@ import java.lang.annotation.Target;
 @Target(ElementType.FIELD)
 public @interface Converter {
 
-    Class<? extends ValueConverter<?, ?>> value();
+    Class<? extends ValueConverter<?, ?>> value(); // NOSONAR We do types check during compilation
 }

@@ -67,21 +67,7 @@ public enum QueryStrategy implements ParametersStrategy {
 
         @Override
         public List<CodeBlock> extract(ProcessingEnvironment procEnv, String query, ExecutableElement method) {
-            return getCodeBlocks(query, method);
-        }
-
-        private List<CodeBlock> getCodeBlocks(String query, ExecutableElement method) {
-            return getWords(REGEX, query)
-                    .stream()
-                    .map(s -> {
-                        VariableElement element = getVariable(method, s);
-                        TypeMirror type = element.asType();
-                        return getStatement(element, type);
-                    }).collect(Collectors.toList());
-        }
-
-        private VariableElement getVariable(ExecutableElement method, String s) {
-            return getVariableElement(method, s);
+            return getCodeBlocks(REGEX, query, method);
         }
 
         @Override
@@ -145,21 +131,7 @@ public enum QueryStrategy implements ParametersStrategy {
 
         @Override
         public List<CodeBlock> extract(ProcessingEnvironment procEnv, String query, ExecutableElement method) {
-            return getCodeBlocks(query, method);
-        }
-
-        private List<CodeBlock> getCodeBlocks(String query, ExecutableElement method) {
-            return getWords(REGEX, query)
-                    .stream()
-                    .map(s -> {
-                        VariableElement element = getVariable(method, s);
-                        TypeMirror type = element.asType();
-                        return getStatement(element, type);
-                    }).collect(Collectors.toList());
-        }
-
-        private VariableElement getVariable(ExecutableElement method, String s) {
-            return getVariableElement(method, s);
+            return getCodeBlocks(REGEX, query, method);
         }
 
         @Override
@@ -196,5 +168,19 @@ public enum QueryStrategy implements ParametersStrategy {
                 .addStatement("params.add(new $T($L, $T.find($T.class).getSetter()))",
                         SqlParameter.class, element.getSimpleName(), SqlAccessor.class, type)
                 .build();
+    }
+
+    private static List<CodeBlock> getCodeBlocks(String regex, String query, ExecutableElement method) {
+        return getWords(regex, query)
+                .stream()
+                .map(s -> {
+                    VariableElement element = getVariable(method, s);
+                    TypeMirror type = element.asType();
+                    return getStatement(element, type);
+                }).collect(Collectors.toList());
+    }
+
+    private static VariableElement getVariable(ExecutableElement method, String s) {
+        return getVariableElement(method, s);
     }
 }
