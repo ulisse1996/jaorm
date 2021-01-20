@@ -1,6 +1,6 @@
 package io.jaorm;
 
-import io.jaorm.entity.sql.DatasourceProvider;
+import io.jaorm.entity.sql.DataSourceProvider;
 import io.jaorm.entity.sql.SqlAccessor;
 import io.jaorm.entity.sql.SqlParameter;
 import io.jaorm.exception.JaormSqlException;
@@ -32,7 +32,7 @@ public class SimpleQueryRunner implements QueryRunner {
     @Override
     @SuppressWarnings("unchecked")
     public <R> R read(Class<R> klass, String query, List<SqlParameter> params) {
-        try (Connection connection = DatasourceProvider.getCurrent().getConnection();
+        try (Connection connection = DataSourceProvider.getCurrent().getConnection();
              PreparedStatement pr = connection.prepareStatement(query);
              ResultSetExecutor rs = new ResultSetExecutor(pr, params)) {
             rs.getResultSet().next();
@@ -45,7 +45,7 @@ public class SimpleQueryRunner implements QueryRunner {
     @Override
     @SuppressWarnings("unchecked")
     public <R> Optional<R> readOpt(Class<R> klass, String query, List<SqlParameter> params) {
-        try (Connection connection = DatasourceProvider.getCurrent().getConnection();
+        try (Connection connection = DataSourceProvider.getCurrent().getConnection();
              PreparedStatement pr = connection.prepareStatement(query);
              ResultSetExecutor rs = new ResultSetExecutor(pr, params)) {
             if (rs.getResultSet().next()) {
@@ -62,7 +62,7 @@ public class SimpleQueryRunner implements QueryRunner {
     @SuppressWarnings("unchecked")
     public <R> List<R> readAll(Class<R> klass, String query, List<SqlParameter> params) {
         List<R> values = new ArrayList<>();
-        try (Connection connection = DatasourceProvider.getCurrent().getConnection();
+        try (Connection connection = DataSourceProvider.getCurrent().getConnection();
              PreparedStatement pr = connection.prepareStatement(query);
              ResultSetExecutor rs = new ResultSetExecutor(pr, params)) {
             while (rs.getResultSet().next()) {

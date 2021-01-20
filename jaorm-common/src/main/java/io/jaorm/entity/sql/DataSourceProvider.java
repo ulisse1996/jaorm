@@ -6,10 +6,10 @@ import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
 
-public interface DatasourceProvider {
+public interface DataSourceProvider {
 
-    static DatasourceProvider getCurrent() {
-        return ServiceFinder.loadService(DatasourceProvider.class);
+    static DataSourceProvider getCurrent() {
+        return ServiceFinder.loadService(DataSourceProvider.class);
     }
 
     DataSource getDataSource();

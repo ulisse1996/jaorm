@@ -14,7 +14,7 @@ public abstract class DelegatesService {
 
     @SuppressWarnings("unchecked")
     public <R extends EntityDelegate<?>> Supplier<R> searchDelegate(Class<?> entity) {
-        return (Supplier<R>) getDelegates().entrySet().stream().filter(del -> del.getKey().isAssignableFrom(entity))
+        return (Supplier<R>) getDelegates().entrySet().stream().filter(del -> !del.getKey().equals(Object.class) && del.getKey().isAssignableFrom(entity))
                 .findFirst()
                 .map(Map.Entry::getValue)
                 .orElseThrow(() -> new IllegalArgumentException("Can't find delegate for " + entity));
@@ -52,5 +52,5 @@ public abstract class DelegatesService {
         return delegate.getEntityMapper().getAllColumns(entity);
     }
 
-    protected abstract Map<Class<?>, Supplier<? extends EntityDelegate<?>>> getDelegates();
+    protected abstract Map<Class<?>, Supplier<? extends EntityDelegate<?>>> getDelegates(); //NOSONAR
 }

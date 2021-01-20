@@ -2,7 +2,7 @@ package io.jaorm;
 
 import io.jaorm.entity.DelegatesService;
 import io.jaorm.entity.EntityDelegate;
-import io.jaorm.entity.sql.DatasourceProvider;
+import io.jaorm.entity.sql.DataSourceProvider;
 import io.jaorm.entity.sql.SqlParameter;
 import io.jaorm.exception.JaormSqlException;
 
@@ -35,7 +35,7 @@ public class EntityQueryRunner implements QueryRunner {
     @SuppressWarnings("unchecked")
     public <R> R read(Class<R> entity, String query, List<SqlParameter> params) {
         Supplier<EntityDelegate<?>> delegateSupplier = DelegatesService.getCurrent().searchDelegate(entity);
-        try (Connection connection = DatasourceProvider.getCurrent().getConnection();
+        try (Connection connection = DataSourceProvider.getCurrent().getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(query);
              ResultSetExecutor executor = new ResultSetExecutor(preparedStatement, params)) {
             executor.getResultSet().next();
@@ -51,7 +51,7 @@ public class EntityQueryRunner implements QueryRunner {
     @SuppressWarnings("unchecked")
     public <R> Optional<R> readOpt(Class<R> entity, String query, List<SqlParameter> params) {
         Supplier<EntityDelegate<?>> delegateSupplier = DelegatesService.getCurrent().searchDelegate(entity);
-        try (Connection connection = DatasourceProvider.getCurrent().getConnection();
+        try (Connection connection = DataSourceProvider.getCurrent().getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(query);
              ResultSetExecutor executor = new ResultSetExecutor(preparedStatement, params)) {
             if (executor.getResultSet().next()) {
@@ -71,7 +71,7 @@ public class EntityQueryRunner implements QueryRunner {
     public <R> List<R> readAll(Class<R> entity, String query, List<SqlParameter> params) {
         List<R> values = new ArrayList<>();
         Supplier<EntityDelegate<?>> delegateSupplier = DelegatesService.getCurrent().searchDelegate(entity);
-        try (Connection connection = DatasourceProvider.getCurrent().getConnection();
+        try (Connection connection = DataSourceProvider.getCurrent().getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(query);
              ResultSetExecutor executor = new ResultSetExecutor(preparedStatement, params)) {
             while (executor.getResultSet().next()) {

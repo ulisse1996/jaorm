@@ -1,6 +1,6 @@
 package io.jaorm;
 
-import io.jaorm.entity.sql.DatasourceProvider;
+import io.jaorm.entity.sql.DataSourceProvider;
 import io.jaorm.entity.sql.SqlParameter;
 import io.jaorm.exception.JaormSqlException;
 
@@ -33,7 +33,7 @@ public interface QueryRunner {
     }
 
     default void doUpdate(String query, List<SqlParameter> params) {
-        try (Connection connection = DatasourceProvider.getCurrent().getConnection();
+        try (Connection connection = DataSourceProvider.getCurrent().getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(query)) {
             new UpdateExecutor(preparedStatement, params);
         } catch (SQLException ex) {

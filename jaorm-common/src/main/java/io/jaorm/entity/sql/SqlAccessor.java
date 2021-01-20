@@ -63,7 +63,7 @@ public enum SqlAccessor {
 
     public static <R> SqlAccessor find(Class<R> klass) {
         for (SqlAccessor accessor : values()) {
-            if (klass.isAssignableFrom(accessor.klass)) {
+            if (!klass.equals(Object.class) && klass.isAssignableFrom(accessor.klass)) {
                 return accessor;
             }
         }
