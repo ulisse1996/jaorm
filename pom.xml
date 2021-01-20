@@ -19,6 +19,8 @@
         <maven.compiler.target>8</maven.compiler.target>
         <junit-jupiter-engine.version>5.7.0</junit-jupiter-engine.version>
         <mockito.version>3.7.7</mockito.version>
+        <sonar.projectKey>ulisse1996_JAORM</sonar.projectKey>
+        <sonar.moduleKey>${project.groupId}:${project.artifactId}</sonar.moduleKey>
         <sonar.organization>ulisse1996</sonar.organization>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
     </properties>
