@@ -10,14 +10,14 @@ import java.util.ServiceLoader;
 
 class ServiceFinderTest {
 
-    @SuppressWarnings("rawtypes")
+    @SuppressWarnings({"rawtypes", "unchecked"})
     @Test
     void should_not_find_services() {
         ServiceLoader<?> loader = Mockito.mock(ServiceLoader.class);
         Mockito.when(loader.iterator())
                 .thenReturn(Collections.emptyIterator());
         try (MockedStatic<ServiceLoader> mk = Mockito.mockStatic(ServiceLoader.class)) {
-            mk.when(() -> ServiceLoader.load(Mockito.any(), Mockito.any()))
+            mk.when(() -> ServiceLoader.load(Mockito.any(Class.class), Mockito.any()))
                     .thenReturn(loader);
             Assertions.assertFalse(ServiceFinder.loadServices(Object.class).iterator().hasNext());
         }
