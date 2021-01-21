@@ -24,7 +24,7 @@
         <sonar.organization>ulisse1996</sonar.organization>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
         <jacoco-maven-plugin.version>0.8.6</jacoco-maven-plugin.version>
-        <sonar.coverage.jacoco.xmlReportPaths>/jaorm/target/site/jacoco-aggregate/jacoco.xml,/jaorm-common/target/site/jacoco-aggregate/jacoco.xml,/jaorm-processor/target/site/jacoco-aggregate/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
+        <sonar.coverage.jacoco.xmlReportPaths>./jaorm/target/site/jacoco-aggregate/jacoco.xml,./jaorm-common/target/site/jacoco-aggregate/jacoco.xml,./jaorm-processor/target/site/jacoco-aggregate/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
     </properties>
 
     <dependencies>
