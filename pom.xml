@@ -24,6 +24,7 @@
         <sonar.organization>ulisse1996</sonar.organization>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
         <jacoco-maven-plugin.version>0.8.6</jacoco-maven-plugin.version>
+        <aggregate.report.dir>jaorm/target/site/jacoco-aggregate/jacoco.xml</aggregate.report.dir>
     </properties>
 
     <dependencies>
@@ -65,21 +66,11 @@
                 <plugin>
                     <groupId>org.jacoco</groupId>
                     <artifactId>jacoco-maven-plugin</artifactId>
-                    <version>0.8.5</version>
                     <executions>
                         <execution>
-                            <id>prepare-agent</id>
-                            <phase>initialize</phase>
                             <goals>
                                 <goal>prepare-agent</goal>
                             </goals>
-                        </execution>
-                        <execution>
-                            <id>report</id>
-                            <goals>
-                                <goal>report-aggregate</goal>
-                            </goals>
-                            <phase>verify</phase>
                         </execution>
                     </executions>
                 </plugin>
