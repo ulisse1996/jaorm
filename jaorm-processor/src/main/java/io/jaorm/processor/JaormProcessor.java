@@ -8,15 +8,11 @@ import io.jaorm.processor.annotation.Table;
 import io.jaorm.processor.exception.ProcessorException;
 import io.jaorm.processor.util.MethodUtils;
 
-import javax.annotation.processing.AbstractProcessor;
-import javax.annotation.processing.RoundEnvironment;
-import javax.annotation.processing.SupportedAnnotationTypes;
-import javax.annotation.processing.SupportedSourceVersion;
+import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
-import javax.tools.Diagnostic;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -39,15 +35,10 @@ public class JaormProcessor extends AbstractProcessor {
                 .stream()
                 .map(TypeElement.class::cast)
                 .collect(Collectors.toSet());
-        try {
-            new EntitiesBuilder(processingEnv, entities).process();
-            new QueriesBuilder(processingEnv, types).process();
-            if (!entities.isEmpty()) {
-                buildDelegates(entities);
-            }
-        } catch (Exception ex) {
-            processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, ex.getMessage());
-            return false;
+        new EntitiesBuilder(processingEnv, entities).process();
+        new QueriesBuilder(processingEnv, types).process();
+        if (!entities.isEmpty()) {
+            buildDelegates(entities);
         }
         return true;
     }

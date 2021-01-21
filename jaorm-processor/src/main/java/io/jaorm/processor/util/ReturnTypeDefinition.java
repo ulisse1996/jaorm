@@ -13,7 +13,6 @@ public class ReturnTypeDefinition {
 
     private boolean collection;
     private boolean optional;
-    private final boolean plain;
     private TypeElement realClass;
 
     public ReturnTypeDefinition(ProcessingEnvironment processingEnvironment, TypeMirror typeMirror) {
@@ -28,8 +27,8 @@ public class ReturnTypeDefinition {
                 this.realClass = asElement(processingEnvironment, regex, typeName);
             }
         }
-        this.plain = !optional && !collection;
-        if (this.plain) {
+        boolean plain = !optional && !collection;
+        if (plain) {
             this.realClass = (TypeElement) processingEnvironment.getTypeUtils().asElement(typeMirror);
         }
     }
@@ -49,9 +48,5 @@ public class ReturnTypeDefinition {
 
     public boolean isOptional() {
         return optional;
-    }
-
-    public boolean isPlain() {
-        return plain;
     }
 }

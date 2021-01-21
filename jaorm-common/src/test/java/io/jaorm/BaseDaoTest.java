@@ -8,11 +8,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
-import org.mockito.internal.verification.NoInteractions;
-import org.mockito.verification.VerificationMode;
 
 import java.util.Collections;
 import java.util.List;

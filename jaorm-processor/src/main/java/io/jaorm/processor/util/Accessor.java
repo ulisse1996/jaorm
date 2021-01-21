@@ -23,7 +23,7 @@ public class Accessor {
     private TypeMirror beforeConvertKlass;
 
     public Accessor(ProcessingEnvironment processingEnv, String name,
-                    Map.Entry<ExecutableElement, ExecutableElement> accessor, boolean key, Converter converter) throws ProcessorException {
+                    Map.Entry<ExecutableElement, ExecutableElement> accessor, boolean key, Converter converter) {
         this.name = name;
         this.getterSetter = accessor;
         this.key = key;
@@ -39,7 +39,7 @@ public class Accessor {
         }
     }
 
-    private void checkConverter(ProcessingEnvironment processingEnv, TypeMirror klass) throws ProcessorException {
+    private void checkConverter(ProcessingEnvironment processingEnv, TypeMirror klass) {
         this.getterSetter.getKey().getReturnType();
         // Second argument must be same as return type of getter
         TypeElement typeElement = (TypeElement) processingEnv.getTypeUtils().asElement(klass);
