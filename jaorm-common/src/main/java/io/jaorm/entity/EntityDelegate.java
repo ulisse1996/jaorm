@@ -9,6 +9,7 @@ public interface EntityDelegate<T> {
     Supplier<T> getEntityInstance();
     EntityMapper<T> getEntityMapper();
     void setEntity(ResultSet rs) throws SQLException;
+    void setFullEntity(T entity);
     String getBaseSql();
     String getKeysWhere();
     String getInsertSql();

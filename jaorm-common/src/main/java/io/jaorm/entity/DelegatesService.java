@@ -13,6 +13,15 @@ public abstract class DelegatesService {
     }
 
     @SuppressWarnings("unchecked")
+    public <R extends EntityDelegate<?>, T> Supplier<R> searchDelegate(T entity) {
+        if (EntityDelegate.class.isAssignableFrom(entity.getClass())) {
+            return () -> (R) entity; // We have entity delegate as input
+        }
+
+        return searchDelegate(entity.getClass());
+    }
+
+    @SuppressWarnings("unchecked")
     public <R extends EntityDelegate<?>> Supplier<R> searchDelegate(Class<?> entity) {
         return (Supplier<R>) getDelegates().entrySet().stream().filter(del -> !del.getKey().equals(Object.class) && del.getKey().isAssignableFrom(entity))
                 .findFirst()
@@ -22,13 +31,13 @@ public abstract class DelegatesService {
 
     @SuppressWarnings("unchecked")
     public <R> Arguments asWhere(R entity) {
-        EntityDelegate<R> entityDelegate = (EntityDelegate<R>) searchDelegate(entity.getClass()).get();
+        EntityDelegate<R> entityDelegate = (EntityDelegate<R>) searchDelegate(entity).get();
         return entityDelegate.getEntityMapper().getKeys(entity);
     }
 
     @SuppressWarnings("unchecked")
     public <R> Arguments asArguments(R entity) {
-        EntityDelegate<R> entityDelegate = (EntityDelegate<R>) searchDelegate(entity.getClass()).get();
+        EntityDelegate<R> entityDelegate = (EntityDelegate<R>) searchDelegate(entity).get();
         return entityDelegate.getEntityMapper().getColumns(entity);
     }
 

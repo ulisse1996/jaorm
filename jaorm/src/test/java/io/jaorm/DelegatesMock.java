@@ -11,7 +11,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.function.Supplier;
 
-public class DelegatesImpl extends DelegatesService {
+public class DelegatesMock extends DelegatesService {
 
     @Override
     protected Map<Class<?>, Supplier<? extends EntityDelegate<?>>> getDelegates() {
@@ -70,6 +70,11 @@ public class DelegatesImpl extends DelegatesService {
         @Override
         public void setEntity(ResultSet rs) throws SQLException {
             this.entity = toEntity(rs);
+        }
+
+        @Override
+        public void setFullEntity(MyEntity entity) {
+            this.entity = entity;
         }
 
         @Override

@@ -6,11 +6,10 @@ import io.jaorm.entity.*;
 import io.jaorm.entity.sql.SqlAccessor;
 import io.jaorm.entity.sql.SqlParameter;
 import io.jaorm.processor.annotation.*;
-import io.jaorm.processor.annotation.Relationship;
 import io.jaorm.processor.exception.ProcessorException;
 import io.jaorm.processor.util.Accessor;
-import io.jaorm.processor.util.ParameterConverter;
 import io.jaorm.processor.util.MethodUtils;
+import io.jaorm.processor.util.ParameterConverter;
 import io.jaorm.processor.util.ReturnTypeDefinition;
 
 import javax.annotation.processing.ProcessingEnvironment;
@@ -109,6 +108,12 @@ public class EntitiesBuilder {
         MethodSpec setEntity = MethodSpec.overriding(MethodUtils.getMethod(processingEnv, "setEntity", EntityDelegate.class))
                 .addStatement("this.entity = toEntity($L)", extractParameterNames(MethodUtils.getMethod(processingEnv, "setEntity", EntityDelegate.class)))
                 .build();
+        MethodSpec setEntityObj = MethodSpec.methodBuilder("setFullEntity")
+                .addAnnotation(Override.class)
+                .addModifiers(Modifier.PUBLIC)
+                .addParameter(ClassName.get(entity), "entity")
+                .addStatement("this.entity = entity")
+                .build();
         MethodSpec baseSql = MethodSpec.overriding(MethodUtils.getMethod(processingEnv, "getBaseSql", EntityDelegate.class))
                 .addStatement("return BASE_SQL")
                 .build();
@@ -118,7 +123,7 @@ public class EntitiesBuilder {
         MethodSpec insertSql = MethodSpec.overriding(MethodUtils.getMethod(processingEnv, "getInsertSql", EntityDelegate.class))
                 .addStatement("return INSERT_SQL")
                 .build();
-        return Stream.of(supplierEntity, entityMapper, setEntity, baseSql, keysWhere, insertSql)
+        return Stream.of(supplierEntity, entityMapper, setEntity, setEntityObj, baseSql, keysWhere, insertSql)
                 .collect(Collectors.toList());
     }
 

@@ -74,25 +74,26 @@ public class QueriesBuilder {
         ClassName className = ClassName.bestGuess(realClass);
         MethodSpec read = MethodSpec.overriding(MethodUtils.getMethod(processingEnvironment, "read", BaseDao.class))
                 .returns(className)
-                .addStatement("return $T.getInstance($T.class).read($T.class, $T.getCurrent().getSql($T.class), argumentsAsParameters($L))",
+                .addStatement("return $T.getInstance($T.class).read($T.class, $T.getCurrent().getSql($T.class), argumentsAsParameters($L.getValues()))",
                         QueryRunner.class, className, className, DelegatesService.class, className, "arg0")
                 .build();
         MethodSpec readOpt = MethodSpec.overriding(MethodUtils.getMethod(processingEnvironment, "readOpt", BaseDao.class))
                 .returns(ParameterizedTypeName.get(ClassName.get(Optional.class), className))
-                .addStatement("return $T.getInstance($T.class).readOpt($T.class, $T.getCurrent().getSql($T.class), argumentsAsParameters($L))",
+                .addStatement("return $T.getInstance($T.class).readOpt($T.class, $T.getCurrent().getSql($T.class), argumentsAsParameters($L.getValues()))",
                         QueryRunner.class, className, className, DelegatesService.class, className, "arg0")
                 .build();
         MethodSpec readAll = MethodSpec.overriding(MethodUtils.getMethod(processingEnvironment, "readAll", BaseDao.class))
                 .returns(ParameterizedTypeName.get(ClassName.get(List.class), className))
-                .addStatement("return $T.getInstance($T.class).readAll($T.class, $T.getCurrent().getSql($T.class), argumentsAsParameters($L))",
+                .addStatement("return $T.getInstance($T.class).readAll($T.class, $T.getCurrent().getSql($T.class), argumentsAsParameters($L.getValues()))",
                         QueryRunner.class, className, className, DelegatesService.class, className, "arg0")
                 .build();
         MethodSpec update = MethodSpec.overriding(MethodUtils.getMethod(processingEnvironment, "update", BaseDao.class))
-                .addStatement("$T.getInstance($T.class).update($T.getCurrent().getSql($T.class), argumentsAsParameters($L.addAll($L)))",
-                        QueryRunner.class, className, DelegatesService.class, className, "arg0", "arg1")
+                .addStatement("Object[] merged = $T.of(arg0, arg1).toArray()", Stream.class)
+                .addStatement("$T.getInstance($T.class).update($T.getCurrent().getSql($T.class), argumentsAsParameters(merged))",
+                        QueryRunner.class, className, DelegatesService.class, className)
                 .build();
         MethodSpec delete = MethodSpec.overriding(MethodUtils.getMethod(processingEnvironment, "delete", BaseDao.class))
-                .addStatement("$T.getInstance($T.class).delete($T.getCurrent().getSql($T.class), argumentsAsParameters($L))",
+                .addStatement("$T.getInstance($T.class).delete($T.getCurrent().getSql($T.class), argumentsAsParameters($L.getValues()))",
                         QueryRunner.class, className, DelegatesService.class, className, "arg0")
                 .build();
         return Stream.of(read, readOpt, readAll, update, delete).collect(Collectors.toList());

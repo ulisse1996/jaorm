@@ -1,6 +1,5 @@
 package io.jaorm.entity;
 
-import io.jaorm.ArgumentPair;
 import io.jaorm.Arguments;
 import io.jaorm.entity.sql.SqlAccessor;
 
@@ -53,26 +52,23 @@ public class EntityMapper<T> {
 
 
     public Arguments getAllColumns(T entity) {
-        return Arguments.of(
-                mappers.stream()
-                    .map(c -> ArgumentPair.of(c.name, c.getter.apply(entity)))
-        );
+        return Arguments.values(mappers.stream()
+            .map(c -> c.getter.apply(entity))
+            .toArray(Object[]::new));
     }
 
     public Arguments getKeys(final T entity) {
-        return Arguments.of(
-                mappers.stream()
-                    .filter(c -> c.key)
-                    .map(c -> ArgumentPair.of(c.name, c.getter.apply(entity)))
-        );
+        return Arguments.values(mappers.stream()
+            .filter(c -> c.key)
+            .map(c -> c.getter.apply(entity))
+            .toArray(Object[]::new));
     }
 
     public Arguments getColumns(final T entity) {
-        return Arguments.of(
-                mappers.stream()
-                    .filter(c -> !c.key)
-                    .map(c -> ArgumentPair.of(c.name, c.getter.apply(entity)))
-        );
+        return Arguments.values(mappers.stream()
+            .filter(c -> !c.key)
+            .map(c -> c.getter.apply(entity))
+            .toArray());
     }
 
     public T map(Supplier<T> entitySupplier, ResultSet rs) throws SQLException {

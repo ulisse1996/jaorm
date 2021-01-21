@@ -87,8 +87,12 @@ public class EntityQueryRunner implements QueryRunner {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <R> R insert(R entity, String query, List<SqlParameter> params) {
         doUpdate(query, params);
+        Supplier<EntityDelegate<?>> delegateSupplier = DelegatesService.getCurrent().searchDelegate(entity.getClass());
+        EntityDelegate<R> delegate = (EntityDelegate<R>) delegateSupplier.get();
+        delegate.setFullEntity(entity);
         return entity;
     }
 
