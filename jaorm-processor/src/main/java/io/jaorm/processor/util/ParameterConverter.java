@@ -10,7 +10,9 @@ public enum ParameterConverter {
     BOOLEAN(Boolean::valueOf),
     BIG_DECIMAL(BigDecimal::new),
     BIG_INTEGER(BigInteger::new),
-    INTEGER(Integer::valueOf);
+    INTEGER(Integer::valueOf),
+    FLOAT(Float::valueOf),
+    DOUBLE(Double::valueOf);
 
     private final Function<String, ?> mapper;
 

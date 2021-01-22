@@ -1,11 +1,13 @@
 package io.test;
 
 import io.jaorm.processor.annotation.Column;
+import io.jaorm.processor.annotation.Id;
 import io.jaorm.processor.annotation.Table;
 
 @Table(name = "TABLE")
 public class SimpleEntity {
 
+    @Id
     @Column(name = "COL1")
     private String col1;
 

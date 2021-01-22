@@ -20,7 +20,7 @@ import java.util.stream.IntStream;
 
 public enum QueryStrategy implements ParametersStrategy {
 
-    WILDCARD() {
+    WILDCARD(null) {
         @Override
         public boolean isValid(String query) {
             return Pattern.compile("\\?\\B").matcher(query).find();
@@ -51,36 +51,33 @@ public enum QueryStrategy implements ParametersStrategy {
             return query;
         }
     },
-    NAMED {
-
-        private static final String REGEX = ":\\w*";
+    NAMED(":\\w*") {
 
         @Override
         public boolean isValid(String query) {
-            return Pattern.compile(REGEX).matcher(query).find();
+            return Pattern.compile(getRegex()).matcher(query).find();
         }
 
         @Override
         public int getParamNumber(String query) {
-            return new HashSet<>(getWords(REGEX, query)).size();
+            return new HashSet<>(getWords(getRegex(), query)).size();
         }
 
         @Override
         public List<CodeBlock> extract(ProcessingEnvironment procEnv, String query, ExecutableElement method) {
-            return getCodeBlocks(REGEX, query, method);
+            return getCodeBlocks(getRegex(), query, method);
         }
 
         @Override
         public String replaceQuery(String query) {
-            return Pattern.compile(REGEX).matcher(query).replaceAll("?");
+            return Pattern.compile(getRegex()).matcher(query).replaceAll("?");
         }
     },
-    ORDERED_WILDCARD {
-        private static final String REGEX = "(\\?\\d*)";
+    ORDERED_WILDCARD("(\\?\\d*)") {
 
         @Override
         public boolean isValid(String query) {
-            return Pattern.compile(REGEX).matcher(query).find();
+            return Pattern.compile(getRegex()).matcher(query).find();
         }
 
         @Override
@@ -91,7 +88,7 @@ public enum QueryStrategy implements ParametersStrategy {
 
         private List<Integer> getNumbers(String query) {
             List<Integer> num = new ArrayList<>();
-            Matcher matcher = Pattern.compile(REGEX).matcher(query);
+            Matcher matcher = Pattern.compile(getRegex()).matcher(query);
             while (matcher.find()) {
                 num.add(Integer.valueOf(matcher.group().substring(1)));
             }
@@ -112,33 +109,41 @@ public enum QueryStrategy implements ParametersStrategy {
 
         @Override
         public String replaceQuery(String query) {
-            return Pattern.compile(REGEX).matcher(query).replaceAll("?");
+            return Pattern.compile(getRegex()).matcher(query).replaceAll("?");
         }
     },
-    AT_NAMED {
-
-        private static final String REGEX = "@\\w*";
+    AT_NAMED("@\\w*") {
 
         @Override
         public boolean isValid(String query) {
-            return Pattern.compile(REGEX).matcher(query).find();
+            return Pattern.compile(getRegex()).matcher(query).find();
         }
 
         @Override
         public int getParamNumber(String query) {
-            return new HashSet<>(QueryStrategy.getWords(REGEX, query)).size();
+            return new HashSet<>(QueryStrategy.getWords(getRegex(), query)).size();
         }
 
         @Override
         public List<CodeBlock> extract(ProcessingEnvironment procEnv, String query, ExecutableElement method) {
-            return getCodeBlocks(REGEX, query, method);
+            return getCodeBlocks(getRegex(), query, method);
         }
 
         @Override
         public String replaceQuery(String query) {
-            return Pattern.compile(REGEX).matcher(query).replaceAll("?");
+            return Pattern.compile(getRegex()).matcher(query).replaceAll("?");
         }
     };
+
+    private final String regex;
+
+    QueryStrategy(String regex) {
+        this.regex = regex;
+    }
+
+    public String getRegex() {
+        return regex;
+    }
 
     private static VariableElement getVariableElement(ExecutableElement method, String s) {
         return method.getParameters()
@@ -154,7 +159,7 @@ public enum QueryStrategy implements ParametersStrategy {
                 .orElseThrow(() -> new ProcessorException("Can't find parameter with name " + s));
     }
 
-    private static List<String> getWords(String regex, String query) {
+    static List<String> getWords(String regex, String query) {
         List<String> foundWords = new ArrayList<>();
         Matcher matcher = Pattern.compile(regex).matcher(query);
         while (matcher.find()) {
