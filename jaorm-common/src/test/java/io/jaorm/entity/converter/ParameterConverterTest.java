@@ -1,4 +1,4 @@
-package io.jaorm.processor.util;
+package io.jaorm.entity.converter;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
