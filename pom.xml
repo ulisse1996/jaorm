@@ -12,6 +12,7 @@
         <module>jaorm-processor</module>
         <module>jaorm-common</module>
         <module>jaorm</module>
+        <module>jaorm-test</module>
     </modules>
 
     <properties>
@@ -24,7 +25,7 @@
         <sonar.organization>ulisse1996</sonar.organization>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
         <jacoco-maven-plugin.version>0.8.6</jacoco-maven-plugin.version>
-        <aggregate.report.dir>jaorm/target/site/jacoco-aggregate/jacoco.xml</aggregate.report.dir>
+        <aggregate.report.dir>jaorm-test/target/site/jacoco-aggregate/jacoco.xml</aggregate.report.dir>
     </properties>
 
     <dependencies>
