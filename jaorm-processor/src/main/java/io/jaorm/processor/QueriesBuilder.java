@@ -43,6 +43,9 @@ public class QueriesBuilder {
                     methods.add(methodSpec);
                 }
             }
+
+            List<AnnotationSpec> annotations = getExtraAnnotations(query);
+
             if (isBaseDao(query)) {
                 methods.addAll(buildBaseDao(query));
             }
@@ -50,6 +53,7 @@ public class QueriesBuilder {
             String packageName = getPackage(query);
             TypeSpec build = TypeSpec.classBuilder(query.getSimpleName() + "Impl")
                     .addModifiers(Modifier.PUBLIC)
+                    .addAnnotations(annotations)
                     .addSuperinterface(query.asType())
                     .addMethods(methods)
                     .build();
@@ -63,6 +67,13 @@ public class QueriesBuilder {
                 throw new ProcessorException(ex);
             }
         }
+    }
+
+    private List<AnnotationSpec> getExtraAnnotations(TypeElement query) {
+        return query.getAnnotationMirrors()
+                .stream()
+                .map(AnnotationSpec::get)
+                .collect(Collectors.toList());
     }
 
     private String getPackage(TypeElement entity) {
