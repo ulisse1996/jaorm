@@ -95,3 +95,27 @@ public interface UserDao extends BaseDao<User> {
 ### Cache
 
 ### Query DSL
+
+Query DSL is an abstraction over simple SQL Queries using a DSL.
+It can be combined with Query annotated implementation or used in a stand-alone class
+
+```java
+
+public class TestDSL {
+    Jaorm.select(Entity.class)
+        .where("COL1").eq(2)
+        .where("COL1").ne(3)
+        .where("COL1").lt(4)
+        .where("COL1").gt(5)
+        .where("COL1").le(6)
+        .where("COL1").ge(7)
+        .where("COL1").isNull()
+        .where("COL1").isNotNull()
+        .where("COL1").in(Arrays.asList(1, 2, 3))
+        .where("COL1").notIn(Arrays.asList(1,2,3))
+        .where("COL1").like(LikeType.FULL,"TEST")
+        .read();
+        // reaOpt();
+        // readAll();
+}
+```
