@@ -13,6 +13,7 @@
         <module>jaorm-common</module>
         <module>jaorm</module>
         <module>jaorm-test</module>
+        <module>jaorm-dsl</module>
     </modules>
 
     <properties>

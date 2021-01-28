@@ -13,6 +13,8 @@ public interface EntityDelegate<T> {
     String getBaseSql();
     String getKeysWhere();
     String getInsertSql();
+    String[] getSelectables();
+    String getTable();
     default T toEntity(ResultSet rs) throws SQLException {
         return getEntityMapper().map(getEntityInstance(), rs);
     }

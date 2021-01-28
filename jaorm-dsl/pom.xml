@@ -9,39 +9,21 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>jaorm-test</artifactId>
+    <artifactId>jaorm-dsl</artifactId>
 
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
-        <javapoet.version>1.13.0</javapoet.version>
-        <compile-testing.version>0.19</compile-testing.version>
         <sonar.coverage.jacoco.xmlReportPaths>${project.basedir}/../${aggregate.report.dir}</sonar.coverage.jacoco.xmlReportPaths>
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>io.jaorm</groupId>
-            <artifactId>jaorm</artifactId>
-            <version>0.1.0</version>
-        </dependency>
-        <dependency>
-            <groupId>io.jaorm</groupId>
             <artifactId>jaorm-common</artifactId>
             <version>0.1.0</version>
         </dependency>
-        <dependency>
-            <groupId>io.jaorm</groupId>
-            <artifactId>jaorm-processor</artifactId>
-            <version>0.1.0</version>
-        </dependency>
-        <dependency>
-            <groupId>io.jaorm</groupId>
-            <artifactId>jaorm-dsl</artifactId>
-            <version>0.1.0</version>
-        </dependency>
     </dependencies>
-
 
     <build>
         <plugins>
@@ -58,23 +40,6 @@
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.8.5</version>
-                <executions>
-                    <execution>
-                        <id>prepare-agent</id>
-                        <phase>initialize</phase>
-                        <goals>
-                            <goal>prepare-agent</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>report</id>
-                        <goals>
-                            <goal>report-aggregate</goal>
-                        </goals>
-                        <phase>verify</phase>
-                    </execution>
-                </executions>
             </plugin>
         </plugins>
     </build>

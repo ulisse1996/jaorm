@@ -123,7 +123,13 @@ public class EntitiesBuilder {
         MethodSpec insertSql = MethodSpec.overriding(MethodUtils.getMethod(processingEnv, "getInsertSql", EntityDelegate.class))
                 .addStatement("return INSERT_SQL")
                 .build();
-        return Stream.of(supplierEntity, entityMapper, setEntity, setEntityObj, baseSql, keysWhere, insertSql)
+        MethodSpec selectables = MethodSpec.overriding(MethodUtils.getMethod(processingEnv, "getSelectables", EntityDelegate.class))
+                .addStatement("return Column.getSelectables().replace($S,$S).replace($S,$S).split($S)", "(", "", ")", "", ",")
+                .build();
+        MethodSpec table = MethodSpec.overriding(MethodUtils.getMethod(processingEnv, "getTable", EntityDelegate.class))
+                .addStatement("return TABLE")
+                .build();
+        return Stream.of(supplierEntity, entityMapper, setEntity, setEntityObj, baseSql, keysWhere, insertSql, selectables, table)
                 .collect(Collectors.toList());
     }
 

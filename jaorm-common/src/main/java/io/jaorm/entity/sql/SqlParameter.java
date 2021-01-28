@@ -10,6 +10,15 @@ public class SqlParameter {
         this.accessor = accessor;
     }
 
+    public SqlParameter(Object val) {
+        this.val = val;
+        if (val != null) {
+            this.accessor = SqlAccessor.find(val.getClass()).getSetter();
+        } else {
+            this.accessor = SqlAccessor.NULL.getSetter();
+        }
+    }
+
     public Object getVal() {
         return val;
     }

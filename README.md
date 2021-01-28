@@ -11,7 +11,7 @@ Just Another Object-Relational Mapping
 JAORM is a lightweight modular compile-time based Java ORM.
 
 JAORM use **javax.annotation.processing.Processor** for Entity Mapping Generation instead of
-**Runtime Reflection API-based** mappers that have high performance cost.
+**Runtime Reflection API-based** mappers which have high performance cost.
 
 JAORM is divided in modules that are used from main module using **Java SPI**
 
@@ -20,7 +20,7 @@ JAORM is divided in modules that are used from main module using **Java SPI**
 - [Entity Mapper](#Entity)
 - [Query Mapper](#Query)
 - [Cache](#Cache) (Optional)
-- [DSL](#DSL) (Optional)
+- [DSL](#Query-DSL) (Optional)
 
 ### Entity
 
@@ -94,4 +94,4 @@ public interface UserDao extends BaseDao<User> {
 ```
 ### Cache
 
-### DSL
+### Query DSL

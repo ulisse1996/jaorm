@@ -91,5 +91,15 @@ public class DelegatesMock extends DelegatesService {
         public String getInsertSql() {
             return "INSERT INTO MYENTITY (FIELD1, FIELD2) VALUES (?,?)";
         }
+
+        @Override
+        public String[] getSelectables() {
+            return new String[] {"FIELD1", "FIELD2"};
+        }
+
+        @Override
+        public String getTable() {
+            return "MYENTITY";
+        }
     }
 }

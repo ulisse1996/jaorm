@@ -78,7 +78,7 @@ public class JaormProcessor extends AbstractProcessor {
 
     private MethodSpec delegateConstructor(Set<TypeElement> types) {
         MethodSpec.Builder builder = MethodSpec.constructorBuilder()
-                .addModifiers(Modifier.PRIVATE)
+                .addModifiers(Modifier.PUBLIC)
                 .addStatement("$T values = new $T<>()", delegatesMap(), HashMap.class);
         types.forEach(type -> builder.addStatement("values.put($L.class, $LDelegate::new)", type.getQualifiedName(), type.getQualifiedName()));
         builder.addStatement("this.delegates = values");
