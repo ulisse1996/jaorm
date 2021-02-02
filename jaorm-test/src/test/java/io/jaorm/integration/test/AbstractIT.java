@@ -1,9 +1,13 @@
 package io.jaorm.integration.test;
 
+import io.jaorm.ServiceFinder;
 import io.jaorm.entity.sql.DataSourceProvider;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.provider.Arguments;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -16,9 +20,30 @@ import java.util.stream.Stream;
 
 public abstract class AbstractIT {
 
+    private static MockedStatic<ServiceFinder> mk;
+
     @BeforeAll
     public static void setup() {
         HSQLDBProvider.clear();
+        // Mock for JDK11
+        mk = Mockito.mockStatic(ServiceFinder.class);
+        mk.when(ServiceFinder.loadService(Mockito.any()))
+                .then(invocation -> {
+                    try {
+                        return invocation.callRealMethod();
+                    } catch (Exception ex) {
+                        if (invocation.getArgument(0).equals(DataSourceProvider.class)) {
+                            return new HSQLDBProvider();
+                        }
+
+                        return null;
+                    }
+                });
+    }
+
+    @AfterAll
+    public static void closeMock() {
+        mk.close();
     }
 
     protected void setDataSource(HSQLDBProvider.DatabaseType type, String initSql) {
