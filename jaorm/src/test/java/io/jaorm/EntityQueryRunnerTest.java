@@ -234,7 +234,7 @@ class EntityQueryRunnerTest {
     }
 
     @Test
-    void should_return_same_entity_after_insert() {
+    void should_not_return_same_entity_after_insert() {
         try {
             DelegatesMock.MyEntity expected = new DelegatesMock.MyEntity();
             expected.setField1("OK");
@@ -245,7 +245,7 @@ class EntityQueryRunnerTest {
             Mockito.when(connection.prepareStatement(Mockito.anyString()))
                     .thenReturn(preparedStatement);
             DelegatesMock.MyEntity result = testSubject.insert(expected, "QUERY", Collections.emptyList());
-            Assertions.assertEquals(expected, result);
+            Assertions.assertNotEquals(expected, result);
         } catch (SQLException | JaormSqlException ex) {
             Assertions.fail(ex);
         }

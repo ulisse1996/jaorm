@@ -66,6 +66,14 @@ class QueriesBuilderTest {
         Assertions.assertEquals(Compilation.Status.SUCCESS, compilation.status());
     }
 
+    @Test
+    void should_compile_queries_with_base_dao_and_without_custom_methods() {
+        Compilation compilation = Compiler.javac()
+                .withProcessors(new JaormProcessor())
+                .compile(getClass("/entities/SimpleEntity.java"), getClass("/queries/QueryWithBaseDaoWithoutCustomMethods.java"));
+        Assertions.assertEquals(Compilation.Status.SUCCESS, compilation.status());
+    }
+
     public static Stream<Arguments> getQueries() {
         return Stream.of(
                 Arguments.arguments("with_wrong_param_number", "/queries/QueryWrongParam.java"),

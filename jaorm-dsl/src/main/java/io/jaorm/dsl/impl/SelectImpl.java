@@ -79,8 +79,8 @@ public class SelectImpl implements Select {
 
         Pair<String, List<SqlParameter>> buildSql() {
             List<SqlParameter> parameters = Collections.emptyList();
-            String select = "SELECT (" + String.join(", ", columns) + ") FROM " + from;
-            if (where.hasClauses()) {
+            String select = "SELECT " + String.join(", ", columns) + " FROM " + from;
+            if (where != null && where.hasClauses()) {
                 select += where.getSql();
                 parameters = where.getParameters();
             }

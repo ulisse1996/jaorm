@@ -78,6 +78,11 @@ public class DelegatesMock extends DelegatesService {
         }
 
         @Override
+        public MyEntity getEntity() {
+            return this.entity;
+        }
+
+        @Override
         public String getBaseSql() {
             return "SELECT FIELD1, FIELD2 FROM MYENTITY";
         }
@@ -100,6 +105,16 @@ public class DelegatesMock extends DelegatesService {
         @Override
         public String getTable() {
             return "MYENTITY";
+        }
+
+        @Override
+        public String getUpdateSql() {
+            return "UPDATE MYENTITY SET FIELD1 = ? , FIELD2 = ?";
+        }
+
+        @Override
+        public String getDeleteSql() {
+            return "DELETE MYENTITY WHERE FIELD1 = ?";
         }
     }
 }

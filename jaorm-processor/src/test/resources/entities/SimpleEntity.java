@@ -4,6 +4,8 @@ import io.jaorm.processor.annotation.Column;
 import io.jaorm.processor.annotation.Id;
 import io.jaorm.processor.annotation.Table;
 
+import java.util.Objects;
+
 @Table(name = "TABLE")
 public class SimpleEntity {
 
@@ -28,5 +30,18 @@ public class SimpleEntity {
 
     public void setCol2(String col2) {
         this.col2 = col2;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        SimpleEntity that = (SimpleEntity) o;
+        return Objects.equals(col1, that.col1) && Objects.equals(col2, that.col2);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(col1, col2);
     }
 }

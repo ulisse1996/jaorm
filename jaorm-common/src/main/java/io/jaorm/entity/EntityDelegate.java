@@ -10,11 +10,14 @@ public interface EntityDelegate<T> {
     EntityMapper<T> getEntityMapper();
     void setEntity(ResultSet rs) throws SQLException;
     void setFullEntity(T entity);
+    T getEntity();
     String getBaseSql();
     String getKeysWhere();
     String getInsertSql();
     String[] getSelectables();
     String getTable();
+    String getUpdateSql();
+    String getDeleteSql();
     default T toEntity(ResultSet rs) throws SQLException {
         return getEntityMapper().map(getEntityInstance(), rs);
     }

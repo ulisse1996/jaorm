@@ -33,7 +33,7 @@ class DelegatesServiceTest {
     @Test
     void should_return_sql() {
         String actual = testSubject.getSql(DelegatesMock.MyEntity.class);
-        Assertions.assertEquals("SELECT FIELD1, FIELD2 FROM MYENTITY WHERE 1 = 1", actual);
+        Assertions.assertEquals("SELECT FIELD1, FIELD2 FROM MYENTITY WHERE FIELD1 = ?", actual);
     }
 
     @Test
@@ -46,5 +46,41 @@ class DelegatesServiceTest {
     void should_return_insert_sql() {
         String actual = testSubject.getInsertSql(new DelegatesMock.MyEntity());
         Assertions.assertEquals("INSERT INTO MYENTITY (FIELD1, FIELD2) VALUES (?,?)", actual);
+    }
+
+    @Test
+    void should_find_delegate_from_entity() {
+        Supplier<?> delegate = testSubject.searchDelegate(new DelegatesMock.MyEntity());
+        Assertions.assertTrue(delegate.get() instanceof DelegatesMock.MyEntityDelegate);
+    }
+
+    @Test
+    void should_get_where_arguments() {
+        DelegatesMock.MyEntity entity = new DelegatesMock.MyEntity();
+        entity.setField1("TEST_FIELD");
+        Arguments arguments = testSubject.asWhere(entity);
+        Assertions.assertTrue(Arrays.equals(new Object[] {entity.getField1()}, arguments.getValues()));
+    }
+
+    @Test
+    void should_get_all_arguments() {
+        DelegatesMock.MyEntity entity = new DelegatesMock.MyEntity();
+        entity.setField1("TEST");
+        entity.setField2(BigDecimal.ONE);
+        Arguments arguments = testSubject.asArguments(entity);
+        Assertions.assertEquals(2, arguments.getValues().length);
+        Assertions.assertTrue(Arrays.equals(new Object[] {entity.getField1(), entity.getField2()}, arguments.getValues()));
+    }
+
+    @Test
+    void should_get_update_sql() {
+        String expected = "UPDATE MYENTITY SET FIELD FIELD1 = ?, FIELD2 = ? WHERE FIELD1 = ?";
+        Assertions.assertEquals(expected, testSubject.getUpdateSql(DelegatesMock.MyEntity.class));
+    }
+
+    @Test
+    void should_get_delete_sql() {
+        String expected = "DELETE MYENTITY WHERE FIELD1 = ?";
+        Assertions.assertEquals(expected, testSubject.getDeleteSql(DelegatesMock.MyEntity.class));
     }
 }

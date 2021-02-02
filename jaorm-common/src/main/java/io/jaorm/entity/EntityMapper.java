@@ -64,13 +64,6 @@ public class EntityMapper<T> {
             .toArray(Object[]::new));
     }
 
-    public Arguments getColumns(final T entity) {
-        return Arguments.values(mappers.stream()
-            .filter(c -> !c.key)
-            .map(c -> c.getter.apply(entity))
-            .toArray());
-    }
-
     public T map(Supplier<T> entitySupplier, ResultSet rs) throws SQLException {
         T entity = entitySupplier.get();
         for (ColumnMapper<T> mapper : mappers) {

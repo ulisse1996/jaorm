@@ -15,11 +15,11 @@ import java.util.stream.Stream;
 
 public interface BaseDao<R> {
 
-    R read(Arguments wheres);
-    Optional<R> readOpt(Arguments wheres);
-    List<R> readAll(Arguments where);
-    void update(Arguments arguments, Arguments where);
-    void delete(Arguments where);
+    R read(R entity);
+    Optional<R> readOpt(R entity);
+    R update(R entity);
+    void delete(R entity);
+    List<R> readAll();
 
     @SuppressWarnings("unchecked")
     default R insert(R entity) {
@@ -42,31 +42,6 @@ public interface BaseDao<R> {
         }
 
         return entity;
-    }
-
-    default R read(R entity) {
-        Objects.requireNonNull(entity);
-        return read(DelegatesService.getCurrent().asWhere(entity));
-    }
-
-    default Optional<R> readOpt(R entity) {
-        Objects.requireNonNull(entity);
-        return readOpt(DelegatesService.getCurrent().asWhere(entity));
-    }
-
-    default void update(Arguments arguments) {
-        update(arguments, Arguments.empty());
-    }
-
-    default R update(R entity) {
-        Objects.requireNonNull(entity);
-        update(DelegatesService.getCurrent().asArguments(entity), DelegatesService.getCurrent().asWhere(entity));
-        return entity;
-    }
-
-    default void delete(R entity) {
-        Objects.requireNonNull(entity);
-        delete(DelegatesService.getCurrent().asWhere(entity));
     }
 
     default List<R> update(List<R> entities) {

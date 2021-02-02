@@ -39,62 +39,6 @@ class BaseDaoTest {
     }
 
     @Test
-    void should_call_implemented_read() {
-        final MyDao dao = Mockito.spy(new MyDao());
-        dao.read(new DelegatesMock.MyEntity());
-
-        Mockito.verify(dao).read(Mockito.any(Arguments.class));
-    }
-
-    @Test
-    void should_call_implemented_read_Opt() {
-        final MyDao dao = Mockito.spy(new MyDao());
-        dao.readOpt(new DelegatesMock.MyEntity());
-
-        Mockito.verify(dao).readOpt(Mockito.any(Arguments.class));
-    }
-
-    @Test
-    void should_call_implemented_update() {
-        final MyDao dao = Mockito.spy(new MyDao());
-        dao.update(new DelegatesMock.MyEntity());
-
-        Mockito.verify(dao).update(Mockito.any(Arguments.class), Mockito.any(Arguments.class));
-    }
-
-    @Test
-    void should_call_implemented_update_without_keys() {
-        final MyDao dao = Mockito.spy(new MyDao());
-        dao.update(Arguments.empty());
-
-        Mockito.verify(dao).update(Mockito.any(Arguments.class), Mockito.any(Arguments.class));
-    }
-
-    @Test
-    void should_call_implemented_delete() {
-        final MyDao dao = Mockito.spy(new MyDao());
-        dao.delete(new DelegatesMock.MyEntity());
-
-        Mockito.verify(dao).delete(Mockito.any(Arguments.class));
-    }
-
-    @Test
-    void should_call_implemented_update_for_list() {
-        final MyDao dao = Mockito.spy(new MyDao());
-        dao.update(Collections.singletonList(new DelegatesMock.MyEntity()));
-
-        Mockito.verify(dao).update(Mockito.any(Arguments.class), Mockito.any(Arguments.class));
-    }
-
-    @Test
-    void should_call_implemented_delete_for_list() {
-        final MyDao dao = Mockito.spy(new MyDao());
-        dao.delete(Collections.singletonList(new DelegatesMock.MyEntity()));
-
-        Mockito.verify(dao).delete(Mockito.any(Arguments.class));
-    }
-
-    @Test
     void should_throw_persist_exception_for_pre_persist() {
         final DelegatesMock.MyEntity entity = Mockito.spy(new DelegatesMock.MyEntity());
         final MyDao dao = new MyDao();
@@ -171,14 +115,53 @@ class BaseDaoTest {
         }
     }
 
+    @Test
+    void should_do_correct_list_update() {
+        final MyDao dao = Mockito.spy(new MyDao());
+        final DelegatesMock.MyEntity entity = new DelegatesMock.MyEntity();
+        QueryRunner runner = Mockito.mock(QueryRunner.class);
+        DelegatesService delegates = Mockito.mock(DelegatesService.class);
+        try (MockedStatic<QueryRunner> mkRunner = Mockito.mockStatic(QueryRunner.class);
+             MockedStatic<DelegatesService> mkDelegates = Mockito.mockStatic(DelegatesService.class)) {
+            mkRunner.when(() -> QueryRunner.getInstance(Mockito.any()))
+                    .thenReturn(runner);
+            mkDelegates.when(DelegatesService::getCurrent)
+                    .thenReturn(delegates);
+            Mockito.when(delegates.getUpdateSql(Mockito.any()))
+                    .thenReturn("TEST");
+            Mockito.when(delegates.asArguments(Mockito.any()))
+                    .thenReturn(Arguments.empty());
+            Mockito.when(delegates.asWhere(Mockito.any()))
+                    .thenReturn(Arguments.empty());
+            dao.update(Collections.singletonList(entity));
+            Mockito.verify(dao).update(Mockito.any(DelegatesMock.MyEntity.class));
+        }
+    }
+
+    @Test
+    void should_do_correct_list_delete() {
+        final MyDao dao = Mockito.spy(new MyDao());
+        final DelegatesMock.MyEntity entity = new DelegatesMock.MyEntity();
+        QueryRunner runner = Mockito.mock(QueryRunner.class);
+        DelegatesService delegates = Mockito.mock(DelegatesService.class);
+        try (MockedStatic<QueryRunner> mkRunner = Mockito.mockStatic(QueryRunner.class);
+             MockedStatic<DelegatesService> mkDelegates = Mockito.mockStatic(DelegatesService.class)) {
+            mkRunner.when(() -> QueryRunner.getInstance(Mockito.any()))
+                    .thenReturn(runner);
+            mkDelegates.when(DelegatesService::getCurrent)
+                    .thenReturn(delegates);
+            Mockito.when(delegates.getDeleteSql(Mockito.any()))
+                    .thenReturn("TEST");
+            Mockito.when(delegates.asWhere(Mockito.any()))
+                    .thenReturn(Arguments.empty());
+            dao.delete(Collections.singletonList(entity));
+            Mockito.verify(dao).delete(Mockito.any(DelegatesMock.MyEntity.class));
+        }
+    }
+
     public static Stream<org.junit.jupiter.params.provider.Arguments> getNPEExecutables() {
         final MyDao thisDao = new MyDao();
         return Stream.of(
-                org.junit.jupiter.params.provider.Arguments.of((Executable)() -> thisDao.read((DelegatesMock.MyEntity) null)),
-                org.junit.jupiter.params.provider.Arguments.of((Executable)() -> thisDao.readOpt((DelegatesMock.MyEntity) null)),
-                org.junit.jupiter.params.provider.Arguments.of((Executable)() -> thisDao.update((DelegatesMock.MyEntity) null)),
-                org.junit.jupiter.params.provider.Arguments.of((Executable)() -> thisDao.insert((DelegatesMock.MyEntity) null)),
-                org.junit.jupiter.params.provider.Arguments.of((Executable)() -> thisDao.delete((DelegatesMock.MyEntity) null)),
                 org.junit.jupiter.params.provider.Arguments.of((Executable)() -> thisDao.update((List<DelegatesMock.MyEntity>) null)),
                 org.junit.jupiter.params.provider.Arguments.of((Executable)() -> thisDao.delete((List<DelegatesMock.MyEntity>) null)),
                 org.junit.jupiter.params.provider.Arguments.of((Executable)() -> thisDao.insert((List<DelegatesMock.MyEntity>) null))
@@ -188,27 +171,27 @@ class BaseDaoTest {
     private static class MyDao implements BaseDao<DelegatesMock.MyEntity> {
 
         @Override
-        public DelegatesMock.MyEntity read(Arguments wheres) {
+        public DelegatesMock.MyEntity read(DelegatesMock.MyEntity entity) {
             return null;
         }
 
         @Override
-        public Optional<DelegatesMock.MyEntity> readOpt(Arguments wheres) {
+        public Optional<DelegatesMock.MyEntity> readOpt(DelegatesMock.MyEntity myEntity) {
             return Optional.empty();
         }
 
         @Override
-        public List<DelegatesMock.MyEntity> readAll(Arguments where) {
+        public List<DelegatesMock.MyEntity> readAll() {
             return null;
         }
 
         @Override
-        public void update(Arguments arguments, Arguments where) {
-
+        public DelegatesMock.MyEntity update(DelegatesMock.MyEntity entity) {
+            return null;
         }
 
         @Override
-        public void delete(Arguments where) {
+        public void delete(DelegatesMock.MyEntity entity) {
 
         }
     }

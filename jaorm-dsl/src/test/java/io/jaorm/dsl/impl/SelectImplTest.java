@@ -42,7 +42,7 @@ class SelectImplTest {
     }
 
     public static Stream<Arguments> getSql() {
-        final String base = "SELECT (COL1, COL2, COL3) FROM TABLE";
+        final String base = "SELECT COL1, COL2, COL3 FROM TABLE";
         return Stream.of(
                 Arguments.arguments(
                         base + " WHERE (COL1 = ? AND COL2 = ?)",

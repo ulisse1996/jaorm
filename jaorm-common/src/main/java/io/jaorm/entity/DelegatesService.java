@@ -38,7 +38,7 @@ public abstract class DelegatesService {
     @SuppressWarnings("unchecked")
     public <R> Arguments asArguments(R entity) {
         EntityDelegate<R> entityDelegate = (EntityDelegate<R>) searchDelegate(entity).get();
-        return entityDelegate.getEntityMapper().getColumns(entity);
+        return entityDelegate.getEntityMapper().getAllColumns(entity);
     }
 
     public String getSql(Class<?> klass) {
@@ -50,7 +50,7 @@ public abstract class DelegatesService {
         return searchDelegate(klass).get().getBaseSql();
     }
 
-    public  <R> String getInsertSql(R entity) {
+    public <R> String getInsertSql(R entity) {
         EntityDelegate<?> delegate = searchDelegate(entity.getClass()).get();
         return delegate.getInsertSql();
     }
@@ -59,6 +59,16 @@ public abstract class DelegatesService {
     public <R> Arguments asInsert(R entity) {
         EntityDelegate<R> delegate = (EntityDelegate<R>) searchDelegate(entity.getClass()).get();
         return delegate.getEntityMapper().getAllColumns(entity);
+    }
+
+    public <R> String getUpdateSql(Class<R> entity) {
+        EntityDelegate<?> delegate = searchDelegate(entity).get();
+        return delegate.getUpdateSql() + delegate.getKeysWhere();
+    }
+
+    public <R> String getDeleteSql(Class<R> entity) {
+        EntityDelegate<?> delegate = searchDelegate(entity).get();
+        return delegate.getDeleteSql();
     }
 
     protected abstract Map<Class<?>, Supplier<? extends EntityDelegate<?>>> getDelegates(); //NOSONAR

@@ -93,7 +93,7 @@ public class EntityQueryRunner implements QueryRunner {
         Supplier<EntityDelegate<?>> delegateSupplier = DelegatesService.getCurrent().searchDelegate(entity.getClass());
         EntityDelegate<R> delegate = (EntityDelegate<R>) delegateSupplier.get();
         delegate.setFullEntity(entity);
-        return entity;
+        return (R) delegate;
     }
 
     @Override

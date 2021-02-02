@@ -24,6 +24,10 @@ import java.util.stream.Stream;
 public class EntitiesBuilder {
 
     private static final String COL_NAME = "colName";
+    private static final String REQUIRE_NON_NULL = "$T.requireNonNull(this.entity)";
+    private static final String BUILDER_INSTANCE = "$T builder = new $T()";
+    private static final String BUILDER_SIMPLE_APPEND = "builder.append($S)";
+    private static final String KEYS_WHERE = "KEYS_WHERE";
     private final Set<TypeElement> entities;
     private final ProcessingEnvironment processingEnv;
 
@@ -65,9 +69,23 @@ public class EntitiesBuilder {
         builder.addField(addBaseSql(entity));
         builder.addField(addKeysWhere());
         builder.addField(addInsertSql());
+        builder.addField(addUpdateSql());
+        builder.addField(addDeleteSql());
         builder.addMethods(buildDelegation(entity));
         builder.addMethods(buildOverrideEntity(entity));
         return builder.build();
+    }
+
+    private FieldSpec addDeleteSql() {
+        return FieldSpec.builder(String.class, "DELETE_SQL", Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
+                .initializer("$S + $L + $L", "DELETE ", "TABLE", KEYS_WHERE)
+                .build();
+    }
+
+    private FieldSpec addUpdateSql() {
+        return FieldSpec.builder(String.class, "UPDATE_SQL", Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
+                .initializer("Column.getUpdateSql()")
+                .build();
     }
 
     private FieldSpec addInsertSql() {
@@ -77,7 +95,7 @@ public class EntitiesBuilder {
     }
 
     private FieldSpec addKeysWhere() {
-        return FieldSpec.builder(String.class, "KEYS_WHERE", Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
+        return FieldSpec.builder(String.class, KEYS_WHERE, Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
                 .initializer("Column.getKeyWheres()")
                 .build();
     }
@@ -114,6 +132,12 @@ public class EntitiesBuilder {
                 .addParameter(ClassName.get(entity), "entity")
                 .addStatement("this.entity = entity")
                 .build();
+        MethodSpec getEntity = MethodSpec.methodBuilder("getEntity")
+                .addAnnotation(Override.class)
+                .addModifiers(Modifier.PUBLIC)
+                .returns(ClassName.get(entity))
+                .addStatement("return this.entity")
+                .build();
         MethodSpec baseSql = MethodSpec.overriding(MethodUtils.getMethod(processingEnv, "getBaseSql", EntityDelegate.class))
                 .addStatement("return BASE_SQL")
                 .build();
@@ -129,7 +153,16 @@ public class EntitiesBuilder {
         MethodSpec table = MethodSpec.overriding(MethodUtils.getMethod(processingEnv, "getTable", EntityDelegate.class))
                 .addStatement("return TABLE")
                 .build();
-        return Stream.of(supplierEntity, entityMapper, setEntity, setEntityObj, baseSql, keysWhere, insertSql, selectables, table)
+        MethodSpec updateSql = MethodSpec.overriding(MethodUtils.getMethod(processingEnv, "getUpdateSql", EntityDelegate.class))
+                .addStatement("return UPDATE_SQL")
+                .build();
+        MethodSpec deleteSql = MethodSpec.overriding(MethodUtils.getMethod(processingEnv, "getDeleteSql", EntityDelegate.class))
+                .addStatement("return DELETE_SQL")
+                .build();
+        return Stream.of(supplierEntity, entityMapper,
+                setEntity, setEntityObj, baseSql, keysWhere,
+                insertSql, selectables, table, updateSql,
+                getEntity, deleteSql)
                 .collect(Collectors.toList());
     }
 
@@ -148,8 +181,9 @@ public class EntitiesBuilder {
         builder.addField(boolean.class, "key", Modifier.PRIVATE, Modifier.FINAL);
         builder.addField(getEntityMapperType(entity), "ENTITY_MAPPER", Modifier.PRIVATE, Modifier.STATIC);
         builder.addField(String.class, "SELECTABLES", Modifier.PRIVATE, Modifier.STATIC);
-        builder.addField(String.class, "KEYS_WHERE", Modifier.PRIVATE, Modifier.STATIC);
+        builder.addField(String.class, KEYS_WHERE, Modifier.PRIVATE, Modifier.STATIC);
         builder.addField(String.class, "INSERT_SQL", Modifier.PRIVATE, Modifier.STATIC);
+        builder.addField(String.class, "UPDATE_SQL", Modifier.PRIVATE, Modifier.STATIC);
         builder.addMethod(addColumnConstructor(entity));
         for (Accessor accessor : accessors) {
             builder.addEnumConstant(accessor.getName(), enumImpl(accessor, entity));
@@ -190,6 +224,13 @@ public class EntitiesBuilder {
                 .build()
         );
         builder.addMethod(
+                MethodSpec.methodBuilder("getUpdateSql")
+                .returns(String.class)
+                .addModifiers(Modifier.STATIC, Modifier.SYNCHRONIZED)
+                .addCode(buildUpdateSql(entity.getAnnotation(Table.class).name()))
+                .build()
+        );
+        builder.addMethod(
                 MethodSpec.methodBuilder("findColumn")
                 .addModifiers(Modifier.PUBLIC)
                 .returns(ClassName.bestGuess("Column"))
@@ -201,13 +242,40 @@ public class EntitiesBuilder {
         return builder.build();
     }
 
+    private CodeBlock buildUpdateSql(String table) {
+        return CodeBlock.builder()
+                .beginControlFlow("if (UPDATE_SQL == null)")
+                .addStatement(BUILDER_INSTANCE, StringBuilder.class, StringBuilder.class)
+                .addStatement(BUILDER_SIMPLE_APPEND, "UPDATE " + table + " ")
+                .addStatement("boolean first = true")
+                .beginControlFlow("for (int i = 0; i < values().length; i++)")
+                .addStatement("Column column = values()[i]")
+                .beginControlFlow("if (first)")
+                .addStatement(BUILDER_SIMPLE_APPEND, "SET ")
+                .addStatement("first = false")
+                .endControlFlow()
+                .addStatement("builder.append(column.colName).append($S)", " = ?")
+                .beginControlFlow("if (i != values().length - 1)")
+                .addStatement(BUILDER_SIMPLE_APPEND, ",")
+                .endControlFlow()
+                .endControlFlow()
+                .addStatement("UPDATE_SQL = builder.toString()")
+                .endControlFlow()
+                .addStatement("return UPDATE_SQL")
+                .build();
+    }
+
     private CodeBlock buildInsertSqlCodeBlock(String table) {
         return CodeBlock.builder()
                 .beginControlFlow("if (INSERT_SQL == null)")
-                .addStatement("$T builder = new $T()", StringBuilder.class, StringBuilder.class)
-                .addStatement("builder.append($S)", "INSERT INTO " + table + " (")
-                .beginControlFlow("for (Column column : values())")
-                .addStatement("builder.append(column.colName).append($S)",",")
+                .addStatement(BUILDER_INSTANCE, StringBuilder.class, StringBuilder.class)
+                .addStatement(BUILDER_SIMPLE_APPEND, "INSERT INTO " + table + " (")
+                .beginControlFlow("for (int i = 0; i < values().length; i++)")
+                .addStatement("Column column = values()[i]")
+                .addStatement("builder.append(column.colName)")
+                .beginControlFlow("if (i != values().length - 1)")
+                .addStatement(BUILDER_SIMPLE_APPEND, ",")
+                .endControlFlow()
                 .endControlFlow()
                 .addStatement("String wildcards = Stream.of(values()).map(c -> $S).collect($T.joining($S))", "?", Collectors.class, ",")
                 .addStatement("builder.append($S).append(wildcards).append($S)", ") VALUES (", ")")
@@ -237,7 +305,7 @@ public class EntitiesBuilder {
                 .addStatement("$L keys = $T.of(values()).filter(col -> col.key).map(col -> col.colName).collect($T.toList())",
                         ParameterizedTypeName.get(List.class, String.class), Stream.class, Collectors.class)
                 .addStatement("boolean first = true")
-                .addStatement("$T builder = new $T()", StringBuilder.class, StringBuilder.class)
+                .addStatement(BUILDER_INSTANCE, StringBuilder.class, StringBuilder.class)
                 .beginControlFlow("for (String key : keys)")
                 .beginControlFlow("if (first)")
                 .addStatement("builder.append($S).append(key).append($S)", where, var)
@@ -246,6 +314,7 @@ public class EntitiesBuilder {
                 .addStatement("builder.append($S).append(key).append($S)", and, var)
                 .endControlFlow()
                 .endControlFlow()
+                .addStatement("KEYS_WHERE = builder.toString()")
                 .endControlFlow()
                 .addStatement("return KEYS_WHERE")
                 .build();
@@ -254,8 +323,8 @@ public class EntitiesBuilder {
     private CodeBlock buildSelectablesCodeBlock() {
         return CodeBlock.builder()
                 .beginControlFlow("if (SELECTABLES == null)")
-                .addStatement("SELECTABLES = $S + $T.of(values()).map(col -> col.colName).collect($T.joining($S)) + $S",
-                        "(", Stream.class, Collectors.class, ",", ")")
+                .addStatement("SELECTABLES = $T.of(values()).map(col -> col.colName).collect($T.joining($S))",
+                        Stream.class, Collectors.class, ",")
                 .endControlFlow()
                 .addStatement("return SELECTABLES")
                 .build();
@@ -367,24 +436,35 @@ public class EntitiesBuilder {
             if (join.isPresent()) {
                 specs.add(buildJoinMethod(entity, join.get()));
             } else {
-                specs.add(buildDelegateMethod(m));
+                specs.add(buildDelegateMethod(m, entity));
             }
         }
         return specs;
     }
 
-    private MethodSpec buildDelegateMethod(ExecutableElement m) {
+    private MethodSpec buildDelegateMethod(ExecutableElement m, TypeElement entity) {
         MethodSpec.Builder builder = MethodSpec.overriding(m)
-                .addStatement("$T.requireNonNull(this.entity)", Objects.class);
+                .addStatement(REQUIRE_NON_NULL, Objects.class);
         String variables;
         variables = extractParameterNames(m);
 
-        if (m.getReturnType() instanceof NoType) {
+        if (m.getSimpleName().contentEquals("equals")) {
+            builder.addCode(buildCustomEquals(m.getParameters().get(0).getSimpleName().toString(), entity));
+        } else if (m.getReturnType() instanceof NoType) {
             builder.addStatement("this.entity.$L($L)", m.getSimpleName(), variables);
         } else {
             builder.addStatement("return this.entity.$L($L)", m.getSimpleName(), variables);
         }
         return builder.build();
+    }
+
+    private CodeBlock buildCustomEquals(String paramName, TypeElement entity) {
+        return CodeBlock.builder()
+                .beginControlFlow("if (getClass().isInstance($L))", paramName)
+                .addStatement("return this.entity.equals((($TDelegate) $L).entity)", entity, paramName)
+                .endControlFlow()
+                .addStatement("return this.entity.equals($L)", paramName)
+                .build();
     }
 
     private String extractParameterNames(ExecutableElement m) {
