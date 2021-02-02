@@ -27,6 +27,8 @@ JAORM is divided in modules that are used from main module using **Java SPI**
 Entity mapping is performed using **Annotation** that are discarded by the compiler after compilation and 
 each Entity is mapped using [Delegation Pattern](https://en.wikipedia.org/wiki/Delegation_pattern)
 
+Each entity required getter and setter for each field annotated with **Column** or **Relationship**
+
 ```java
 @Table(name = "TABLE")
 public class User {
@@ -49,7 +51,8 @@ public class User {
 
 ### Query
 
-For each interface that contains a method with **Query** annotation, an implementation is generated.
+For each interface that contains a method with **Query** annotation or is annotated with **Dao** annotation,
+an implementation is generated.
 
 Implemented Method execute sql value in the annotation and return an object for a non-void method.
 If returned Object is an Entity , Entity module create the mapped entity else the first column is returned.
