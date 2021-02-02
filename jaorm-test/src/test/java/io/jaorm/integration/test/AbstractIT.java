@@ -25,25 +25,6 @@ public abstract class AbstractIT {
     @BeforeAll
     public static void setup() {
         HSQLDBProvider.clear();
-        // Mock for JDK11
-        mk = Mockito.mockStatic(ServiceFinder.class);
-        mk.when(ServiceFinder.loadService(Mockito.any()))
-                .then(invocation -> {
-                    try {
-                        return invocation.callRealMethod();
-                    } catch (Exception ex) {
-                        if (invocation.getArgument(0).equals(DataSourceProvider.class)) {
-                            return new HSQLDBProvider();
-                        }
-
-                        return null;
-                    }
-                });
-    }
-
-    @AfterAll
-    public static void closeMock() {
-        mk.close();
     }
 
     protected void setDataSource(HSQLDBProvider.DatabaseType type, String initSql) {
