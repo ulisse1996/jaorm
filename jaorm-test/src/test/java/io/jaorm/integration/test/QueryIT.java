@@ -3,8 +3,8 @@ package io.jaorm.integration.test;
 import io.jaorm.entity.EntityComparator;
 import io.jaorm.entity.EntityDelegate;
 import io.jaorm.entity.QueriesService;
-import io.jaorm.integration.test.entity.Tree;
-import io.jaorm.integration.test.query.TreeDAO;
+import io.jaorm.integration.test.entity.User;
+import io.jaorm.integration.test.query.UserDAO;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -22,17 +22,17 @@ class QueryIT extends AbstractIT {
     void should_create_new_entity(HSQLDBProvider.DatabaseType type, String initSql) {
         setDataSource(type, initSql);
 
-        TreeDAO dao = QueriesService.getInstance().getQuery(TreeDAO.class);
+        UserDAO dao = QueriesService.getInstance().getQuery(UserDAO.class);
 
-        Tree tree = new Tree();
-        tree.setId(1);
+        User user = new User();
+        user.setId(1);
 
-        Tree inserted = dao.insert(tree);
+        User inserted = dao.insert(user);
         Assertions.assertTrue(inserted instanceof EntityDelegate);
 
-        Tree found = dao.read(tree);
-        Assertions.assertNotSame(tree, found);
-        Assertions.assertEquals(tree.getId(), found.getId());
+        User found = dao.read(user);
+        Assertions.assertNotSame(user, found);
+        Assertions.assertEquals(user.getId(), found.getId());
     }
 
     @ParameterizedTest
@@ -40,35 +40,35 @@ class QueryIT extends AbstractIT {
     void should_update_all_entity(HSQLDBProvider.DatabaseType type, String initSql) {
         setDataSource(type, initSql);
 
-        Tree tree = getTree(1);
-        Tree tree2 = getTree(2);
-        Tree tree3 = getTree(3);
-        Tree tree4 = getTree(4);
-        Tree tree5 = getTree(5);
+        User user = getUser(1);
+        User user2 = getUser(2);
+        User user3 = getUser(3);
+        User user4 = getUser(4);
+        User user5 = getUser(5);
 
-        TreeDAO dao = QueriesService.getInstance().getQuery(TreeDAO.class);
+        UserDAO dao = QueriesService.getInstance().getQuery(UserDAO.class);
 
-        dao.insert(Arrays.asList(tree, tree2, tree3, tree4, tree5));
+        dao.insert(Arrays.asList(user, user2, user3, user4, user5));
 
-        List<Tree> trees = dao.readAll();
+        List<User> users = dao.readAll();
 
-        Assertions.assertEquals(5, trees.size());
-        trees.sort(Comparator.comparing(Tree::getId));
+        Assertions.assertEquals(5, users.size());
+        users.sort(Comparator.comparing(User::getId));
 
-        Assertions.assertEquals(trees.get(0), tree);
-        Assertions.assertEquals(trees.get(1), tree2);
-        Assertions.assertEquals(trees.get(2), tree3);
-        Assertions.assertEquals(trees.get(3), tree4);
-        Assertions.assertEquals(trees.get(4), tree5);
+        Assertions.assertEquals(users.get(0), user);
+        Assertions.assertEquals(users.get(1), user2);
+        Assertions.assertEquals(users.get(2), user3);
+        Assertions.assertEquals(users.get(3), user4);
+        Assertions.assertEquals(users.get(4), user5);
 
-        List<Tree> modTrees = trees.stream()
-                .peek(t -> t.setFruitId(t.getId() + 10))
+        List<User> modUsers = users.stream()
+                .peek(t -> t.setDepartmentId(t.getId() + 10))
                 .collect(Collectors.toList());
 
-        dao.update(modTrees);
+        dao.update(modUsers);
 
-        trees = dao.readAll();
-        Assertions.assertEquals(modTrees, trees);
+        users = dao.readAll();
+        Assertions.assertEquals(modUsers, users);
     }
 
     @ParameterizedTest
@@ -76,29 +76,29 @@ class QueryIT extends AbstractIT {
     void should_delete_entity(HSQLDBProvider.DatabaseType type, String initSql) {
         setDataSource(type, initSql);
 
-        Tree tree = new Tree();
-        tree.setId(1);
-        tree.setName("NAME");
-        tree.setFruitId(1);
+        User user = new User();
+        user.setId(1);
+        user.setName("NAME");
+        user.setDepartmentId(1);
 
-        TreeDAO dao = QueriesService.getInstance().getQuery(TreeDAO.class);
+        UserDAO dao = QueriesService.getInstance().getQuery(UserDAO.class);
 
-        tree = dao.insert(tree);
-        Optional<Tree> optionalTree = dao.readOpt(tree);
+        user = dao.insert(user);
+        Optional<User> optionalUser = dao.readOpt(user);
 
-        Assertions.assertTrue(optionalTree.isPresent());
-        Assertions.assertTrue(EntityComparator.getInstance(Tree.class).equals(tree, optionalTree.get()));
+        Assertions.assertTrue(optionalUser.isPresent());
+        Assertions.assertTrue(EntityComparator.getInstance(User.class).equals(user, optionalUser.get()));
 
-        dao.delete(tree);
+        dao.delete(user);
 
-        optionalTree = dao.readOpt(tree);
-        Assertions.assertFalse(optionalTree.isPresent());
+        optionalUser = dao.readOpt(user);
+        Assertions.assertFalse(optionalUser.isPresent());
     }
 
-    private Tree getTree(int i) {
-        Tree tree = new Tree();
-        tree.setId(i);
-        tree.setName("TREE_" + i);
-        return tree;
+    private User getUser(int i) {
+        User user = new User();
+        user.setId(i);
+        user.setName("USER_" + i);
+        return user;
     }
 }

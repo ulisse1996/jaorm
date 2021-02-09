@@ -1,8 +1,10 @@
 package io.jaorm.processor;
 
 import com.squareup.javapoet.*;
+import io.jaorm.Arguments;
 import io.jaorm.BaseDao;
 import io.jaorm.QueryRunner;
+import io.jaorm.cache.Cacheable;
 import io.jaorm.entity.DelegatesService;
 import io.jaorm.entity.sql.SqlParameter;
 import io.jaorm.processor.annotation.Dao;
@@ -90,17 +92,19 @@ public class QueriesBuilder {
         MethodSpec read = resolveParameter(MethodSpec.overriding(MethodUtils.getMethod(processingEnvironment, "read", BaseDao.class))
                 .returns(className)
                 .addStatement(REQUIRED_NOT_NULL_STATEMENT, Objects.class, ENTITY_CAN_T_BE_NULL)
-                .addStatement("return $T.getInstance($T.class).read($T.class, $T.getCurrent().getSql($T.class), argumentsAsParameters($T.getCurrent().asWhere($L).getValues()))",
-                        QueryRunner.class, className, className, DelegatesService.class, className, DelegatesService.class, "arg0"), realClass);
+                .addStatement("$T arguments = $T.getCurrent().asWhere($L)", Arguments.class, DelegatesService.class, "arg0")
+                .addStatement("return $T.getCached($T.class, arguments, () -> $T.getInstance($T.class).read($T.class, $T.getCurrent().getSql($T.class), argumentsAsParameters($T.getCurrent().asWhere($L).getValues())))",
+                        Cacheable.class, className, QueryRunner.class, className, className, DelegatesService.class, className, DelegatesService.class, "arg0"), realClass);
         MethodSpec readOpt = resolveParameter(MethodSpec.overriding(MethodUtils.getMethod(processingEnvironment, "readOpt", BaseDao.class))
                 .returns(ParameterizedTypeName.get(ClassName.get(Optional.class), className))
                 .addStatement(REQUIRED_NOT_NULL_STATEMENT, Objects.class, ENTITY_CAN_T_BE_NULL)
-                .addStatement("return $T.getInstance($T.class).readOpt($T.class, $T.getCurrent().getSql($T.class), argumentsAsParameters($T.getCurrent().asWhere($L).getValues()))",
-                        QueryRunner.class, className, className, DelegatesService.class, className, DelegatesService.class, "arg0"), realClass);
+                .addStatement("$T arguments = $T.getCurrent().asWhere($L)", Arguments.class, DelegatesService.class, "arg0")
+                .addStatement("return $T.getCachedOpt($T.class, arguments, () -> $T.getInstance($T.class).readOpt($T.class, $T.getCurrent().getSql($T.class), argumentsAsParameters($T.getCurrent().asWhere($L).getValues())))",
+                        Cacheable.class, className, QueryRunner.class, className, className, DelegatesService.class, className, DelegatesService.class, "arg0"), realClass);
         MethodSpec readAll = resolveParameter(MethodSpec.overriding(MethodUtils.getMethod(processingEnvironment, "readAll", BaseDao.class))
                 .returns(ParameterizedTypeName.get(ClassName.get(List.class), className))
-                .addStatement("return $T.getInstance($T.class).readAll($T.class, $T.getCurrent().getSimpleSql($T.class), $T.emptyList())",
-                        QueryRunner.class, className, className, DelegatesService.class, className, Collections.class), realClass);
+                .addStatement("return $T.getCachedAll($T.class, () -> $T.getInstance($T.class).readAll($T.class, $T.getCurrent().getSimpleSql($T.class), $T.emptyList()))",
+                        Cacheable.class, className, QueryRunner.class, className, className, DelegatesService.class, className, Collections.class), realClass);
         MethodSpec update = resolveParameter(MethodSpec.overriding(MethodUtils.getMethod(processingEnvironment, "update", BaseDao.class))
                 .returns(className)
                 .addStatement(REQUIRED_NOT_NULL_STATEMENT, Objects.class, ENTITY_CAN_T_BE_NULL)

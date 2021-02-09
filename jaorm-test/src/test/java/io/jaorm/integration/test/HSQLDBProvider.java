@@ -40,7 +40,11 @@ public class HSQLDBProvider extends DataSourceProvider {
     }
 
     public enum DatabaseType {
-        ORACLE("sql.syntax_ora=true");
+        ORACLE("sql.syntax_ora=true"),
+        POSTGRE("sql.syntax_pgs=true"),
+        MYSQL("sql.syntax_mys=true"),
+        DB2("sql.syntax_db2=true"),
+        MS_SQLSERVER("sql.syntax_mss=true");
 
         private final String syntax;
 

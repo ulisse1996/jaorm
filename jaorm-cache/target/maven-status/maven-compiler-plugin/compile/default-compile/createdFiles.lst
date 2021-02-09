@@ -1,0 +1,5 @@
+io/jaorm/cache/impl/CacheConfiguration.class
+io/jaorm/cache/impl/LoadingCacheImpl.class
+io/jaorm/cache/impl/LoadingAllCacheImpl.class
+io/jaorm/cache/impl/CacheConfiguration$Builder.class
+io/jaorm/cache/StandardConfiguration.class

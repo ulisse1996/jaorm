@@ -1,31 +1,27 @@
 package io.jaorm.processor;
 
 import com.squareup.javapoet.*;
+import io.jaorm.cache.CacheService;
+import io.jaorm.cache.EntityCache;
 import io.jaorm.entity.DelegatesService;
 import io.jaorm.entity.EntityDelegate;
 import io.jaorm.entity.QueriesService;
+import io.jaorm.processor.annotation.Cacheable;
 import io.jaorm.processor.annotation.Dao;
 import io.jaorm.processor.annotation.Query;
 import io.jaorm.processor.annotation.Table;
 import io.jaorm.processor.exception.ProcessorException;
 import io.jaorm.processor.util.MethodUtils;
 
-import javax.annotation.processing.AbstractProcessor;
-import javax.annotation.processing.RoundEnvironment;
-import javax.annotation.processing.SupportedAnnotationTypes;
-import javax.annotation.processing.SupportedSourceVersion;
+import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
-import javax.tools.FileObject;
-import javax.tools.StandardLocation;
 import java.io.IOException;
-import java.io.Writer;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -33,6 +29,9 @@ import java.util.stream.Stream;
 @SupportedAnnotationTypes("io.jaorm.processor.annotation.*")
 @SupportedSourceVersion(SourceVersion.RELEASE_8)
 public class JaormProcessor extends AbstractProcessor {
+
+    private static final String MAP_FORMAT = "$T values = new $T<>()";
+    private static final String JAORM_PACKAGE = "io.jaorm.entity";
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
@@ -52,6 +51,9 @@ public class JaormProcessor extends AbstractProcessor {
                 .stream()
                 .map(TypeElement.class::cast)
                 .collect(Collectors.toSet());
+        Set<TypeElement> cacheables = entities.stream()
+                .filter(ele -> ele.getAnnotation(Cacheable.class) != null)
+                .collect(Collectors.toSet());
         new EntitiesBuilder(processingEnv, entities).process();
         new QueriesBuilder(processingEnv, types).process();
         if (!entities.isEmpty()) {
@@ -60,7 +62,64 @@ public class JaormProcessor extends AbstractProcessor {
         if (!types.isEmpty()) {
             buildQueries(types);
         }
+        if (!cacheables.isEmpty()) {
+            buildCacheables(cacheables);
+        }
         return true;
+    }
+
+    private void buildCacheables(Set<TypeElement> cacheables) {
+        TypeSpec caches = TypeSpec.classBuilder("Caches")
+                .addModifiers(Modifier.PUBLIC)
+                .superclass(CacheService.class)
+                .addField(cachesMap(), "caches", Modifier.PRIVATE, Modifier.FINAL)
+                .addField(cacheablesSet(), "cacheables", Modifier.PRIVATE, Modifier.FINAL)
+                .addMethod(cachesConstructor(cacheables))
+                .addMethods(buildCacheService())
+                .build();
+        try {
+            JavaFile.builder("io.jaorm.cache", caches)
+                    .skipJavaLangImports(true)
+                    .indent("    ")
+                    .build().writeTo(processingEnv.getFiler());
+        } catch (IOException ex) {
+            throw new ProcessorException(ex);
+        }
+    }
+
+    private Iterable<MethodSpec> buildCacheService() {
+        MethodSpec activeCache = MethodSpec.overriding(MethodUtils.getMethod(processingEnv, "isCacheActive", CacheService.class))
+                .addStatement("return true")
+                .build();
+        MethodSpec getCaches = MethodSpec.overriding(MethodUtils.getMethod(processingEnv, "getCaches", CacheService.class))
+                .returns(cachesMap())
+                .addStatement("return this.caches")
+                .build();
+        MethodSpec isCacheable = MethodSpec.overriding(MethodUtils.getMethod(processingEnv, "isCacheable", CacheService.class))
+                .addStatement("return this.cacheables.contains(arg0)")
+                .build();
+        return Arrays.asList(activeCache, getCaches, isCacheable);
+    }
+
+    private TypeName cacheablesSet() {
+        return ParameterizedTypeName.get(ClassName.get(Set.class),
+                ParameterizedTypeName.get(ClassName.get(Class.class), WildcardTypeName.subtypeOf(Object.class)));
+    }
+
+    private MethodSpec cachesConstructor(Set<TypeElement> cacheables) {
+        MethodSpec.Builder builder = MethodSpec.constructorBuilder()
+                .addModifiers(Modifier.PUBLIC)
+                .addStatement("this.caches = new $T<>()", ConcurrentHashMap.class)
+                .addStatement("this.cacheables = new $T<>()", HashSet.class);
+        cacheables.forEach(ele -> builder.addStatement("this.cacheables.add($T.class)", ele));
+        return builder.build();
+    }
+
+    private TypeName cachesMap() {
+        return ParameterizedTypeName.get(ClassName.get(Map.class),
+                ParameterizedTypeName.get(ClassName.get(Class.class), WildcardTypeName.subtypeOf(Object.class)),
+                ParameterizedTypeName.get(ClassName.get(EntityCache.class), WildcardTypeName.subtypeOf(Object.class))
+        );
     }
 
     private void buildQueries(Set<TypeElement> types) {
@@ -72,7 +131,7 @@ public class JaormProcessor extends AbstractProcessor {
                 .addMethod(buildGetQueries())
                 .build();
         try {
-            JavaFile.builder("io.jaorm.entity", queries)
+            JavaFile.builder(JAORM_PACKAGE, queries)
                     .skipJavaLangImports(true)
                     .indent("    ")
                     .build().writeTo(processingEnv.getFiler());
@@ -90,7 +149,7 @@ public class JaormProcessor extends AbstractProcessor {
     private MethodSpec queriesConstructor(Set<TypeElement> types) {
         MethodSpec.Builder builder = MethodSpec.constructorBuilder()
                 .addModifiers(Modifier.PUBLIC)
-                .addStatement("$T values = new $T<>()", queriesMap(), HashMap.class);
+                .addStatement(MAP_FORMAT, queriesMap(), HashMap.class);
         types.forEach(type -> builder.addStatement("values.put($L.class, $LImpl::new)", type.getQualifiedName(), type.getQualifiedName()));
         builder.addStatement("this.queries = values");
         return builder.build();
@@ -112,7 +171,7 @@ public class JaormProcessor extends AbstractProcessor {
                 .addMethod(buildGetDelegates())
                 .build();
         try {
-            JavaFile.builder("io.jaorm.entity", delegates)
+            JavaFile.builder(JAORM_PACKAGE, delegates)
                     .skipJavaLangImports(true)
                     .indent("    ")
                     .build().writeTo(processingEnv.getFiler());
@@ -139,7 +198,7 @@ public class JaormProcessor extends AbstractProcessor {
     private MethodSpec delegateConstructor(Set<TypeElement> types) {
         MethodSpec.Builder builder = MethodSpec.constructorBuilder()
                 .addModifiers(Modifier.PUBLIC)
-                .addStatement("$T values = new $T<>()", delegatesMap(), HashMap.class);
+                .addStatement(MAP_FORMAT, delegatesMap(), HashMap.class);
         types.forEach(type -> builder.addStatement("values.put($L.class, $LDelegate::new)", type.getQualifiedName(), type.getQualifiedName()));
         builder.addStatement("this.delegates = values");
         return builder.build();

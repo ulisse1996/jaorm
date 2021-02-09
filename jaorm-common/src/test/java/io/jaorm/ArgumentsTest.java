@@ -27,4 +27,12 @@ class ArgumentsTest {
         Object[] expected = {1, 2};
         Assertions.assertTrue(Arrays.equals(expected, Arguments.values(expected).getValues()));
     }
+
+    @SuppressWarnings({"ConstantConditions", "SimplifiableAssertion"})
+    @Test
+    void should_not_return_equals_arguments() {
+        Arguments expected = Arguments.of(1, 2, 3);
+        Arguments result = null;
+        Assertions.assertFalse(expected.equals(result)); //NOSONAR
+    }
 }

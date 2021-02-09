@@ -1,21 +1,42 @@
 package io.jaorm;
 
+import java.util.Arrays;
 import java.util.Objects;
 
-public interface Arguments {
+public abstract class Arguments {
 
-    Object[] getValues();
+    public abstract Object[] getValues();
+    public abstract boolean equals(Object o);
+    public abstract int hashCode();
 
-    static Arguments of(Object... values) {
+    public static Arguments of(Object... values) {
         return values(values);
     }
 
-    static Arguments values(Object[] values) {
+    public static Arguments values(Object[] values) {
         Objects.requireNonNull(values);
-        return () -> values;
+        return new Arguments() {
+            @Override
+            public Object[] getValues() {
+                return values;
+            }
+
+            @Override
+            public boolean equals(Object obj) {
+                if (obj == null) {
+                    return false;
+                }
+                return obj instanceof Arguments && Arrays.equals(values, ((Arguments) obj).getValues());
+            }
+
+            @Override
+            public int hashCode() {
+                return Arrays.hashCode(values);
+            }
+        };
     }
 
-    static Arguments empty() {
-        return () -> new Object[0];
+    public static Arguments empty() {
+        return values(new Object[0]);
     }
 }

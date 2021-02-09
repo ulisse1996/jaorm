@@ -1,13 +1,13 @@
 package io.jaorm.integration.test;
 
-import io.jaorm.ServiceFinder;
+import io.jaorm.cache.CacheService;
+import io.jaorm.cache.EntityCache;
+import io.jaorm.cache.StandardConfiguration;
 import io.jaorm.entity.sql.DataSourceProvider;
-import org.junit.jupiter.api.AfterAll;
+import io.jaorm.integration.test.entity.Role;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.provider.Arguments;
-import org.mockito.MockedStatic;
-import org.mockito.Mockito;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -16,15 +16,21 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 
 public abstract class AbstractIT {
 
-    private static MockedStatic<ServiceFinder> mk;
-
-    @BeforeAll
-    public static void setup() {
+    @BeforeEach
+    public void setup() {
         HSQLDBProvider.clear();
+        fillCache();
+    }
+
+    private static void fillCache() {
+        Map<Class<?>, EntityCache<?>> cacheMap = CacheService.getCurrent().getCaches();
+        Stream.of(Role.class)
+                .forEach(c -> cacheMap.put(c, EntityCache.fromConfiguration(c, new StandardConfiguration())));
     }
 
     protected void setDataSource(HSQLDBProvider.DatabaseType type, String initSql) {
@@ -56,7 +62,11 @@ public abstract class AbstractIT {
 
     public static Stream<Arguments> getSqlTests() {
         return Stream.of(
-                Arguments.arguments(HSQLDBProvider.DatabaseType.ORACLE, "oracle_init.sql")
+                Arguments.arguments(HSQLDBProvider.DatabaseType.ORACLE, "init.sql"),
+                Arguments.arguments(HSQLDBProvider.DatabaseType.DB2, "init.sql"),
+                Arguments.arguments(HSQLDBProvider.DatabaseType.MS_SQLSERVER, "init.sql"),
+                Arguments.arguments(HSQLDBProvider.DatabaseType.MYSQL, "init.sql"),
+                Arguments.arguments(HSQLDBProvider.DatabaseType.POSTGRE, "init.sql")
         );
     }
 }
