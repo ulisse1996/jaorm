@@ -6,7 +6,7 @@ import org.hsqldb.jdbc.JDBCDataSourceFactory;
 import javax.sql.DataSource;
 import java.util.Properties;
 
-public class HSQLDBProvider extends DataSourceProvider {
+public class HSQLDBProvider implements DataSourceProvider {
 
     private static final ThreadLocal<DataSource> LOCAL_DATASOURCE = ThreadLocal.withInitial(() -> null);
 

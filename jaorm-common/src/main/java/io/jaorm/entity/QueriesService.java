@@ -14,8 +14,8 @@ public abstract class QueriesService {
 
     @SuppressWarnings("unchecked")
     public <T> T getQuery(Class<T> klass) {
-        return Optional.ofNullable(getQueries().get(klass))
-                .map(s -> (Supplier<? extends T>) s)
+        return (T) Optional.ofNullable(getQueries().get(klass))
+                .map(Supplier.class::cast)
                 .map(Supplier::get)
                 .orElseThrow(() -> new IllegalArgumentException("Can't find Query for class " + klass));
     }

@@ -48,7 +48,7 @@ class JaormDSLIT extends AbstractIT {
     void should_throw_exception_for_not_found_user(HSQLDBProvider.DatabaseType type, String initSql) {
         setDataSource(type, initSql);
 
-        Assertions.assertThrows(JaormSqlException.class, () -> Jaorm.select(User.class)
+        Assertions.assertThrows(JaormSqlException.class, () -> Jaorm.select(User.class) // NOSONAR
                 .where("USER_ID").eq(99)
                 .read());
     }

@@ -47,7 +47,7 @@ class CacheConfigurationTest {
     @ParameterizedTest
     @MethodSource("getBuilders")
     void should_throw_exception_for_bad_configuration(CacheConfiguration.Builder builder) {
-        Assertions.assertThrows(IllegalArgumentException.class, () -> builder.weakValues().softValues());
+        Assertions.assertThrows(IllegalArgumentException.class, () -> builder.weakValues().softValues()); // NOSONAR
     }
 
     @Test
