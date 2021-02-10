@@ -97,6 +97,34 @@ public interface UserDao extends BaseDao<User> {
 ```
 ### Cache
 
+Cache module implements a key based cache for **Cacheable** annotated entities.
+
+Each time a request for a select query is done with **Query DSL** or **Query** implementation, 
+an entity is stored with selected keys.
+In the followings requests , cached entities are returned if previous request was successful.
+
+Default cache implementation is [Caffeine](https://github.com/ben-manes/caffeine) but user can override it
+implementing custom **JaormCache** and **JaormAllCache** using an **AbstractCacheConfiguration**.
+If custom implementation is used , user must create an SPI file for **CacheService** and cache module 
+must be omitted from dependencies.
+
+Default cache implementation required a startup configuration for each entity that are **Cacheable**
+annotated.
+
+```java
+
+public class Startup {
+    
+    public void doStartup() {
+        CacheService cacheService = CacheService.getCurrent();
+        MyCacheConfiguration configuration = MyCacheConfiguration.INSTANCE; 
+        // or use default StandardConfiguration in cache module
+        
+        cacheService.setConfiguration(User.class, configuration);
+    }
+}
+```
+
 ### Query DSL
 
 Query DSL is an abstraction over simple SQL Queries using a DSL.
