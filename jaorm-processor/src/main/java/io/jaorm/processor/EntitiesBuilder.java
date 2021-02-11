@@ -1,6 +1,7 @@
 package io.jaorm.processor;
 
 import com.squareup.javapoet.*;
+import com.sun.tools.javac.jvm.Code;
 import io.jaorm.QueryRunner;
 import io.jaorm.entity.*;
 import io.jaorm.entity.sql.SqlAccessor;
@@ -494,7 +495,9 @@ public class EntitiesBuilder {
 
         checkColumns(entity, definition.getRealClass(), columns);
 
-        MethodSpec.Builder builder = MethodSpec.overriding(method)
+        CodeBlock.Builder builder = CodeBlock.builder()
+                .addStatement(REQUIRE_NON_NULL, Objects.class)
+                .beginControlFlow("if (this.entity.$L() == null)", join.getValue().getSimpleName())
                 .addStatement("$T params = new $T<>()", ParameterizedTypeName.get(List.class, SqlParameter.class), ArrayList.class);
         for (Relationship.RelationshipColumn column : columns) {
             Map.Entry<? extends Element, String> targetColumn = findColumn(definition.getRealClass(), column.targetColumn())
@@ -502,9 +505,15 @@ public class EntitiesBuilder {
             buildJoinParam(column, builder, targetColumn, entity);
         }
         String wheres = createJoinWhere(columns);
-        return builder.addStatement("return $T.getInstance($T.class).$L($T.class, $T.getCurrent().getSimpleSql($T.class) +  $S, params)",
-                QueryRunner.class, definition.getRealClass(), runnerMethod, definition.getRealClass(), DelegatesService.class,
+        CodeBlock block = builder.addStatement("this.entity.$L($T.getInstance($T.class).$L($T.class, $T.getCurrent().getSimpleSql($T.class) +  $S, params))",
+                findSetter(join.getKey()).getSimpleName(), QueryRunner.class, definition.getRealClass(), runnerMethod, definition.getRealClass(), DelegatesService.class,
                 definition.getRealClass(), wheres)
+                .endControlFlow()
+                .addStatement("return this.entity.$L()", join.getValue().getSimpleName())
+                .build();
+
+        return MethodSpec.overriding(method)
+                .addCode(block)
                 .build();
     }
 
@@ -524,7 +533,7 @@ public class EntitiesBuilder {
         return " " + builder.toString();
     }
 
-    private void buildJoinParam(Relationship.RelationshipColumn column, MethodSpec.Builder builder,
+    private void buildJoinParam(Relationship.RelationshipColumn column, CodeBlock.Builder builder,
                                 Map.Entry<? extends Element, String> targetColumn,
                                 TypeElement entity) {
         VariableElement element = (VariableElement) targetColumn.getKey();
