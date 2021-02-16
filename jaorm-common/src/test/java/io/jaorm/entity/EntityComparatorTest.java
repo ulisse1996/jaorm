@@ -1,6 +1,7 @@
 package io.jaorm.entity;
 
 import io.jaorm.DelegatesMock;
+import io.jaorm.spi.DelegatesService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -18,7 +19,7 @@ class EntityComparatorTest {
     @MethodSource("getValues")
     void should_check_equality(DelegatesMock.MyEntity first, DelegatesMock.MyEntity second, boolean expected) {
         try (MockedStatic<DelegatesService> mk = Mockito.mockStatic(DelegatesService.class)) {
-            mk.when(DelegatesService::getCurrent)
+            mk.when(DelegatesService::getInstance)
                     .thenReturn(new DelegatesMock());
 
             boolean result = EntityComparator.getInstance(DelegatesMock.MyEntity.class)
@@ -31,7 +32,7 @@ class EntityComparatorTest {
     @MethodSource("getListValues")
     void should_check_equality(List<DelegatesMock.MyEntity> first, List<DelegatesMock.MyEntity> second, boolean expected) {
         try (MockedStatic<DelegatesService> mk = Mockito.mockStatic(DelegatesService.class)) {
-            mk.when(DelegatesService::getCurrent)
+            mk.when(DelegatesService::getInstance)
                     .thenReturn(new DelegatesMock());
 
             boolean result = EntityComparator.getInstance(DelegatesMock.MyEntity.class)

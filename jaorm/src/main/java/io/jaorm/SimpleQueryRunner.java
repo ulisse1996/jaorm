@@ -4,6 +4,7 @@ import io.jaorm.entity.sql.DataSourceProvider;
 import io.jaorm.entity.sql.SqlAccessor;
 import io.jaorm.entity.sql.SqlParameter;
 import io.jaorm.exception.JaormSqlException;
+import io.jaorm.spi.QueryRunner;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;

@@ -1,14 +1,15 @@
-package io.jaorm.entity;
+package io.jaorm.spi;
 
 import io.jaorm.Arguments;
 import io.jaorm.ServiceFinder;
+import io.jaorm.entity.EntityDelegate;
 
 import java.util.Map;
 import java.util.function.Supplier;
 
 public abstract class DelegatesService {
 
-    public static DelegatesService getCurrent() {
+    public static DelegatesService getInstance() {
         return ServiceFinder.loadService(DelegatesService.class);
     }
 
@@ -19,6 +20,22 @@ public abstract class DelegatesService {
         }
 
         return searchDelegate(entity.getClass());
+    }
+
+    public Class<?> getEntityClass(Class<?> delegateClass) {
+        try {
+            // Fast exit , search from class loader
+            return Class.forName(delegateClass.getName().replace("Delegate", ""));
+        } catch (ClassNotFoundException ex) {
+            return getDelegates().entrySet()
+                    .stream()
+                    .filter(e -> {
+                        Supplier<?> supplier = e.getValue();
+                        return delegateClass.isInstance(supplier.get());
+                    }).findFirst()
+                    .map(Map.Entry::getKey)
+                    .orElseThrow(() -> new IllegalArgumentException("Can't find real class from delegate " + delegateClass));
+        }
     }
 
     @SuppressWarnings("unchecked")

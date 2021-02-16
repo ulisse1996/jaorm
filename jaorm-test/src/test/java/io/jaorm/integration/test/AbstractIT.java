@@ -1,10 +1,10 @@
 package io.jaorm.integration.test;
 
-import io.jaorm.cache.CacheService;
 import io.jaorm.cache.EntityCache;
 import io.jaorm.cache.StandardConfiguration;
 import io.jaorm.entity.sql.DataSourceProvider;
 import io.jaorm.integration.test.entity.Role;
+import io.jaorm.spi.CacheService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.provider.Arguments;

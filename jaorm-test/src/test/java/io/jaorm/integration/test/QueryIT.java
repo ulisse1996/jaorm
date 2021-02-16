@@ -2,17 +2,18 @@ package io.jaorm.integration.test;
 
 import io.jaorm.entity.EntityComparator;
 import io.jaorm.entity.EntityDelegate;
-import io.jaorm.entity.QueriesService;
+import io.jaorm.integration.test.entity.City;
+import io.jaorm.integration.test.entity.Store;
+import io.jaorm.integration.test.query.CityDAO;
+import io.jaorm.integration.test.query.StoreDAO;
+import io.jaorm.spi.QueriesService;
 import io.jaorm.integration.test.entity.User;
 import io.jaorm.integration.test.query.UserDAO;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 class QueryIT extends AbstractIT {
@@ -93,6 +94,42 @@ class QueryIT extends AbstractIT {
 
         optionalUser = dao.readOpt(user);
         Assertions.assertFalse(optionalUser.isPresent());
+    }
+
+    @ParameterizedTest
+    @MethodSource("getSqlTests")
+    void should_do_cascade_operation(HSQLDBProvider.DatabaseType type, String initSql) {
+        setDataSource(type, initSql);
+
+        CityDAO cityDAO = QueriesService.getInstance().getQuery(CityDAO.class);
+
+        City city = new City();
+        city.setCityId(10);
+        city.setName("CITY");
+
+        Store store = new Store();
+        store.setStoreId(1);
+        store.setName("NAME1");
+        store.setCityId(city.getCityId());
+
+        city.setStores(Collections.singletonList(store));
+
+        cityDAO.insert(city);
+
+        List<Store> stores = QueriesService.getInstance().getQuery(StoreDAO.class).readAll();
+        Assertions.assertEquals(1, stores.size());
+        Assertions.assertTrue(EntityComparator.getInstance(Store.class).equals(store, stores.get(0)));
+
+        // Now read and update
+
+        city = cityDAO.read(city);
+        city.getStores()
+                .forEach(s -> s.setName(s.getName() + "_AFTER"));
+        cityDAO.update(city);
+
+        stores = QueriesService.getInstance().getQuery(StoreDAO.class).readAll();
+        Assertions.assertEquals(1, stores.size());
+        Assertions.assertTrue(stores.get(0).getName().endsWith("_AFTER"));
     }
 
     private User getUser(int i) {

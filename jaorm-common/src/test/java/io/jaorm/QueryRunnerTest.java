@@ -1,5 +1,6 @@
 package io.jaorm;
 
+import io.jaorm.spi.QueryRunner;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;

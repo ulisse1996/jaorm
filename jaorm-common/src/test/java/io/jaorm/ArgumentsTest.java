@@ -1,9 +1,16 @@
 package io.jaorm;
 
+import io.jaorm.entity.sql.SqlAccessor;
+import io.jaorm.entity.sql.SqlParameter;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Arrays;
+import java.util.List;
 
 class ArgumentsTest {
 
@@ -34,5 +41,22 @@ class ArgumentsTest {
         Arguments expected = Arguments.of(1, 2, 3);
         Arguments result = null;
         Assertions.assertFalse(expected.equals(result)); //NOSONAR
+    }
+
+    @Test
+    void should_transform_arguments_to_sql_parameters() throws SQLException {
+        Arguments arguments = Arguments.of(1, 2, 3);
+        List<SqlParameter> parameterList = arguments.asSqlParameters();
+        Assertions.assertEquals(3, parameterList.size());
+        PreparedStatement mock = Mockito.mock(PreparedStatement.class);
+        parameterList.forEach(sqlParameter -> {
+            try {
+                sqlParameter.getAccessor().set(mock, 1, 1);
+            } catch (SQLException ex) {
+                Assertions.fail(ex);
+            }
+        });
+        Mockito.verify(mock, Mockito.times(3))
+                .setInt(Mockito.eq(1), Mockito.eq(1));
     }
 }

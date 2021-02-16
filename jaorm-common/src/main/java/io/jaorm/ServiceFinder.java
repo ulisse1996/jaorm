@@ -38,6 +38,6 @@ public class ServiceFinder {
             }
         }
 
-        throw new IllegalArgumentException("Can't find service of class : " + klass);
+        throw new IllegalArgumentException("Can't find service of " + klass);
     }
 }

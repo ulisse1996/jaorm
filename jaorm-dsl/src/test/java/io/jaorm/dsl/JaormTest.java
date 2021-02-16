@@ -1,8 +1,8 @@
 package io.jaorm.dsl;
 
-import io.jaorm.QueryRunner;
+import io.jaorm.spi.QueryRunner;
 import io.jaorm.dsl.impl.LikeType;
-import io.jaorm.entity.DelegatesService;
+import io.jaorm.spi.DelegatesService;
 import io.jaorm.entity.EntityDelegate;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -38,7 +38,7 @@ class JaormTest {
         try (MockedStatic<DelegatesService> mk = Mockito.mockStatic(DelegatesService.class)) {
             DelegatesService delegatesService = Mockito.mock(DelegatesService.class);
             EntityDelegate<?> delegate = Mockito.mock(EntityDelegate.class);
-            mk.when(DelegatesService::getCurrent)
+            mk.when(DelegatesService::getInstance)
                     .thenReturn(delegatesService);
             Mockito.when(delegatesService.searchDelegate(Mockito.any()))
                     .thenReturn(() -> delegate);
@@ -55,7 +55,7 @@ class JaormTest {
         try (MockedStatic<DelegatesService> mk = Mockito.mockStatic(DelegatesService.class)) {
             DelegatesService delegatesService = Mockito.mock(DelegatesService.class);
             EntityDelegate<?> delegate = Mockito.mock(EntityDelegate.class);
-            mk.when(DelegatesService::getCurrent)
+            mk.when(DelegatesService::getInstance)
                     .thenReturn(delegatesService);
             Mockito.when(delegatesService.searchDelegate(Mockito.any()))
                     .thenReturn(() -> delegate);
@@ -75,7 +75,7 @@ class JaormTest {
             EntityDelegate<?> delegate = Mockito.mock(EntityDelegate.class);
             QueryRunner runner = Mockito.mock(QueryRunner.class);
             Object expected = new Object();
-            mk.when(DelegatesService::getCurrent)
+            mk.when(DelegatesService::getInstance)
                     .thenReturn(delegatesService);
             run.when(() -> QueryRunner.getInstance(Mockito.any()))
                     .thenReturn(runner);
@@ -114,7 +114,7 @@ class JaormTest {
             EntityDelegate<?> delegate = Mockito.mock(EntityDelegate.class);
             QueryRunner runner = Mockito.mock(QueryRunner.class);
             Object expected = new Object();
-            mk.when(DelegatesService::getCurrent)
+            mk.when(DelegatesService::getInstance)
                     .thenReturn(delegatesService);
             run.when(() -> QueryRunner.getInstance(Mockito.any()))
                     .thenReturn(runner);
@@ -145,7 +145,7 @@ class JaormTest {
             EntityDelegate<?> delegate = Mockito.mock(EntityDelegate.class);
             QueryRunner runner = Mockito.mock(QueryRunner.class);
             Object expected = new Object();
-            mk.when(DelegatesService::getCurrent)
+            mk.when(DelegatesService::getInstance)
                     .thenReturn(delegatesService);
             run.when(() -> QueryRunner.getInstance(Mockito.any()))
                     .thenReturn(runner);
@@ -174,7 +174,7 @@ class JaormTest {
         try (MockedStatic<DelegatesService> mk = Mockito.mockStatic(DelegatesService.class)) {
             DelegatesService delegatesService = Mockito.mock(DelegatesService.class);
             EntityDelegate<?> delegate = Mockito.mock(EntityDelegate.class);
-            mk.when(DelegatesService::getCurrent)
+            mk.when(DelegatesService::getInstance)
                     .thenReturn(delegatesService);
             Mockito.when(delegatesService.searchDelegate(Mockito.any()))
                     .thenReturn(() -> delegate);

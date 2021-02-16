@@ -4,6 +4,8 @@ import io.jaorm.Arguments;
 import io.jaorm.DelegatesMock;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
@@ -82,5 +84,10 @@ class DelegatesServiceTest {
     void should_get_delete_sql() {
         String expected = "DELETE MYENTITY WHERE FIELD1 = ?";
         Assertions.assertEquals(expected, testSubject.getDeleteSql(DelegatesMock.MyEntity.class));
+    }
+
+    @Test
+    void should_return_real_class_from_delegate_class() {
+        Assertions.assertEquals(DelegatesMock.MyEntity.class, testSubject.getEntityClass(DelegatesMock.MyEntityDelegate.class));
     }
 }

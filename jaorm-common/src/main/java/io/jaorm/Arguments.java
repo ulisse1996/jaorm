@@ -1,7 +1,12 @@
 package io.jaorm;
 
+import io.jaorm.entity.sql.SqlParameter;
+
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public abstract class Arguments {
 
@@ -38,5 +43,11 @@ public abstract class Arguments {
 
     public static Arguments empty() {
         return values(new Object[0]);
+    }
+
+    public List<SqlParameter> asSqlParameters() {
+        return Stream.of(getValues())
+                .map(SqlParameter::new)
+                .collect(Collectors.toList());
     }
 }

@@ -3,9 +3,9 @@ package io.jaorm.processor;
 import com.squareup.javapoet.*;
 import io.jaorm.Arguments;
 import io.jaorm.BaseDao;
-import io.jaorm.QueryRunner;
+import io.jaorm.spi.QueryRunner;
 import io.jaorm.cache.Cacheable;
-import io.jaorm.entity.DelegatesService;
+import io.jaorm.spi.DelegatesService;
 import io.jaorm.entity.sql.SqlParameter;
 import io.jaorm.processor.annotation.Dao;
 import io.jaorm.processor.annotation.Query;
@@ -92,32 +92,20 @@ public class QueriesBuilder {
         MethodSpec read = resolveParameter(MethodSpec.overriding(MethodUtils.getMethod(processingEnvironment, "read", BaseDao.class))
                 .returns(className)
                 .addStatement(REQUIRED_NOT_NULL_STATEMENT, Objects.class, ENTITY_CAN_T_BE_NULL)
-                .addStatement("$T arguments = $T.getCurrent().asWhere($L)", Arguments.class, DelegatesService.class, "arg0")
-                .addStatement("return $T.getCached($T.class, arguments, () -> $T.getInstance($T.class).read($T.class, $T.getCurrent().getSql($T.class), argumentsAsParameters($T.getCurrent().asWhere($L).getValues())))",
+                .addStatement("$T arguments = $T.getInstance().asWhere($L)", Arguments.class, DelegatesService.class, "arg0")
+                .addStatement("return $T.getCached($T.class, arguments, () -> $T.getInstance($T.class).read($T.class, $T.getInstance().getSql($T.class), argumentsAsParameters($T.getInstance().asWhere($L).getValues())))",
                         Cacheable.class, className, QueryRunner.class, className, className, DelegatesService.class, className, DelegatesService.class, "arg0"), realClass);
         MethodSpec readOpt = resolveParameter(MethodSpec.overriding(MethodUtils.getMethod(processingEnvironment, "readOpt", BaseDao.class))
                 .returns(ParameterizedTypeName.get(ClassName.get(Optional.class), className))
                 .addStatement(REQUIRED_NOT_NULL_STATEMENT, Objects.class, ENTITY_CAN_T_BE_NULL)
-                .addStatement("$T arguments = $T.getCurrent().asWhere($L)", Arguments.class, DelegatesService.class, "arg0")
-                .addStatement("return $T.getCachedOpt($T.class, arguments, () -> $T.getInstance($T.class).readOpt($T.class, $T.getCurrent().getSql($T.class), argumentsAsParameters($T.getCurrent().asWhere($L).getValues())))",
+                .addStatement("$T arguments = $T.getInstance().asWhere($L)", Arguments.class, DelegatesService.class, "arg0")
+                .addStatement("return $T.getCachedOpt($T.class, arguments, () -> $T.getInstance($T.class).readOpt($T.class, $T.getInstance().getSql($T.class), argumentsAsParameters($T.getInstance().asWhere($L).getValues())))",
                         Cacheable.class, className, QueryRunner.class, className, className, DelegatesService.class, className, DelegatesService.class, "arg0"), realClass);
         MethodSpec readAll = resolveParameter(MethodSpec.overriding(MethodUtils.getMethod(processingEnvironment, "readAll", BaseDao.class))
                 .returns(ParameterizedTypeName.get(ClassName.get(List.class), className))
-                .addStatement("return $T.getCachedAll($T.class, () -> $T.getInstance($T.class).readAll($T.class, $T.getCurrent().getSimpleSql($T.class), $T.emptyList()))",
+                .addStatement("return $T.getCachedAll($T.class, () -> $T.getInstance($T.class).readAll($T.class, $T.getInstance().getSimpleSql($T.class), $T.emptyList()))",
                         Cacheable.class, className, QueryRunner.class, className, className, DelegatesService.class, className, Collections.class), realClass);
-        MethodSpec update = resolveParameter(MethodSpec.overriding(MethodUtils.getMethod(processingEnvironment, "update", BaseDao.class))
-                .returns(className)
-                .addStatement(REQUIRED_NOT_NULL_STATEMENT, Objects.class, ENTITY_CAN_T_BE_NULL)
-                .addStatement("Object[] merged = $T.concat($T.of($T.getCurrent().asArguments($L).getValues()), $T.of($T.getCurrent().asWhere($L).getValues())).toArray()",
-                        Stream.class, Stream.class, DelegatesService.class, "arg0", Stream.class, DelegatesService.class, "arg0")
-                .addStatement("$T.getInstance($T.class).update($T.getCurrent().getUpdateSql($T.class), argumentsAsParameters(merged))",
-                        QueryRunner.class, className, DelegatesService.class, className)
-                .addStatement("return arg0"), realClass);
-        MethodSpec delete = resolveParameter(MethodSpec.overriding(MethodUtils.getMethod(processingEnvironment, "delete", BaseDao.class))
-                .addStatement(REQUIRED_NOT_NULL_STATEMENT, Objects.class, ENTITY_CAN_T_BE_NULL)
-                .addStatement("$T.getInstance($T.class).delete($T.getCurrent().getDeleteSql($T.class), argumentsAsParameters($T.getCurrent().asWhere($L).getValues()))",
-                        QueryRunner.class, className, DelegatesService.class, className, DelegatesService.class, "arg0"), realClass);
-        return Stream.of(read, readOpt, readAll, update, delete).collect(Collectors.toList());
+        return Stream.of(read, readOpt, readAll).collect(Collectors.toList());
     }
 
     private MethodSpec resolveParameter(MethodSpec.Builder builder, String realClass) {
@@ -134,7 +122,7 @@ public class QueriesBuilder {
         return builder.build();
     }
 
-    private String getBaseDaoGeneric(TypeElement query) {
+    public static String getBaseDaoGeneric(TypeElement query) {
         for (TypeMirror typeMirror : query.getInterfaces()) {
             if (typeMirror.toString().contains(BaseDao.class.getName())) {
                 return typeMirror.toString().replace(BaseDao.class.getName(), "")
@@ -146,7 +134,7 @@ public class QueriesBuilder {
         throw new ProcessorException("Can't find generic type of BaseDao");
     }
 
-    private boolean isBaseDao(TypeElement query) {
+    public static boolean isBaseDao(TypeElement query) {
         if (!query.getInterfaces().isEmpty()) {
             for (TypeMirror typeMirror : query.getInterfaces()) {
                 if (typeMirror.toString().contains(BaseDao.class.getName())) {

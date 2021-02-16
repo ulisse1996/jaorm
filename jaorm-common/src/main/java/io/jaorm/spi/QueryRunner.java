@@ -1,5 +1,7 @@
-package io.jaorm;
+package io.jaorm.spi;
 
+import io.jaorm.ServiceFinder;
+import io.jaorm.UpdateExecutor;
 import io.jaorm.entity.sql.DataSourceProvider;
 import io.jaorm.entity.sql.SqlParameter;
 import io.jaorm.exception.JaormSqlException;

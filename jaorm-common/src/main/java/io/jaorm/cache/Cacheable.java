@@ -1,6 +1,7 @@
 package io.jaorm.cache;
 
 import io.jaorm.Arguments;
+import io.jaorm.spi.CacheService;
 
 import java.util.List;
 import java.util.Optional;

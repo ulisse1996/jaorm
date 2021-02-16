@@ -1,10 +1,10 @@
 package io.jaorm.cache.impl;
 
-import io.jaorm.QueryRunner;
+import io.jaorm.spi.QueryRunner;
 import io.jaorm.cache.JaormAllCache;
 import io.jaorm.cache.JaormCache;
 import io.jaorm.cache.StandardConfiguration;
-import io.jaorm.entity.DelegatesService;
+import io.jaorm.spi.DelegatesService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -61,7 +61,7 @@ class CacheConfigurationTest {
             DelegatesService delegatesService = Mockito.mock(DelegatesService.class);
             mk.when(() -> QueryRunner.getInstance(Mockito.any()))
                     .thenReturn(runner);
-            dk.when(DelegatesService::getCurrent)
+            dk.when(DelegatesService::getInstance)
                     .thenReturn(delegatesService);
             Mockito.when(delegatesService.getSql(Mockito.any()))
                     .thenReturn("TEST");
@@ -85,7 +85,7 @@ class CacheConfigurationTest {
             DelegatesService delegatesService = Mockito.mock(DelegatesService.class);
             mk.when(() -> QueryRunner.getInstance(Mockito.any()))
                     .thenReturn(runner);
-            dk.when(DelegatesService::getCurrent)
+            dk.when(DelegatesService::getInstance)
                     .thenReturn(delegatesService);
             Mockito.when(delegatesService.getSql(Mockito.any()))
                     .thenReturn("TEST");
@@ -112,7 +112,7 @@ class CacheConfigurationTest {
             DelegatesService delegatesService = Mockito.mock(DelegatesService.class);
             mk.when(() -> QueryRunner.getInstance(Mockito.any()))
                     .thenReturn(runner);
-            dk.when(DelegatesService::getCurrent)
+            dk.when(DelegatesService::getInstance)
                     .thenReturn(delegatesService);
             Mockito.when(delegatesService.getSql(Mockito.any()))
                     .thenReturn("TEST");
@@ -136,7 +136,7 @@ class CacheConfigurationTest {
             DelegatesService delegatesService = Mockito.mock(DelegatesService.class);
             mk.when(() -> QueryRunner.getInstance(Mockito.any()))
                     .thenReturn(runner);
-            dk.when(DelegatesService::getCurrent)
+            dk.when(DelegatesService::getInstance)
                     .thenReturn(delegatesService);
             Mockito.when(delegatesService.getSql(Mockito.any()))
                     .thenReturn("TEST");

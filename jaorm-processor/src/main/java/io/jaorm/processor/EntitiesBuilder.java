@@ -1,8 +1,8 @@
 package io.jaorm.processor;
 
 import com.squareup.javapoet.*;
-import com.sun.tools.javac.jvm.Code;
-import io.jaorm.QueryRunner;
+import io.jaorm.spi.DelegatesService;
+import io.jaorm.spi.QueryRunner;
 import io.jaorm.entity.*;
 import io.jaorm.entity.sql.SqlAccessor;
 import io.jaorm.entity.sql.SqlParameter;
@@ -72,6 +72,7 @@ public class EntitiesBuilder {
         builder.addField(addInsertSql());
         builder.addField(addUpdateSql());
         builder.addField(addDeleteSql());
+        builder.addField(boolean.class, "modified", Modifier.PRIVATE);
         builder.addMethods(buildDelegation(entity));
         builder.addMethods(buildOverrideEntity(entity));
         return builder.build();
@@ -125,6 +126,7 @@ public class EntitiesBuilder {
                 .addStatement("return Column.getEntityMapper()")
                 .build();
         MethodSpec setEntity = MethodSpec.overriding(MethodUtils.getMethod(processingEnv, "setEntity", EntityDelegate.class))
+                .addStatement("this.modified = false")
                 .addStatement("this.entity = toEntity($L)", extractParameterNames(MethodUtils.getMethod(processingEnv, "setEntity", EntityDelegate.class)))
                 .build();
         MethodSpec setEntityObj = MethodSpec.methodBuilder("setFullEntity")
@@ -160,10 +162,13 @@ public class EntitiesBuilder {
         MethodSpec deleteSql = MethodSpec.overriding(MethodUtils.getMethod(processingEnv, "getDeleteSql", EntityDelegate.class))
                 .addStatement("return DELETE_SQL")
                 .build();
+        MethodSpec modified = MethodSpec.overriding(MethodUtils.getMethod(processingEnv, "isModified", EntityDelegate.class))
+                .addStatement("return this.modified")
+                .build();
         return Stream.of(supplierEntity, entityMapper,
                 setEntity, setEntityObj, baseSql, keysWhere,
                 insertSql, selectables, table, updateSql,
-                getEntity, deleteSql)
+                getEntity, deleteSql, modified)
                 .collect(Collectors.toList());
     }
 
@@ -452,6 +457,7 @@ public class EntitiesBuilder {
         if (m.getSimpleName().contentEquals("equals")) {
             builder.addCode(buildCustomEquals(m.getParameters().get(0).getSimpleName().toString(), entity));
         } else if (m.getReturnType() instanceof NoType) {
+            builder.addStatement("this.modified = true");
             builder.addStatement("this.entity.$L($L)", m.getSimpleName(), variables);
         } else {
             builder.addStatement("return this.entity.$L($L)", m.getSimpleName(), variables);
@@ -505,7 +511,7 @@ public class EntitiesBuilder {
             buildJoinParam(column, builder, targetColumn, entity);
         }
         String wheres = createJoinWhere(columns);
-        CodeBlock block = builder.addStatement("this.entity.$L($T.getInstance($T.class).$L($T.class, $T.getCurrent().getSimpleSql($T.class) +  $S, params))",
+        CodeBlock block = builder.addStatement("this.entity.$L($T.getInstance($T.class).$L($T.class, $T.getInstance().getSimpleSql($T.class) +  $S, params))",
                 findSetter(join.getKey()).getSimpleName(), QueryRunner.class, definition.getRealClass(), runnerMethod, definition.getRealClass(), DelegatesService.class,
                 definition.getRealClass(), wheres)
                 .endControlFlow()
@@ -581,7 +587,7 @@ public class EntitiesBuilder {
                 .findFirst();
     }
 
-    private ExecutableElement findGetter(Element element) {
+    public static ExecutableElement findGetter(Element element) {
         String fieldName = element.getSimpleName().toString();
         fieldName = Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1);
         String getter = "get" + fieldName;
@@ -600,7 +606,7 @@ public class EntitiesBuilder {
         return findExecutable(element, setter, "Can't find setter for field " + element.getSimpleName());
     }
 
-    private ExecutableElement findExecutable(Element element, String name, String errorMessage) {
+    private static ExecutableElement findExecutable(Element element, String name, String errorMessage) {
         return element.getEnclosingElement()
                 .getEnclosedElements()
                 .stream()

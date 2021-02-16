@@ -1,7 +1,8 @@
-package io.jaorm.cache;
+package io.jaorm.spi;
 
 import io.jaorm.Arguments;
 import io.jaorm.ServiceFinder;
+import io.jaorm.cache.*;
 
 import java.util.*;
 
@@ -25,14 +26,14 @@ public abstract class CacheService {
     public abstract Map<Class<?>, EntityCache<?>> getCaches(); // NOSONAR
 
     @SuppressWarnings("unchecked")
-    protected <T> JaormCache<T> getCache(Class<T> klass) {
+    public <T> JaormCache<T> getCache(Class<T> klass) {
         EntityCache<?> entityCache = getCaches().get(klass);
         return (JaormCache<T>) Objects.requireNonNull(entityCache, "Can't find entity for " + klass)
                 .getCache();
     }
 
     @SuppressWarnings("unchecked")
-    protected  <T> JaormAllCache<T> getCacheAll(Class<T> klass) {
+    public <T> JaormAllCache<T> getCacheAll(Class<T> klass) {
         EntityCache<?> entityCache = getCaches().get(klass);
         return (JaormAllCache<T>) Objects.requireNonNull(entityCache, "Can't find entity for " + klass)
                 .getAllCache();

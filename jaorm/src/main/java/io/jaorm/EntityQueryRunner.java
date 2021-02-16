@@ -1,10 +1,11 @@
 package io.jaorm;
 
-import io.jaorm.entity.DelegatesService;
+import io.jaorm.spi.DelegatesService;
 import io.jaorm.entity.EntityDelegate;
 import io.jaorm.entity.sql.DataSourceProvider;
 import io.jaorm.entity.sql.SqlParameter;
 import io.jaorm.exception.JaormSqlException;
+import io.jaorm.spi.QueryRunner;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -19,7 +20,7 @@ public class EntityQueryRunner implements QueryRunner {
     @Override
     public boolean isCompatible(Class<?> klass) {
         try {
-            DelegatesService.getCurrent().searchDelegate(klass);
+            DelegatesService.getInstance().searchDelegate(klass);
             return true;
         } catch (IllegalArgumentException ex) {
             return false;
@@ -34,7 +35,7 @@ public class EntityQueryRunner implements QueryRunner {
     @Override
     @SuppressWarnings("unchecked")
     public <R> R read(Class<R> entity, String query, List<SqlParameter> params) {
-        Supplier<EntityDelegate<?>> delegateSupplier = DelegatesService.getCurrent().searchDelegate(entity);
+        Supplier<EntityDelegate<?>> delegateSupplier = DelegatesService.getInstance().searchDelegate(entity);
         try (Connection connection = DataSourceProvider.getCurrent().getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(query);
              ResultSetExecutor executor = new ResultSetExecutor(preparedStatement, params)) {
@@ -50,7 +51,7 @@ public class EntityQueryRunner implements QueryRunner {
     @Override
     @SuppressWarnings("unchecked")
     public <R> Optional<R> readOpt(Class<R> entity, String query, List<SqlParameter> params) {
-        Supplier<EntityDelegate<?>> delegateSupplier = DelegatesService.getCurrent().searchDelegate(entity);
+        Supplier<EntityDelegate<?>> delegateSupplier = DelegatesService.getInstance().searchDelegate(entity);
         try (Connection connection = DataSourceProvider.getCurrent().getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(query);
              ResultSetExecutor executor = new ResultSetExecutor(preparedStatement, params)) {
@@ -70,7 +71,7 @@ public class EntityQueryRunner implements QueryRunner {
     @SuppressWarnings("unchecked")
     public <R> List<R> readAll(Class<R> entity, String query, List<SqlParameter> params) {
         List<R> values = new ArrayList<>();
-        Supplier<EntityDelegate<?>> delegateSupplier = DelegatesService.getCurrent().searchDelegate(entity);
+        Supplier<EntityDelegate<?>> delegateSupplier = DelegatesService.getInstance().searchDelegate(entity);
         try (Connection connection = DataSourceProvider.getCurrent().getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(query);
              ResultSetExecutor executor = new ResultSetExecutor(preparedStatement, params)) {
@@ -90,7 +91,7 @@ public class EntityQueryRunner implements QueryRunner {
     @SuppressWarnings("unchecked")
     public <R> R insert(R entity, String query, List<SqlParameter> params) {
         doUpdate(query, params);
-        Supplier<EntityDelegate<?>> delegateSupplier = DelegatesService.getCurrent().searchDelegate(entity.getClass());
+        Supplier<EntityDelegate<?>> delegateSupplier = DelegatesService.getInstance().searchDelegate(entity.getClass());
         EntityDelegate<R> delegate = (EntityDelegate<R>) delegateSupplier.get();
         delegate.setFullEntity(entity);
         return (R) delegate;

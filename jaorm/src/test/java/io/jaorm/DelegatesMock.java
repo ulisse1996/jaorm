@@ -1,6 +1,6 @@
 package io.jaorm;
 
-import io.jaorm.entity.DelegatesService;
+import io.jaorm.spi.DelegatesService;
 import io.jaorm.entity.EntityDelegate;
 import io.jaorm.entity.EntityMapper;
 
@@ -115,6 +115,11 @@ public class DelegatesMock extends DelegatesService {
         @Override
         public String getDeleteSql() {
             return "DELETE MYENTITY WHERE FIELD1 = ?";
+        }
+
+        @Override
+        public boolean isModified() {
+            return false;
         }
     }
 }

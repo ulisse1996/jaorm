@@ -2,7 +2,7 @@ package io.jaorm.integration.test;
 
 import io.jaorm.dsl.Jaorm;
 import io.jaorm.entity.EntityComparator;
-import io.jaorm.entity.QueriesService;
+import io.jaorm.spi.QueriesService;
 import io.jaorm.exception.JaormSqlException;
 import io.jaorm.integration.test.entity.Role;
 import io.jaorm.integration.test.entity.User;
