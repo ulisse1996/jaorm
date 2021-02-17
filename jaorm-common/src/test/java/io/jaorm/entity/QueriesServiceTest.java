@@ -40,7 +40,7 @@ class QueriesServiceTest {
 
     @Test
     void should_not_return_base_dao() {
-        Assertions.assertThrows(IllegalArgumentException.class, () -> QueriesService.getInstance().getBaseDao(BaseDao.class));
+        Assertions.assertThrows(IllegalArgumentException.class, () -> QueriesService.getInstance().getBaseDao(BaseDao.class)); // NOSONAR
     }
 
     @Test
