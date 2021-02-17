@@ -1,6 +1,7 @@
 package io.jaorm.processor;
 
 import com.squareup.javapoet.*;
+import io.jaorm.entity.converter.ParameterConverter;
 import io.jaorm.spi.DelegatesService;
 import io.jaorm.spi.QueryRunner;
 import io.jaorm.entity.*;
@@ -10,7 +11,6 @@ import io.jaorm.processor.annotation.*;
 import io.jaorm.processor.exception.ProcessorException;
 import io.jaorm.processor.util.Accessor;
 import io.jaorm.processor.util.MethodUtils;
-import io.jaorm.processor.util.ParameterConverter;
 import io.jaorm.processor.util.ReturnTypeDefinition;
 
 import javax.annotation.processing.ProcessingEnvironment;
@@ -205,7 +205,7 @@ public class EntitiesBuilder {
                 MethodSpec.methodBuilder("getEntityMapper")
                 .returns(getEntityMapperType(entity))
                 .addModifiers(Modifier.STATIC, Modifier.SYNCHRONIZED)
-                .addCode(buildEntityMapperCodeBlock())
+                .addCode(buildEntityMapperCodeBlock(entity))
                 .build()
         );
         builder.addMethod(
@@ -336,10 +336,10 @@ public class EntitiesBuilder {
                 .build();
     }
 
-    private CodeBlock buildEntityMapperCodeBlock() {
+    private CodeBlock buildEntityMapperCodeBlock(TypeElement entity) {
         return CodeBlock.builder()
                 .beginControlFlow("if (ENTITY_MAPPER == null)")
-                .addStatement("$T.Builder builder = new $T.Builder()", EntityMapper.class, EntityMapper.class)
+                .addStatement("$T.Builder<$T> builder = new $T.Builder<>()", EntityMapper.class, entity, EntityMapper.class)
                 .beginControlFlow("for (Column col : Column.values())")
                 .addStatement("builder.add(col.colName, col.type, col.setter, col.getter, col.key)")
                 .endControlFlow()

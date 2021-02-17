@@ -16,7 +16,7 @@ public class DaoImplementation {
         return entityClass;
     }
 
-    public Supplier<?> getDaoSupplier() {
+    public Supplier<?> getDaoSupplier() { //NOSONAR
         return daoSupplier;
     }
 }

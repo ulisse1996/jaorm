@@ -1,7 +1,6 @@
 package io.jaorm.entity.relationship;
 
 import io.jaorm.BaseDao;
-import io.jaorm.entity.EntityDelegate;
 import io.jaorm.spi.QueriesService;
 import io.jaorm.spi.RelationshipService;
 

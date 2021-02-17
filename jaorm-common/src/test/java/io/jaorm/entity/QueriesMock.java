@@ -4,6 +4,7 @@ import io.jaorm.BaseDao;
 import io.jaorm.DaoImplementation;
 import io.jaorm.spi.QueriesService;
 
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
@@ -13,8 +14,8 @@ public class QueriesMock extends QueriesService {
     @Override
     public Map<Class<?>, DaoImplementation> getQueries() {
         Map<Class<?>, DaoImplementation> map = new HashMap<>();
-        map.put(String.class, new DaoImplementation(Object.class, () -> "1"));
-        map.put(BaseDao.class, new DaoImplementation(BaseDao.class, () -> BaseDaoMock.INSTANCE));
+        map.put(String.class, new DaoImplementation(BigDecimal.class, () -> "1"));
+        map.put(BaseDao.class, new DaoImplementation(Object.class, () -> BaseDaoMock.INSTANCE));
         return map;
     }
 

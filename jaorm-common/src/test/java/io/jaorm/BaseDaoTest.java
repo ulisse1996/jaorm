@@ -1,5 +1,7 @@
 package io.jaorm;
 
+import io.jaorm.entity.relationship.EntityEvent;
+import io.jaorm.entity.relationship.EntityEventType;
 import io.jaorm.entity.sql.SqlParameter;
 import io.jaorm.exception.PersistEventException;
 import io.jaorm.exception.RemoveEventException;
@@ -11,6 +13,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
@@ -252,6 +255,42 @@ class BaseDaoTest {
                     .thenReturn(Arguments.empty());
             dao.delete(Collections.singletonList(entity));
             Mockito.verify(dao).delete(Mockito.any(DelegatesMock.MyEntity.class));
+        }
+    }
+
+    @ParameterizedTest
+    @EnumSource(EntityEventType.class)
+    void should_apply_relationship_event(EntityEventType eventType) {
+        final MyDao dao = Mockito.spy(new MyDao());
+        RelationshipService relationshipService = Mockito.mock(RelationshipService.class);
+        EntityEvent event = Mockito.mock(EntityEvent.class);
+        try (MockedStatic<RelationshipService> mk = Mockito.mockStatic(RelationshipService.class);
+             MockedStatic<EntityEvent> mkEntity = Mockito.mockStatic(EntityEvent.class)) {
+            mk.when(RelationshipService::getInstance)
+                    .thenReturn(relationshipService);
+            Mockito.when(relationshipService.isEventActive(DelegatesMock.MyEntity.class, eventType))
+                    .thenReturn(true);
+            mkEntity.when(() -> EntityEvent.forType(eventType))
+                    .thenReturn(event);
+            switch (eventType) {
+                case PERSIST:
+                    dao.insert(new DelegatesMock.MyEntity());
+                    break;
+                case REMOVE:
+                    dao.delete(new DelegatesMock.MyEntity());
+                    break;
+                case UPDATE:
+                    dao.update(new DelegatesMock.MyEntity());
+                    break;
+            }
+
+            if (!EntityEventType.PERSIST.equals(eventType)) {
+                Mockito.verify(event, Mockito.times(1))
+                        .apply(Mockito.any());
+            } else {
+                Mockito.verify(event, Mockito.times(1))
+                        .applyAndReturn(Mockito.any());
+            }
         }
     }
 
