@@ -1,11 +1,11 @@
 package io.jaorm.dsl.impl;
 
-import io.jaorm.QueryRunner;
+import io.jaorm.spi.QueryRunner;
 import io.jaorm.dsl.common.EndSelect;
 import io.jaorm.dsl.common.Where;
 import io.jaorm.dsl.select.Select;
 import io.jaorm.dsl.util.Pair;
-import io.jaorm.entity.DelegatesService;
+import io.jaorm.spi.DelegatesService;
 import io.jaorm.entity.EntityDelegate;
 import io.jaorm.entity.sql.SqlParameter;
 
@@ -17,7 +17,7 @@ public class SelectImpl implements Select {
 
     @Override
     public <T> EndSelect<T> select(Class<T> klass) {
-        EntityDelegate<?> delegate = DelegatesService.getCurrent().searchDelegate(klass).get();
+        EntityDelegate<?> delegate = DelegatesService.getInstance().searchDelegate(klass).get();
         String[] columns = delegate.getSelectables();
         String table = delegate.getTable();
         return select(table, klass, columns);

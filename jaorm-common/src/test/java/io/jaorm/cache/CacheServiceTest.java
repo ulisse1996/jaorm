@@ -2,8 +2,8 @@ package io.jaorm.cache;
 
 import io.jaorm.Arguments;
 import io.jaorm.ServiceFinder;
+import io.jaorm.spi.CacheService;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
@@ -82,12 +82,7 @@ class CacheServiceTest {
                 return Optional.empty();
             }
         };
-        JaormAllCache<Object> allCache = new JaormAllCache<Object>() {
-            @Override
-            public List<Object> getAll() {
-                return null;
-            }
-        };
+        JaormAllCache<Object> allCache = () -> null;
         AbstractCacheConfiguration configuration = new AbstractCacheConfiguration() {
 
             @Override

@@ -1,6 +1,7 @@
 package io.jaorm.cache;
 
 import io.jaorm.Arguments;
+import io.jaorm.spi.CacheService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;

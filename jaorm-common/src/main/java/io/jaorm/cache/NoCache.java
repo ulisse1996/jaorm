@@ -1,5 +1,7 @@
 package io.jaorm.cache;
 
+import io.jaorm.spi.CacheService;
+
 import java.util.Collections;
 import java.util.Map;
 

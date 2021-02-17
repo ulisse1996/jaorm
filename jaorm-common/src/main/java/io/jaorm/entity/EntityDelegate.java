@@ -18,6 +18,7 @@ public interface EntityDelegate<T> {
     String getTable();
     String getUpdateSql();
     String getDeleteSql();
+    boolean isModified();
     default T toEntity(ResultSet rs) throws SQLException {
         return getEntityMapper().map(getEntityInstance(), rs);
     }

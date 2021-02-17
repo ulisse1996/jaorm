@@ -1,5 +1,7 @@
 package io.jaorm.entity;
 
+import io.jaorm.spi.DelegatesService;
+
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -14,7 +16,7 @@ public class EntityComparator<T> {
 
     @SuppressWarnings("unchecked")
     public static <T> EntityComparator<T> getInstance(Class<T> klass) {
-        return new EntityComparator<>((Class<? extends EntityDelegate<T>>) DelegatesService.getCurrent()
+        return new EntityComparator<>((Class<? extends EntityDelegate<T>>) DelegatesService.getInstance()
                 .searchDelegate(klass).get().getClass());
     }
 

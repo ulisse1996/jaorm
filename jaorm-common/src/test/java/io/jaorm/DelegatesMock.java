@@ -1,6 +1,9 @@
 package io.jaorm;
 
-import io.jaorm.entity.*;
+import io.jaorm.entity.EntityDelegate;
+import io.jaorm.entity.EntityMapper;
+import io.jaorm.entity.event.*;
+import io.jaorm.spi.DelegatesService;
 
 import java.math.BigDecimal;
 import java.sql.ResultSet;
@@ -16,7 +19,10 @@ public class DelegatesMock extends DelegatesService {
         return Collections.singletonMap(MyEntity.class, MyEntityDelegate::new);
     }
 
-    public static class MyEntity implements PrePersist<MyEntity, IllegalArgumentException>, PostPersist<MyEntity, IllegalArgumentException> {
+    public static class MyEntity implements
+            PrePersist<IllegalArgumentException>, PostPersist<IllegalArgumentException>,
+            PreUpdate<IllegalArgumentException>, PostUpdate<IllegalArgumentException>,
+            PreRemove<IllegalArgumentException>, PostRemove<IllegalArgumentException> {
 
         private String field1;
         private BigDecimal field2;
@@ -37,13 +43,34 @@ public class DelegatesMock extends DelegatesService {
             this.field2 = field2;
         }
 
+
         @Override
-        public void postPersist(MyEntity entity) throws IllegalArgumentException {
+        public void postPersist() throws IllegalArgumentException {
 
         }
 
         @Override
-        public void prePersist(MyEntity entity) throws IllegalArgumentException {
+        public void postRemove() throws IllegalArgumentException {
+
+        }
+
+        @Override
+        public void postUpdate() throws IllegalArgumentException {
+
+        }
+
+        @Override
+        public void prePersist() throws IllegalArgumentException {
+
+        }
+
+        @Override
+        public void preRemove() throws IllegalArgumentException {
+
+        }
+
+        @Override
+        public void preUpdate() throws IllegalArgumentException {
 
         }
     }
@@ -123,6 +150,11 @@ public class DelegatesMock extends DelegatesService {
         @Override
         public String getDeleteSql() {
             return "DELETE MYENTITY WHERE FIELD1 = ?";
+        }
+
+        @Override
+        public boolean isModified() {
+            return false;
         }
     }
 }

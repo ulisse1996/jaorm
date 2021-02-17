@@ -1,6 +1,6 @@
 package io.jaorm.processor.annotation;
 
-import io.jaorm.processor.util.ParameterConverter;
+import io.jaorm.entity.converter.ParameterConverter;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

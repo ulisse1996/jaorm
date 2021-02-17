@@ -1,17 +1,24 @@
 package io.jaorm.processor;
 
 import com.squareup.javapoet.*;
-import io.jaorm.cache.CacheService;
+import io.jaorm.DaoImplementation;
 import io.jaorm.cache.EntityCache;
-import io.jaorm.entity.DelegatesService;
+import io.jaorm.processor.annotation.CascadeType;
+import io.jaorm.entity.relationship.EntityEventType;
+import io.jaorm.entity.relationship.Relationship;
+import io.jaorm.processor.util.RelationshipAccessor;
+import io.jaorm.processor.util.RelationshipInfo;
+import io.jaorm.spi.CacheService;
+import io.jaorm.spi.DelegatesService;
 import io.jaorm.entity.EntityDelegate;
-import io.jaorm.entity.QueriesService;
+import io.jaorm.spi.QueriesService;
 import io.jaorm.processor.annotation.Cacheable;
 import io.jaorm.processor.annotation.Dao;
 import io.jaorm.processor.annotation.Query;
 import io.jaorm.processor.annotation.Table;
 import io.jaorm.processor.exception.ProcessorException;
 import io.jaorm.processor.util.MethodUtils;
+import io.jaorm.spi.RelationshipService;
 
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
@@ -56,6 +63,7 @@ public class JaormProcessor extends AbstractProcessor {
                 .collect(Collectors.toSet());
         new EntitiesBuilder(processingEnv, entities).process();
         new QueriesBuilder(processingEnv, types).process();
+        List<RelationshipInfo> relationshipInfos = new RelationshipBuilder(processingEnv, entities, types).process();
         if (!entities.isEmpty()) {
             buildDelegates(entities);
         }
@@ -65,7 +73,91 @@ public class JaormProcessor extends AbstractProcessor {
         if (!cacheables.isEmpty()) {
             buildCacheables(cacheables);
         }
+        if (!entities.isEmpty()) {
+            buildRelationshipEvents(relationshipInfos);
+        }
         return true;
+    }
+
+    private void buildRelationshipEvents(List<RelationshipInfo> relationshipInfos) {
+        TypeSpec relationshipEvents = TypeSpec.classBuilder("RelationshipEvents")
+                .addModifiers(Modifier.PUBLIC)
+                .addSuperinterface(RelationshipService.class)
+                .addField(relationshipMap(), "relationships", Modifier.PRIVATE, Modifier.FINAL)
+                .addMethod(relationshipEventsConstructor(relationshipInfos))
+                .addMethod(buildGetRelationships())
+                .build();
+        try {
+            JavaFile.builder("io.jaorm.entity.relationship", relationshipEvents)
+                    .skipJavaLangImports(true)
+                    .indent("    ")
+                    .build().writeTo(processingEnv.getFiler());
+        } catch (IOException ex) {
+            throw new ProcessorException(ex);
+        }
+    }
+
+    private MethodSpec buildGetRelationships() {
+        return MethodSpec.overriding(MethodUtils.getMethod(processingEnv, "getRelationships", RelationshipService.class))
+                .addStatement("return (Relationship<T>) this.relationships.get($L)", "arg0")
+                .addAnnotation(
+                        AnnotationSpec.builder(SuppressWarnings.class)
+                            .addMember("value", "$S", "unchecked")
+                            .build()
+                )
+                .build();
+    }
+
+    private MethodSpec relationshipEventsConstructor(List<RelationshipInfo> relationshipInfos) {
+        return MethodSpec.constructorBuilder()
+                .addModifiers(Modifier.PUBLIC)
+                .addCode(relationshipEventsConstructorCode(relationshipInfos))
+                .build();
+    }
+
+    private CodeBlock relationshipEventsConstructorCode(List<RelationshipInfo> relationshipInfos) {
+        CodeBlock.Builder builder = CodeBlock.builder()
+                .addStatement("$T map = new $T<>()", relationshipMap(), HashMap.class);
+        for (RelationshipInfo info : relationshipInfos) {
+            builder.addStatement("map.put($T.class, new $T<>($T.class))", info.getType(), Relationship.class, info.getType());
+            for (RelationshipAccessor relationship : info.getRelationships()) {
+                String events;
+                if (relationship.getCascadeType().equals(CascadeType.ALL)) {
+                    events = asVarArgs(EntityEventType.values());
+                } else if (relationship.getCascadeType().equals(CascadeType.REMOVE)) {
+                    events = asVarArgs(EntityEventType.REMOVE);
+                } else if (relationship.getCascadeType().equals(CascadeType.PERSIST)) {
+                    events = asVarArgs(EntityEventType.PERSIST);
+                } else {
+                    events = asVarArgs(EntityEventType.UPDATE);
+                }
+                builder.addStatement("map.get($T.class).add(new $T<>(e -> (($T)e).$L(), $L, $L, $L))",
+                        info.getType(), Relationship.Node.class,
+                        info.getType(),
+                        relationship.getGetter().getSimpleName(),
+                        relationship.getReturnTypeDefinition().isOptional() ? "true" : "false",
+                        relationship.getReturnTypeDefinition().isCollection() ? "true" : "false",
+                        events
+                );
+            }
+        }
+
+        return builder.addStatement("this.relationships = $T.unmodifiableMap(map)", Collections.class)
+                .build();
+    }
+
+    private String asVarArgs(EntityEventType... types) {
+        return Stream.of(types)
+                .map(Enum::name)
+                .map(s -> EntityEventType.class.getName() + "." + s)
+                .collect(Collectors.joining(","));
+    }
+
+    private TypeName relationshipMap() {
+        return ParameterizedTypeName.get(ClassName.get(Map.class),
+                ParameterizedTypeName.get(ClassName.get(Class.class), WildcardTypeName.subtypeOf(Object.class)),
+                ParameterizedTypeName.get(ClassName.get(Relationship.class), WildcardTypeName.subtypeOf(Object.class))
+        );
     }
 
     private void buildCacheables(Set<TypeElement> cacheables) {
@@ -150,7 +242,16 @@ public class JaormProcessor extends AbstractProcessor {
         MethodSpec.Builder builder = MethodSpec.constructorBuilder()
                 .addModifiers(Modifier.PUBLIC)
                 .addStatement(MAP_FORMAT, queriesMap(), HashMap.class);
-        types.forEach(type -> builder.addStatement("values.put($L.class, $LImpl::new)", type.getQualifiedName(), type.getQualifiedName()));
+        types.forEach(type -> {
+            TypeElement baseType;
+            if (QueriesBuilder.isBaseDao(type)) {
+                baseType = processingEnv.getElementUtils().getTypeElement(QueriesBuilder.getBaseDaoGeneric(type));
+            } else {
+                baseType = processingEnv.getElementUtils().getTypeElement(Object.class.getName());
+            }
+            builder.addStatement("values.put($L.class, new $T($T.class, $LImpl::new))",
+                    type.getQualifiedName(), DaoImplementation.class, baseType, type.getQualifiedName());
+        });
         builder.addStatement("this.queries = values");
         return builder.build();
     }
@@ -158,7 +259,7 @@ public class JaormProcessor extends AbstractProcessor {
     private TypeName queriesMap() {
         return ParameterizedTypeName.get(ClassName.get(Map.class),
                 ParameterizedTypeName.get(ClassName.get(Class.class), WildcardTypeName.subtypeOf(Object.class)),
-                ParameterizedTypeName.get(ClassName.get(Supplier.class), WildcardTypeName.subtypeOf(Object.class))
+                ClassName.get(DaoImplementation.class)
         );
     }
 

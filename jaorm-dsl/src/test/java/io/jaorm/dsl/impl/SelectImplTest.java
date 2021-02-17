@@ -1,9 +1,9 @@
 package io.jaorm.dsl.impl;
 
-import io.jaorm.QueryRunner;
+import io.jaorm.spi.QueryRunner;
 import io.jaorm.dsl.Jaorm;
 import io.jaorm.dsl.common.EndSelect;
-import io.jaorm.entity.DelegatesService;
+import io.jaorm.spi.DelegatesService;
 import io.jaorm.entity.EntityDelegate;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -25,7 +25,7 @@ class SelectImplTest {
             DelegatesService delegatesService = Mockito.mock(DelegatesService.class);
             EntityDelegate<?> delegate = Mockito.mock(EntityDelegate.class);
             QueryRunner runner = Mockito.mock(QueryRunner.class);
-            mk.when(DelegatesService::getCurrent)
+            mk.when(DelegatesService::getInstance)
                     .thenReturn(delegatesService);
             run.when(() -> QueryRunner.getInstance(Mockito.any()))
                     .thenReturn(runner);

@@ -1,6 +1,7 @@
 package io.jaorm;
 
 import io.jaorm.entity.sql.SqlParameter;
+import io.jaorm.spi.QueryRunner;
 
 import java.util.List;
 import java.util.Optional;
