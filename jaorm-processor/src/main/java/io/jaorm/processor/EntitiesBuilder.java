@@ -399,11 +399,11 @@ public class EntitiesBuilder {
     }
 
     private ParameterizedTypeName getColumnSetterType(TypeElement entity) {
-        return ParameterizedTypeName.get(ClassName.get(ColumnSetter.class), TypeName.get(entity.asType()), WildcardTypeName.subtypeOf(Object.class));
+        return ParameterizedTypeName.get(ClassName.get(ColumnSetter.class), TypeName.get(entity.asType()), ClassName.get(Object.class));
     }
 
     private ParameterizedTypeName getColumnGetterType(TypeElement entity) {
-        return ParameterizedTypeName.get(ClassName.get(ColumnGetter.class), TypeName.get(entity.asType()), WildcardTypeName.subtypeOf(Object.class));
+        return ParameterizedTypeName.get(ClassName.get(ColumnGetter.class), TypeName.get(entity.asType()), ClassName.get(Object.class));
     }
 
     private List<Accessor> asAccessors(ProcessingEnvironment processingEnv, List<Element> columns) {
