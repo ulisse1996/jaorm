@@ -50,7 +50,7 @@ class PersistEventTest extends EventTest {
                     .thenReturn("");
             Mockito.when(delegatesService.asInsert(Mockito.any()))
                     .thenReturn(Arguments.empty());
-            Mockito.when(queriesService.getBaseDao(Mockito.eq(RelEntity.class)))
+            Mockito.when(queriesService.getBaseDao(RelEntity.class))
                     .thenReturn(baseDao);
             Mockito.when(queryRunner.insert(Mockito.any(), Mockito.any(), Mockito.any()))
                     .then(invocation -> invocation.getArgument(0));

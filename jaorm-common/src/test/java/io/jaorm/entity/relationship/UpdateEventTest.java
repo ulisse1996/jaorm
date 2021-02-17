@@ -19,7 +19,7 @@ class UpdateEventTest extends EventTest {
 
     @Test
     void should_throw_exception_for_unimplemented_method() {
-        Assertions.assertThrows(UnsupportedOperationException.class, () -> testSubject.applyAndReturn(new Object()));
+        Assertions.assertThrows(UnsupportedOperationException.class, () -> testSubject.applyAndReturn(new Object())); // NOSONAR
     }
 
     @ParameterizedTest
@@ -52,7 +52,7 @@ class UpdateEventTest extends EventTest {
                     .thenReturn(Arguments.empty());
             Mockito.when(delegatesService.asWhere(Mockito.any()))
                     .thenReturn(Arguments.empty());
-            Mockito.when(queriesService.getBaseDao(Mockito.eq(RelEntity.class)))
+            Mockito.when(queriesService.getBaseDao(RelEntity.class))
                     .thenReturn(baseDao);
 
             testSubject.apply(new Entity());

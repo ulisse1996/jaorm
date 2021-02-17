@@ -57,6 +57,6 @@ class ArgumentsTest {
             }
         });
         Mockito.verify(mock, Mockito.times(3))
-                .setInt(Mockito.eq(1), Mockito.eq(1));
+                .setInt(1, 1);
     }
 }
