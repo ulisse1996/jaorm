@@ -426,7 +426,7 @@ public class EntitiesBuilder {
     private Iterable<MethodSpec> buildDelegation(TypeElement entity) {
         List<? extends Element> elements = entity.getEnclosedElements();
         List<? extends ExecutableElement> methods = elements.stream()
-                .filter(e -> e instanceof ExecutableElement)
+                .filter(ExecutableElement.class::isInstance)
                 .map(ExecutableElement.class::cast)
                 .filter(e -> !e.getKind().equals(ElementKind.CONSTRUCTOR))
                 .collect(Collectors.toList());

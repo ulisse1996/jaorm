@@ -12,7 +12,7 @@ public abstract class DelegatesService {
 
     private static final Singleton<DelegatesService> INSTANCE = Singleton.instance();
 
-    public synchronized static DelegatesService getInstance() {
+    public static synchronized DelegatesService getInstance() {
         if (!INSTANCE.isPresent()) {
             INSTANCE.set(ServiceFinder.loadService(DelegatesService.class));
         }
