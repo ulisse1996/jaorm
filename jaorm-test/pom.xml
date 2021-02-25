@@ -5,7 +5,7 @@
     <parent>
         <artifactId>jaorm-pom</artifactId>
         <groupId>io.jaorm</groupId>
-        <version>0.2.0</version>
+        <version>0.3.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -17,42 +17,84 @@
         <javapoet.version>1.13.0</javapoet.version>
         <compile-testing.version>0.19</compile-testing.version>
         <sonar.coverage.jacoco.xmlReportPaths>${project.basedir}/../${aggregate.report.dir}</sonar.coverage.jacoco.xmlReportPaths>
+        <spring-data-jdbc.version>2.1.5</spring-data-jdbc.version>
+        <spring-web.version>5.3.4</spring-web.version>
+        <spring-boot-starter-test.version>2.4.3</spring-boot-starter-test.version>
+        <junit-platform-launcher.version>1.4.1</junit-platform-launcher.version>
+        <weld-junit5.version>2.0.2.Final</weld-junit5.version>
+        <hsqldb.version>2.5.1</hsqldb.version>
+        <jaorm.version>0.3.0</jaorm.version>
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>io.jaorm</groupId>
             <artifactId>jaorm</artifactId>
-            <version>0.2.0</version>
+            <version>${jaorm.version}</version>
         </dependency>
         <dependency>
             <groupId>io.jaorm</groupId>
-            <artifactId>jaorm-common</artifactId>
-            <version>0.2.0</version>
+            <artifactId>jaorm-core</artifactId>
+            <version>${jaorm.version}</version>
         </dependency>
         <dependency>
             <groupId>io.jaorm</groupId>
             <artifactId>jaorm-processor</artifactId>
-            <version>0.2.0</version>
+            <version>${jaorm.version}</version>
         </dependency>
         <dependency>
             <groupId>io.jaorm</groupId>
             <artifactId>jaorm-dsl</artifactId>
-            <version>0.2.0</version>
+            <version>${jaorm.version}</version>
         </dependency>
         <dependency>
             <groupId>io.jaorm</groupId>
             <artifactId>jaorm-cache</artifactId>
-            <version>0.2.0</version>
+            <version>${jaorm.version}</version>
         </dependency>
         <dependency>
             <groupId>org.hsqldb</groupId>
             <artifactId>hsqldb</artifactId>
-            <version>2.5.1</version>
+            <version>${hsqldb.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.weld</groupId>
+            <artifactId>weld-junit5</artifactId>
+            <version>${weld-junit5.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.platform</groupId>
+            <artifactId>junit-platform-launcher</artifactId>
+            <version>${junit-platform-launcher.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <version>${spring-boot-starter-test.version}</version>
+            <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.junit.jupiter</groupId>
+                    <artifactId>junit-jupiter-api</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-web</artifactId>
+            <version>${spring-web.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.data</groupId>
+            <artifactId>spring-data-jdbc</artifactId>
+            <version>${spring-data-jdbc.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
-
 
     <build>
         <plugins>

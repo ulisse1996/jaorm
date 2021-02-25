@@ -3,6 +3,7 @@ package io.jaorm.processor;
 import com.squareup.javapoet.*;
 import io.jaorm.DaoImplementation;
 import io.jaorm.cache.EntityCache;
+import io.jaorm.logger.JaormLogger;
 import io.jaorm.processor.annotation.CascadeType;
 import io.jaorm.entity.relationship.EntityEventType;
 import io.jaorm.entity.relationship.Relationship;
@@ -37,6 +38,7 @@ import java.util.stream.Stream;
 @SupportedSourceVersion(SourceVersion.RELEASE_8)
 public class JaormProcessor extends AbstractProcessor {
 
+    private static final JaormLogger logger = JaormLogger.getLogger(JaormProcessor.class);
     private static final String MAP_FORMAT = "$T values = new $T<>()";
     private static final String JAORM_PACKAGE = "io.jaorm.entity";
 
@@ -80,6 +82,7 @@ public class JaormProcessor extends AbstractProcessor {
     }
 
     private void buildRelationshipEvents(List<RelationshipInfo> relationshipInfos) {
+        logger.info("Building RelationshipEvents Class"::toString);
         TypeSpec relationshipEvents = TypeSpec.classBuilder("RelationshipEvents")
                 .addModifiers(Modifier.PUBLIC)
                 .addSuperinterface(RelationshipService.class)
@@ -161,6 +164,7 @@ public class JaormProcessor extends AbstractProcessor {
     }
 
     private void buildCacheables(Set<TypeElement> cacheables) {
+        logger.info("Building Caches Class"::toString);
         TypeSpec caches = TypeSpec.classBuilder("Caches")
                 .addModifiers(Modifier.PUBLIC)
                 .superclass(CacheService.class)
@@ -215,6 +219,7 @@ public class JaormProcessor extends AbstractProcessor {
     }
 
     private void buildQueries(Set<TypeElement> types) {
+        logger.info("Building Queries Class"::toString);
         TypeSpec queries = TypeSpec.classBuilder("Queries")
                 .addModifiers(Modifier.PUBLIC)
                 .superclass(QueriesService.class)
@@ -264,6 +269,7 @@ public class JaormProcessor extends AbstractProcessor {
     }
 
     private void buildDelegates(Set<TypeElement> types) {
+        logger.info("Building Delegates Class"::toString);
         TypeSpec delegates = TypeSpec.classBuilder("Delegates")
                 .addModifiers(Modifier.PUBLIC)
                 .superclass(DelegatesService.class)

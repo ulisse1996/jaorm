@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.provider.Arguments;
 
+import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.Connection;
@@ -21,9 +22,38 @@ import java.util.stream.Stream;
 
 public abstract class AbstractIT {
 
+    private final boolean skipSetup;
+
+    public AbstractIT() {
+        this(false);
+    }
+
+    public AbstractIT(boolean skipSetup) {
+        this.skipSetup = skipSetup;
+    }
+
+
+    protected void setProvider(HSQLDBProvider provider) {
+        try {
+            Field instance = DataSourceProvider.class.getDeclaredField("instance");
+            instance.setAccessible(true);
+            instance.set(null, provider);
+        } catch (Exception ex) {
+            throw new IllegalStateException(ex);
+        }
+    }
+
     @BeforeEach
     public void setup() {
-        HSQLDBProvider.clear();
+        if (!this.skipSetup) {
+            try {
+                Field instance = DataSourceProvider.class.getDeclaredField("instance");
+                instance.setAccessible(true);
+                instance.set(null, null);
+            } catch (Exception ex) {
+                throw new IllegalStateException(ex);
+            }
+        }
         fillCache();
     }
 
@@ -34,7 +64,12 @@ public abstract class AbstractIT {
     }
 
     protected void setDataSource(HSQLDBProvider.DatabaseType type, String initSql) {
-        HSQLDBProvider.createFor(type);
+        DataSourceProvider current = DataSourceProvider.getCurrent();
+        ((HSQLDBProvider)current).createFor(type);
+        createDB(initSql);
+    }
+
+    protected void createDB(String initSql) {
         List<String> strings = readFile(initSql);
         strings.add(0, "DROP SCHEMA PUBLIC CASCADE");
         prepareDb(strings);

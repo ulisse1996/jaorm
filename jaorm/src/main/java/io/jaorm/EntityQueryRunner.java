@@ -1,10 +1,10 @@
 package io.jaorm;
 
-import io.jaorm.spi.DelegatesService;
 import io.jaorm.entity.EntityDelegate;
 import io.jaorm.entity.sql.DataSourceProvider;
 import io.jaorm.entity.sql.SqlParameter;
 import io.jaorm.exception.JaormSqlException;
+import io.jaorm.spi.DelegatesService;
 import io.jaorm.spi.QueryRunner;
 
 import java.sql.Connection;
@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 
-public class EntityQueryRunner implements QueryRunner {
+public class EntityQueryRunner extends QueryRunner {
 
     @Override
     public boolean isCompatible(Class<?> klass) {
@@ -35,6 +35,7 @@ public class EntityQueryRunner implements QueryRunner {
     @Override
     @SuppressWarnings("unchecked")
     public <R> R read(Class<R> entity, String query, List<SqlParameter> params) {
+        logger.logSql(query, params);
         Supplier<EntityDelegate<?>> delegateSupplier = DelegatesService.getInstance().searchDelegate(entity);
         try (Connection connection = DataSourceProvider.getCurrent().getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(query);
@@ -44,6 +45,7 @@ public class EntityQueryRunner implements QueryRunner {
             entityDelegate.setEntity(executor.getResultSet());
             return (R) entityDelegate;
         } catch (SQLException ex) {
+            logger.error(String.format("Error during read for entity %s", entity)::toString, ex);
             throw new JaormSqlException(ex);
         }
     }
@@ -51,6 +53,7 @@ public class EntityQueryRunner implements QueryRunner {
     @Override
     @SuppressWarnings("unchecked")
     public <R> Optional<R> readOpt(Class<R> entity, String query, List<SqlParameter> params) {
+        logger.logSql(query, params);
         Supplier<EntityDelegate<?>> delegateSupplier = DelegatesService.getInstance().searchDelegate(entity);
         try (Connection connection = DataSourceProvider.getCurrent().getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(query);
@@ -63,6 +66,7 @@ public class EntityQueryRunner implements QueryRunner {
                 return Optional.empty();
             }
         } catch (SQLException ex) {
+            logger.error(String.format("Error during readOpt for entity %s", entity)::toString, ex);
             throw new JaormSqlException(ex);
         }
     }
@@ -70,6 +74,7 @@ public class EntityQueryRunner implements QueryRunner {
     @Override
     @SuppressWarnings("unchecked")
     public <R> List<R> readAll(Class<R> entity, String query, List<SqlParameter> params) {
+        logger.logSql(query, params);
         List<R> values = new ArrayList<>();
         Supplier<EntityDelegate<?>> delegateSupplier = DelegatesService.getInstance().searchDelegate(entity);
         try (Connection connection = DataSourceProvider.getCurrent().getConnection();
@@ -83,6 +88,7 @@ public class EntityQueryRunner implements QueryRunner {
 
             return values;
         } catch (SQLException ex) {
+            logger.error(String.format("Error during readAll for entity %s", entity)::toString, ex);
             throw new JaormSqlException(ex);
         }
     }

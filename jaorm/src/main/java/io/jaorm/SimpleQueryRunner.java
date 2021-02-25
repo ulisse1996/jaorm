@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class SimpleQueryRunner implements QueryRunner {
+public class SimpleQueryRunner extends QueryRunner {
 
     @Override
     public boolean isCompatible(Class<?> klass) {

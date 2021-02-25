@@ -6,25 +6,28 @@ import org.hsqldb.jdbc.JDBCDataSourceFactory;
 import javax.sql.DataSource;
 import java.util.Properties;
 
-public class HSQLDBProvider implements DataSourceProvider {
+public class HSQLDBProvider extends DataSourceProvider {
 
-    private static final ThreadLocal<DataSource> LOCAL_DATASOURCE = ThreadLocal.withInitial(() -> null);
+    private DataSource dataSource;
+    public void clear() {
+        dataSource = null;
+    }
 
-    public static void clear() {
-        LOCAL_DATASOURCE.remove();
+    public void set(DataSource dataSource) {
+        this.dataSource = dataSource;
     }
 
     @Override
     public DataSource getDataSource() {
-        if (LOCAL_DATASOURCE.get() == null) {
-            LOCAL_DATASOURCE.set(createDatasource(DatabaseType.ORACLE));
+        if (this.dataSource == null) {
+            createFor(DatabaseType.ORACLE);
         }
 
-        return LOCAL_DATASOURCE.get();
+        return this.dataSource;
     }
 
-    public static void createFor(DatabaseType type) {
-        LOCAL_DATASOURCE.set(createDatasource(type));
+    public void createFor(DatabaseType type) {
+        this.dataSource = createDatasource(type);
     }
 
     private static DataSource createDatasource(DatabaseType type) {

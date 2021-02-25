@@ -7,10 +7,10 @@
     <groupId>io.jaorm</groupId>
     <artifactId>jaorm-pom</artifactId>
     <packaging>pom</packaging>
-    <version>0.2.0</version>
+    <version>0.3.0</version>
     <modules>
         <module>jaorm-processor</module>
-        <module>jaorm-common</module>
+        <module>jaorm-core</module>
         <module>jaorm</module>
         <module>jaorm-test</module>
         <module>jaorm-dsl</module>
@@ -21,7 +21,7 @@
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <junit.version>5.7.0</junit.version>
+        <junit.version>5.4.1</junit.version>
         <mockito.version>3.7.7</mockito.version>
         <sonar.projectKey>ulisse1996_JAORM</sonar.projectKey>
         <sonar.moduleKey>${project.groupId}:${project.artifactId}</sonar.moduleKey>

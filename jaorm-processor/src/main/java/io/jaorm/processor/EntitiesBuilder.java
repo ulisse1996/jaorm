@@ -2,6 +2,7 @@ package io.jaorm.processor;
 
 import com.squareup.javapoet.*;
 import io.jaorm.entity.converter.ParameterConverter;
+import io.jaorm.logger.JaormLogger;
 import io.jaorm.spi.DelegatesService;
 import io.jaorm.spi.QueryRunner;
 import io.jaorm.entity.*;
@@ -24,6 +25,7 @@ import java.util.stream.Stream;
 
 public class EntitiesBuilder {
 
+    private static final JaormLogger logger = JaormLogger.getLogger(EntitiesBuilder.class);
     private static final String COL_NAME = "colName";
     private static final String REQUIRE_NON_NULL = "$T.requireNonNull(this.entity)";
     private static final String BUILDER_INSTANCE = "$T builder = new $T()";
@@ -39,6 +41,7 @@ public class EntitiesBuilder {
 
     public void process() {
         for (TypeElement entity : entities) {
+            logger.info(() -> "Building entity " + entity);
             String packageName = getPackage(entity);
             String delegate = entity.getSimpleName() + "Delegate";
             TypeSpec spec = build(entity, delegate);
@@ -177,6 +180,7 @@ public class EntitiesBuilder {
                 .stream()
                 .filter(ele -> ele.getAnnotation(Column.class) != null)
                 .collect(Collectors.toList());
+        logger.info(() -> String.format("Found columns %s for entity %s", columns, entity));
         List<Accessor> accessors = asAccessors(processingEnv, columns);
         TypeSpec.Builder builder = TypeSpec.enumBuilder("Column");
         builder.addModifiers(Modifier.PUBLIC);
@@ -594,6 +598,8 @@ public class EntitiesBuilder {
         try {
             return findExecutable(element, getter, "Can't find getter for field " + element.getSimpleName());
         } catch (ProcessorException ex) {
+            String finalGetter = getter;
+            logger.warn(() -> String.format("Can't find getter with name %s", finalGetter));
             getter = "is" + fieldName;
             return findExecutable(element, getter, "Can't find getter for field " + element.getSimpleName());
         }

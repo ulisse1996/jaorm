@@ -5,7 +5,7 @@ import org.mockito.Mockito;
 
 import javax.sql.DataSource;
 
-public class DatasourceProviderImpl implements DataSourceProvider {
+public class DatasourceProviderImpl extends DataSourceProvider {
 
     public static final ThreadLocal<DataSource> DATA_SOURCE_THREAD_LOCAL = ThreadLocal.withInitial(() -> null);
 
