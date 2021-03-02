@@ -5,6 +5,7 @@ import io.jaorm.cache.StandardConfiguration;
 import io.jaorm.entity.sql.DataSourceProvider;
 import io.jaorm.integration.test.entity.Role;
 import io.jaorm.spi.CacheService;
+import io.jaorm.spi.common.Singleton;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.provider.Arguments;
@@ -32,24 +33,32 @@ public abstract class AbstractIT {
         this.skipSetup = skipSetup;
     }
 
-
+    @SuppressWarnings("unchecked")
     protected void setProvider(HSQLDBProvider provider) {
         try {
-            Field instance = DataSourceProvider.class.getDeclaredField("instance");
+            Field instance = DataSourceProvider.class.getDeclaredField("INSTANCE");
             instance.setAccessible(true);
-            instance.set(null, provider);
+            Singleton<DataSourceProvider> singleton = (Singleton<DataSourceProvider>) instance.get(null);
+            singleton.set(provider);
         } catch (Exception ex) {
             throw new IllegalStateException(ex);
         }
     }
 
     @BeforeEach
+    @SuppressWarnings("unchecked")
     public void setup() {
         if (!this.skipSetup) {
             try {
-                Field instance = DataSourceProvider.class.getDeclaredField("instance");
+                Field instance = DataSourceProvider.class.getDeclaredField("INSTANCE");
                 instance.setAccessible(true);
-                instance.set(null, null);
+                Singleton<DataSourceProvider> singleton = (Singleton<DataSourceProvider>) instance.get(null);
+                singleton.set(null);
+
+                instance = CacheService.class.getDeclaredField("INSTANCE");
+                instance.setAccessible(true);
+                Singleton<CacheService> cacheServiceSingleton = (Singleton<CacheService>) instance.get(null);
+                singleton.set(null);
             } catch (Exception ex) {
                 throw new IllegalStateException(ex);
             }
@@ -58,7 +67,7 @@ public abstract class AbstractIT {
     }
 
     private static void fillCache() {
-        Map<Class<?>, EntityCache<?>> cacheMap = CacheService.getCurrent().getCaches();
+        Map<Class<?>, EntityCache<?>> cacheMap = CacheService.getInstance().getCaches();
         Stream.of(Role.class)
                 .forEach(c -> cacheMap.put(c, EntityCache.fromConfiguration(c, new StandardConfiguration())));
     }

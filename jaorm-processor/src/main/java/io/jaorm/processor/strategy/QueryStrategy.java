@@ -3,7 +3,7 @@ package io.jaorm.processor.strategy;
 import com.squareup.javapoet.CodeBlock;
 import io.jaorm.entity.sql.SqlAccessor;
 import io.jaorm.entity.sql.SqlParameter;
-import io.jaorm.processor.annotation.Param;
+import io.jaorm.annotation.Param;
 import io.jaorm.processor.exception.ProcessorException;
 
 import javax.annotation.processing.ProcessingEnvironment;

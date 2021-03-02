@@ -7,20 +7,35 @@ import io.jaorm.logger.JaormLogger;
 import io.jaorm.spi.common.Singleton;
 
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 public abstract class CacheService {
 
     private static final JaormLogger logger = JaormLogger.getLogger(CacheService.class);
     private static final Singleton<CacheService> INSTANCE = Singleton.instance();
 
-    public static synchronized CacheService getCurrent() {
+    public static synchronized CacheService getInstance() {
         try {
             if (!INSTANCE.isPresent()) {
-                INSTANCE.set(ServiceFinder.loadService(CacheService.class));
+                Iterable<CacheService> cacheServices = ServiceFinder.loadServices(CacheService.class);
+                List<CacheService> services = StreamSupport.stream(cacheServices.spliterator(), false)
+                        .collect(Collectors.toList());
+
+                if (services.size() == 1) {
+                    INSTANCE.set(services.get(0));
+                } else {
+                    INSTANCE.set(
+                            services.stream()
+                                .filter(cacheService -> !cacheService.isDefault())
+                                .findFirst()
+                                .orElseThrow(() -> new IllegalArgumentException("Custom implementation must not override isDefault or must return false for isDefault check"))
+                    );
+                }
             }
         } catch (IllegalArgumentException | ServiceConfigurationError ex) {
             logger.debug(() -> "Can't find cache service, switching to NoCache instance");
-            INSTANCE.set(NoCache.INSTANCE);
+            INSTANCE.set(NoOpCache.INSTANCE);
         }
 
         return INSTANCE.get();
@@ -62,5 +77,9 @@ public abstract class CacheService {
 
     public  <T> Optional<T> getOpt(Class<T> klass, Arguments arguments) {
         return getCache(klass).getOpt(arguments);
+    }
+
+    public boolean isDefault() {
+        return getClass().getName().equalsIgnoreCase("io.jaorm.cache.Caches");
     }
 }

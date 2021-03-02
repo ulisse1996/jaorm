@@ -5,9 +5,9 @@ import io.jaorm.spi.CacheService;
 import java.util.Collections;
 import java.util.Map;
 
-public class NoCache extends CacheService {
+public class NoOpCache extends CacheService {
 
-    public static final NoCache INSTANCE = new NoCache();
+    public static final NoOpCache INSTANCE = new NoOpCache();
 
     @Override
     public void setConfiguration(Class<?> klass, AbstractCacheConfiguration configuration) {

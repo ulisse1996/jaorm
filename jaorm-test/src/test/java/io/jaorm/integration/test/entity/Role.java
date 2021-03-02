@@ -1,9 +1,9 @@
 package io.jaorm.integration.test.entity;
 
-import io.jaorm.processor.annotation.Cacheable;
-import io.jaorm.processor.annotation.Column;
-import io.jaorm.processor.annotation.Id;
-import io.jaorm.processor.annotation.Table;
+import io.jaorm.annotation.Cacheable;
+import io.jaorm.annotation.Column;
+import io.jaorm.annotation.Id;
+import io.jaorm.annotation.Table;
 
 import java.util.Objects;
 

@@ -2,17 +2,29 @@ package io.jaorm.dsl.common;
 
 import io.jaorm.dsl.impl.LikeType;
 
-public interface WhereOperation<T> {
+public interface WhereOperation<T, R> {
 
-    IntermediateWhere<T> eq(Object val);
-    IntermediateWhere<T> ne(Object val);
-    IntermediateWhere<T> lt(Object val);
-    IntermediateWhere<T> gt(Object val);
-    IntermediateWhere<T> le(Object val);
-    IntermediateWhere<T> ge(Object val);
-    IntermediateWhere<T> in(Iterable<?> iterable);
-    IntermediateWhere<T> notIn(Iterable<?> iterable);
+    // El Expression operations
+    IntermediateWhere<T> eq(R val);
+    IntermediateWhere<T> ne(R val);
+    IntermediateWhere<T> lt(R val);
+    IntermediateWhere<T> gt(R val);
+    IntermediateWhere<T> le(R val);
+    IntermediateWhere<T> ge(R val);
+
+    // Standard operations
+    IntermediateWhere<T> equalsTo(R val);
+    IntermediateWhere<T> notEqualsTo(R val);
+    IntermediateWhere<T> lessThan(R val);
+    IntermediateWhere<T> greaterThan(R val);
+    IntermediateWhere<T> lessOrEqualsTo(R val);
+    IntermediateWhere<T> greaterOrEqualsTo(R val);
+
+    IntermediateWhere<T> in(Iterable<R> iterable);
+    IntermediateWhere<T> notIn(Iterable<R> iterable);
     IntermediateWhere<T> isNull();
     IntermediateWhere<T> isNotNull();
     IntermediateWhere<T> like(LikeType type, String val);
+
+
 }

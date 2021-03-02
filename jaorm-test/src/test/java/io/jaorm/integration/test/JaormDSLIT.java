@@ -2,6 +2,7 @@ package io.jaorm.integration.test;
 
 import io.jaorm.dsl.Jaorm;
 import io.jaorm.entity.EntityComparator;
+import io.jaorm.integration.test.entity.UserColumns;
 import io.jaorm.spi.QueriesService;
 import io.jaorm.exception.JaormSqlException;
 import io.jaorm.integration.test.entity.Role;
@@ -27,7 +28,7 @@ class JaormDSLIT extends AbstractIT {
         setDataSource(type, initSql);
 
         Optional<User> treeOpt = Jaorm.select(User.class)
-                .where("USER_ID").eq(1)
+                .where(UserColumns.USER_ID).eq(1)
                 .readOpt();
         Assertions.assertFalse(treeOpt.isPresent());
     }
@@ -38,7 +39,7 @@ class JaormDSLIT extends AbstractIT {
         setDataSource(type, initSql);
 
         List<User> treeList = Jaorm.select(User.class)
-                .where("USER_ID").ne(999)
+                .where(UserColumns.USER_ID).ne(999)
                 .readAll();
         Assertions.assertTrue(treeList.isEmpty());
     }
@@ -49,7 +50,7 @@ class JaormDSLIT extends AbstractIT {
         setDataSource(type, initSql);
 
         Assertions.assertThrows(JaormSqlException.class, () -> Jaorm.select(User.class) // NOSONAR
-                .where("USER_ID").eq(99)
+                .where(UserColumns.USER_ID).eq(99)
                 .read());
     }
 
@@ -66,7 +67,7 @@ class JaormDSLIT extends AbstractIT {
         QueriesService.getInstance().getQuery(UserDAO.class).insert(expected);
 
         Optional<User> treeOpt = Jaorm.select(User.class)
-                .where("USER_ID").eq(999)
+                .where(UserColumns.USER_ID).eq(999)
                 .readOpt();
         Assertions.assertTrue(treeOpt.isPresent());
         Assertions.assertTrue(EntityComparator.getInstance(User.class).equals(expected, treeOpt.get()));
@@ -85,7 +86,7 @@ class JaormDSLIT extends AbstractIT {
         QueriesService.getInstance().getQuery(UserDAO.class).insert(expected);
 
         List<User> treeList = Jaorm.select(User.class)
-                .where("USER_ID").eq(999)
+                .where(UserColumns.USER_ID).eq(999)
                 .readAll();
         Assertions.assertEquals(1, treeList.size());
         Assertions.assertTrue(EntityComparator.getInstance(User.class).equals(expected, treeList.get(0)));
@@ -104,7 +105,7 @@ class JaormDSLIT extends AbstractIT {
         QueriesService.getInstance().getQuery(UserDAO.class).insert(expected);
 
         User result = Jaorm.select(User.class)
-                .where("USER_ID").eq(999)
+                .where(UserColumns.USER_ID).eq(999)
                 .read();
         Assertions.assertTrue(EntityComparator.getInstance(User.class).equals(expected, result));
     }

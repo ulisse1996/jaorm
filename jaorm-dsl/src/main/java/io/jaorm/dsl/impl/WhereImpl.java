@@ -2,13 +2,16 @@ package io.jaorm.dsl.impl;
 
 import io.jaorm.dsl.common.IntermediateWhere;
 import io.jaorm.dsl.common.Where;
+import io.jaorm.entity.SqlColumn;
+import io.jaorm.entity.converter.ValueConverter;
 import io.jaorm.entity.sql.SqlParameter;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-public class WhereImpl<T> implements Where<T>, IntermediateWhere<T> {
+public class WhereImpl<T, R> implements Where<T, R>, IntermediateWhere<T> {
 
     private static final String WHERE = " WHERE ";
     private static final String AND = " AND ";
@@ -16,59 +19,89 @@ public class WhereImpl<T> implements Where<T>, IntermediateWhere<T> {
     private static final String COLUMN_CAN_T_BE_NULL = "Column can't be null";
     private static final String VALUE_CAN_T_BE_NULL = "Value can't be null !";
     private final List<WhereClause> clauses;
-    private final SelectImpl.EndSelectImpl<T> parent;
+    private final SelectImpl.EndSelectImpl<T, R> parent;
     private boolean linkedCause;
 
-    public WhereImpl(SelectImpl.EndSelectImpl<T> endSelect, String column, boolean or) {
+    public WhereImpl(SelectImpl.EndSelectImpl<T, R> endSelect, String column, boolean or, ValueConverter<?,R> converter) {
         this.parent = endSelect;
         this.clauses = new ArrayList<>();
-        this.clauses.add(new WhereClause(column, or));
+        this.clauses.add(new WhereClause(column, or, converter));
     }
 
     @Override
-    public IntermediateWhere<T> eq(Object val) {
+    public IntermediateWhere<T> eq(R val) {
         Objects.requireNonNull(val, VALUE_CAN_T_BE_NULL);
         return operation(Operation.EQUALS, val);
     }
 
     @Override
-    public IntermediateWhere<T> ne(Object val) {
+    public IntermediateWhere<T> ne(R val) {
         Objects.requireNonNull(val, VALUE_CAN_T_BE_NULL);
         return operation(Operation.NOT_EQUALS, val);
     }
 
     @Override
-    public IntermediateWhere<T> lt(Object val) {
+    public IntermediateWhere<T> lt(R val) {
         Objects.requireNonNull(val, VALUE_CAN_T_BE_NULL);
         return operation(Operation.LESS_THAN, val);
     }
 
     @Override
-    public IntermediateWhere<T> gt(Object val) {
+    public IntermediateWhere<T> gt(R val) {
         Objects.requireNonNull(val, VALUE_CAN_T_BE_NULL);
         return operation(Operation.GREATER_THAN, val);
     }
 
     @Override
-    public IntermediateWhere<T> le(Object val) {
+    public IntermediateWhere<T> le(R val) {
         Objects.requireNonNull(val, VALUE_CAN_T_BE_NULL);
         return operation(Operation.LESS_EQUALS, val);
     }
 
     @Override
-    public IntermediateWhere<T> ge(Object val) {
+    public IntermediateWhere<T> ge(R val) {
         Objects.requireNonNull(val, VALUE_CAN_T_BE_NULL);
         return operation(Operation.GREATER_EQUALS, val);
     }
 
     @Override
-    public IntermediateWhere<T> in(Iterable<?> iterable) {
+    public IntermediateWhere<T> equalsTo(R val) {
+        return eq(val);
+    }
+
+    @Override
+    public IntermediateWhere<T> notEqualsTo(R val) {
+        return ne(val);
+    }
+
+    @Override
+    public IntermediateWhere<T> lessThan(R val) {
+        return lt(val);
+    }
+
+    @Override
+    public IntermediateWhere<T> greaterThan(R val) {
+        return gt(val);
+    }
+
+    @Override
+    public IntermediateWhere<T> lessOrEqualsTo(R val) {
+        return le(val);
+    }
+
+    @Override
+    public IntermediateWhere<T> greaterOrEqualsTo(R val) {
+        return ge(val);
+    }
+
+    @Override
+    public IntermediateWhere<T> in(Iterable<R> iterable) {
         Objects.requireNonNull(iterable, "Iterable can't be null !");
         return operation(Operation.IN, null, iterable);
     }
 
     @Override
-    public IntermediateWhere<T> notIn(Iterable<?> iterable) {
+    public IntermediateWhere<T> notIn(Iterable<R> iterable) {
         Objects.requireNonNull(iterable, "Iterable can't be null");
         return operation(Operation.NOT_IN, null, iterable);
     }
@@ -84,23 +117,28 @@ public class WhereImpl<T> implements Where<T>, IntermediateWhere<T> {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public IntermediateWhere<T> like(LikeType type, String val) {
         Objects.requireNonNull(val, VALUE_CAN_T_BE_NULL);
         Objects.requireNonNull(type, "LikeType can't be null !");
-        return operation(Operation.LIKE, val, null, type);
+        return operation(Operation.LIKE, (R) val, null, type);
     }
 
-    private IntermediateWhere<T> operation(Operation operation, Object val) {
+    private IntermediateWhere<T> operation(Operation operation, R val) {
         return operation(operation, val, null);
     }
 
-    private IntermediateWhere<T> operation(Operation operation, Object val, Iterable<?> iterable) {
+    private IntermediateWhere<T> operation(Operation operation, R val, Iterable<?> iterable) {
         return operation(operation, val, iterable, null);
     }
 
-    private IntermediateWhere<T> operation(Operation operation, Object val, Iterable<?> iterable, LikeType type) {
+    @SuppressWarnings("unchecked")
+    private IntermediateWhere<T> operation(Operation operation, R val, Iterable<?> iterable, LikeType type) {
         getCurrent().operation = operation;
         getCurrent().val = val;
+        if (getCurrent().converter != null) {
+            getCurrent().val = ((ValueConverter<?,R>)getCurrent().converter).toSql(val);
+        }
         getCurrent().iterable = iterable;
         getCurrent().likeType = type;
         return this;
@@ -115,19 +153,33 @@ public class WhereImpl<T> implements Where<T>, IntermediateWhere<T> {
     }
 
     @Override
-    public Where<T> where(String column) {
-        Objects.requireNonNull(column, COLUMN_CAN_T_BE_NULL);
+    @SuppressWarnings("unchecked")
+    public <L> Where<T, L> where(SqlColumn<T, L> column) {
+        checkColumn(column);
         this.linkedCause = false;
-        this.clauses.add(new WhereClause(column, false));
-        return this;
+        this.clauses.add(new WhereClause(column.getName(), false, column.getConverter()));
+        return (Where<T, L>) this;
     }
 
     @Override
-    public Where<T> orWhere(String column) {
-        Objects.requireNonNull(column, COLUMN_CAN_T_BE_NULL);
+    @SuppressWarnings("unchecked")
+    public <L> Where<T, L> orWhere(SqlColumn<T, L> column) {
+        checkColumn(column);
         this.linkedCause = false;
-        this.clauses.add(new WhereClause(column, true));
-        return this;
+        this.clauses.add(new WhereClause(column.getName(), true, column.getConverter()));
+        return (Where<T, L>) this;
+    }
+
+    private void checkColumn(SqlColumn<T, ?> column) {
+        Objects.requireNonNull(column, COLUMN_CAN_T_BE_NULL);
+        checkColumn(column.getName());
+    }
+
+    private void checkColumn(String column) {
+        Objects.requireNonNull(column, COLUMN_CAN_T_BE_NULL);
+        if (parent.klass != null && Stream.of(parent.columns).map(String::trim).noneMatch(column::equals)) {
+            throw new IllegalArgumentException(String.format("Can't find column %s in columns %s", column, Arrays.toString(parent.columns)));
+        }
     }
 
     @Override
@@ -146,21 +198,23 @@ public class WhereImpl<T> implements Where<T>, IntermediateWhere<T> {
     }
 
     @Override
-    public Where<T> and(String column) {
-        Objects.requireNonNull(column, COLUMN_CAN_T_BE_NULL);
-        WhereClause cause = new WhereClause(column, false);
+    @SuppressWarnings("unchecked")
+    public <L> Where<T, L> and(SqlColumn<T, L> column) {
+        checkColumn(column);
+        WhereClause cause = new WhereClause(column.getName(), false, column.getConverter());
         getCurrent().linked.add(cause);
         this.linkedCause = true;
-        return this;
+        return (Where<T, L>) this;
     }
 
     @Override
-    public Where<T> or(String column) {
-        Objects.requireNonNull(column, COLUMN_CAN_T_BE_NULL);
-        WhereClause cause = new WhereClause(column, true);
+    @SuppressWarnings("unchecked")
+    public <L> Where<T, L> or(SqlColumn<T, L> column) {
+        checkColumn(column);
+        WhereClause cause = new WhereClause(column.getName(), true, column.getConverter());
         getCurrent().linked.add(cause);
         this.linkedCause = true;
-        return this;
+        return (Where<T, L>) this;
     }
 
     public boolean hasClauses() {
@@ -255,15 +309,17 @@ public class WhereImpl<T> implements Where<T>, IntermediateWhere<T> {
         private final String column;
         private final boolean or;
         private final List<WhereClause> linked;
+        private final ValueConverter<?, ?> converter;
         private Iterable<?> iterable;
         private LikeType likeType;
         private Operation operation;
         private Object val;
 
-        public WhereClause(String column, boolean or) {
+        public WhereClause(String column, boolean or, ValueConverter<?,?> converter) {
             this.column = column;
             this.or = or;
             this.linked = new ArrayList<>();
+            this.converter = converter;
         }
     }
 }

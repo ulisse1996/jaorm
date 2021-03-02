@@ -1,5 +1,6 @@
 package io.jaorm.dsl.impl;
 
+import io.jaorm.entity.SqlColumn;
 import io.jaorm.spi.QueryRunner;
 import io.jaorm.dsl.Jaorm;
 import io.jaorm.dsl.common.EndSelect;
@@ -46,11 +47,11 @@ class SelectImplTest {
         return Stream.of(
                 Arguments.arguments(
                         base + " WHERE (COL1 = ? AND COL2 = ?)",
-                        (Supplier<EndSelect<?>>)() -> Jaorm.select(Object.class).where("COL1").eq(2).and("COL2").eq(3)
+                        (Supplier<EndSelect<?>>)() -> Jaorm.select(Object.class).where(SqlColumn.instance("COL1", Integer.class)).eq(2).and(SqlColumn.instance("COL2", Integer.class)).eq(3)
                 ),
                 Arguments.arguments(
                         base + " WHERE (COL1 = ?) OR (COL2 = ?)",
-                        (Supplier<EndSelect<?>>)() -> Jaorm.select(Object.class).where("COL1").eq(2).orWhere("COL2").eq(3)
+                        (Supplier<EndSelect<?>>)() -> Jaorm.select(Object.class).where(SqlColumn.instance("COL1", Integer.class)).eq(2).orWhere(SqlColumn.instance("COL2", Integer.class)).eq(3)
                 )
         );
     }

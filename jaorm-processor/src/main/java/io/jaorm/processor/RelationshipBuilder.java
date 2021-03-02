@@ -1,7 +1,7 @@
 package io.jaorm.processor;
 
-import io.jaorm.processor.annotation.CascadeType;
-import io.jaorm.processor.annotation.Cascade;
+import io.jaorm.annotation.CascadeType;
+import io.jaorm.annotation.Cascade;
 import io.jaorm.processor.exception.ProcessorException;
 import io.jaorm.processor.util.RelationshipAccessor;
 import io.jaorm.processor.util.RelationshipInfo;

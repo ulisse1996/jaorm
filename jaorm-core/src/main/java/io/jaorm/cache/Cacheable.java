@@ -12,7 +12,7 @@ public class Cacheable {
     private Cacheable() {}
 
     public static <T> T getCached(Class<T> klass, Arguments arguments, Supplier<T> executor) {
-        CacheService cacheService = CacheService.getCurrent();
+        CacheService cacheService = CacheService.getInstance();
         if (cacheService.isCacheActive() && cacheService.isCacheable(klass)) {
             return cacheService.get(klass, arguments);
         }
@@ -21,7 +21,7 @@ public class Cacheable {
     }
 
     public static <T> Optional<T> getCachedOpt(Class<T> klass, Arguments arguments, Supplier<Optional<T>> executor) {
-        CacheService cacheService = CacheService.getCurrent();
+        CacheService cacheService = CacheService.getInstance();
         if (cacheService.isCacheActive() && cacheService.isCacheable(klass)) {
             return cacheService.getOpt(klass, arguments);
         }
@@ -30,7 +30,7 @@ public class Cacheable {
     }
 
     public static <T> List<T> getCachedAll(Class<T> klass, Supplier<List<T>> executor) {
-        CacheService cacheService = CacheService.getCurrent();
+        CacheService cacheService = CacheService.getInstance();
         if (cacheService.isCacheActive() && cacheService.isCacheable(klass)) {
             return cacheService.getAll(klass);
         }

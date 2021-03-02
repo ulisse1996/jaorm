@@ -11,7 +11,7 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
 import java.lang.reflect.Field;
-import java.util.List;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -47,9 +47,35 @@ class CacheServiceTest {
     @Test
     void should_return_no_instance_cache() {
         try (MockedStatic<ServiceFinder> mk = Mockito.mockStatic(ServiceFinder.class)) {
-            mk.when(() -> ServiceFinder.loadService(CacheService.class))
+            mk.when(() -> ServiceFinder.loadServices(CacheService.class))
                     .thenThrow(IllegalArgumentException.class);
-            Assertions.assertSame(NoCache.INSTANCE, CacheService.getCurrent());
+            Assertions.assertSame(NoOpCache.INSTANCE, CacheService.getInstance());
+        }
+    }
+
+    @Test
+    void should_return_custom_implementation_with_multiple_services() {
+        CacheService mock = Mockito.spy(CacheService.class);
+        try (MockedStatic<ServiceFinder> mk = Mockito.mockStatic(ServiceFinder.class)) {
+            mk.when(() -> ServiceFinder.loadServices(CacheService.class))
+                    .thenReturn(Collections.nCopies(2, mock));
+
+            CacheService instance = CacheService.getInstance();
+            Assertions.assertEquals(mock, instance);
+            Assertions.assertFalse(instance.isDefault());
+        }
+    }
+
+    @Test
+    void should_return_custom_implementation() {
+        CacheService mock = Mockito.spy(CacheService.class);
+        try (MockedStatic<ServiceFinder> mk = Mockito.mockStatic(ServiceFinder.class)) {
+            mk.when(() -> ServiceFinder.loadServices(CacheService.class))
+                    .thenReturn(Collections.singletonList(mock));
+
+            CacheService instance = CacheService.getInstance();
+            Assertions.assertEquals(mock, instance);
+            Assertions.assertFalse(instance.isDefault());
         }
     }
 

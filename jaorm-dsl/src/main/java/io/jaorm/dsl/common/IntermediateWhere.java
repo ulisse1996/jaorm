@@ -1,7 +1,9 @@
 package io.jaorm.dsl.common;
 
+import io.jaorm.entity.SqlColumn;
+
 public interface IntermediateWhere<T> extends EndSelect<T> {
 
-    Where<T> and(String column);
-    Where<T> or(String column);
+    <L> Where<T, L> and(SqlColumn<T, L> column);
+    <L> Where<T, L> or(SqlColumn<T, L> column);
 }

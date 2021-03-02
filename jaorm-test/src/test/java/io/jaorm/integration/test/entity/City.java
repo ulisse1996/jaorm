@@ -1,7 +1,6 @@
 package io.jaorm.integration.test.entity;
 
-import io.jaorm.processor.annotation.CascadeType;
-import io.jaorm.processor.annotation.*;
+import io.jaorm.annotation.*;
 
 import java.util.List;
 

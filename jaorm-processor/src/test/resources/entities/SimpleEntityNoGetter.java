@@ -1,5 +1,5 @@
-import io.jaorm.processor.annotation.Column;
-import io.jaorm.processor.annotation.Table;
+import io.jaorm.annotation.Column;
+import io.jaorm.annotation.Table;
 
 @Table(name = "TABLE")
 public class SimpleEntityNoGetter {

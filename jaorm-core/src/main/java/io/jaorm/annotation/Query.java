@@ -1,4 +1,4 @@
-package io.jaorm.processor.annotation;
+package io.jaorm.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -6,7 +6,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.CLASS)
-@Target(ElementType.FIELD)
-public @interface Id {
+@Target(ElementType.METHOD)
+public @interface Query {
 
+    String sql();
 }

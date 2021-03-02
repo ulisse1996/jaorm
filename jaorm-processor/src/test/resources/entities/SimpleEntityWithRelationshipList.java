@@ -1,9 +1,9 @@
 package io.test;
 
 import java.util.List;
-import io.jaorm.processor.annotation.Column;
-import io.jaorm.processor.annotation.Relationship;
-import io.jaorm.processor.annotation.Table;
+import io.jaorm.annotation.Column;
+import io.jaorm.annotation.Relationship;
+import io.jaorm.annotation.Table;
 import io.test.RelationshipTest;
 
 @Table(name = "TABLE")

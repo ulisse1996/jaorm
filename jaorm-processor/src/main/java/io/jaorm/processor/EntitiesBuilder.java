@@ -1,18 +1,22 @@
 package io.jaorm.processor;
 
 import com.squareup.javapoet.*;
+import io.jaorm.annotation.*;
+import io.jaorm.entity.ColumnGetter;
+import io.jaorm.entity.ColumnSetter;
+import io.jaorm.entity.EntityDelegate;
+import io.jaorm.entity.EntityMapper;
 import io.jaorm.entity.converter.ParameterConverter;
-import io.jaorm.logger.JaormLogger;
-import io.jaorm.spi.DelegatesService;
-import io.jaorm.spi.QueryRunner;
-import io.jaorm.entity.*;
 import io.jaorm.entity.sql.SqlAccessor;
 import io.jaorm.entity.sql.SqlParameter;
-import io.jaorm.processor.annotation.*;
+import io.jaorm.logger.JaormLogger;
 import io.jaorm.processor.exception.ProcessorException;
 import io.jaorm.processor.util.Accessor;
 import io.jaorm.processor.util.MethodUtils;
 import io.jaorm.processor.util.ReturnTypeDefinition;
+import io.jaorm.spi.DelegatesService;
+import io.jaorm.spi.DslService;
+import io.jaorm.spi.QueryRunner;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.*;
@@ -54,6 +58,11 @@ public class EntitiesBuilder {
             } catch (IOException ex) {
                 throw new ProcessorException(ex);
             }
+        }
+
+        if (DslService.getInstance().isSupported()) {
+            new DslProcessor(processingEnv)
+                    .process(entities);
         }
     }
 
@@ -417,7 +426,7 @@ public class EntitiesBuilder {
             Converter converter = column.getAnnotation(Converter.class);
             ExecutableElement getter = findGetter(column);
             ExecutableElement setter = findSetter(column);
-            values.add(new Accessor(processingEnv, column.getAnnotation(Column.class).name(), new AbstractMap.SimpleEntry<>(getter, setter), key, converter));
+            values.add(new Accessor(processingEnv, column, new AbstractMap.SimpleEntry<>(getter, setter), key, converter));
         }
 
         return values;

@@ -9,9 +9,6 @@ import java.util.Properties;
 public class HSQLDBProvider extends DataSourceProvider {
 
     private DataSource dataSource;
-    public void clear() {
-        dataSource = null;
-    }
 
     public void set(DataSource dataSource) {
         this.dataSource = dataSource;

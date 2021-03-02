@@ -1,7 +1,7 @@
 package io.jaorm.processor.strategy;
 
 import com.squareup.javapoet.ClassName;
-import io.jaorm.processor.annotation.Param;
+import io.jaorm.annotation.Param;
 import io.jaorm.processor.exception.ProcessorException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;

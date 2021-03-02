@@ -19,7 +19,7 @@ class CacheableTest {
             Object expected = new Object();
             CacheService cacheService = Mockito.mock(CacheService.class);
             JaormCache<?> cache = Mockito.mock(JaormCache.class);
-            mk.when(CacheService::getCurrent)
+            mk.when(CacheService::getInstance)
                     .thenReturn(cacheService);
             Mockito.when(cacheService.isCacheActive())
                     .thenReturn(true);
@@ -42,7 +42,7 @@ class CacheableTest {
             List<Object> expected = Collections.singletonList(new Object());
             CacheService cacheService = Mockito.mock(CacheService.class);
             JaormAllCache<?> cache = Mockito.mock(JaormAllCache.class);
-            mk.when(CacheService::getCurrent)
+            mk.when(CacheService::getInstance)
                     .thenReturn(cacheService);
             Mockito.when(cacheService.isCacheActive())
                     .thenReturn(true);
@@ -65,7 +65,7 @@ class CacheableTest {
             Object expected = new Object();
             CacheService cacheService = Mockito.mock(CacheService.class);
             JaormCache<?> cache = Mockito.mock(JaormCache.class);
-            mk.when(CacheService::getCurrent)
+            mk.when(CacheService::getInstance)
                     .thenReturn(cacheService);
             Mockito.when(cacheService.isCacheActive())
                     .thenReturn(true);

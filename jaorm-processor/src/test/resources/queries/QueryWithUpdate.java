@@ -1,6 +1,6 @@
 package io.test;
 
-import io.jaorm.processor.annotation.Query;
+import io.jaorm.annotation.Query;
 
 public interface QueryWithUpdate {
 

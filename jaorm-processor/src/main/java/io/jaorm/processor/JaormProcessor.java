@@ -4,22 +4,19 @@ import com.squareup.javapoet.*;
 import io.jaorm.DaoImplementation;
 import io.jaorm.cache.EntityCache;
 import io.jaorm.logger.JaormLogger;
-import io.jaorm.processor.annotation.CascadeType;
+import io.jaorm.annotation.CascadeType;
 import io.jaorm.entity.relationship.EntityEventType;
 import io.jaorm.entity.relationship.Relationship;
 import io.jaorm.processor.util.RelationshipAccessor;
 import io.jaorm.processor.util.RelationshipInfo;
-import io.jaorm.spi.CacheService;
-import io.jaorm.spi.DelegatesService;
+import io.jaorm.spi.*;
 import io.jaorm.entity.EntityDelegate;
-import io.jaorm.spi.QueriesService;
-import io.jaorm.processor.annotation.Cacheable;
-import io.jaorm.processor.annotation.Dao;
-import io.jaorm.processor.annotation.Query;
-import io.jaorm.processor.annotation.Table;
+import io.jaorm.annotation.Cacheable;
+import io.jaorm.annotation.Dao;
+import io.jaorm.annotation.Query;
+import io.jaorm.annotation.Table;
 import io.jaorm.processor.exception.ProcessorException;
 import io.jaorm.processor.util.MethodUtils;
-import io.jaorm.spi.RelationshipService;
 
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
@@ -34,7 +31,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-@SupportedAnnotationTypes("io.jaorm.processor.annotation.*")
+@SupportedAnnotationTypes("io.jaorm.annotation.*")
 @SupportedSourceVersion(SourceVersion.RELEASE_8)
 public class JaormProcessor extends AbstractProcessor {
 

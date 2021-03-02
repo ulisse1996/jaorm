@@ -2,6 +2,7 @@ package io.jaorm.integration.test.spring;
 
 import io.jaorm.entity.sql.DataSourceProvider;
 import io.jaorm.integration.test.HSQLDBProvider;
+import io.jaorm.spi.common.Singleton;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
@@ -9,7 +10,6 @@ import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.jdbc.datasource.TransactionAwareDataSourceProxy;
 import org.springframework.transaction.TransactionManager;
 
-import javax.sql.DataSource;
 import java.lang.reflect.Field;
 
 @SpringBootApplication(scanBasePackages = "io.jaorm.integration.test")
@@ -22,12 +22,14 @@ public class SpringTestApplication {
     }
 
     @Bean
+    @SuppressWarnings("unchecked")
     TransactionManager transactionManager() {
         try {
             PROVIDER.createFor(HSQLDBProvider.DatabaseType.ORACLE);
-            Field instance = DataSourceProvider.class.getDeclaredField("instance");
+            Field instance = DataSourceProvider.class.getDeclaredField("INSTANCE");
             instance.setAccessible(true);
-            instance.set(null, PROVIDER);
+            Singleton<DataSourceProvider> singleton = (Singleton<DataSourceProvider>) instance.get(null);
+            singleton.set(PROVIDER);
             TransactionAwareDataSourceProxy proxy =
                     new TransactionAwareDataSourceProxy(PROVIDER.getDataSource());
             PROVIDER.set(proxy);

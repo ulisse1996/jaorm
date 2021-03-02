@@ -1,6 +1,6 @@
 package io.jaorm.processor.util;
 
-import io.jaorm.processor.annotation.CascadeType;
+import io.jaorm.annotation.CascadeType;
 
 import javax.lang.model.element.ExecutableElement;
 

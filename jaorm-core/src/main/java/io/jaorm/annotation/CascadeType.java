@@ -1,4 +1,4 @@
-package io.jaorm.processor.annotation;
+package io.jaorm.annotation;
 
 public enum CascadeType {
     ALL,

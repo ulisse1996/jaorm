@@ -1,13 +1,15 @@
 package io.jaorm.dsl.impl;
 
-import io.jaorm.spi.QueryRunner;
 import io.jaorm.dsl.common.EndSelect;
 import io.jaorm.dsl.common.Where;
 import io.jaorm.dsl.select.Select;
 import io.jaorm.dsl.util.Pair;
-import io.jaorm.spi.DelegatesService;
 import io.jaorm.entity.EntityDelegate;
+import io.jaorm.entity.SqlColumn;
+import io.jaorm.entity.converter.ValueConverter;
 import io.jaorm.entity.sql.SqlParameter;
+import io.jaorm.spi.DelegatesService;
+import io.jaorm.spi.QueryRunner;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -20,19 +22,19 @@ public class SelectImpl implements Select {
         EntityDelegate<?> delegate = DelegatesService.getInstance().searchDelegate(klass).get();
         String[] columns = delegate.getSelectables();
         String table = delegate.getTable();
-        return select(table, klass, columns);
+        return selectFrom(table, klass, columns);
     }
     
-    private <T> EndSelect<T> select(String from , Class<T> klass, String[] columns) {
+    private <T> EndSelect<T> selectFrom(String from , Class<T> klass, String[] columns) {
         return new EndSelectImpl<>(from, klass, columns);
     }
 
-    static class EndSelectImpl<T> implements EndSelect<T> {
+    static class EndSelectImpl<T, R> implements EndSelect<T> {
 
-        private final Class<T> klass;
-        private final String[] columns;
+        final Class<T> klass;
+        final String[] columns;
         private final String from;
-        private WhereImpl<T> where;
+        private WhereImpl<T, R> where;
 
         public EndSelectImpl(String from, Class<T> klass, String[] columns) {
             this.from = from;
@@ -41,10 +43,16 @@ public class SelectImpl implements Select {
         }
 
         @Override
-        public Where<T> where(String column) {
+        @SuppressWarnings("unchecked")
+        public <L> Where<T, L> where(SqlColumn<T, L> column) {
             checkColumn(column);
-            this.where = new WhereImpl<>(this, column,false);
-            return this.where;
+            this.where = new WhereImpl<>(this, column.getName(),false, (ValueConverter<?, R>) column.getConverter());
+            return (Where<T, L>) this.where;
+        }
+
+        private void checkColumn(SqlColumn<T, ?> column) {
+            Objects.requireNonNull(column, "Column can't be null !");
+            checkColumn(column.getName());
         }
 
         private void checkColumn(String column) {
@@ -55,7 +63,7 @@ public class SelectImpl implements Select {
         }
 
         @Override
-        public Where<T> orWhere(String column) {
+        public <L> Where<T, L> orWhere(SqlColumn<T, L> column) {
             throw new UnsupportedOperationException("Can't use orWhere before an AND !");
         }
 

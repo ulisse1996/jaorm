@@ -1,8 +1,7 @@
 package io.test;
 
 import io.jaorm.BaseDao;
-import io.jaorm.processor.annotation.Dao;
-import io.jaorm.processor.annotation.Query;
+import io.jaorm.annotation.Dao;
 import io.test.SimpleEntity;
 
 @Dao
