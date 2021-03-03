@@ -24,7 +24,7 @@ public class SqlJaormLogger extends SimpleJaormLogger {
     private String toString(List<SqlParameter> sqlParameters) {
         return "[" + sqlParameters.stream()
                 .map(SqlParameter::getVal)
-                .map(String::valueOf)
+                .map(val -> val instanceof String ? String.format("\"%s\"", val) : String.valueOf(val))
                 .collect(Collectors.joining(", ")) + "]";
     }
 }

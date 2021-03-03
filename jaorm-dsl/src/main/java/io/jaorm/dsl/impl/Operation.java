@@ -11,7 +11,8 @@ public enum Operation {
     IS_NOT_NULL(""),
     IN(""),
     NOT_IN(""),
-    LIKE("");
+    LIKE(""),
+    NOT_LIKE("");
 
 
     private final String value;

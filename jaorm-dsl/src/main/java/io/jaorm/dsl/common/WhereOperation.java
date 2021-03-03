@@ -25,6 +25,6 @@ public interface WhereOperation<T, R> {
     IntermediateWhere<T> isNull();
     IntermediateWhere<T> isNotNull();
     IntermediateWhere<T> like(LikeType type, String val);
-
+    IntermediateWhere<T> notLike(LikeType type, String val);
 
 }

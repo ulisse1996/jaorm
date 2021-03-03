@@ -1,6 +1,7 @@
 package io.jaorm.integration.test;
 
 import io.jaorm.dsl.Jaorm;
+import io.jaorm.dsl.impl.LikeType;
 import io.jaorm.entity.EntityComparator;
 import io.jaorm.integration.test.entity.UserColumns;
 import io.jaorm.spi.QueriesService;
@@ -108,6 +109,36 @@ class JaormDSLIT extends AbstractIT {
                 .where(UserColumns.USER_ID).eq(999)
                 .read();
         Assertions.assertTrue(EntityComparator.getInstance(User.class).equals(expected, result));
+    }
+
+    @ParameterizedTest
+    @MethodSource("getSqlTests")
+    void should_search_entity_with_like_statements(HSQLDBProvider.DatabaseType databaseType, String initSql) {
+        setDataSource(databaseType, initSql);
+
+        User user = new User();
+        user.setId(1);
+        user.setName("NAME");
+
+        UserDAO userDAO = QueriesService.getInstance().getQuery(UserDAO.class);
+        EntityComparator<User> comparator = EntityComparator.getInstance(User.class);
+        userDAO.insert(user);
+
+        Optional<User> foundLike = Jaorm.select(User.class)
+                .where(UserColumns.USER_NAME).like(LikeType.FULL, "NAME")
+                .readOpt();
+        Optional<User> foundNotLike = Jaorm.select(User.class)
+                .where(UserColumns.USER_NAME).notLike(LikeType.FULL, "FAL")
+                .readOpt();
+        Optional<User> notFound = Jaorm.select(User.class)
+                .where(UserColumns.USER_NAME).like(LikeType.START, "ST")
+                .readOpt();
+
+        Assertions.assertTrue(foundLike.isPresent());
+        Assertions.assertTrue(comparator.equals(user, foundLike.get()));
+        Assertions.assertTrue(foundNotLike.isPresent());
+        Assertions.assertTrue(comparator.equals(user, foundNotLike.get()));
+        Assertions.assertFalse(notFound.isPresent());
     }
 
     @ParameterizedTest

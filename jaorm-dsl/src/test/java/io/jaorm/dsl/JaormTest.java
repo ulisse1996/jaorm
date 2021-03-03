@@ -108,6 +108,7 @@ class JaormTest {
                     .where(SqlColumn.instance("COL1", Integer.class)).in(Arrays.asList(1, 2, 3))
                     .where(SqlColumn.instance("COL1", Integer.class)).notIn(Arrays.asList(1,2,3))
                     .where(SqlColumn.instance("COL1", Integer.class)).like(LikeType.FULL,"TEST")
+                    .where(SqlColumn.instance("COL1", Integer.class)).notLike(LikeType.FULL, "TEST")
                     .read();
             Assertions.assertSame(expected, result);
         }

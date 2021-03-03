@@ -124,6 +124,14 @@ public class WhereImpl<T, R> implements Where<T, R>, IntermediateWhere<T> {
         return operation(Operation.LIKE, (R) val, null, type);
     }
 
+    @Override
+    @SuppressWarnings("unchecked")
+    public IntermediateWhere<T> notLike(LikeType type, String val) {
+        Objects.requireNonNull(val, VALUE_CAN_T_BE_NULL);
+        Objects.requireNonNull(type, "LikeType can't be null !");
+        return operation(Operation.NOT_LIKE, (R) val, null, type);
+    }
+
     private IntermediateWhere<T> operation(Operation operation, R val) {
         return operation(operation, val, null);
     }
@@ -266,8 +274,10 @@ public class WhereImpl<T, R> implements Where<T, R>, IntermediateWhere<T> {
             case NOT_IN:
                 String wildcards = String.join(",", Collections.nCopies(getSize(clause.iterable), "?"));
                 return String.format(" %s (%s)", Operation.IN.equals(clause.operation) ? "IN" : "NOT IN", wildcards);
+            case NOT_LIKE:
+                return " NOT LIKE" + clause.likeType.getValue();
             case LIKE:
-                return clause.likeType.getValue();
+                return " LIKE" + clause.likeType.getValue();
             default:
                 throw new IllegalArgumentException("Can't find operation type");
         }
