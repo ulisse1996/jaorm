@@ -3,17 +3,27 @@ package io.jaorm.entity;
 import io.jaorm.DelegatesMock;
 import io.jaorm.spi.DelegatesService;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 class EntityComparatorTest {
+
+    @Test
+    void should_return_only_distinct_values() {
+        List<String> values = Arrays.asList("TEST1", "TEST2", "TEST3", "TEST3");
+        Assertions.assertEquals(3,
+                (int) values.stream().filter(EntityComparator.distinct(String::toString)).count());
+    }
 
     @ParameterizedTest
     @MethodSource("getValues")

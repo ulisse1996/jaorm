@@ -59,6 +59,8 @@ Each entity could contain :
 
 For each **@Column** annotated fields , user must also define a getter, and a setter for that field
 
+A standard Constructor with no args must also be provided
+
 ##### **1.1.1** Id
 
 In contrast to JPA , Jaorm does not use compound id class
@@ -108,6 +110,42 @@ Supported type for **@Relationship** annotated fields are :
 - **java.util.Optional** , for an optional One to One relationship
 - **java.util.List** , for One To Many or Many To Many relationship
 - a User defined Entity, for One to One relationship
+
+##### **1.1.4** Equals
+
+For Equals check between two Entities , **EntityComparator** must be used if **equals** implementation use **getClass()**
+checks because of **Delegation Pattern** used for Entity mapping. 
+
+```java
+public class Test {
+
+  public static void main(String[] args) { 
+    User user1 = new User();
+    User user2 = new User();
+    EntityComprator.getInstance(User.class)
+            .equals(user1, user2);
+    EntityComprator.getInstance(User.class)
+            .equals(Collections.singletonList(user1), Collections.singletonList(user2));
+  }
+}
+```
+
+For support with **distinct()** in Java 8 **Stream API** , user can also use
+**EntityComparator.distinct(Function\<? super T,?> function)**
+
+```java
+public class Test {
+    
+    void method() {
+        List<User> users = QueriesService.getQuery(UserDao.class)
+                .readAll();
+        List<User> usersDistinctId = 
+                users.stream()
+                      .filter(EntityComparator.distinct(User::getUserId))
+                      .collect(Collectors.toList);
+    }
+}
+```
 
 #### **1.2** Query
 

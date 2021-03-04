@@ -4,6 +4,10 @@ import io.jaorm.spi.DelegatesService;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class EntityComparator<T> {
@@ -18,6 +22,11 @@ public class EntityComparator<T> {
     public static <T> EntityComparator<T> getInstance(Class<T> klass) {
         return new EntityComparator<>((Class<? extends EntityDelegate<T>>) DelegatesService.getInstance()
                 .searchDelegate(klass).get().getClass());
+    }
+
+    public static <T> Predicate<T> distinct(Function<? super T, ?> keyExtractor) {
+        Set<Object> seen = ConcurrentHashMap.newKeySet();
+        return t -> seen.add(keyExtractor.apply(t));
     }
 
     public boolean equals(List<T> first, List<T> second) {

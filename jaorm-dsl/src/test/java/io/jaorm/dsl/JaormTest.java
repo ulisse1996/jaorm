@@ -216,7 +216,7 @@ class JaormTest {
             Mockito.when(runner.read(Mockito.any(), Mockito.any(), Mockito.any()))
                     .thenReturn(expected);
 
-            Assertions.assertThrows(IllegalArgumentException.class, () -> Jaorm.select(Object.class)
+            Assertions.assertThrows(IllegalArgumentException.class, () -> Jaorm.select(Object.class) //NOSONAR
                     .where(SqlColumn.instance("COL1", Integer.class)).eq(2)
                     .where(SqlColumn.instance("COL2", Integer.class)).ne(3)
                     .read());

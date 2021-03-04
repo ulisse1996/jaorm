@@ -1,7 +1,6 @@
 package io.jaorm;
 
 import io.jaorm.entity.EntityDelegate;
-import io.jaorm.entity.sql.DataSourceProvider;
 import io.jaorm.entity.sql.SqlParameter;
 import io.jaorm.exception.JaormSqlException;
 import io.jaorm.spi.DelegatesService;
@@ -37,7 +36,7 @@ public class EntityQueryRunner extends QueryRunner {
     public <R> R read(Class<R> entity, String query, List<SqlParameter> params) {
         logger.logSql(query, params);
         Supplier<EntityDelegate<?>> delegateSupplier = DelegatesService.getInstance().searchDelegate(entity);
-        try (Connection connection = DataSourceProvider.getCurrent().getConnection();
+        try (Connection connection = getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(query);
              ResultSetExecutor executor = new ResultSetExecutor(preparedStatement, params)) {
             executor.getResultSet().next();
@@ -55,7 +54,7 @@ public class EntityQueryRunner extends QueryRunner {
     public <R> Optional<R> readOpt(Class<R> entity, String query, List<SqlParameter> params) {
         logger.logSql(query, params);
         Supplier<EntityDelegate<?>> delegateSupplier = DelegatesService.getInstance().searchDelegate(entity);
-        try (Connection connection = DataSourceProvider.getCurrent().getConnection();
+        try (Connection connection = getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(query);
              ResultSetExecutor executor = new ResultSetExecutor(preparedStatement, params)) {
             if (executor.getResultSet().next()) {
@@ -77,7 +76,7 @@ public class EntityQueryRunner extends QueryRunner {
         logger.logSql(query, params);
         List<R> values = new ArrayList<>();
         Supplier<EntityDelegate<?>> delegateSupplier = DelegatesService.getInstance().searchDelegate(entity);
-        try (Connection connection = DataSourceProvider.getCurrent().getConnection();
+        try (Connection connection = getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(query);
              ResultSetExecutor executor = new ResultSetExecutor(preparedStatement, params)) {
             while (executor.getResultSet().next()) {

@@ -24,4 +24,12 @@ public abstract class DataSourceProvider {
     public Connection getConnection() throws SQLException {
         return getDataSource().getConnection();
     }
+
+    public boolean isDelegate() {
+        return false;
+    }
+
+    public void setInstance(DataSourceProvider provider) {
+        INSTANCE.set(provider);
+    }
 }

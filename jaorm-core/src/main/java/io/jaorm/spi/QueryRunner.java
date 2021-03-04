@@ -60,12 +60,25 @@ public abstract class QueryRunner {
 
     protected void doUpdate(String query, List<SqlParameter> params) {
         logger.logSql(query, params);
-        try (Connection connection = DataSourceProvider.getCurrent().getConnection();
+        try (Connection connection = getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(query)) {
             new UpdateExecutor(preparedStatement, params);
         } catch (SQLException ex) {
             logger.error("Error during update/insert/delete"::toString, ex);
             throw new JaormSqlException(ex);
+        }
+    }
+
+    protected Connection getConnection() throws SQLException {
+        DataSourceProvider provider = DataSourceProvider.getCurrent();
+        TransactionManager manager = TransactionManager.getInstance();
+        if (manager instanceof TransactionManager.NoOpTransactionManager || manager.getCurrentTransaction() == null) {
+            return provider.getConnection();
+        } else if (provider.isDelegate()){
+            return provider.getConnection();
+        } else {
+            provider.setInstance(manager.createDelegate(provider));
+            return DataSourceProvider.getCurrent().getConnection();
         }
     }
 

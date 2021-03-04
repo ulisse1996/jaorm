@@ -15,6 +15,7 @@
         <module>jaorm-test</module>
         <module>jaorm-dsl</module>
         <module>jaorm-cache</module>
+        <module>jaorm-transaction</module>
     </modules>
 
     <properties>
