@@ -3,6 +3,7 @@ package io.jaorm.integration.test.entity;
 import io.jaorm.annotation.*;
 
 import java.util.List;
+import java.util.Objects;
 
 @Table(name = "CITY")
 public class City {
@@ -40,5 +41,18 @@ public class City {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        City city = (City) o;
+        return cityId == city.cityId && Objects.equals(name, city.name);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(cityId, name);
     }
 }

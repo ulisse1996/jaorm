@@ -132,6 +132,39 @@ class QueryIT extends AbstractIT {
         Assertions.assertTrue(stores.get(0).getName().endsWith("_AFTER"));
     }
 
+    @ParameterizedTest
+    @MethodSource("getSqlTests")
+    void should_check_unique_with_distinct(HSQLDBProvider.DatabaseType type, String initSql) {
+        setDataSource(type, initSql);
+
+        City city = new City();
+        city.setCityId(1);
+        city.setName("CITY");
+
+        City city2 = new City();
+        city2.setCityId(2);
+        city2.setName("CITY");
+
+        City city3 = new City();
+        city3.setCityId(3);
+        city3.setName("CITY");
+
+        CityDAO cityDAO = QueriesService.getInstance().getQuery(CityDAO.class);
+
+        cityDAO.insert(Arrays.asList(city, city2, city3));
+
+        List<City> cities = cityDAO.readAll();
+        Assertions.assertEquals(3, cities.size());
+
+        cities = cities.stream()
+                .sorted(Comparator.comparing(City::getCityId))
+                .filter(EntityComparator.distinct(City::getName))
+                .collect(Collectors.toList());
+
+        Assertions.assertEquals(1, cities.size());
+        Assertions.assertTrue(EntityComparator.getInstance(City.class).equals(city, cities.get(0)));
+    }
+
     private User getUser(int i) {
         User user = new User();
         user.setId(i);

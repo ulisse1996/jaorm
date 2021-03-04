@@ -53,6 +53,11 @@
             <version>${jaorm.version}</version>
         </dependency>
         <dependency>
+            <groupId>io.jaorm</groupId>
+            <artifactId>jaorm-transaction</artifactId>
+            <version>${jaorm.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.hsqldb</groupId>
             <artifactId>hsqldb</artifactId>
             <version>${hsqldb.version}</version>

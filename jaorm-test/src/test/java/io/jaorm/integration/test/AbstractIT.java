@@ -5,6 +5,7 @@ import io.jaorm.cache.StandardConfiguration;
 import io.jaorm.entity.sql.DataSourceProvider;
 import io.jaorm.integration.test.entity.Role;
 import io.jaorm.spi.CacheService;
+import io.jaorm.spi.TransactionManager;
 import io.jaorm.spi.common.Singleton;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,13 +25,19 @@ import java.util.stream.Stream;
 public abstract class AbstractIT {
 
     private final boolean skipSetup;
+    private final boolean withTransaction;
 
     public AbstractIT() {
         this(false);
     }
 
     public AbstractIT(boolean skipSetup) {
+        this(skipSetup, false);
+    }
+
+    public AbstractIT(boolean skipSetup, boolean withTransaction) {
         this.skipSetup = skipSetup;
+        this.withTransaction = withTransaction;
     }
 
     @SuppressWarnings("unchecked")
@@ -50,15 +57,27 @@ public abstract class AbstractIT {
     public void setup() {
         if (!this.skipSetup) {
             try {
+
+                // Reset datasource
                 Field instance = DataSourceProvider.class.getDeclaredField("INSTANCE");
                 instance.setAccessible(true);
                 Singleton<DataSourceProvider> singleton = (Singleton<DataSourceProvider>) instance.get(null);
                 singleton.set(null);
 
+                // Reset cache
                 instance = CacheService.class.getDeclaredField("INSTANCE");
                 instance.setAccessible(true);
                 Singleton<CacheService> cacheServiceSingleton = (Singleton<CacheService>) instance.get(null);
-                singleton.set(null);
+                cacheServiceSingleton.set(null);
+
+                // Reset transactional service
+                instance = TransactionManager.class.getDeclaredField("INSTANCE");
+                instance.setAccessible(true);
+                Singleton<TransactionManager> managerSingleton = (Singleton<TransactionManager>) instance.get(null);
+                managerSingleton.set(null);
+                if (!withTransaction) {
+                    managerSingleton.set(TransactionManager.NoOpTransactionManager.INSTANCE);
+                }
             } catch (Exception ex) {
                 throw new IllegalStateException(ex);
             }
