@@ -19,6 +19,10 @@ public class DataSourceProviderDelegate extends DataSourceProvider {
         this.instance = instance;
     }
 
+    public DataSourceProvider getInstance() {
+        return instance;
+    }
+
     @Override
     public DataSource getDataSource() {
         if (proxyInstance == null) {

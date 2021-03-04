@@ -1,6 +1,7 @@
 package io.jaorm.transaction;
 
 import io.jaorm.Transaction;
+import io.jaorm.entity.sql.DataSourceProvider;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -23,6 +24,7 @@ class TransactionImplTest {
 
     @Test
     void should_commit_transaction() throws SQLException {
+        setProvider();
         TransactionImpl transaction = new TransactionImpl();
         Connection connection = Mockito.mock(Connection.class);
         Assertions.assertEquals(Transaction.Status.NONE, transaction.getStatus());
@@ -37,6 +39,7 @@ class TransactionImplTest {
 
     @Test
     void should_rollback_transaction() throws SQLException {
+        setProvider();
         TransactionImpl transaction = new TransactionImpl();
         Connection connection = Mockito.mock(Connection.class);
         Assertions.assertEquals(Transaction.Status.NONE, transaction.getStatus());
@@ -49,8 +52,14 @@ class TransactionImplTest {
                 .close();
     }
 
+    private void setProvider() {
+        Mockito.spy(DataSourceProvider.class)
+                .setInstance(Mockito.mock(DataSourceProvider.class));
+    }
+
     @Test
     void should_ignore_exception_on_rollback_transaction() throws SQLException {
+        setProvider();
         TransactionImpl transaction = new TransactionImpl();
         Connection connection = Mockito.mock(Connection.class);
         Assertions.assertEquals(Transaction.Status.NONE, transaction.getStatus());

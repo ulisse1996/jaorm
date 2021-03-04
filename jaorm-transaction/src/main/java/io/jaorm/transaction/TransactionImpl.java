@@ -1,6 +1,7 @@
 package io.jaorm.transaction;
 
 import io.jaorm.Transaction;
+import io.jaorm.entity.sql.DataSourceProvider;
 import io.jaorm.logger.JaormLogger;
 
 import java.sql.Connection;
@@ -56,6 +57,10 @@ public class TransactionImpl implements Transaction {
             // Ignored
         }
         TransactionManagerImpl.TRANSACTION_THREAD_LOCAL.remove();
+        DataSourceProvider provider = DataSourceProvider.getCurrent();
+        if (provider instanceof DataSourceProviderDelegate) {
+            provider.setInstance(((DataSourceProviderDelegate) provider).getInstance());
+        }
     }
 
     public Connection getConnection() {
