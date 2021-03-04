@@ -30,6 +30,6 @@ class TransactionManagerImplTest {
     @Test
     void should_create_delegate() {
         TransactionManagerImpl transactionManager = new TransactionManagerImpl();
-        Assertions.assertDoesNotThrow(() -> transactionManager.createDelegate(Mockito.mock(DataSourceProvider.class)));
+        Assertions.assertDoesNotThrow(() -> transactionManager.createDelegate(Mockito.mock(DataSourceProvider.class))); //NOSONAR
     }
 }
