@@ -20,6 +20,7 @@ JAORM is divided in modules that are used from main module using **Java SPI**
 - [Core (Entity Mapper and Query)](#10-core)
 - [Cache](#20-cache)
 - [DSL (Domain-Specific Language)](#30-dsl-domain-specific-language)
+- [Transaction](#40-transaction)
 
 ### **1.0** Core
 
@@ -50,8 +51,8 @@ Each POJO annotated with **@Table** annotation , is considered an Entity.
 Each entity could contain :
 
 - 1..1 **@Table** annotation that represent database table name
-- 1..1 **@Cacheable** annotation that define an Entity as cacheable
-- 1..N **@Column** annotated fields that represent one-to-one column in database table
+- 0..1 **@Cacheable** annotation that define an Entity as cacheable
+- 1..N **@Column** annotated fields that represent column in database table
 - 0..N **@Id** annotated fields that represent a key column in database table
 - 0..N **@Converter** annotated fields that represent a logical conversion between a sql type, 
   and a custom/not supported type
@@ -107,14 +108,97 @@ The following table define how user must use **@RelationshipColumn**
 
 Supported type for **@Relationship** annotated fields are :
 
-- **java.util.Optional** , for an optional One to One relationship
-- **java.util.List** , for One To Many or Many To Many relationship
+- **java.util.Optional\<T>** , for an optional One to One relationship
+- **java.util.List\<T>** , for One To Many or Many To Many relationship
 - a User defined Entity, for One to One relationship
+
+##### **1.1.3.1** Cascade Operations
+
+Jaorm also supports Cascade operation with **@Cascade** annotation on relationship fields
+
+```java
+@Table(name = "USER")
+public class User {
+    
+    @Id
+    @Column(name = "COL1")
+    private String id;
+    
+    @Column(name = "COL2")
+    private String col2;
+
+    @Cascade(CascadeType.ALL)
+    @Relationship(columns = @Relationship.RelationshipColumn(defaultValue = "DEPARTMENT_ID", 
+            targetColumn = "DEPARTMENT_ID"))
+    private Department department;
+    
+    // getter and setters
+}
+```
+
+Supported operations :
+
+- ALL , on Insert , Update or Delete , linked entities are affected by the operation on the entity
+- PERSIST , on Insert , linked entities are affected by the insert on the entity
+- REMOVE , on Delete , linked entities are affected by the remove on the entity
+- UPDATE , on Update , linked entities are affected by the update on the entity
+
+If nested links are created , only annotated fields with **@Cascade** and with matched **CascadeType** are affected
+by the operation
 
 ##### **1.1.4** Equals
 
+In Jaorm , equality between two Entity can be tricky.
+
+Jaorm use **Delegation** pattern for Entity Mapping and Lazy fetching of linked entities , so a fetched Entity
+retrieved with **Query**, **Dao** or **DSL** is an instance of selected Entity but doesn't have the same class at runtime
+
+```java
+public class Example {
+
+  @Table(name = "USER")
+  public static class User {
+
+    @Id
+    @Column(name = "COL1")
+    private String id;
+
+    @Column(name = "COL2")
+    private String col2;
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+      User user = (User) o;
+      return Objects.equals(id, id) && Objects.equals(col2, user.col2);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(id, col2);
+    }
+
+    // getter and setters
+  }
+
+  public void should_return_true_for_same_entity() {
+      UserDAO dao = QueriesService.getInstance().getQuery(UserDAO.class);
+      
+      User user = new User();
+      user.setId("id");
+      user.setName("name");
+      
+      User found = dao.read(user);
+      
+      boolean foundEquals = found.equals(user); // Return true, delegate instance underline check equality with two User instance
+      boolean userEquals = user.equals(found); // Return false , because found.getClass() != User.class
+  }
+}
+```
+
 For Equals check between two Entities , **EntityComparator** must be used if **equals** implementation use **getClass()**
-checks because of **Delegation Pattern** used for Entity mapping. 
+checks
 
 ```java
 public class Test {
@@ -191,6 +275,18 @@ public interface UserDao extends BaseDao<User> {
     void updateUser(String userId, String username);
 }
 ```
+
+Annotations on an interface with **@Query** methods or **@Dao** annotation are also propagated in the implementation
+
+```java
+@Dao
+@RequestScoped
+public interface MyDao extends BaseDao<User> {}
+
+@RequestScoped
+public class MyDaoImpl implements MyDao {} // @RequestScoped is propagated
+```
+
 ### **2.0** Cache
 
 Cache module implements a key based cache for **@Cacheable** annotated entities.
@@ -277,8 +373,8 @@ Supported operations :
 
 DSL also supports :
 
-- In, with an **Iterable** 
-- Not in , with an **Iterable**
+- In, with an **Iterable\<T>** 
+- Not in , with an **Iterable\<T>**
 - IsNull, null check
 - isNotNull, not null check
 - like , with support for Start, End or Full check (See **LikeType**)
@@ -286,6 +382,44 @@ DSL also supports :
 
 DSL produce :
 
-- An **java.util.Optional**, for an optional result, using **readOpt** method
-- A **java.util.List**, for a list of result, using **readAll** method
+- A **java.util.Optional\<T>**, for an optional result, using **readOpt** method
+- A **java.util.List\<T>**, for a list of result, using **readAll** method
 - An Entity instance , for a single result, using **read** method
+
+### **4.0** Transaction
+
+Jaorm natively supports **@org.springframework.transaction.annotation.Transactional**
+and **@javax.transaction.Transactional** for CDI or Spring Managed Beans.
+
+For SE applications, **Transactional** module can also be used.
+
+```java
+public class TransactionalTest {
+
+  public static void main(String[] args) {
+      Transactional.exec(() -> {
+        UserDAO dao = QueriesService.getInstance().getQuery(UserDAO.class);
+
+        User user = new User();
+        user.setId("id");
+        user.setName("name");
+
+        dao.insert(user);
+        
+        // After this , commit is done on current transaction
+      }, Exception.class);
+  }
+}
+```
+**Transactional.exec(Callable\<V\> callable, Class\<X\> exceptionClass)** create a new Transaction and execute **Callable\<V>** as first argument.
+
+If an exception , matched with the second argument is thrown , the exception is propagated, 
+current transaction execute a rollback and close current transaction
+
+If an exception that doesn't match with second argument , is thrown , an **UnexpectedException** is thrown , 
+current transaction execute a rollback and close current transaction
+
+If **Callable\<V>** is correctly executed , **exec** return the returned value if any is provided,
+current transaction execute a commit and close current transaction
+
+Transaction is propagated on the current Thread and on each child Thread

@@ -20,10 +20,10 @@ public class Transactional {
     }
 
     @SuppressWarnings("unchecked")
-    public static <X extends Exception, V> V exec(Callable<V> runnable, Class<X> exceptionClass) throws X {
+    public static <X extends Exception, V> V exec(Callable<V> callable, Class<X> exceptionClass) throws X {
         try {
             TransactionManager.getInstance().createTransaction();
-            V obj = runnable.call();
+            V obj = callable.call();
             TransactionManager.getInstance().getCurrentTransaction().commit();
             return obj;
         } catch (Exception ex) {
