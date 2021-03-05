@@ -27,7 +27,7 @@ JAORM is divided in modules that are used from main module using **Java SPI**
 - Powerful abstract DAO with Custom Query
 - Type-Safe Query Builder with DSL
 - Supports for Spring and CDI Transaction
-- Supports for Basic JDCB Transaction with Transaction Module
+- Supports for Basic JDBC Transaction with Transaction Module
 - Easy and Customizable Entity Cache
 - Supports for most of famous RDBMS
 
