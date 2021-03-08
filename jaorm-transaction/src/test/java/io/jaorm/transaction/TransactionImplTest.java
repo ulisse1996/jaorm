@@ -53,8 +53,7 @@ class TransactionImplTest {
     }
 
     private void setProvider() {
-        Mockito.spy(DataSourceProvider.class)
-                .setInstance(Mockito.mock(DataSourceProvider.class));
+        DataSourceProvider.setDelegate(Mockito.mock(DataSourceProvider.class));
     }
 
     @Test

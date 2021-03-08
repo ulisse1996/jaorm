@@ -156,13 +156,6 @@ class DataSourceProviderDelegateTest {
         }
     }
 
-    @Test
-    void should_return_true_for_delegate() {
-        DataSourceProviderDelegate delegate =
-                new DataSourceProviderDelegate(Mockito.mock(DataSourceProvider.class));
-        Assertions.assertTrue(delegate.isDelegate());
-    }
-
     private void setStatus(TransactionImpl transaction, Transaction.Status status) {
         try {
             Field declaredField = transaction.getClass().getDeclaredField("status");

@@ -10,6 +10,7 @@ import java.sql.SQLException;
 public abstract class DataSourceProvider {
 
     private static final Singleton<DataSourceProvider> INSTANCE = Singleton.instance();
+    private static final ThreadLocal<DataSourceProvider> TRANSACTION_INSTANCE = new InheritableThreadLocal<>();
 
     public static synchronized DataSourceProvider getCurrent() {
         if (!INSTANCE.isPresent()) {
@@ -19,17 +20,21 @@ public abstract class DataSourceProvider {
         return INSTANCE.get();
     }
 
+    public static synchronized DataSourceProvider getCurrentDelegate() {
+        return TRANSACTION_INSTANCE.get();
+    }
+
+    public static synchronized void setDelegate(DataSourceProvider provider) {
+        if (provider == null) {
+            TRANSACTION_INSTANCE.remove();
+        } else {
+            TRANSACTION_INSTANCE.set(provider);
+        }
+    }
+
     public abstract DataSource getDataSource();
 
     public Connection getConnection() throws SQLException {
         return getDataSource().getConnection();
-    }
-
-    public boolean isDelegate() {
-        return false;
-    }
-
-    public void setInstance(DataSourceProvider provider) {
-        INSTANCE.set(provider);
     }
 }

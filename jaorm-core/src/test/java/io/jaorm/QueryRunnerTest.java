@@ -119,10 +119,10 @@ class QueryRunnerTest {
                     .thenReturn(manager);
             mk.when(DataSourceProvider::getCurrent)
                     .thenReturn(provider);
+            mk.when(DataSourceProvider::getCurrentDelegate)
+                    .thenReturn(provider);
             Mockito.when(manager.getCurrentTransaction())
                     .thenReturn(transaction);
-            Mockito.when(provider.isDelegate())
-                    .thenReturn(true);
             Mockito.when(provider.getDataSource())
                     .thenReturn(source);
             Mockito.when(source.getConnection())
@@ -145,17 +145,16 @@ class QueryRunnerTest {
                     .thenReturn(manager);
             mk.when(DataSourceProvider::getCurrent)
                     .thenReturn(provider);
+            mk.when(DataSourceProvider::getCurrentDelegate)
+                    .thenReturn(null)
+                    .thenReturn(provider);
             Mockito.when(manager.getCurrentTransaction())
                     .thenReturn(transaction);
-            Mockito.when(provider.isDelegate())
-                    .thenReturn(false);
             Mockito.when(provider.getDataSource())
                     .thenReturn(source);
             Mockito.when(source.getConnection())
                     .thenReturn(connection);
             Assertions.assertDoesNotThrow(() -> runner.update("UPDATE", Collections.emptyList()));
-            Mockito.verify(provider, Mockito.times(1))
-                    .setInstance(Mockito.any());
         }
     }
 

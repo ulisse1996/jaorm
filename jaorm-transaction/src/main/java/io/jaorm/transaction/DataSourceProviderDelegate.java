@@ -19,10 +19,6 @@ public class DataSourceProviderDelegate extends DataSourceProvider {
         this.instance = instance;
     }
 
-    public DataSourceProvider getInstance() {
-        return instance;
-    }
-
     @Override
     public DataSource getDataSource() {
         if (proxyInstance == null) {
@@ -71,10 +67,5 @@ public class DataSourceProviderDelegate extends DataSourceProvider {
     @Override
     public Connection getConnection() throws SQLException {
         return getDataSource().getConnection();
-    }
-
-    @Override
-    public boolean isDelegate() {
-        return true;
     }
 }

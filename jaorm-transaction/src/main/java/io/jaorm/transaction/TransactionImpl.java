@@ -57,10 +57,7 @@ public class TransactionImpl implements Transaction {
             // Ignored
         }
         TransactionManagerImpl.TRANSACTION_THREAD_LOCAL.remove();
-        DataSourceProvider provider = DataSourceProvider.getCurrent();
-        if (provider instanceof DataSourceProviderDelegate) {
-            provider.setInstance(((DataSourceProviderDelegate) provider).getInstance());
-        }
+        DataSourceProvider.setDelegate(null);
     }
 
     public Connection getConnection() {

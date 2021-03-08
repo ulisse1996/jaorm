@@ -4,7 +4,6 @@ import io.jaorm.spi.common.Singleton;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
 import javax.sql.DataSource;
 import java.lang.reflect.Field;
@@ -17,12 +16,6 @@ class DataSourceProviderTest {
     }
 
     @Test
-    void should_return_false_for_default_implementation() {
-        DataSourceProvider provider = Mockito.spy(DataSourceProvider.class);
-        Assertions.assertFalse(provider.isDelegate());
-    }
-
-    @Test
     void should_set_instance() {
         DataSourceProvider myImpl = new DataSourceProvider() {
             @Override
@@ -30,8 +23,8 @@ class DataSourceProviderTest {
                 return null;
             }
         };
-        myImpl.setInstance(myImpl);
-        Assertions.assertSame(myImpl, DataSourceProvider.getCurrent());
+        DataSourceProvider.setDelegate(myImpl);
+        Assertions.assertSame(myImpl, DataSourceProvider.getCurrentDelegate());
     }
 
     @SuppressWarnings("unchecked")

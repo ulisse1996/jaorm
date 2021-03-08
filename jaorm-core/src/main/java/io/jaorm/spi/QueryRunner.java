@@ -74,11 +74,14 @@ public abstract class QueryRunner {
         TransactionManager manager = TransactionManager.getInstance();
         if (manager instanceof TransactionManager.NoOpTransactionManager || manager.getCurrentTransaction() == null) {
             return provider.getConnection();
-        } else if (provider.isDelegate()){
-            return provider.getConnection();
         } else {
-            provider.setInstance(manager.createDelegate(provider));
-            return DataSourceProvider.getCurrent().getConnection();
+            DataSourceProvider delegate = DataSourceProvider.getCurrentDelegate();
+            if (delegate == null) {
+                DataSourceProvider.setDelegate(manager.createDelegate(provider));
+                return DataSourceProvider.getCurrentDelegate().getConnection();
+            } else {
+                return delegate.getConnection();
+            }
         }
     }
 
