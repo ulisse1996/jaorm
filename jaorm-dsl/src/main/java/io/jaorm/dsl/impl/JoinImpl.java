@@ -17,6 +17,7 @@ public class JoinImpl<T, R> implements Join<T>, On<T, R>, IntermediateJoin<T> {
     private static final String AND = " AND ";
     private static final String COLUMN_CAN_T_BE_NULL = "Column can't be null";
     private static final String VALUE_CAN_T_BE_NULL = "Value can't be null !";
+    private static final String ALIAS_COLUMN = "%s.%s";
     private final String joinTable;
     private final JoinType joinType;
     private final SelectImpl.EndSelectImpl<T, ?, ?> parent;
@@ -395,11 +396,11 @@ public class JoinImpl<T, R> implements Join<T>, On<T, R>, IntermediateJoin<T> {
     }
 
     private void buildClause(StringBuilder builder, OnClause clause) {
-        builder.append(String.format("%s.%s", this.parent.from, clause.joinedColumn)).append(evaluateOperation(clause));
+        builder.append(String.format(ALIAS_COLUMN, this.parent.from, clause.joinedColumn)).append(evaluateOperation(clause));
         if (!clause.linked.isEmpty()) {
             for (OnClause inner : clause.linked) {
                 builder.append(inner.or ? OR : AND)
-                        .append(String.format("%s.%s", this.parent.from, inner.joinedColumn)).append(evaluateOperation(inner));
+                        .append(String.format(ALIAS_COLUMN, this.parent.from, inner.joinedColumn)).append(evaluateOperation(inner));
             }
         }
     }
@@ -413,7 +414,7 @@ public class JoinImpl<T, R> implements Join<T>, On<T, R>, IntermediateJoin<T> {
             case LESS_EQUALS:
             case GREATER_EQUALS:
                 if (clause.value == null) {
-                    return clause.operation.getValue() + String.format("%s.%s", this.joinTable, clause.joinColumn);
+                    return clause.operation.getValue() + String.format(ALIAS_COLUMN, this.joinTable, clause.joinColumn);
                 } else {
                     return clause.operation.getValue() + "?";
                 }
@@ -429,7 +430,7 @@ public class JoinImpl<T, R> implements Join<T>, On<T, R>, IntermediateJoin<T> {
                 } else {
                     columns = clause.columns
                             .stream()
-                            .map(s -> String.format("%s.%s", this.joinTable, s))
+                            .map(s -> String.format(ALIAS_COLUMN, this.joinTable, s))
                             .collect(Collectors.joining(","));
                 }
                 return String.format(" %s (%s)", Operation.IN.equals(clause.operation) ? "IN" : "NOT IN", columns);
