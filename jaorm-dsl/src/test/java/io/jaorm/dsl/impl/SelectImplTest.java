@@ -1,11 +1,11 @@
 package io.jaorm.dsl.impl;
 
-import io.jaorm.entity.SqlColumn;
-import io.jaorm.spi.QueryRunner;
 import io.jaorm.dsl.Jaorm;
-import io.jaorm.dsl.common.EndSelect;
-import io.jaorm.spi.DelegatesService;
+import io.jaorm.dsl.common.IntermediateWhere;
 import io.jaorm.entity.EntityDelegate;
+import io.jaorm.entity.SqlColumn;
+import io.jaorm.spi.DelegatesService;
+import io.jaorm.spi.QueryRunner;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -20,7 +20,7 @@ class SelectImplTest {
 
     @ParameterizedTest
     @MethodSource("getSql")
-    void should_create_same_query(String expected, Supplier<EndSelect<?>> supplier) {
+    void should_create_same_query(String expected, Supplier<IntermediateWhere<?>> supplier) {
         try (MockedStatic<DelegatesService> mk = Mockito.mockStatic(DelegatesService.class);
              MockedStatic<QueryRunner> run = Mockito.mockStatic(QueryRunner.class)) {
             DelegatesService delegatesService = Mockito.mock(DelegatesService.class);
@@ -43,15 +43,15 @@ class SelectImplTest {
     }
 
     public static Stream<Arguments> getSql() {
-        final String base = "SELECT COL1, COL2, COL3 FROM TABLE";
+        final String base = "SELECT TABLE.COL1, TABLE.COL2, TABLE.COL3 FROM TABLE";
         return Stream.of(
                 Arguments.arguments(
-                        base + " WHERE (COL1 = ? AND COL2 = ?)",
-                        (Supplier<EndSelect<?>>)() -> Jaorm.select(Object.class).where(SqlColumn.instance("COL1", Integer.class)).eq(2).and(SqlColumn.instance("COL2", Integer.class)).eq(3)
+                        base + " WHERE (TABLE.COL1 = ? AND TABLE.COL2 = ?)",
+                        (Supplier<IntermediateWhere<?>>)() -> Jaorm.select(Object.class).where(SqlColumn.instance("COL1", Integer.class)).eq(2).and(SqlColumn.instance("COL2", Integer.class)).eq(3)
                 ),
                 Arguments.arguments(
-                        base + " WHERE (COL1 = ?) OR (COL2 = ?)",
-                        (Supplier<EndSelect<?>>)() -> Jaorm.select(Object.class).where(SqlColumn.instance("COL1", Integer.class)).eq(2).orWhere(SqlColumn.instance("COL2", Integer.class)).eq(3)
+                        base + " WHERE (TABLE.COL1 = ?) OR (TABLE.COL2 = ?)",
+                        (Supplier<IntermediateWhere<?>>)() -> Jaorm.select(Object.class).where(SqlColumn.instance("COL1", Integer.class)).eq(2).orWhere(SqlColumn.instance("COL2", Integer.class)).eq(3)
                 )
         );
     }
