@@ -62,8 +62,8 @@ class TransactionManagerTest {
         try (MockedStatic<ServiceFinder> mk = Mockito.mockStatic(ServiceFinder.class)) {
             mk.when(() -> ServiceFinder.loadServices(TransactionManager.class))
                     .thenReturn(Collections.emptyList());
-            Assertions.assertThrows(UnsupportedOperationException.class,() -> TransactionManager.getInstance()
-                    .createDelegate(Mockito.mock(DataSourceProvider.class))); //NOSONAR
+            Assertions.assertThrows(UnsupportedOperationException.class,() -> TransactionManager.getInstance() //NOSONAR
+                    .createDelegate(Mockito.mock(DataSourceProvider.class)));
         }
     }
 

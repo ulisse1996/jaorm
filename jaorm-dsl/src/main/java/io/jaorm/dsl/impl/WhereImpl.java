@@ -1,7 +1,6 @@
 package io.jaorm.dsl.impl;
 
-import io.jaorm.dsl.common.IntermediateWhere;
-import io.jaorm.dsl.common.Where;
+import io.jaorm.dsl.common.*;
 import io.jaorm.entity.SqlColumn;
 import io.jaorm.entity.converter.ValueConverter;
 import io.jaorm.entity.sql.SqlParameter;
@@ -11,7 +10,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-public class WhereImpl<T, R> implements Where<T, R>, IntermediateWhere<T> {
+public class WhereImpl<T, R, M> implements Where<T, R>, IntermediateWhere<T> {
 
     private static final String WHERE = " WHERE ";
     private static final String AND = " AND ";
@@ -19,10 +18,10 @@ public class WhereImpl<T, R> implements Where<T, R>, IntermediateWhere<T> {
     private static final String COLUMN_CAN_T_BE_NULL = "Column can't be null";
     private static final String VALUE_CAN_T_BE_NULL = "Value can't be null !";
     private final List<WhereClause> clauses;
-    private final SelectImpl.EndSelectImpl<T, R> parent;
+    private final SelectImpl.EndSelectImpl<T, R, M> parent;
     private boolean linkedCause;
 
-    public WhereImpl(SelectImpl.EndSelectImpl<T, R> endSelect, String column, boolean or, ValueConverter<?,R> converter) {
+    public WhereImpl(SelectImpl.EndSelectImpl<T, R, M> endSelect, String column, boolean or, ValueConverter<?,R> converter) {
         this.parent = endSelect;
         this.clauses = new ArrayList<>();
         this.clauses.add(new WhereClause(column, or, converter));
@@ -178,6 +177,11 @@ public class WhereImpl<T, R> implements Where<T, R>, IntermediateWhere<T> {
         return (Where<T, L>) this;
     }
 
+    @Override
+    public final Order<T> orderBy(OrderType type, SqlColumn<T, ?> column) {
+        return this.parent.orderBy(type, column);
+    }
+
     private void checkColumn(SqlColumn<T, ?> column) {
         Objects.requireNonNull(column, COLUMN_CAN_T_BE_NULL);
         checkColumn(column.getName());
@@ -248,11 +252,11 @@ public class WhereImpl<T, R> implements Where<T, R>, IntermediateWhere<T> {
     }
 
     private void buildClause(StringBuilder builder, WhereClause clause) {
-        builder.append(clause.column).append(evaluateOperation(clause));
+        builder.append(String.format("%s.%s", this.parent.from, clause.column)).append(evaluateOperation(clause));
         if (!clause.linked.isEmpty()) {
             for (WhereClause inner : clause.linked) {
                 builder.append(inner.or ? OR : AND)
-                        .append(inner.column).append(evaluateOperation(inner));
+                        .append(String.format("%s.%s", this.parent.from, inner.column)).append(evaluateOperation(inner));
             }
         }
     }

@@ -1,14 +1,11 @@
 package io.jaorm.integration.test;
 
 import io.jaorm.dsl.Jaorm;
-import io.jaorm.dsl.impl.LikeType;
+import io.jaorm.dsl.common.LikeType;
 import io.jaorm.entity.EntityComparator;
-import io.jaorm.integration.test.entity.UserColumns;
+import io.jaorm.integration.test.entity.*;
 import io.jaorm.spi.QueriesService;
 import io.jaorm.exception.JaormSqlException;
-import io.jaorm.integration.test.entity.Role;
-import io.jaorm.integration.test.entity.User;
-import io.jaorm.integration.test.entity.UserRole;
 import io.jaorm.integration.test.query.RoleDAO;
 import io.jaorm.integration.test.query.UserDAO;
 import io.jaorm.integration.test.query.UserRoleDAO;
@@ -178,5 +175,39 @@ class JaormDSLIT extends AbstractIT {
                 .map(UserRole::getRole)
                 .collect(Collectors.toList());
         Assertions.assertTrue(EntityComparator.getInstance(Role.class).equals(Arrays.asList(role, role2), founds));
+    }
+
+    @ParameterizedTest
+    @MethodSource("getSqlTests")
+    void should_find_connected_tables(HSQLDBProvider.DatabaseType databaseType, String initSql) {
+        setDataSource(databaseType, initSql);
+
+        UserDAO userDao = QueriesService.getInstance().getQuery(UserDAO.class);
+        RoleDAO roleDAO = QueriesService.getInstance().getQuery(RoleDAO.class);
+        UserRoleDAO userRoleDAO = QueriesService.getInstance().getQuery(UserRoleDAO.class);
+
+        User user = new User();
+        user.setId(2);
+        user.setName("NAME");
+        userDao.insert(user);
+
+        Role role = new Role();
+        role.setRoleName("ROLE");
+        role.setRoleId(2);
+        roleDAO.insert(role);
+
+        UserRole userRole = new UserRole();
+        userRole.setRoleId(2);
+        userRole.setUserId(2);
+        userRoleDAO.insert(userRole);
+
+        User read = Jaorm.select(User.class)
+                .join(UserRole.class)
+                .on(UserColumns.USER_ID).eq(UserRoleColumns.USER_ID)
+                .read();
+
+        Assertions.assertTrue(
+                EntityComparator.getInstance(User.class).equals(user, read)
+        );
     }
 }
