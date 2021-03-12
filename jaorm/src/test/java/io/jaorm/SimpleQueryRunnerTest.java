@@ -3,6 +3,7 @@ package io.jaorm;
 import io.jaorm.entity.sql.DataSourceProvider;
 import io.jaorm.entity.sql.SqlParameter;
 import io.jaorm.exception.JaormSqlException;
+import io.jaorm.mapping.TableRow;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -13,9 +14,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import javax.sql.DataSource;
 import java.sql.*;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @ExtendWith(MockitoExtension.class)
 class SimpleQueryRunnerTest {
@@ -46,6 +49,189 @@ class SimpleQueryRunnerTest {
     @Test
     void should_return_true_for_simple_runner() {
         Assertions.assertTrue(testSubject.isSimple());
+    }
+
+    @Test
+    void should_read_stream_of_simple_object() throws Exception {
+        List<String> expected = Arrays.asList("1", "2", "3");
+        DataSource dataSource = DataSourceProvider.getCurrent().getDataSource();
+        Mockito.when(dataSource.getConnection())
+                .thenReturn(connection);
+        Mockito.when(connection.prepareStatement(Mockito.anyString()))
+                .thenReturn(preparedStatement);
+        Mockito.when(preparedStatement.executeQuery())
+                .thenReturn(resultSet);
+        Mockito.when(resultSet.next())
+                .thenReturn(true, true, true, false);
+        Mockito.when(resultSet.getString("COL1"))
+                .thenReturn("1", "2", "3");
+        Mockito.when(resultSet.getMetaData())
+                .thenReturn(metaData);
+        Mockito.when(metaData.getColumnName(1))
+                .thenReturn("COL1");
+        List<String> result = testSubject.readStream(String.class, "", Collections.emptyList())
+                .collect(Collectors.toList());
+        Assertions.assertEquals(expected, result);
+        assertClosed(connection, preparedStatement, resultSet);
+    }
+
+    @Test
+    void should_read_table_row() throws Exception {
+        String expected = "EXPECTED";
+        DataSource dataSource = DataSourceProvider.getCurrent().getDataSource();
+        Mockito.when(dataSource.getConnection())
+                .thenReturn(connection);
+        Mockito.when(connection.prepareStatement(Mockito.anyString()))
+                .thenReturn(preparedStatement);
+        Mockito.when(preparedStatement.executeQuery())
+                .thenReturn(resultSet);
+        Mockito.when(resultSet.next())
+                .thenReturn(true);
+        Mockito.when(resultSet.getString("COL1"))
+                .thenReturn(expected);
+        String result = testSubject.read("", Collections.emptyList())
+                .mapRow(rs -> rs.getString("COL1"));
+        Assertions.assertEquals(expected, result);
+        assertClosed(connection, preparedStatement, resultSet);
+    }
+
+    @SuppressWarnings("MagicConstant")
+    @Test
+    void should_not_found_result_for_read_opt_with_table_row() throws Exception {
+        DataSource dataSource = DataSourceProvider.getCurrent().getDataSource();
+        Mockito.when(dataSource.getConnection())
+                .thenReturn(connection);
+        Mockito.when(connection.prepareStatement(Mockito.anyString(), Mockito.eq(ResultSet.TYPE_SCROLL_INSENSITIVE), Mockito.eq(ResultSet.CONCUR_READ_ONLY)))
+                .thenReturn(preparedStatement);
+        Mockito.when(preparedStatement.executeQuery())
+                .thenReturn(resultSet);
+        Mockito.when(resultSet.next())
+                .thenReturn(false);
+        String result = testSubject.readOpt("", Collections.emptyList())
+                .map(row -> {
+                    try {
+                        return row.mapRow(rs -> rs.getString("COL1"));
+                    } catch (SQLException ex) {
+                        Assertions.fail(ex);
+                    }
+
+                    return null;
+                }).orElse("NOT_FOUND");
+        Assertions.assertEquals("NOT_FOUND", result);
+        assertClosed(connection, preparedStatement, resultSet);
+    }
+
+    @SuppressWarnings("MagicConstant")
+    @Test
+    void should_found_result_for_read_opt_with_table_row() throws Exception {
+        String expected = "EXPECTED";
+        DataSource dataSource = DataSourceProvider.getCurrent().getDataSource();
+        Mockito.when(dataSource.getConnection())
+                .thenReturn(connection);
+        Mockito.when(connection.prepareStatement(Mockito.anyString(), Mockito.eq(ResultSet.TYPE_SCROLL_INSENSITIVE), Mockito.eq(ResultSet.CONCUR_READ_ONLY)))
+                .thenReturn(preparedStatement);
+        Mockito.when(preparedStatement.executeQuery())
+                .thenReturn(resultSet);
+        Mockito.when(resultSet.next())
+                .thenReturn(true, true);
+        Mockito.when(resultSet.getString("COL1"))
+                .thenReturn(expected);
+        String result = testSubject.readOpt("", Collections.emptyList())
+                .map(row -> {
+                    try {
+                        return row.mapRow(rs -> rs.getString("COL1"));
+                    } catch (SQLException ex) {
+                        Assertions.fail(ex);
+                    }
+
+                    return null;
+                }).orElse("NOT_FOUND");
+        Assertions.assertEquals(expected, result);
+        Mockito.verify(resultSet, Mockito.times(1))
+                .previous();
+        assertClosed(connection, preparedStatement, resultSet);
+    }
+
+    @Test
+    void should_return_empty_stream_for_read_stream_with_table_row() throws Exception {
+        DataSource dataSource = DataSourceProvider.getCurrent().getDataSource();
+        Mockito.when(dataSource.getConnection())
+                .thenReturn(connection);
+        Mockito.when(connection.prepareStatement(Mockito.anyString()))
+                .thenReturn(preparedStatement);
+        Mockito.when(preparedStatement.executeQuery())
+                .thenReturn(resultSet);
+        Mockito.when(resultSet.next())
+                .thenReturn(false);
+        List<TableRow> rows = testSubject.readStream("", Collections.emptyList())
+                .collect(Collectors.toList());
+        Assertions.assertEquals(0, rows.size());
+        assertClosed(connection, preparedStatement, resultSet);
+    }
+
+    @Test
+    void should_throw_sql_exception_for_readStream() {
+        try {
+            DataSource dataSource = DataSourceProvider.getCurrent().getDataSource();
+            Mockito.when(dataSource.getConnection())
+                    .thenReturn(connection);
+            Mockito.when(connection.prepareStatement(Mockito.anyString()))
+                    .thenThrow(SQLException.class);
+            testSubject.readStream(Object.class, "", Collections.emptyList());
+        } catch (SQLException ex) {
+            Assertions.fail(ex);
+        } catch (JaormSqlException ex) {
+            Assertions.assertTrue(ex.getCause() instanceof SQLException);
+        }
+    }
+
+    @Test
+    void should_throw_sql_exception_for_read_with_table_row() {
+        try {
+            DataSource dataSource = DataSourceProvider.getCurrent().getDataSource();
+            Mockito.when(dataSource.getConnection())
+                    .thenReturn(connection);
+            Mockito.when(connection.prepareStatement(Mockito.anyString()))
+                    .thenThrow(SQLException.class);
+            testSubject.read("", Collections.emptyList());
+        } catch (SQLException ex) {
+            Assertions.fail(ex);
+        } catch (JaormSqlException ex) {
+            Assertions.assertTrue(ex.getCause() instanceof SQLException);
+        }
+    }
+
+    @SuppressWarnings("MagicConstant")
+    @Test
+    void should_throw_sql_exception_for_read_opt_with_table_row() {
+        try {
+            DataSource dataSource = DataSourceProvider.getCurrent().getDataSource();
+            Mockito.when(dataSource.getConnection())
+                    .thenReturn(connection);
+            Mockito.when(connection.prepareStatement(Mockito.anyString(), Mockito.eq(ResultSet.TYPE_SCROLL_INSENSITIVE), Mockito.eq(ResultSet.CONCUR_READ_ONLY)))
+                    .thenThrow(SQLException.class);
+            testSubject.readOpt( "", Collections.emptyList());
+        } catch (SQLException ex) {
+            Assertions.fail(ex);
+        } catch (JaormSqlException ex) {
+            Assertions.assertTrue(ex.getCause() instanceof SQLException);
+        }
+    }
+
+    @Test
+    void should_throw_sql_exception_for_readStream_with_table_row() {
+        try {
+            DataSource dataSource = DataSourceProvider.getCurrent().getDataSource();
+            Mockito.when(dataSource.getConnection())
+                    .thenReturn(connection);
+            Mockito.when(connection.prepareStatement(Mockito.anyString()))
+                    .thenThrow(SQLException.class);
+            testSubject.readStream( "", Collections.emptyList());
+        } catch (SQLException ex) {
+            Assertions.fail(ex);
+        } catch (JaormSqlException ex) {
+            Assertions.assertTrue(ex.getCause() instanceof SQLException);
+        }
     }
 
     @Test
@@ -263,6 +449,13 @@ class SimpleQueryRunnerTest {
             Mockito.verify(preparedStatement).executeUpdate();
         } catch (SQLException | JaormSqlException ex) {
             Assertions.fail(ex);
+        }
+    }
+
+    private void assertClosed(AutoCloseable... autoCloseables) throws Exception {
+        for (AutoCloseable autoCloseable : autoCloseables) {
+            Mockito.verify(autoCloseable, Mockito.times(1))
+                    .close();
         }
     }
 }

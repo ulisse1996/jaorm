@@ -6,7 +6,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.List;
 
-public interface SqlExecutor {
+public interface SqlExecutor extends AutoCloseable {
 
     default void prepare(PreparedStatement pr, List<SqlParameter> parameters) throws SQLException {
         if (!parameters.isEmpty()) {

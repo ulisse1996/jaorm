@@ -4,14 +4,19 @@ import io.jaorm.entity.sql.DataSourceProvider;
 import io.jaorm.entity.sql.SqlAccessor;
 import io.jaorm.entity.sql.SqlParameter;
 import io.jaorm.exception.JaormSqlException;
+import io.jaorm.mapping.EmptyClosable;
+import io.jaorm.mapping.ResultSetStream;
+import io.jaorm.mapping.TableRow;
 import io.jaorm.spi.QueryRunner;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 public class SimpleQueryRunner extends QueryRunner {
 
@@ -71,6 +76,87 @@ public class SimpleQueryRunner extends QueryRunner {
             }
             return values;
         } catch (SQLException ex) {
+            throw new JaormSqlException(ex);
+        }
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <R> Stream<R> readStream(Class<R> klass, String query, List<SqlParameter> params) {
+        logger.logSql(query, params);
+        Connection connection = EmptyClosable.instance(Connection.class);
+        PreparedStatement preparedStatement = EmptyClosable.instance(PreparedStatement.class);
+        SqlExecutor executor = EmptyClosable.instance(SqlExecutor.class);
+        try {
+            connection = getConnection();
+            preparedStatement = connection.prepareStatement(query);
+            executor = new ResultSetExecutor(preparedStatement, params);
+            return new ResultSetStream<>(connection, preparedStatement, executor,
+                    rs -> (R) SqlAccessor.find(klass).getGetter().get(rs, rs.getMetaData().getColumnName(1)))
+                    .getStream();
+        } catch (SQLException ex) {
+            SqlUtil.silentClose(executor, preparedStatement, connection);
+            throw new JaormSqlException(ex);
+        }
+    }
+
+    @Override
+    public TableRow read(String query, List<SqlParameter> params) {
+        logger.logSql(query, params);
+        Connection connection = EmptyClosable.instance(Connection.class);
+        PreparedStatement preparedStatement = EmptyClosable.instance(PreparedStatement.class);
+        SqlExecutor executor = EmptyClosable.instance(SqlExecutor.class);
+        try {
+            connection = getConnection();
+            preparedStatement = connection.prepareStatement(query);
+            executor = new ResultSetExecutor(preparedStatement, params); //NOSONAR Should close it in tableRow
+            return new TableRow(connection, preparedStatement, (ResultSetExecutor) executor);
+        } catch (SQLException ex) {
+            SqlUtil.silentClose(executor, preparedStatement, connection);
+            throw new JaormSqlException(ex);
+        }
+    }
+
+    @Override
+    public Optional<TableRow> readOpt(String query, List<SqlParameter> params) {
+        logger.logSql(query, params);
+        Connection connection = EmptyClosable.instance(Connection.class);
+        PreparedStatement preparedStatement = EmptyClosable.instance(PreparedStatement.class);
+        SqlExecutor executor = EmptyClosable.instance(SqlExecutor.class);
+        try {
+            connection = getConnection();
+            preparedStatement = connection.prepareStatement(query, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+            executor = new ResultSetExecutor(preparedStatement, params); //NOSONAR Should close it in tableRow
+            if (((ResultSetExecutor) executor).getResultSet().next()) {
+                ((ResultSetExecutor) executor).getResultSet().previous();
+                return Optional.of(new TableRow(connection, preparedStatement, (ResultSetExecutor) executor));
+            } else {
+                SqlUtil.silentClose(executor, preparedStatement, connection);
+                return Optional.empty();
+            }
+        } catch (SQLException ex) {
+            SqlUtil.silentClose(executor, preparedStatement, connection);
+            throw new JaormSqlException(ex);
+        }
+    }
+
+    @Override
+    public Stream<TableRow> readStream(String query, List<SqlParameter> params) {
+        logger.logSql(query, params);
+        Connection connection = EmptyClosable.instance(Connection.class);
+        PreparedStatement preparedStatement = EmptyClosable.instance(PreparedStatement.class);
+        SqlExecutor executor = EmptyClosable.instance(SqlExecutor.class);
+        try {
+            connection = getConnection();
+            preparedStatement = connection.prepareStatement(query);
+            executor = new ResultSetExecutor(preparedStatement, params);
+            Connection finalConnection = connection;
+            PreparedStatement finalPreparedStatement = preparedStatement;
+            ResultSetExecutor finalExecutor = (ResultSetExecutor) executor;
+            return new ResultSetStream<>(connection, preparedStatement, executor,
+                    rs -> new TableRow(finalConnection, finalPreparedStatement, finalExecutor, true)).getStream();
+        } catch (SQLException ex) {
+            SqlUtil.silentClose(executor, preparedStatement, connection);
             throw new JaormSqlException(ex);
         }
     }

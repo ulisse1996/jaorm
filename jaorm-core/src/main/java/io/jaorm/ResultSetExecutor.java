@@ -7,7 +7,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 
-public class ResultSetExecutor implements AutoCloseable, SqlExecutor {
+public class ResultSetExecutor implements SqlExecutor {
 
     private final ResultSet resultSet;
 

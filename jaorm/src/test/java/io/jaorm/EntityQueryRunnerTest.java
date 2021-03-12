@@ -7,6 +7,10 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.function.Executable;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -20,6 +24,7 @@ import java.sql.SQLException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 @ExtendWith(MockitoExtension.class)
 class EntityQueryRunnerTest {
@@ -29,6 +34,41 @@ class EntityQueryRunnerTest {
     @Mock private Connection connection;
     @Mock private PreparedStatement preparedStatement;
     @Mock private ResultSet resultSet;
+
+    @ParameterizedTest
+    @MethodSource("getUnsupported")
+    void should_throw_unsupported_exception(Executable executable) {
+        Assertions.assertThrows(UnsupportedOperationException.class, executable); //NOSONAR
+    }
+
+    @Test
+    void should_return_stream() throws SQLException {
+        DataSource dataSource = DataSourceProvider.getCurrent().getDataSource();
+        Mockito.when(dataSource.getConnection())
+                .thenReturn(connection);
+        Mockito.when(connection.prepareStatement(Mockito.anyString()))
+                .thenReturn(preparedStatement);
+        Mockito.when(preparedStatement.executeQuery())
+                .thenReturn(resultSet);
+        Mockito.when(resultSet.next())
+                .thenReturn(false);
+        Stream<DelegatesMock.MyEntity> myEntityStream = testSubject.readStream(DelegatesMock.MyEntity.class, "", Collections.emptyList());
+        Assertions.assertEquals(0, myEntityStream.count());
+    }
+
+    @Test
+    void should_throw_sql_exception_for_readStream() {
+        try {
+            DataSource dataSource = DataSourceProvider.getCurrent().getDataSource();
+            Mockito.when(dataSource.getConnection())
+                    .thenThrow(SQLException.class);
+            testSubject.readStream(DelegatesMock.MyEntity.class, "", Collections.emptyList());
+        } catch (SQLException ex) {
+            Assertions.fail(ex);
+        } catch (JaormSqlException ex) {
+            Assertions.assertTrue(ex.getCause() instanceof SQLException);
+        }
+    }
 
     @BeforeEach
     public void beforeAll() {
@@ -283,6 +323,15 @@ class EntityQueryRunnerTest {
         } catch (SQLException | JaormSqlException ex) {
             Assertions.fail(ex);
         }
+    }
+
+    private static Stream<Arguments> getUnsupported() {
+        return Stream.of(
+                Arguments.arguments((Executable)() -> new EntityQueryRunner().read("", Collections.emptyList())),
+                Arguments.arguments((Executable)() -> new EntityQueryRunner().readOpt("", Collections.emptyList())),
+                Arguments.arguments((Executable)() -> new EntityQueryRunner().readStream("", Collections.emptyList())
+            )
+        );
     }
 
     private void checkResult(DelegatesMock.MyEntity expected, DelegatesMock.MyEntity result) {
