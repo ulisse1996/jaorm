@@ -12,6 +12,8 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import javax.tools.JavaFileObject;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
 import java.util.stream.Stream;
 
@@ -58,20 +60,23 @@ class QueriesBuilderTest {
         Assertions.assertEquals(Compilation.Status.SUCCESS, compilation.status());
     }
 
-    @Test
-    void should_compile_queries_with_base_dao() {
+    @ParameterizedTest
+    @MethodSource("getCompiled")
+    void should_compile_queries(String message, List<JavaFileObject> files) {
         Compilation compilation = Compiler.javac()
                 .withProcessors(new JaormProcessor())
-                .compile(getClass("/entities/SimpleEntity.java"), getClass("/queries/QueryWithBaseDao.java"));
-        Assertions.assertEquals(Compilation.Status.SUCCESS, compilation.status());
+                .compile(files);
+        Assertions.assertEquals(Compilation.Status.SUCCESS, compilation.status(), "error for " + message);
     }
 
-    @Test
-    void should_compile_queries_with_base_dao_and_without_custom_methods() {
-        Compilation compilation = Compiler.javac()
-                .withProcessors(new JaormProcessor())
-                .compile(getClass("/entities/SimpleEntity.java"), getClass("/queries/QueryWithBaseDaoWithoutCustomMethods.java"));
-        Assertions.assertEquals(Compilation.Status.SUCCESS, compilation.status());
+    public static Stream<Arguments> getCompiled() {
+        return Stream.of(
+                Arguments.arguments("should_compile_queries_with_base_dao", Arrays.asList(getClass("/entities/SimpleEntity.java"), getClass("/queries/QueryWithBaseDao.java"))),
+                Arguments.arguments("should_compile_queries_with_stream", Arrays.asList(getClass("/entities/SimpleEntity.java"), getClass("/queries/QueryWithStream.java"))),
+                Arguments.arguments("should_compile_queries_with_stream_and_table_row", Arrays.asList(getClass("/entities/SimpleEntity.java"), getClass("/queries/QueryWithStreamAndTableRow.java"))),
+                Arguments.arguments("should_compile_queries_with_table_row", Arrays.asList(getClass("/entities/SimpleEntity.java"), getClass("/queries/QueryWithTableRow.java"))),
+                Arguments.arguments("should_compile_queries_with_base_dao", Arrays.asList(getClass("/entities/SimpleEntity.java"), getClass("/queries/QueryWithBaseDaoWithoutCustomMethods.java")))
+        );
     }
 
     public static Stream<Arguments> getQueries() {
@@ -85,7 +90,7 @@ class QueriesBuilderTest {
         );
     }
 
-    private JavaFileObject getClass(String name) {
+    private static JavaFileObject getClass(String name) {
         return JavaFileObjects.forResource(EntitiesBuilderTest.class.getResource(name));
     }
 }

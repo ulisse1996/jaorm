@@ -13,4 +13,9 @@ public class UpdateExecutor implements SqlExecutor {
 
         pr.executeUpdate();
     }
+
+    @Override
+    public void close() {
+        // Do nothing
+    }
 }

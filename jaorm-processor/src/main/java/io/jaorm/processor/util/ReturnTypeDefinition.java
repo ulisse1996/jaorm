@@ -8,11 +8,16 @@ public class ReturnTypeDefinition {
 
     private static final String[] SUPPORTED = new String[] {
             "java.util.List",
-            "java.util.Optional"
+            "java.util.Optional",
+            "java.util.stream.Stream",
+            "io.jaorm.mapping.TableRow"
     };
 
     private boolean collection;
     private boolean optional;
+    private boolean stream;
+    private boolean tableRow;
+    private boolean streamTableRow;
     private TypeElement realClass;
 
     public ReturnTypeDefinition(ProcessingEnvironment processingEnvironment, TypeMirror typeMirror) {
@@ -21,13 +26,22 @@ public class ReturnTypeDefinition {
             if (typeName.contains(regex)) {
                 if (regex.contains("Optional")) {
                     this.optional = true;
-                } else {
+                    this.realClass = asElement(processingEnvironment, regex, typeName);
+                } else if (regex.contains("List")) {
+                    this.realClass = asElement(processingEnvironment, regex, typeName);
                     this.collection = true;
+                } else if (regex.contains("Stream")) {
+                    this.realClass = asElement(processingEnvironment, regex, typeName);
+                    this.stream = true;
+                    if (realClass.asType().toString().contains(SUPPORTED[3])) {
+                        this.streamTableRow = true;
+                    }
+                } else {
+                    this.tableRow = true;
                 }
-                this.realClass = asElement(processingEnvironment, regex, typeName);
             }
         }
-        boolean plain = !optional && !collection;
+        boolean plain = !optional && !collection && !stream && !streamTableRow;
         if (plain) {
             this.realClass = (TypeElement) processingEnvironment.getTypeUtils().asElement(typeMirror);
         }
@@ -48,5 +62,17 @@ public class ReturnTypeDefinition {
 
     public boolean isOptional() {
         return optional;
+    }
+
+    public boolean isStream() {
+        return stream;
+    }
+
+    public boolean isTableRow() {
+        return tableRow;
+    }
+
+    public boolean isStreamTableRow() {
+        return streamTableRow;
     }
 }

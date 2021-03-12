@@ -210,6 +210,23 @@ public class QueriesBuilder {
                         "return $T.getInstance($T.class).readAll($T.class, $S, params)",
                         stmParams
                 );
+            } else if (definition.isStream()) {
+                if (!definition.isStreamTableRow()) {
+                    return new AbstractMap.SimpleImmutableEntry<>(
+                            "return $T.getSimple().readStream($T.class, $S, params)",
+                            new Object[] {QueryRunner.class, definition.getRealClass(), sql}
+                    );
+                } else {
+                    return new AbstractMap.SimpleImmutableEntry<>(
+                            "return $T.getSimple().readStream($S, params)",
+                            new Object[] {QueryRunner.class, sql}
+                    );
+                }
+            } else if (definition.isTableRow()) {
+                return new AbstractMap.SimpleImmutableEntry<>(
+                        "return $T.getSimple().read($S, params)",
+                        new Object[] {QueryRunner.class, sql}
+                );
             } else {
                 return new AbstractMap.SimpleImmutableEntry<>(
                         "return $T.getInstance($T.class).read($T.class, $S, params)",

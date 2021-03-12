@@ -3,6 +3,9 @@ package io.jaorm;
 import io.jaorm.entity.EntityDelegate;
 import io.jaorm.entity.sql.SqlParameter;
 import io.jaorm.exception.JaormSqlException;
+import io.jaorm.mapping.EmptyClosable;
+import io.jaorm.mapping.ResultSetStream;
+import io.jaorm.mapping.TableRow;
 import io.jaorm.spi.DelegatesService;
 import io.jaorm.spi.QueryRunner;
 
@@ -13,6 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 public class EntityQueryRunner extends QueryRunner {
 
@@ -90,6 +94,42 @@ public class EntityQueryRunner extends QueryRunner {
             logger.error(String.format("Error during readAll for entity %s", entity)::toString, ex);
             throw new JaormSqlException(ex);
         }
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <R> Stream<R> readStream(Class<R> entity, String query, List<SqlParameter> params) {
+        logger.logSql(query, params);
+        Connection connection = EmptyClosable.instance(Connection.class);
+        PreparedStatement preparedStatement = EmptyClosable.instance(PreparedStatement.class);
+        SqlExecutor executor = EmptyClosable.instance(SqlExecutor.class);
+        try {
+            Supplier<EntityDelegate<?>> delegateSupplier = DelegatesService.getInstance().searchDelegate(entity);
+            connection = getConnection();
+            preparedStatement = connection.prepareStatement(query);
+            executor = new ResultSetExecutor(preparedStatement, params);
+            return new ResultSetStream<>(connection, preparedStatement, executor,
+                    rs -> (R) delegateSupplier.get().toEntity(rs)).getStream();
+        } catch (SQLException ex) {
+            SqlUtil.silentClose(executor, preparedStatement, connection);
+            logger.error(String.format("Error during readStream for entity %s", entity)::toString, ex);
+            throw new JaormSqlException(ex);
+        }
+    }
+
+    @Override
+    public TableRow read(String query, List<SqlParameter> params) {
+        throw new UnsupportedOperationException("Read with TableRow is not supported");
+    }
+
+    @Override
+    public Optional<TableRow> readOpt(String query, List<SqlParameter> params) {
+        throw new UnsupportedOperationException("ReadOpt with TableRow is not supported");
+    }
+
+    @Override
+    public Stream<TableRow> readStream(String query, List<SqlParameter> params) {
+        throw new UnsupportedOperationException("ReadStream with TableRow is not supported");
     }
 
     @Override

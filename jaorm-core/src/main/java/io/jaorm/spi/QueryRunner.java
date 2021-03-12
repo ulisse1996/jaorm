@@ -8,6 +8,7 @@ import io.jaorm.entity.sql.SqlParameter;
 import io.jaorm.exception.JaormSqlException;
 import io.jaorm.logger.JaormLogger;
 import io.jaorm.logger.SqlJaormLogger;
+import io.jaorm.mapping.TableRow;
 import io.jaorm.spi.common.Singleton;
 
 import java.sql.Connection;
@@ -15,6 +16,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 public abstract class QueryRunner {
 
@@ -87,9 +89,16 @@ public abstract class QueryRunner {
 
     public abstract boolean isCompatible(Class<?> klass);
     public abstract boolean isSimple();
+
     public abstract <R> R read(Class<R> klass, String query, List<SqlParameter> params);
     public abstract <R> Optional<R> readOpt(Class<R> klass, String query, List<SqlParameter> params);
     public abstract <R> List<R> readAll(Class<R> klass, String query, List<SqlParameter> params);
+    public abstract <R> Stream<R> readStream(Class<R> klass, String query, List<SqlParameter> params);
+
+    public abstract TableRow read(String query, List<SqlParameter> params);
+    public abstract Optional<TableRow> readOpt(String query, List<SqlParameter> params);
+    public abstract Stream<TableRow> readStream(String query, List<SqlParameter> params);
+
     public abstract <R> R insert(R entity, String query, List<SqlParameter> params);
     public abstract void update(String query, List<SqlParameter> params);
     public abstract void delete(String query, List<SqlParameter> params);
