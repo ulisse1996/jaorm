@@ -25,6 +25,10 @@ public abstract class QueryRunner {
     private static final Singleton<QueryRunner> SIMPLE_RUNNER = Singleton.instance();
 
     public static QueryRunner getInstance(Class<?> klass) {
+        if (!isDelegate(klass)) {
+            return getSimple();
+        }
+
         if (!ENTITY_RUNNER.isPresent()) {
             for (QueryRunner runner : ServiceFinder.loadServices(QueryRunner.class)) {
                 if (runner.isCompatible(klass)) {
@@ -40,6 +44,10 @@ public abstract class QueryRunner {
         }
 
         throw new IllegalArgumentException("Can't find a matched runner for klass " + klass);
+    }
+
+    private static boolean isDelegate(Class<?> klass) {
+        return DelegatesService.getInstance().getDelegates().containsKey(klass);
     }
 
     public static QueryRunner getSimple() {

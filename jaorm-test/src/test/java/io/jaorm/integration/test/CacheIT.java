@@ -1,8 +1,8 @@
 package io.jaorm.integration.test;
 
-import io.jaorm.entity.Queries;
 import io.jaorm.integration.test.entity.Role;
 import io.jaorm.integration.test.query.RoleDAO;
+import io.jaorm.spi.QueriesService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -24,7 +24,7 @@ class CacheIT extends AbstractIT {
         role2.setRoleId(2);
         role2.setRoleName("NAME2");
 
-        RoleDAO dao = Queries.getInstance().getQuery(RoleDAO.class);
+        RoleDAO dao = QueriesService.getInstance().getQuery(RoleDAO.class);
         dao.insert(Arrays.asList(role, role2));
 
         List<Role> roles = dao.readAll(); // Cache first load

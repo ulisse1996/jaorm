@@ -5,13 +5,14 @@
     <parent>
         <artifactId>jaorm-pom</artifactId>
         <groupId>io.jaorm</groupId>
-        <version>0.5.0</version>
+        <version>0.6.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>jaorm</artifactId>
 
     <properties>
+        <javapoet.version>1.13.0</javapoet.version>
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
         <sonar.coverage.jacoco.xmlReportPaths>${project.basedir}/../${aggregate.report.dir}</sonar.coverage.jacoco.xmlReportPaths>
@@ -21,13 +22,12 @@
         <dependency>
             <groupId>io.jaorm</groupId>
             <artifactId>jaorm-processor</artifactId>
-            <version>0.5.0</version>
-            <scope>compile</scope>
+            <version>0.6.0</version>
         </dependency>
         <dependency>
             <groupId>io.jaorm</groupId>
             <artifactId>jaorm-core</artifactId>
-            <version>0.5.0</version>
+            <version>0.6.0</version>
         </dependency>
     </dependencies>
 

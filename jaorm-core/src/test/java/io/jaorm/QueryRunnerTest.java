@@ -2,6 +2,7 @@ package io.jaorm;
 
 import io.jaorm.entity.sql.DataSourceProvider;
 import io.jaorm.entity.sql.SqlParameter;
+import io.jaorm.spi.DelegatesService;
 import io.jaorm.spi.QueryRunner;
 import io.jaorm.spi.TransactionManager;
 import io.jaorm.spi.common.Singleton;
@@ -38,11 +39,24 @@ class QueryRunnerTest {
     }
 
     @Test
+    void should_not_find_simple_query_runner() {
+        try (MockedStatic<ServiceFinder> mk = Mockito.mockStatic(ServiceFinder.class)) {
+            mk.when(() -> ServiceFinder.loadServices(QueryRunner.class))
+                    .thenReturn(Collections.emptyList());
+            mk.when(() -> ServiceFinder.loadService(DelegatesService.class))
+                    .thenReturn(new DelegatesMock());
+            Assertions.assertThrows(IllegalArgumentException.class, () -> QueryRunner.getInstance(Object.class));
+        }
+    }
+
+    @Test
     void should_not_find_query_runner() {
         try (MockedStatic<ServiceFinder> mk = Mockito.mockStatic(ServiceFinder.class)) {
             mk.when(() -> ServiceFinder.loadServices(QueryRunner.class))
                     .thenReturn(Collections.emptyList());
-            Assertions.assertThrows(IllegalArgumentException.class, () -> QueryRunner.getInstance(Object.class));
+            mk.when(() -> ServiceFinder.loadService(DelegatesService.class))
+                    .thenReturn(new DelegatesMock());
+            Assertions.assertThrows(IllegalArgumentException.class, () -> QueryRunner.getInstance(DelegatesMock.MyEntity.class));
         }
     }
 
@@ -72,7 +86,9 @@ class QueryRunnerTest {
         try (MockedStatic<ServiceFinder> mk = Mockito.mockStatic(ServiceFinder.class)) {
             mk.when(() -> ServiceFinder.loadServices(QueryRunner.class))
                     .thenReturn(Arrays.asList(new SimpleMockedRunner(), expected));
-            QueryRunner runner = QueryRunner.getInstance(String.class);
+            mk.when(() -> ServiceFinder.loadService(DelegatesService.class))
+                    .thenReturn(new DelegatesMock());
+            QueryRunner runner = QueryRunner.getInstance(DelegatesMock.MyEntity.class);
             Assertions.assertEquals(expected, runner);
         }
     }
@@ -83,9 +99,11 @@ class QueryRunnerTest {
         try (MockedStatic<ServiceFinder> mk = Mockito.mockStatic(ServiceFinder.class)) {
             mk.when(() -> ServiceFinder.loadServices(QueryRunner.class))
                     .thenReturn(Arrays.asList(new SimpleMockedRunner(), expected));
-            QueryRunner runner = QueryRunner.getInstance(String.class);
+            mk.when(() -> ServiceFinder.loadService(DelegatesService.class))
+                    .thenReturn(new DelegatesMock());
+            QueryRunner runner = QueryRunner.getInstance(DelegatesMock.MyEntity.class);
             Assertions.assertEquals(expected, runner);
-            QueryRunner runner1 = QueryRunner.getInstance(String.class);
+            QueryRunner runner1 = QueryRunner.getInstance(DelegatesMock.MyEntity.class);
             Assertions.assertEquals(runner, runner1);
             mk.verify(() -> ServiceFinder.loadServices(QueryRunner.class));
         }

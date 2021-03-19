@@ -1,50 +1,43 @@
 package io.jaorm.processor;
 
-import com.google.testing.compile.Compilation;
-import com.google.testing.compile.Compiler;
-import com.google.testing.compile.JavaFileObjects;
+import io.jaorm.processor.generation.Generator;
+import io.jaorm.processor.validation.Validator;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.Mockito;
-import org.mockito.internal.verification.NoInteractions;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
-import javax.tools.JavaFileObject;
+import javax.lang.model.element.Element;
 import java.util.Collections;
+import java.util.List;
 
-@ExtendWith(MockitoExtension.class)
 class JaormProcessorTest {
 
-    @InjectMocks private JaormProcessor processor;
-    @Mock private ProcessingEnvironment environment;
+    private static final Generator EMPTY_GENERATOR = new Generator(Mockito.mock(ProcessingEnvironment.class)) {
+        @Override
+        public void generate(RoundEnvironment roundEnvironment) {
+            // Nothing
+        }
+    };
+    private static final Validator EMPTY_VALIDATOR = new Validator(Mockito.mock(ProcessingEnvironment.class)) {
+        @Override
+        public void validate(List<? extends Element> annotated) {
+            // Nothing
+        }
+    };
 
     @Test
-    void should_not_create_delegates() {
-        RoundEnvironment roundEnvironment = Mockito.mock(RoundEnvironment.class);
-        boolean actual = processor.process(Collections.emptySet(), roundEnvironment);
-        Assertions.assertTrue(actual);
-        Mockito.verify(environment, new NoInteractions()).getFiler();
-    }
-
-    @Test
-    void should_create_caches() {
-        Compilation compile = Compiler.javac()
-                .withProcessors(new JaormProcessor())
-                .compile(getClass("/entities/SimpleEntityCacheable.java"));
-        Assertions.assertEquals(Compilation.Status.SUCCESS, compile.status());
-        Assertions.assertFalse(compile.generatedSourceFiles().isEmpty());
-        Assertions.assertTrue(
-                compile.generatedSourceFiles().stream()
-                    .anyMatch(j -> j.getName().contains("Caches"))
-        );
-    }
-
-    private JavaFileObject getClass(String name) {
-        return JavaFileObjects.forResource(EntitiesBuilderTest.class.getResource(name));
+    void should_return_true_for_correct_process() {
+        try (MockedStatic<Generator> genMock = Mockito.mockStatic(Generator.class);
+            MockedStatic<Validator> valMock = Mockito.mockStatic(Validator.class)) {
+            genMock.when(() -> Generator.forType(Mockito.any(), Mockito.any()))
+                    .thenReturn(EMPTY_GENERATOR);
+            valMock.when(() -> Validator.forType(Mockito.any(), Mockito.any()))
+                    .thenReturn(EMPTY_VALIDATOR);
+            boolean result = new JaormProcessor().process(Collections.emptySet(), Mockito.mock(RoundEnvironment.class));
+            Assertions.assertTrue(result);
+        }
     }
 }
