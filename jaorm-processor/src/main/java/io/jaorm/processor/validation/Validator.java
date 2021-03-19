@@ -1,12 +1,10 @@
 package io.jaorm.processor.validation;
 
-import io.jaorm.annotation.Table;
 import io.jaorm.processor.validation.impl.EntityValidator;
 import io.jaorm.processor.validation.impl.QueryValidator;
 import io.jaorm.processor.validation.impl.RelationshipValidator;
 
 import javax.annotation.processing.ProcessingEnvironment;
-import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.Element;
 import java.util.List;
 

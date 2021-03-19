@@ -1,9 +1,6 @@
 package io.jaorm.processor.generation.impl;
 
-import com.squareup.javapoet.ClassName;
-import com.squareup.javapoet.FieldSpec;
-import com.squareup.javapoet.ParameterizedTypeName;
-import com.squareup.javapoet.TypeSpec;
+import com.squareup.javapoet.*;
 import io.jaorm.annotation.Column;
 import io.jaorm.annotation.Converter;
 import io.jaorm.annotation.Table;
@@ -87,7 +84,7 @@ public class DslColumnsGenerator extends Generator {
             ParameterizedTypeName sqlColumnType = ParameterizedTypeName.get(
                     ClassName.get(SqlColumn.class),
                     ClassName.get(entity),
-                    ClassName.get(col.resultClass)
+                    TypeName.get(col.resultClass)
             );
             FieldSpec.Builder specBuilder = FieldSpec.builder(sqlColumnType, col.name, Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL);
             if (col.converterInstance != null) {

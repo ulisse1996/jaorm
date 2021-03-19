@@ -66,7 +66,7 @@ public class EntityValidator extends Validator {
         }
 
         List<Element> validElements = ProcessorUtils.getAllValidElements(processingEnvironment, entity);
-        if (validElements.stream().filter(ele -> ele instanceof ExecutableElement).anyMatch(ele -> {
+        if (validElements.stream().filter(ExecutableElement.class::isInstance).anyMatch(ele -> {
             Set<Modifier> modifiers = ele.getModifiers();
             return modifiers.contains(Modifier.FINAL)
                     || modifiers.contains(Modifier.NATIVE);
