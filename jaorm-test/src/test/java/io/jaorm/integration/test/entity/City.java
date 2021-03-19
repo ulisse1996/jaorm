@@ -43,6 +43,14 @@ public class City {
         this.name = name;
     }
 
+    private void doNothing() {
+        // Test for private methods
+    }
+
+    protected void doNothingProtected() {
+        // Test for protected methods
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

@@ -12,7 +12,7 @@ public class MockedRunner extends QueryRunner {
 
     @Override
     public boolean isCompatible(Class<?> klass) {
-        return klass.equals(String.class);
+        return DelegatesMock.MyEntity.class.equals(klass);
     }
 
     @Override
