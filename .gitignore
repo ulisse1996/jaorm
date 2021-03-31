@@ -19,3 +19,6 @@ log/
 
 # Internal Test
 /test
+
+# Plugins
+/jaorm-intellij-plugin
