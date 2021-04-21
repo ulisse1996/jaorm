@@ -17,7 +17,7 @@ import java.util.stream.Stream;
 class QueryGeneratorTest extends CompilerTest {
 
     @ParameterizedTest(name = "[{index}] {0}")
-    @ValueSource(strings = {"QueryWithSelect.java", "QueryWithSelectOptional.java", "QueryWithSelectList.java"})
+    @ValueSource(strings = {"QueryWithSelect.java", "QueryWithSelectOptional.java", "QueryWithSelectList.java", "QueryWithSelectPrimitive.java"})
     void should_compile_queries_with_select(String fileName) {
         Compilation compilation = Compiler.javac()
                 .withProcessors(new JaormProcessor())

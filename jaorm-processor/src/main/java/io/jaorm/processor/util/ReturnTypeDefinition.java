@@ -2,6 +2,7 @@ package io.jaorm.processor.util;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.PrimitiveType;
 import javax.lang.model.type.TypeMirror;
 
 public class ReturnTypeDefinition {
@@ -37,6 +38,11 @@ public class ReturnTypeDefinition {
         if (plain) {
             this.simple = true;
             this.realClass = (TypeElement) processingEnvironment.getTypeUtils().asElement(typeMirror);
+            if (realClass == null) {
+                // Check for primitive return type
+                PrimitiveType primitive = processingEnvironment.getTypeUtils().getPrimitiveType(typeMirror.getKind());
+                this.realClass = processingEnvironment.getTypeUtils().boxedClass(primitive);
+            }
         }
     }
 
