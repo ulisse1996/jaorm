@@ -62,7 +62,7 @@ public abstract class DelegatesService {
     @SuppressWarnings("unchecked")
     public <R> Arguments asArguments(R entity) {
         EntityDelegate<R> entityDelegate = (EntityDelegate<R>) searchDelegate(entity).get();
-        return entityDelegate.getEntityMapper().getAllColumns(entity);
+        return entityDelegate.getEntityMapper().getAllColumns(entity, false);
     }
 
     public String getSql(Class<?> klass) {
@@ -82,7 +82,7 @@ public abstract class DelegatesService {
     @SuppressWarnings("unchecked")
     public <R> Arguments asInsert(R entity) {
         EntityDelegate<R> delegate = (EntityDelegate<R>) searchDelegate(entity.getClass()).get();
-        return delegate.getEntityMapper().getAllColumns(entity);
+        return delegate.getEntityMapper().getAllColumns(entity, true);
     }
 
     public <R> String getUpdateSql(Class<R> entity) {

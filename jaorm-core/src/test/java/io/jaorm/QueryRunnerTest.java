@@ -14,11 +14,8 @@ import org.mockito.Mockito;
 
 import javax.sql.DataSource;
 import java.lang.reflect.Field;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.sql.*;
+import java.util.*;
 
 class QueryRunnerTest {
 
@@ -121,6 +118,47 @@ class QueryRunnerTest {
             Assertions.assertEquals(runner, runner1);
             mk.verify(() -> ServiceFinder.loadServices(QueryRunner.class));
         }
+    }
+
+    @Test
+    void should_return_map_of_auto_generated_keys() throws SQLException {
+        Connection connection = Mockito.mock(Connection.class);
+        PreparedStatement preparedStatement = Mockito.mock(PreparedStatement.class);
+        ResultSet resultSet = Mockito.mock(ResultSet.class);
+        Mockito.when(connection.prepareStatement(Mockito.anyString(), Mockito.any(String[].class)))
+                .thenReturn(preparedStatement);
+        Mockito.when(preparedStatement.getGeneratedKeys())
+                .thenReturn(resultSet);
+        Mockito.when(resultSet.next())
+                .thenReturn(true, false);
+        Mockito.when(resultSet.getString("NAME1"))
+                .thenReturn("RETURN1");
+        Mockito.when(resultSet.getString("NAME2"))
+                .thenReturn("RETURN2");
+
+        QueryRunner runner = new MockedRunner() {
+            @Override
+            public <R> R insert(R entity, String query, List<SqlParameter> params) {
+                Map<String, Object> expected = new HashMap<>();
+                expected.put("NAME1", "RETURN1");
+                expected.put("NAME2", "RETURN2");
+
+                Map<String, Class<?>> autoGen = new HashMap<>();
+                autoGen.put("NAME1", String.class);
+                autoGen.put("NAME2", String.class);
+
+                Map<String,Object> map = doUpdate(query, params, autoGen);
+                Assertions.assertFalse(map.isEmpty());
+                Assertions.assertEquals(expected, map);
+                return entity;
+            }
+
+            @Override
+            protected Connection getConnection() {
+                return connection;
+            }
+        };
+        runner.insert(new Object(), "", Collections.emptyList());
     }
 
     @Test
