@@ -62,8 +62,8 @@ public class DelegatesMock extends DelegatesService {
         @Override
         public EntityMapper<MyEntity> getEntityMapper() {
             EntityMapper.Builder<MyEntity> builder = new EntityMapper.Builder<>();
-            builder.add("FIELD1", String.class, (entity, value) -> entity.setField1((String) value), MyEntity::getField1, false);
-            builder.add("FIELD2", BigDecimal.class, (entity, value) -> entity.setField2((BigDecimal) value), MyEntity::getField2, false);
+            builder.add("FIELD1", String.class, (entity, value) -> entity.setField1((String) value), MyEntity::getField1, false, false);
+            builder.add("FIELD2", BigDecimal.class, (entity, value) -> entity.setField2((BigDecimal) value), MyEntity::getField2, false, false);
             return builder.build();
         }
 
