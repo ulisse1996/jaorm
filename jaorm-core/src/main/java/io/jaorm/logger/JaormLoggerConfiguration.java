@@ -2,13 +2,8 @@ package io.jaorm.logger;
 
 import io.jaorm.spi.common.Singleton;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.logging.Filter;
-import java.util.logging.Handler;
-import java.util.logging.Level;
+import java.util.*;
+import java.util.logging.*;
 
 public class JaormLoggerConfiguration {
 
@@ -50,6 +45,21 @@ public class JaormLoggerConfiguration {
 
     public static synchronized void setCurrent(JaormLoggerConfiguration loggerConfiguration) {
         INSTANCE.set(Objects.requireNonNull(loggerConfiguration, "Configuration can't be null !"));
+
+        // Reset pre started logger
+        Enumeration<String> loggerNames = LogManager.getLogManager().getLoggerNames();
+        while (loggerNames.hasMoreElements()) {
+            String name = loggerNames.nextElement();
+            if (name.startsWith("io.jaorm")) {
+                Logger logger = Logger.getLogger(name);
+                logger.setLevel(loggerConfiguration.level);
+                logger.setFilter(logger.getFilter());
+                for (Handler h : logger.getHandlers()) {
+                    logger.removeHandler(h);
+                }
+                loggerConfiguration.handlers.forEach(logger::addHandler);
+            }
+        }
     }
 
     private static JaormLoggerConfiguration defaultConfiguration() {
