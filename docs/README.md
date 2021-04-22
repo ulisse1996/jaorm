@@ -69,6 +69,9 @@ In contrast to JPA , Jaorm does not use compound id class
 User can declare one or more **@Id** annotation in a single entity that are used to define how Entity must be selected 
 from database
 
+An **@Id** annotation can also be marked as auto-generated. 
+Jaorm retrieve and set auto-generated keys during persist events
+
 ##### **1.1.2** Converter
 
 User can define a custom Converter between a custom defined type
