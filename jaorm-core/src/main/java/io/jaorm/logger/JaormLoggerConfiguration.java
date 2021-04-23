@@ -52,7 +52,7 @@ public class JaormLoggerConfiguration {
             String name = loggerNames.nextElement();
             if (name.startsWith("io.jaorm")) {
                 Logger logger = Logger.getLogger(name);
-                logger.setLevel(loggerConfiguration.level);
+                logger.setLevel(loggerConfiguration.level); //NOSONAR
                 logger.setFilter(logger.getFilter());
                 for (Handler h : logger.getHandlers()) {
                     logger.removeHandler(h);
