@@ -35,7 +35,7 @@ public class QueryValidator extends Validator {
         Query query = executableElement.getAnnotation(Query.class);
         String sql = query.sql();
         for (QueryStrategy queryStrategy : QueryStrategy.values()) {
-            if (queryStrategy.isValid(sql)) {
+            if (queryStrategy.isValid(sql, query.noArgs())) {
                 int paramNumber = queryStrategy.getParamNumber(sql);
                 if (paramNumber != executableElement.getParameters().size()) {
                     throw new ProcessorException("Mismatch between parameters and query parameters for method " + executableElement.getSimpleName());

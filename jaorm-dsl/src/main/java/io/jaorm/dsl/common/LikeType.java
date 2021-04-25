@@ -1,5 +1,7 @@
 package io.jaorm.dsl.common;
 
+import io.jaorm.custom.CustomFeatures;
+
 public enum LikeType {
     FULL(" CONCAT('%',?,'%')"),
     START(" CONCAT('%',?)"),
@@ -12,6 +14,9 @@ public enum LikeType {
     }
 
     public String getValue() {
+        if (CustomFeatures.LIKE_FEATURE.isEnabled()) {
+            return CustomFeatures.LIKE_FEATURE.getFeature().asSqlString(this.name());
+        }
         return value;
     }
 

@@ -8,7 +8,7 @@ import java.util.List;
 
 public interface ParametersStrategy {
 
-    boolean isValid(String query);
+    boolean isValid(String query, boolean noArgs);
     int getParamNumber(String query);
     List<CodeBlock> extract(ProcessingEnvironment procEnv, String query, ExecutableElement method);
     String replaceQuery(String query);
