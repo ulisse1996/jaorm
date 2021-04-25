@@ -11,6 +11,7 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -22,7 +23,7 @@ public enum QueryStrategy implements ParametersStrategy {
 
     WILDCARD(null) {
         @Override
-        public boolean isValid(String query) {
+        public boolean isValid(String query, boolean noArgs) {
             return Pattern.compile("\\?\\B").matcher(query).find();
         }
 
@@ -54,7 +55,7 @@ public enum QueryStrategy implements ParametersStrategy {
     NAMED(":\\w*") {
 
         @Override
-        public boolean isValid(String query) {
+        public boolean isValid(String query, boolean noArgs) {
             return Pattern.compile(getRegex()).matcher(query).find();
         }
 
@@ -76,7 +77,7 @@ public enum QueryStrategy implements ParametersStrategy {
     ORDERED_WILDCARD("(\\?\\d*)") {
 
         @Override
-        public boolean isValid(String query) {
+        public boolean isValid(String query, boolean noArgs) {
             return Pattern.compile(getRegex()).matcher(query).find();
         }
 
@@ -115,7 +116,7 @@ public enum QueryStrategy implements ParametersStrategy {
     AT_NAMED("@\\w*") {
 
         @Override
-        public boolean isValid(String query) {
+        public boolean isValid(String query, boolean noArgs) {
             return Pattern.compile(getRegex()).matcher(query).find();
         }
 
@@ -132,6 +133,27 @@ public enum QueryStrategy implements ParametersStrategy {
         @Override
         public String replaceQuery(String query) {
             return Pattern.compile(getRegex()).matcher(query).replaceAll("?");
+        }
+    },
+    NO_ARGS("") {
+        @Override
+        public boolean isValid(String query, boolean noArgs) {
+            return noArgs; // Is always fallback
+        }
+
+        @Override
+        public int getParamNumber(String query) {
+            return 0;
+        }
+
+        @Override
+        public List<CodeBlock> extract(ProcessingEnvironment procEnv, String query, ExecutableElement method) {
+            return Collections.emptyList();
+        }
+
+        @Override
+        public String replaceQuery(String query) {
+            return query;
         }
     };
 

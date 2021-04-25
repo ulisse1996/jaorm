@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 class JaormLoggerConfigurationTest {
 
@@ -29,5 +30,27 @@ class JaormLoggerConfigurationTest {
         Assertions.assertEquals(JaormLogFilter.INSTANCE, configuration.getFilter());
         Assertions.assertEquals(1, configuration.getHandlers().size());
         Assertions.assertTrue(configuration.getHandlers().get(0) instanceof ConsoleHandler);
+    }
+
+    @Test
+    void should_reset_log_level() {
+        try {
+            JaormLogger logger = JaormLogger.getLogger(getClass());
+            Field field = SimpleJaormLogger.class.getDeclaredField("logger");
+            field.setAccessible(true);
+            Logger inLogger = (Logger) field.get(logger);
+
+            Assertions.assertNotEquals(Level.ALL, inLogger.getLevel());
+
+            JaormLoggerConfiguration.setCurrent(
+                    new JaormLoggerConfiguration.Builder()
+                            .setLevel(Level.ALL)
+                            .build()
+            );
+
+            Assertions.assertEquals(Level.ALL, inLogger.getLevel());
+        } catch (Exception ex) {
+            Assertions.fail(ex);
+        }
     }
 }

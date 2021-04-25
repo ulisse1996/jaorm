@@ -225,8 +225,8 @@ public class EntityGenerator extends Generator {
                     SqlParameter.class, entity.getSimpleName(), column.sourceColumn(), SqlAccessor.class, targetColumn.asType());
         } else {
             String defaultValue = column.defaultValue();
-            builder.addStatement("params.add(new $T($T.$L.toValue($S), $T.find($T.class).getSetter()))",
-                    SqlParameter.class, ParameterConverter.class, column.converter(), defaultValue, SqlAccessor.class, targetColumn.asType());
+            builder.addStatement("params.add(new $T($T.$L.toValue($S), $T.find($T.$L.getKlass()).getSetter()))",
+                    SqlParameter.class, ParameterConverter.class, column.converter(), defaultValue, SqlAccessor.class, ParameterConverter.class, column.converter());
         }
     }
 

@@ -178,13 +178,13 @@ public class QueryGenerator extends Generator {
                 .addStatement("$T params = new $T<>()",
                         ParameterizedTypeName.get(List.class, SqlParameter.class), ArrayList.class);
         for (QueryStrategy queryStrategy : QueryStrategy.values()) {
-            if (queryStrategy.isValid(sql)) {
+            if (queryStrategy.isValid(sql, query.noArgs())) {
                 List<CodeBlock> statements = queryStrategy.extract(this.processingEnvironment, sql, executableElement);
                 statements.forEach(builder::addCode);
                 sql = queryStrategy.replaceQuery(sql);
                 Map.Entry<String, Object[]> checked = checkType(entities, sql, executableElement);
                 builder.addStatement(checked.getKey(), checked.getValue());
-                break;
+                return builder.build();
             }
         }
 

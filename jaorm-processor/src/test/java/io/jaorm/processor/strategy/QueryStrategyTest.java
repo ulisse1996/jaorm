@@ -27,7 +27,7 @@ class QueryStrategyTest {
         ExecutableElement method = mockedMethod(2, "n", "y");
         String expectedQuery = "SELECT * FROM TABLE WHERE X = ? AND Y = ?";
         int expectedParams = 2;
-        boolean valid = strategy.isValid(query);
+        boolean valid = strategy.isValid(query, false);
         int paramNumber = strategy.getParamNumber(query);
         String actual = strategy.replaceQuery(query);
         Assertions.assertDoesNotThrow(() -> strategy.extract(Mockito.mock(ProcessingEnvironment.class), query, method));
@@ -43,7 +43,7 @@ class QueryStrategyTest {
         ExecutableElement method = mockedMethod(2, "X","Y");
         String expectedQuery = "SELECT * FROM TABLE WHERE X = ? AND Y = ? AND Z = ?";
         int expectedParams = 2;
-        boolean valid = strategy.isValid(query);
+        boolean valid = strategy.isValid(query, false);
         int paramNumber = strategy.getParamNumber(query);
         String actual = strategy.replaceQuery(query);
         int words = strategy.extract(Mockito.mock(ProcessingEnvironment.class), query, method).size();
@@ -60,7 +60,7 @@ class QueryStrategyTest {
         ExecutableElement method = mockedMethod(3,"X","Y", "Z");
         String expectedQuery = "SELECT * FROM TABLE WHERE XA = ? AND AM = ? AND ZA = ?";
         int expectedParams = 3;
-        boolean valid = strategy.isValid(query);
+        boolean valid = strategy.isValid(query, false);
         int paramNumber = strategy.getParamNumber(query);
         String actual = strategy.replaceQuery(query);
         Assertions.assertDoesNotThrow(() -> strategy.extract(Mockito.mock(ProcessingEnvironment.class), query, method));
@@ -76,7 +76,7 @@ class QueryStrategyTest {
         ExecutableElement method = mockedMethod(2, "X","Y");
         String expectedQuery = "SELECT * FROM TABLE WHERE X = ? AND Y = ? AND Z = ?";
         int expectedParams = 2;
-        boolean valid = strategy.isValid(query);
+        boolean valid = strategy.isValid(query, false);
         int paramNumber = strategy.getParamNumber(query);
         String actual = strategy.replaceQuery(query);
         int words = strategy.extract(Mockito.mock(ProcessingEnvironment.class), query, method).size();
@@ -87,10 +87,26 @@ class QueryStrategyTest {
     }
 
     @Test
+    void should_validate_query_with_no_args() {
+        QueryStrategy strategy = QueryStrategy.NO_ARGS;
+        String query = "SELECT * FROM TABLE";
+        int expectedParams = 0;
+        boolean valid = strategy.isValid(query, true);
+        ExecutableElement method = mockedMethod(0);
+        int paramNumber = strategy.getParamNumber(query);
+        String actual = strategy.replaceQuery(query);
+        int words = strategy.extract(Mockito.mock(ProcessingEnvironment.class), query, method).size();
+        Assertions.assertTrue(valid);
+        Assertions.assertEquals(expectedParams, paramNumber);
+        Assertions.assertEquals(query, actual);
+        Assertions.assertEquals(0, words);
+    }
+
+    @Test
     void should_not_find_parameter_with_name() {
         QueryStrategy strategy = QueryStrategy.AT_NAMED;
         String query = "SELECT * FROM TABLE WHERE X = @X AND Y = @Y AND Z = @Y";
-        boolean valid = strategy.isValid(query);
+        boolean valid = strategy.isValid(query, false);
         ExecutableElement method = mockedMethod(2, "X","Z");
         Assertions.assertTrue(valid);
         Assertions.assertThrows(ProcessorException.class, () -> strategy.extract(Mockito.mock(ProcessingEnvironment.class), query, method));
