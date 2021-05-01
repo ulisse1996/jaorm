@@ -11,16 +11,16 @@ public class ConsoleHandler extends Handler {
     private static final String FORMAT = "[{0}] {1} {2} - {3}";
 
     @Override
-    public void publish(LogRecord record) {
-        Level level = record.getLevel();
-        long millis = record.getMillis();
-        String loggerName = record.getLoggerName();
+    public void publish(LogRecord logRecord) {
+        Level level = logRecord.getLevel();
+        long millis = logRecord.getMillis();
+        String loggerName = logRecord.getLoggerName();
         if (Level.SEVERE.equals(level)) {
             System.err.println( // NOSONAR
-                    MessageFormat.format(FORMAT, level, new Date(millis), loggerName, record.getMessage()));
+                    MessageFormat.format(FORMAT, level, new Date(millis), loggerName, logRecord.getMessage()));
         } else {
             System.out.println( // NOSONAR
-                    MessageFormat.format(FORMAT, level, new Date(millis), loggerName, record.getMessage()));
+                    MessageFormat.format(FORMAT, level, new Date(millis), loggerName, logRecord.getMessage()));
         }
     }
 
