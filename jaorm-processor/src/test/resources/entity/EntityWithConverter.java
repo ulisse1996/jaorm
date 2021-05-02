@@ -1,8 +1,10 @@
 package io.test;
 
-import io.jaorm.annotation.*;
-import io.jaorm.entity.converter.BooleanIntConverter;
-import io.jaorm.entity.converter.ParameterConverter;
+import io.github.ulisse1996.annotation.Column;
+import io.github.ulisse1996.annotation.Converter;
+import io.github.ulisse1996.annotation.Id;
+import io.github.ulisse1996.annotation.Table;
+import io.github.ulisse1996.entity.converter.BooleanIntConverter;
 
 @Table(name = "TABLE")
 public class EntityWithConverter {

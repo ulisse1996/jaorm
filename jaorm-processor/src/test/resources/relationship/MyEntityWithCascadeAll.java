@@ -1,6 +1,6 @@
 package io.test;
 
-import io.jaorm.annotation.*;
+import io.github.ulisse1996.annotation.*;
 
 @Table(name = "TABLE")
 public class MyEntityWithCascadeAll {
