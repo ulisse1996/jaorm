@@ -1,10 +1,10 @@
 package io.test;
 
-import io.jaorm.annotation.Column;
-import io.jaorm.annotation.Id;
-import io.jaorm.annotation.Relationship;
-import io.jaorm.annotation.Table;
-import io.jaorm.entity.converter.ParameterConverter;
+import io.github.ulisse1996.annotation.Column;
+import io.github.ulisse1996.annotation.Id;
+import io.github.ulisse1996.annotation.Relationship;
+import io.github.ulisse1996.annotation.Table;
+import io.github.ulisse1996.entity.converter.ParameterConverter;
 
 @Table(name = "TABLE")
 public class EntityWithRelationship {

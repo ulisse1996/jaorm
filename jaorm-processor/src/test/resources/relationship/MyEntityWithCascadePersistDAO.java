@@ -1,7 +1,7 @@
 package io.test;
 
-import io.jaorm.BaseDao;
-import io.jaorm.annotation.Dao;
+import io.github.ulisse1996.BaseDao;
+import io.github.ulisse1996.annotation.Dao;
 
 @Dao
 public interface MyEntityWithCascadePersistDAO extends BaseDao<MyEntityWithCascadePersist> {}

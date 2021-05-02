@@ -1,8 +1,7 @@
 package io.test;
 
-import io.jaorm.BaseDao;
-import io.jaorm.annotation.Query;
-import io.jaorm.mapping.TableRow;
+import io.github.ulisse1996.annotation.Query;
+import io.github.ulisse1996.mapping.TableRow;
 import io.test.SimpleEntity;
 
 import java.util.stream.Stream;

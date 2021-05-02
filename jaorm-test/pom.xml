@@ -4,12 +4,13 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>jaorm-pom</artifactId>
-        <groupId>io.jaorm</groupId>
+        <groupId>io.github.ulisse1996</groupId>
         <version>0.8.1</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>jaorm-test</artifactId>
+    <name>JAORM (Integration Tests)</name>
 
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
@@ -28,32 +29,32 @@
 
     <dependencies>
         <dependency>
-            <groupId>io.jaorm</groupId>
+            <groupId>io.github.ulisse1996</groupId>
             <artifactId>jaorm</artifactId>
             <version>${jaorm.version}</version>
         </dependency>
         <dependency>
-            <groupId>io.jaorm</groupId>
+            <groupId>io.github.ulisse1996</groupId>
             <artifactId>jaorm-core</artifactId>
             <version>${jaorm.version}</version>
         </dependency>
         <dependency>
-            <groupId>io.jaorm</groupId>
+            <groupId>io.github.ulisse1996</groupId>
             <artifactId>jaorm-processor</artifactId>
             <version>${jaorm.version}</version>
         </dependency>
         <dependency>
-            <groupId>io.jaorm</groupId>
+            <groupId>io.github.ulisse1996</groupId>
             <artifactId>jaorm-dsl</artifactId>
             <version>${jaorm.version}</version>
         </dependency>
         <dependency>
-            <groupId>io.jaorm</groupId>
+            <groupId>io.github.ulisse1996</groupId>
             <artifactId>jaorm-cache</artifactId>
             <version>${jaorm.version}</version>
         </dependency>
         <dependency>
-            <groupId>io.jaorm</groupId>
+            <groupId>io.github.ulisse1996</groupId>
             <artifactId>jaorm-transaction</artifactId>
             <version>${jaorm.version}</version>
         </dependency>
