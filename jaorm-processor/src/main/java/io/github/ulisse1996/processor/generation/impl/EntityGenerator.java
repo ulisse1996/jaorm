@@ -5,7 +5,6 @@ import io.github.ulisse1996.annotation.*;
 import io.github.ulisse1996.processor.generation.Generator;
 import io.github.ulisse1996.spi.DelegatesService;
 import io.github.ulisse1996.spi.QueryRunner;
-import io.github.ulisse1996.annotation.*;
 import io.github.ulisse1996.entity.ColumnGetter;
 import io.github.ulisse1996.entity.ColumnSetter;
 import io.github.ulisse1996.entity.EntityDelegate;
@@ -484,7 +483,7 @@ public class EntityGenerator extends Generator {
 
     private CodeBlock buildKeysWhereCodeBlock() {
         String where = " WHERE ";
-        String var = " = ? ";
+        String wildcard = " = ? ";
         String and = " AND ";
         return CodeBlock.builder()
                 .beginControlFlow("if (KEYS_WHERE == null)")
@@ -494,10 +493,10 @@ public class EntityGenerator extends Generator {
                 .addStatement(BUILDER_INSTANCE, StringBuilder.class, StringBuilder.class)
                 .beginControlFlow("for (String key : keys)")
                 .beginControlFlow("if (first)")
-                .addStatement("builder.append($S).append(key).append($S)", where, var)
+                .addStatement("builder.append($S).append(key).append($S)", where, wildcard)
                 .addStatement("first = false")
                 .nextControlFlow("else")
-                .addStatement("builder.append($S).append(key).append($S)", and, var)
+                .addStatement("builder.append($S).append(key).append($S)", and, wildcard)
                 .endControlFlow()
                 .endControlFlow()
                 .addStatement("KEYS_WHERE = builder.toString()")
