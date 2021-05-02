@@ -1,22 +1,85 @@
 package io.jaorm.logger;
 
+import io.jaorm.SqlUtil;
 import io.jaorm.spi.common.Singleton;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.*;
-import java.util.logging.*;
+import java.util.logging.Filter;
+import java.util.logging.Handler;
+import java.util.logging.Level;
 
 public class JaormLoggerConfiguration {
 
     private static final Singleton<JaormLoggerConfiguration> INSTANCE = Singleton.instance();
+    private static final Properties DEFAULT_PROPS = new UnmodifiableProperties(new Properties());
+    private static final String LEVEL_PROP = "jaorm.logger.level";
+    private static final String HANDLERS_PROP = "jaorm.logger.handlers";
+    private static final String FILTER_PROP = "jaorm.logger.filter";
 
     private final Level level;
     private final List<Handler> handlers;
     private final Filter filter;
 
-    public JaormLoggerConfiguration(Builder builder) {
-        this.level = Optional.ofNullable(builder.level).orElse(Level.INFO);
-        this.handlers = builder.handlers;
-        this.filter = Optional.ofNullable(builder.filter).orElse(JaormLogFilter.INSTANCE);
+    private JaormLoggerConfiguration(Properties properties) {
+        this.level = Optional.ofNullable(asLevel(properties.getProperty(LEVEL_PROP))).orElse(Level.OFF);
+        this.handlers = buildHandlers(properties.getProperty(HANDLERS_PROP));
+        this.filter = Optional.ofNullable(buildFilter(properties.getProperty(FILTER_PROP))).orElse(JaormLogFilter.INSTANCE);
+    }
+
+    private Filter buildFilter(String property) {
+        if (property == null || property.trim().isEmpty()) {
+            return null;
+        }
+
+        try {
+            Class<?> klass = Class.forName(property);
+            return (Filter) klass.getConstructor().newInstance();
+        } catch (Exception ex) {
+            throw new IllegalArgumentException("Log Filter Error", ex);
+        }
+    }
+
+    private List<Handler> buildHandlers(String property) {
+        if (property == null || property.trim().isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        String[] parts = property.split(";");
+        List<Handler> handlerList = new ArrayList<>();
+        try {
+            for (String part : parts) {
+                Class<?> klass = Class.forName(part);
+                handlerList.add((Handler) klass.getConstructor().newInstance());
+            }
+        } catch (Exception ex) {
+            throw new IllegalArgumentException("Log Handler Error", ex);
+        }
+
+        return Collections.unmodifiableList(handlerList);
+    }
+
+    private Level asLevel(String property) {
+        if (property == null || property.trim().isEmpty()) {
+            return null;
+        }
+
+        String val = property.toUpperCase();
+        switch (val) {
+            case "ERROR":
+                return Level.SEVERE;
+            case "WARNING":
+                return Level.WARNING;
+            case "INFO":
+                return Level.INFO;
+            case "DEBUG":
+                return Level.FINEST;
+            case "OFF":
+                return Level.OFF;
+            default:
+                throw new IllegalStateException("Unexpected value: " + val);
+        }
     }
 
     public Level getLevel() {
@@ -31,68 +94,36 @@ public class JaormLoggerConfiguration {
         return filter;
     }
 
-    public static Builder builder() {
-        return new Builder();
-    }
-
     public static synchronized JaormLoggerConfiguration getCurrent() {
         if (!INSTANCE.isPresent()) {
-            INSTANCE.set(defaultConfiguration());
+            load();
         }
 
         return INSTANCE.get();
     }
 
-    public static synchronized void setCurrent(JaormLoggerConfiguration loggerConfiguration) {
-        INSTANCE.set(Objects.requireNonNull(loggerConfiguration, "Configuration can't be null !"));
-
-        // Reset pre started logger
-        Enumeration<String> loggerNames = LogManager.getLogManager().getLoggerNames();
-        while (loggerNames.hasMoreElements()) {
-            String name = loggerNames.nextElement();
-            if (name.startsWith("io.jaorm")) {
-                Logger logger = Logger.getLogger(name);
-                logger.setLevel(loggerConfiguration.level); //NOSONAR
-                logger.setFilter(logger.getFilter());
-                for (Handler h : logger.getHandlers()) {
-                    logger.removeHandler(h);
-                }
-                loggerConfiguration.handlers.forEach(logger::addHandler);
+    static synchronized void load() {
+        InputStream is = getProperties();
+        try {
+            if (is == null) {
+                INSTANCE.set(defaultConfiguration());
+                return;
             }
+            Properties properties = new Properties();
+            properties.load(is);
+            INSTANCE.set(new JaormLoggerConfiguration(properties));
+        } catch (IOException ex) {
+            throw new IllegalArgumentException(ex);
+        } finally {
+            SqlUtil.silentClose(is);
         }
+    }
+
+    static InputStream getProperties() {
+        return JaormLoggerConfiguration.class.getResourceAsStream("/jaorm.properties");
     }
 
     private static JaormLoggerConfiguration defaultConfiguration() {
-        return JaormLoggerConfiguration.builder()
-                .setLevel(Level.FINE)
-                .setFilter(JaormLogFilter.INSTANCE)
-                .addHandler(new ConsoleHandler())
-                .build();
-    }
-
-    public static class Builder {
-
-        private Level level;
-        private final List<Handler> handlers = new ArrayList<>();
-        private Filter filter;
-
-        public Builder setLevel(Level level) {
-            this.level = level;
-            return this;
-        }
-
-        public Builder addHandler(Handler handler) {
-            this.handlers.add(handler);
-            return this;
-        }
-
-        public Builder setFilter(Filter filter) {
-            this.filter = filter;
-            return this;
-        }
-
-        public JaormLoggerConfiguration build() {
-            return new JaormLoggerConfiguration(this);
-        }
+        return new JaormLoggerConfiguration(DEFAULT_PROPS);
     }
 }

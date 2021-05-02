@@ -14,7 +14,7 @@ public class SqlJaormLogger extends SimpleJaormLogger {
 
     public void logSql(String sql, List<SqlParameter> sqlParameters) {
         String message = String.format("[SQL] [%s] ", sql);
-        if (this.logger.isLoggable(Level.FINE)) {
+        if (this.logger.isLoggable(Level.FINEST)) {
             super.debug(() -> message + toString(sqlParameters));
         } else {
             super.debug(message::toString);
