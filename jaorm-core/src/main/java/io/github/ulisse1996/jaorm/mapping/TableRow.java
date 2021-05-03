@@ -27,7 +27,9 @@ public class TableRow implements Closeable {
     }
 
     public <R> R mapRow(RowMapper<R> mapper) throws SQLException {
-        resultSetExecutor.getResultSet().next();
+        if (!delegated) {
+            resultSetExecutor.getResultSet().next();
+        }
         R val = mapper.map(resultSetExecutor.getResultSet());
         close();
         return val;
