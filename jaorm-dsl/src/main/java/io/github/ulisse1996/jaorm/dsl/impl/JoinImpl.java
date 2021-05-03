@@ -50,7 +50,7 @@ public class JoinImpl<T, R> implements Join<T>, On<T, R>, IntermediateJoin<T> {
     private void checkColumn(String column) {
         Objects.requireNonNull(column, COLUMN_CAN_T_BE_NULL);
         if (joinTableColumns.stream().map(String::trim).noneMatch(column::equals)) {
-            throw new IllegalArgumentException(String.format("Can't find column %s in columns %s", column, joinTableColumns.toString()));
+            throw new IllegalArgumentException(String.format("Can't find column %s in columns %s", column, joinTableColumns));
         }
     }
 

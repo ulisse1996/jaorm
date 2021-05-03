@@ -1,54 +1,43 @@
 package io.github.ulisse1996.jaorm.logger;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
+import io.github.ulisse1996.jaorm.ServiceFinder;
+
 import java.util.function.Supplier;
-import java.util.logging.Logger;
+import java.util.logging.Level;
 
 class SimpleJaormLogger implements JaormLogger {
 
-    protected final Logger logger;
+    protected final JaormLoggerHandler handler;
+    protected final Class<?> klass;
 
     public SimpleJaormLogger(Class<?> klass) {
-        this.logger = Logger.getLogger(klass.getName());
-        this.logger.setUseParentHandlers(false);
-        configureLogger();
-    }
-
-    private void configureLogger() {
-        JaormLoggerConfiguration configuration = JaormLoggerConfiguration.getCurrent();
-        this.logger.setLevel(configuration.getLevel());
-        if (configuration.getFilter() != null) {
-            this.logger.setFilter(configuration.getFilter());
+        this.klass = klass;
+        JaormLoggerHandler foundHandler;
+        try {
+            foundHandler = ServiceFinder.loadService(JaormLoggerHandler.class);
+        } catch (Exception ex) {
+            foundHandler = JaormLoggerHandler.NoOp.INSTANCE;
         }
-        configuration.getHandlers()
-                .forEach(this.logger::addHandler);
+        this.handler = foundHandler;
     }
 
     @Override
     public void warn(Supplier<String> message) {
-        this.logger.warning(message);
+        handler.handleLog(this.klass, message, Level.WARNING);
     }
 
     @Override
     public void info(Supplier<String> message) {
-        this.logger.info(message);
+        handler.handleLog(this.klass, message, Level.INFO);
     }
 
     @Override
     public void debug(Supplier<String> message) {
-        this.logger.fine(message);
+        handler.handleLog(this.klass, message, Level.FINE);
     }
 
     @Override
     public void error(Supplier<String> message, Throwable throwable) {
-        this.logger.severe(message);
-        try (StringWriter writer = new StringWriter();
-             PrintWriter printWriter = new PrintWriter(writer)) {
-            throwable.printStackTrace(printWriter);
-            this.logger.severe(writer::toString);
-        } catch (Exception ignored) {
-            // Ignored
-        }
+        handler.handleError(this.klass, message);
     }
 }
