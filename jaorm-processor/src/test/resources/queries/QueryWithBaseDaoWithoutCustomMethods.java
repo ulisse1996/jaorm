@@ -1,7 +1,7 @@
 package io.test;
 
-import io.github.ulisse1996.BaseDao;
-import io.github.ulisse1996.annotation.Dao;
+import io.github.ulisse1996.jaorm.BaseDao;
+import io.github.ulisse1996.jaorm.annotation.Dao;
 import io.test.SimpleEntity;
 
 @Dao

@@ -1,9 +1,9 @@
 package io.test;
 
-import io.github.ulisse1996.annotation.Cacheable;
-import io.github.ulisse1996.annotation.Column;
-import io.github.ulisse1996.annotation.Id;
-import io.github.ulisse1996.annotation.Table;
+import io.github.ulisse1996.jaorm.annotation.Cacheable;
+import io.github.ulisse1996.jaorm.annotation.Column;
+import io.github.ulisse1996.jaorm.annotation.Id;
+import io.github.ulisse1996.jaorm.annotation.Table;
 
 @Cacheable
 @Table(name = "TABLE")

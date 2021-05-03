@@ -1,7 +1,7 @@
 package io.test;
 
-import io.github.ulisse1996.BaseDao;
-import io.github.ulisse1996.annotation.Query;
+import io.github.ulisse1996.jaorm.BaseDao;
+import io.github.ulisse1996.jaorm.annotation.Query;
 
 public interface QueryWithBaseDao extends BaseDao<io.test.SimpleEntity> {
 

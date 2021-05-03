@@ -1,6 +1,6 @@
 package io.test;
 
-import io.github.ulisse1996.annotation.Query;
+import io.github.ulisse1996.jaorm.annotation.Query;
 
 import java.util.Optional;
 

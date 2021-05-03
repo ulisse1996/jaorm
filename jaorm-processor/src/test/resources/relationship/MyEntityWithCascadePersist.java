@@ -1,6 +1,6 @@
 package io.test;
 
-import io.github.ulisse1996.annotation.*;
+import io.github.ulisse1996.jaorm.annotation.*;
 
 @Table(name = "TABLE")
 public class MyEntityWithCascadePersist {
