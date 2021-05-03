@@ -34,7 +34,7 @@ class SimpleJaormLoggerTest {
             public void handleLog(Class<?> klass, Supplier<String> message, Level level) {}
 
             @Override
-            public void handleError(Class<?> klass, Supplier<String> message) {}
+            public void handleError(Class<?> klass, Supplier<String> message, Throwable ex) {}
 
             @Override
             public void handleSqlLog(Class<?> klass, String sql, List<SqlParameter> sqlParameters) {}

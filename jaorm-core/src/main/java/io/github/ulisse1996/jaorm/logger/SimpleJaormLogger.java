@@ -38,6 +38,6 @@ class SimpleJaormLogger implements JaormLogger {
 
     @Override
     public void error(Supplier<String> message, Throwable throwable) {
-        handler.handleError(this.klass, message);
+        handler.handleError(this.klass, message, throwable);
     }
 }
