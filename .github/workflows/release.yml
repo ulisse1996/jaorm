@@ -19,7 +19,7 @@ jobs:
           server-password: MAVEN_PASSWORD
           gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }}
           gpg-passphrase: MAVEN_GPG_PASSPHRASE
-      - name: Deploy with Maven
+      - name: Release
         run: mvn -B clean deploy -Poss
         env:
           MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
