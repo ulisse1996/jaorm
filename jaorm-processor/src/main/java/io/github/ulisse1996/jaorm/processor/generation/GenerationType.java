@@ -5,5 +5,6 @@ public enum GenerationType {
     ENTITY,
     RELATIONSHIP,
     DSL,
-    CACHE
+    CACHE,
+    CONVERTER
 }

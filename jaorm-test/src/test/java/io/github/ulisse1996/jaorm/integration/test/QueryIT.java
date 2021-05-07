@@ -1,6 +1,5 @@
 package io.github.ulisse1996.jaorm.integration.test;
 
-import io.github.ulisse1996.jaorm.custom.SqlAccessorFeature;
 import io.github.ulisse1996.jaorm.entity.EntityComparator;
 import io.github.ulisse1996.jaorm.entity.EntityDelegate;
 import io.github.ulisse1996.jaorm.entity.sql.SqlAccessor;
@@ -179,7 +178,7 @@ class QueryIT extends AbstractIT {
 
     @ParameterizedTest
     @MethodSource("getSqlTests")
-    void should_use_custom_sql_accessor_feature(HSQLDBProvider.DatabaseType type, String initSql) {
+    void should_use_custom_sql_accessor(HSQLDBProvider.DatabaseType type, String initSql) {
         setDataSource(type, initSql);
 
         CustomAccessorDAO dao = QueriesService.getInstance().getQuery(CustomAccessorDAO.class);
@@ -187,22 +186,6 @@ class QueryIT extends AbstractIT {
             dao.select(CustomAccessor.MyEnumCustom.VAL);
         } catch (Exception ex) {
             Assertions.fail("Should not throw exception", ex);
-        }
-    }
-
-    public static class MyFeature implements SqlAccessorFeature {
-
-        @Override
-        public <R> SqlAccessor findCustom(Class<R> klass) {
-            if (CustomAccessor.MyEnumCustom.class.equals(klass)) {
-                return new SqlAccessor(
-                        CustomAccessor.MyEnumCustom.class,
-                        (rs, colName) -> CustomAccessor.MyEnumCustom.valueOf(rs.getString(colName)),
-                        (pr, index, value) -> pr.setString(index, ((CustomAccessor.MyEnumCustom) value).name())
-                ) {};
-            }
-
-            return null;
         }
     }
 

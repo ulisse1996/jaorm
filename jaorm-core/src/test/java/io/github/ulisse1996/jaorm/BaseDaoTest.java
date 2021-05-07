@@ -294,6 +294,7 @@ class BaseDaoTest {
         }
     }
 
+    @SuppressWarnings("unused")
     public static Stream<org.junit.jupiter.params.provider.Arguments> getNPEExecutables() {
         final MyDao thisDao = new MyDao();
         return Stream.of(
