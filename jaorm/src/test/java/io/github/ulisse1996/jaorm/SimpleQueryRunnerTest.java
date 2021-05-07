@@ -1,23 +1,23 @@
 package io.github.ulisse1996.jaorm;
 
+import io.github.ulisse1996.jaorm.entity.converter.ConverterPair;
 import io.github.ulisse1996.jaorm.entity.sql.DataSourceProvider;
 import io.github.ulisse1996.jaorm.entity.sql.SqlParameter;
 import io.github.ulisse1996.jaorm.exception.JaormSqlException;
 import io.github.ulisse1996.jaorm.mapping.TableRow;
+import io.github.ulisse1996.jaorm.spi.ConverterService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import javax.sql.DataSource;
 import java.sql.*;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @ExtendWith(MockitoExtension.class)

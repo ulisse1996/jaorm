@@ -291,20 +291,6 @@ public interface MyDao extends BaseDao<User> {}
 public class MyDaoImpl implements MyDao {} // @RequestScoped is propagated
 ```
 
-### **1.3** Custom Feature
-
-Jaorm Core Module also provide custom feature like :
-
-- Custom Sql Accessor
-- Custom Like Clause for DSL
-
-### **1.3.1** Custom Sql Accessor
-
-User can also define an SPI **SqlAccessorFeature** for Getter and Setter that doesn't match default **SqlAccessor**.
-
-A user defined SqlAccessorFeature can be useful for custom defined **Query** with Enum arguments or for **Entity** column
-that require a Converter.
-
 ### **2.0** Cache
 
 Cache module implements a key based cache for **@Cacheable** annotated entities.
@@ -403,12 +389,6 @@ DSL produce :
 - A **java.util.Optional\<T>**, for an optional result, using **readOpt** method
 - A **java.util.List\<T>**, for a list of result, using **readAll** method
 - An Entity instance , for a single result, using **read** method
-
-
-#### **3.1** Like Feature
-
-User can define an SPI **LikeFeature** for RDBMS that not follow **CONCAT(...args)** function specification (es. Oracle)
-for like support of DSL Module
 
 ### **4.0** Transaction
 

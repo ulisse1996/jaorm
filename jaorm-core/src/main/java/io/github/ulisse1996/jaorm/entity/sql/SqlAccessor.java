@@ -1,6 +1,6 @@
 package io.github.ulisse1996.jaorm.entity.sql;
 
-import io.github.ulisse1996.jaorm.custom.CustomFeatures;
+import io.github.ulisse1996.jaorm.spi.ConverterService;
 
 import java.io.InputStream;
 import java.math.BigDecimal;
@@ -86,11 +86,9 @@ public abstract class SqlAccessor {
         }
 
         // We can't find sql accessor , try with custom feature
-        if (CustomFeatures.SQL_ACCESSOR.isEnabled()) {
-            SqlAccessor accessor = CustomFeatures.SQL_ACCESSOR.getFeature().findCustom(klass);
-            if (accessor != null) {
-                return accessor;
-            }
+        SqlAccessor customAccessor = ConverterService.getInstance().findConverter(klass);
+        if (customAccessor != null) {
+            return customAccessor;
         }
 
         throw new IllegalArgumentException("Can't find accessor for type " + klass);

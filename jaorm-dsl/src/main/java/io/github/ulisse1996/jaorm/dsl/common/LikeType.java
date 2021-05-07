@@ -1,12 +1,16 @@
 package io.github.ulisse1996.jaorm.dsl.common;
 
-import io.github.ulisse1996.jaorm.custom.CustomFeatures;
+import io.github.ulisse1996.jaorm.logger.JaormLogger;
+import io.github.ulisse1996.jaorm.vendor.VendorSpecific;
+import io.github.ulisse1996.jaorm.vendor.specific.LikeSpecific;
 
 public enum LikeType {
+
     FULL(" CONCAT('%',?,'%')"),
     START(" CONCAT('%',?)"),
     END(" CONCAT(?,'%')");
 
+    private static final JaormLogger logger = JaormLogger.getLogger(LikeType.class);
     private final String value;
 
     LikeType(String value) {
@@ -14,9 +18,13 @@ public enum LikeType {
     }
 
     public String getValue() {
-        if (CustomFeatures.LIKE_FEATURE.isEnabled()) {
-            return CustomFeatures.LIKE_FEATURE.getFeature().asSqlString(this.name());
+        try {
+            return VendorSpecific.getSpecific(LikeSpecific.class)
+                    .convertToLikeSupport(LikeSpecific.LikeType.valueOf(name()));
+        } catch (Exception ex) {
+            logger.info("Can't find specific for like type , please contact author"::toString);
         }
+
         return value;
     }
 

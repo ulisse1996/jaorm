@@ -26,6 +26,8 @@ public abstract class Generator {
                 return new DslColumnsGenerator(processingEnvironment);
             case CACHE:
                 return new CacheGenerator(processingEnvironment);
+            case CONVERTER:
+                return new ConverterGenerator(processingEnvironment);
             default:
                 throw new IllegalArgumentException("Can't find validator");
         }
