@@ -1,17 +1,15 @@
 package io.github.ulisse1996.jaorm;
 
-import io.github.ulisse1996.jaorm.entity.converter.ConverterPair;
+import io.github.ulisse1996.jaorm.entity.Result;
 import io.github.ulisse1996.jaorm.entity.sql.DataSourceProvider;
 import io.github.ulisse1996.jaorm.entity.sql.SqlParameter;
 import io.github.ulisse1996.jaorm.exception.JaormSqlException;
 import io.github.ulisse1996.jaorm.mapping.TableRow;
-import io.github.ulisse1996.jaorm.spi.ConverterService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -358,7 +356,7 @@ class SimpleQueryRunnerTest {
             Mockito.when(preparedStatement.executeQuery())
                     .thenReturn(resultSet);
 
-            Optional<String> result = testSubject.readOpt(String.class, "", Collections.emptyList());
+            Result<String> result = testSubject.readOpt(String.class, "", Collections.emptyList());
             Assertions.assertFalse(result.isPresent());
         } catch (SQLException | JaormSqlException ex) {
             Assertions.fail(ex);
@@ -385,7 +383,7 @@ class SimpleQueryRunnerTest {
             Mockito.when(metaData.getColumnName(1))
                     .thenReturn("COL");
 
-            Optional<String> result = testSubject.readOpt(String.class, "", Collections.emptyList());
+            Result<String> result = testSubject.readOpt(String.class, "", Collections.emptyList());
             Assertions.assertTrue(result.isPresent());
             Assertions.assertEquals(expected, result.get());
         } catch (SQLException | JaormSqlException ex) {

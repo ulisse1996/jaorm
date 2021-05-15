@@ -1,13 +1,13 @@
 package io.github.ulisse1996.jaorm.entity.relationship;
 
 import io.github.ulisse1996.jaorm.BaseDao;
+import io.github.ulisse1996.jaorm.entity.Result;
 import io.github.ulisse1996.jaorm.spi.DelegatesService;
 import io.github.ulisse1996.jaorm.spi.QueriesService;
 import io.github.ulisse1996.jaorm.spi.QueryRunner;
 import io.github.ulisse1996.jaorm.spi.RelationshipService;
 
 import java.util.Objects;
-import java.util.Optional;
 
 public class PersistEvent implements EntityEvent {
 
@@ -32,7 +32,7 @@ public class PersistEvent implements EntityEvent {
                     baseDao.insert(i);
                 });
             } else if (node.isOpt()) {
-                Optional<Object> optional = node.getAsOpt(insert);
+                Result<Object> optional = node.getAsOpt(insert);
                 if (optional.isPresent()) {
                     Object i = optional.get();
                     BaseDao<Object> baseDao = QueriesService.getInstance().getBaseDao((Class<Object>) i.getClass());

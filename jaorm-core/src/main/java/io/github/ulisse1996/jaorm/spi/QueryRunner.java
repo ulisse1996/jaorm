@@ -3,6 +3,7 @@ package io.github.ulisse1996.jaorm.spi;
 import io.github.ulisse1996.jaorm.ServiceFinder;
 import io.github.ulisse1996.jaorm.ResultSetExecutor;
 import io.github.ulisse1996.jaorm.UpdateExecutor;
+import io.github.ulisse1996.jaorm.entity.Result;
 import io.github.ulisse1996.jaorm.entity.sql.DataSourceProvider;
 import io.github.ulisse1996.jaorm.entity.sql.SqlAccessor;
 import io.github.ulisse1996.jaorm.entity.sql.SqlParameter;
@@ -111,7 +112,7 @@ public abstract class QueryRunner {
     public abstract boolean isSimple();
 
     public abstract <R> R read(Class<R> klass, String query, List<SqlParameter> params);
-    public abstract <R> Optional<R> readOpt(Class<R> klass, String query, List<SqlParameter> params);
+    public abstract <R> Result<R> readOpt(Class<R> klass, String query, List<SqlParameter> params);
     public abstract <R> List<R> readAll(Class<R> klass, String query, List<SqlParameter> params);
     public abstract <R> Stream<R> readStream(Class<R> klass, String query, List<SqlParameter> params);
 

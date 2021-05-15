@@ -2,7 +2,6 @@ package io.github.ulisse1996.jaorm.integration.test;
 
 import io.github.ulisse1996.jaorm.entity.EntityComparator;
 import io.github.ulisse1996.jaorm.entity.EntityDelegate;
-import io.github.ulisse1996.jaorm.entity.sql.SqlAccessor;
 import io.github.ulisse1996.jaorm.integration.test.entity.*;
 import io.github.ulisse1996.jaorm.integration.test.query.*;
 import io.github.ulisse1996.jaorm.spi.QueriesService;
@@ -187,6 +186,22 @@ class QueryIT extends AbstractIT {
         } catch (Exception ex) {
             Assertions.fail("Should not throw exception", ex);
         }
+    }
+
+    @ParameterizedTest
+    @MethodSource("getSqlTests")
+    void should_get_optional_entity(HSQLDBProvider.DatabaseType type, String initSql) {
+        setDataSource(type, initSql);
+
+        User user = new User();
+        user.setId(1);
+
+        UserDAO dao = QueriesService.getInstance().getQuery(UserDAO.class);
+        dao.insert(user);
+
+        user = dao.read(user);
+
+        Assertions.assertFalse(user.getUserSpecific().isPresent());
     }
 
     private User getUser(int i) {

@@ -1,5 +1,6 @@
 package io.github.ulisse1996.jaorm;
 
+import io.github.ulisse1996.jaorm.entity.Result;
 import io.github.ulisse1996.jaorm.entity.sql.SqlParameter;
 import io.github.ulisse1996.jaorm.mapping.TableRow;
 import io.github.ulisse1996.jaorm.spi.QueryRunner;
@@ -26,8 +27,8 @@ public class MockedRunner extends QueryRunner {
     }
 
     @Override
-    public <R> Optional<R> readOpt(Class<R> klass, String query, List<SqlParameter> params) {
-        return Optional.empty();
+    public <R> Result<R> readOpt(Class<R> klass, String query, List<SqlParameter> params) {
+        return Result.empty();
     }
 
     @Override

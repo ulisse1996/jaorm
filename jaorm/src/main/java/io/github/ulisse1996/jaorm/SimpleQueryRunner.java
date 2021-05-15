@@ -1,5 +1,6 @@
 package io.github.ulisse1996.jaorm;
 
+import io.github.ulisse1996.jaorm.entity.Result;
 import io.github.ulisse1996.jaorm.entity.sql.DataSourceProvider;
 import io.github.ulisse1996.jaorm.entity.sql.SqlAccessor;
 import io.github.ulisse1996.jaorm.entity.sql.SqlParameter;
@@ -51,14 +52,14 @@ public class SimpleQueryRunner extends QueryRunner {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <R> Optional<R> readOpt(Class<R> klass, String query, List<SqlParameter> params) {
+    public <R> Result<R> readOpt(Class<R> klass, String query, List<SqlParameter> params) {
         try (Connection connection = DataSourceProvider.getCurrent().getConnection();
              PreparedStatement pr = connection.prepareStatement(query);
              ResultSetExecutor rs = new ResultSetExecutor(pr, params)) {
             if (rs.getResultSet().next()) {
-                return Optional.of((R) SqlAccessor.find(klass).getGetter().get(rs.getResultSet(), rs.getResultSet().getMetaData().getColumnName(1)));
+                return Result.of((R) SqlAccessor.find(klass).getGetter().get(rs.getResultSet(), rs.getResultSet().getMetaData().getColumnName(1)));
             } else {
-                return Optional.empty();
+                return Result.empty();
             }
         } catch (SQLException ex) {
             throw new JaormSqlException(ex);

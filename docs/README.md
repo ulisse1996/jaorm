@@ -291,6 +291,12 @@ public interface MyDao extends BaseDao<User> {}
 public class MyDaoImpl implements MyDao {} // @RequestScoped is propagated
 ```
 
+#### **1.3** Logging
+
+A default NoOp Logger is created for each service that use **JaormLogger**.
+
+User can redirect and use logged information implementing a custom **JaormLoggerHandler**
+
 ### **2.0** Cache
 
 Cache module implements a key based cache for **@Cacheable** annotated entities.
@@ -389,6 +395,14 @@ DSL produce :
 - A **java.util.Optional\<T>**, for an optional result, using **readOpt** method
 - A **java.util.List\<T>**, for a list of result, using **readAll** method
 - An Entity instance , for a single result, using **read** method
+
+#### **3.1** Vendor Specific
+
+**VendorSpecific** use Driver information for modify unsupported SQL Syntax in DSL Module
+
+- **Like Support**
+  - **OracleSpecific** and **PostgreSpecific** convert default **CONCAT()** function in **Pipe Concatenation** 
+  for **Like** and **NotLike** Operation
 
 ### **4.0** Transaction
 

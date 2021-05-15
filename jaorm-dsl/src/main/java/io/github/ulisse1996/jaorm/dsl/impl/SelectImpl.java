@@ -121,7 +121,8 @@ public class SelectImpl implements Select {
         @Override
         public Optional<T> readOpt() {
             Pair<String, List<SqlParameter>> pair = buildSql();
-            return QueryRunner.getInstance(klass).readOpt(klass, pair.getKey(), pair.getValue());
+            return QueryRunner.getInstance(klass).readOpt(klass, pair.getKey(), pair.getValue())
+                    .toOptional();
         }
 
         @Override
