@@ -20,7 +20,7 @@ class ResultTest {
 
     @Test
     void should_throw_exception_for_get_without_value() {
-        Assertions.assertThrows(NoSuchElementException.class, () -> Result.of(null).get());
+        Assertions.assertThrows(NoSuchElementException.class, () -> Result.of(null).get()); //NOSONAR
     }
 
     @Test
