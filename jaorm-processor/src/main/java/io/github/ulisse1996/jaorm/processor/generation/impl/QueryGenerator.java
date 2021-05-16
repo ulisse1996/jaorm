@@ -140,7 +140,7 @@ public class QueryGenerator extends Generator {
                 .returns(ParameterizedTypeName.get(ClassName.get(Optional.class), className))
                 .addStatement(REQUIRED_NOT_NULL_STATEMENT, Objects.class, ENTITY_CAN_T_BE_NULL)
                 .addStatement("$T arguments = $T.getInstance().asWhere($L)", Arguments.class, DelegatesService.class, "arg0")
-                .addStatement("return $T.getCachedOpt($T.class, arguments, () -> $T.getInstance($T.class).readOpt($T.class, $T.getInstance().getSql($T.class), argumentsAsParameters(arguments.getValues())))",
+                .addStatement("return $T.getCachedOpt($T.class, arguments, () -> $T.getInstance($T.class).readOpt($T.class, $T.getInstance().getSql($T.class), argumentsAsParameters(arguments.getValues())).toOptional())",
                         Cacheable.class, className, QueryRunner.class, className, className, DelegatesService.class, className), realClass);
         MethodSpec readAll = resolveParameter(MethodSpec.overriding(ProcessorUtils.getMethod(processingEnvironment, "readAll", BaseDao.class))
                 .returns(ParameterizedTypeName.get(ClassName.get(List.class), className))
@@ -210,7 +210,7 @@ public class QueryGenerator extends Generator {
         };
         if (definition.isOptional()) {
             return new AbstractMap.SimpleImmutableEntry<>(
-                    "return $T.getInstance($T.class).readOpt($T.class, $S, params)",
+                    "return $T.getInstance($T.class).readOpt($T.class, $S, params).toOptional()",
                     stmParams
             );
         } else if (definition.isCollection()) {

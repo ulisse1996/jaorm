@@ -2,13 +2,13 @@ package io.github.ulisse1996.jaorm.entity.relationship;
 
 import io.github.ulisse1996.jaorm.entity.EntityDelegate;
 import io.github.ulisse1996.jaorm.entity.EntityMapper;
+import io.github.ulisse1996.jaorm.entity.Result;
 import org.junit.jupiter.params.provider.Arguments;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -16,8 +16,8 @@ public abstract class EventTest {
 
     protected static class Entity {
 
-        public Optional<RelEntity> getRelEntityOpt() {
-            return Optional.of(new RelEntity());
+        public Result<RelEntity> getRelEntityOpt() {
+            return Result.of(new RelEntity());
         }
 
         public List<RelEntity> getRelEntityColl() {

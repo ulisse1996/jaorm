@@ -6,6 +6,7 @@ import io.github.ulisse1996.jaorm.annotation.Column;
 import io.github.ulisse1996.jaorm.annotation.Converter;
 import io.github.ulisse1996.jaorm.annotation.Dao;
 import io.github.ulisse1996.jaorm.annotation.Query;
+import io.github.ulisse1996.jaorm.entity.Result;
 import io.github.ulisse1996.jaorm.entity.converter.ValueConverter;
 import io.github.ulisse1996.jaorm.processor.exception.ProcessorException;
 
@@ -30,7 +31,8 @@ public class ProcessorUtils {
     private static final Map<Class<?>, Class<?>> WRAPPER_TYPE_MAP;
     private static final List<String> SUPPORTED_RELATIONSHIP_TYPES = Arrays.asList(
             java.util.List.class.getName(),
-            java.util.Optional.class.getName()
+            java.util.Optional.class.getName(),
+            Result.class.getName()
     );
     private static final String STARTING_GENERIC = "<";
     private static final String ENDING_GENERING = ">";

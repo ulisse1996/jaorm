@@ -1,5 +1,6 @@
 package io.github.ulisse1996.jaorm.processor.util;
 
+import io.github.ulisse1996.jaorm.entity.Result;
 import io.github.ulisse1996.jaorm.mapping.TableRow;
 
 import javax.annotation.processing.ProcessingEnvironment;
@@ -11,6 +12,7 @@ public class ReturnTypeDefinition {
 
     private static final String[] SUPPORTED = new String[] {
             java.util.List.class.getName(),
+            Result.class.getName(),
             java.util.Optional.class.getName(),
             java.util.stream.Stream.class.getName(),
             TableRow.class.getName()
@@ -49,7 +51,7 @@ public class ReturnTypeDefinition {
     }
 
     private void checkType(ProcessingEnvironment processingEnvironment, String typeName, String regex) {
-        if (regex.contains("Optional")) {
+        if (regex.contains("Result") || regex.contains("Optional")) {
             this.optional = true;
             this.realClass = asElement(processingEnvironment, regex, typeName);
         } else if (regex.contains("List")) {
@@ -58,7 +60,7 @@ public class ReturnTypeDefinition {
         } else if (regex.contains("Stream")) {
             this.realClass = asElement(processingEnvironment, regex, typeName);
             this.stream = true;
-            if (realClass.asType().toString().contains(SUPPORTED[3])) {
+            if (realClass.asType().toString().contains(SUPPORTED[4])) {
                 this.streamTableRow = true;
             }
         } else {

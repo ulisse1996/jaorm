@@ -3,6 +3,7 @@ package io.github.ulisse1996.jaorm.dsl;
 import io.github.ulisse1996.jaorm.dsl.common.LikeType;
 import io.github.ulisse1996.jaorm.dsl.common.OrderType;
 import io.github.ulisse1996.jaorm.entity.EntityDelegate;
+import io.github.ulisse1996.jaorm.entity.Result;
 import io.github.ulisse1996.jaorm.entity.SqlColumn;
 import io.github.ulisse1996.jaorm.spi.DelegatesService;
 import io.github.ulisse1996.jaorm.spi.QueryRunner;
@@ -124,7 +125,7 @@ class JaormTest {
                     .thenReturn(new String[] {"COL1"});
 
             Mockito.when(runner.readOpt(Mockito.any(), Mockito.any(), Mockito.any()))
-                    .thenReturn(Optional.of(expected));
+                    .thenReturn(Result.of(expected));
 
             Optional<Object> result = Jaorm.select(Object.class)
                     .where(SqlColumn.instance("COL1", Integer.class)).eq(2)
@@ -300,6 +301,8 @@ class JaormTest {
                     .thenReturn("TABLE2");
             Mockito.when(delegateJoin.getSelectables())
                     .thenReturn(new String[] {"COL3", "COL4"});
+            Mockito.when(runner.readOpt(Mockito.any(), Mockito.any(), Mockito.any()))
+                    .thenReturn(Result.empty());
 
             String sqlJoin = "SELECT TABLE.COL1, TABLE.COL2 FROM TABLE JOIN TABLE2 ON (TABLE.COL1 = TABLE2.COL3)";
             String sqlLeftJoin = "SELECT TABLE.COL1, TABLE.COL2 FROM TABLE LEFT JOIN TABLE2 ON (TABLE.COL1 = TABLE2.COL3)";
@@ -354,6 +357,8 @@ class JaormTest {
                     .thenReturn("TABLE2");
             Mockito.when(delegateJoin.getSelectables())
                     .thenReturn(new String[] {"COL3", "COL4"});
+            Mockito.when(runner.readOpt(Mockito.any(), Mockito.any(), Mockito.any()))
+                    .thenReturn(Result.empty());
 
             String sqlJoin = "SELECT TABLE.COL1, TABLE.COL2 FROM TABLE JOIN TABLE2 ON (TABLE.COL1 = TABLE2.COL3) LEFT JOIN TABLE2 ON (TABLE.COL1 = TABLE2.COL3) RIGHT JOIN TABLE2 ON (TABLE.COL1 = TABLE2.COL3) FULL JOIN TABLE2 ON (TABLE.COL1 = TABLE2.COL3)";
             String sqlLeftJoin = "SELECT TABLE.COL1, TABLE.COL2 FROM TABLE LEFT JOIN TABLE2 ON (TABLE.COL1 = TABLE2.COL3) JOIN TABLE2 ON (TABLE.COL1 = TABLE2.COL3) RIGHT JOIN TABLE2 ON (TABLE.COL1 = TABLE2.COL3) FULL JOIN TABLE2 ON (TABLE.COL1 = TABLE2.COL3)";

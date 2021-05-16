@@ -1,6 +1,7 @@
 package io.github.ulisse1996.jaorm;
 
 import io.github.ulisse1996.jaorm.entity.EntityDelegate;
+import io.github.ulisse1996.jaorm.entity.Result;
 import io.github.ulisse1996.jaorm.entity.sql.SqlParameter;
 import io.github.ulisse1996.jaorm.exception.JaormSqlException;
 import io.github.ulisse1996.jaorm.mapping.EmptyClosable;
@@ -53,7 +54,7 @@ public class EntityQueryRunner extends QueryRunner {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <R> Optional<R> readOpt(Class<R> entity, String query, List<SqlParameter> params) {
+    public <R> Result<R> readOpt(Class<R> entity, String query, List<SqlParameter> params) {
         logger.logSql(query, params);
         Supplier<EntityDelegate<?>> delegateSupplier = DelegatesService.getInstance().searchDelegate(entity);
         try (Connection connection = getConnection();
@@ -62,9 +63,9 @@ public class EntityQueryRunner extends QueryRunner {
             if (executor.getResultSet().next()) {
                 EntityDelegate<?> entityDelegate = delegateSupplier.get();
                 entityDelegate.setEntity(executor.getResultSet());
-                return (Optional<R>) Optional.of(entityDelegate);
+                return (Result<R>) Result.of(entityDelegate);
             } else {
-                return Optional.empty();
+                return Result.empty();
             }
         } catch (SQLException ex) {
             logger.error(String.format("Error during readOpt for entity %s", entity)::toString, ex);

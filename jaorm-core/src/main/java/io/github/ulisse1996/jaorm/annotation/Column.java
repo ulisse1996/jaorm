@@ -1,13 +1,17 @@
 package io.github.ulisse1996.jaorm.annotation;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.*;
 
+/**
+ * Specifies a Table Column that must be used for select/update current Entity
+ */
 @Retention(RetentionPolicy.CLASS)
 @Target(ElementType.FIELD)
+@Documented
 public @interface Column {
 
+    /**
+     * The Column Name
+     */
     String name();
 }

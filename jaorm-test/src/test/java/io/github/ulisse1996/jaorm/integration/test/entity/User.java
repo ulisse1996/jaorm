@@ -4,6 +4,7 @@ import io.github.ulisse1996.jaorm.annotation.Column;
 import io.github.ulisse1996.jaorm.annotation.Id;
 import io.github.ulisse1996.jaorm.annotation.Relationship;
 import io.github.ulisse1996.jaorm.annotation.Table;
+import io.github.ulisse1996.jaorm.entity.Result;
 
 import java.util.List;
 import java.util.Objects;
@@ -25,6 +26,19 @@ public class User {
             columns = @Relationship.RelationshipColumn(targetColumn = "USER_ID", sourceColumn = "USER_ID")
     )
     private List<UserRole> roles;
+
+    @Relationship(
+            columns = @Relationship.RelationshipColumn(targetColumn = "USER_ID", sourceColumn = "USER_ID")
+    )
+    private Result<UserSpecific> userSpecific;
+
+    public Result<UserSpecific> getUserSpecific() {
+        return userSpecific;
+    }
+
+    public void setUserSpecific(Result<UserSpecific> userSpecific) {
+        this.userSpecific = userSpecific;
+    }
 
     public List<UserRole> getRoles() {
         return roles;

@@ -1,11 +1,11 @@
 package io.github.ulisse1996.jaorm.entity.relationship;
 
 import io.github.ulisse1996.jaorm.BaseDao;
+import io.github.ulisse1996.jaorm.entity.Result;
 import io.github.ulisse1996.jaorm.spi.QueriesService;
 import io.github.ulisse1996.jaorm.spi.RelationshipService;
 
 import java.util.Objects;
-import java.util.Optional;
 import java.util.function.BiConsumer;
 
 public abstract class PreApplyEvent implements EntityEvent {
@@ -25,7 +25,7 @@ public abstract class PreApplyEvent implements EntityEvent {
                     consumer.accept(baseDao, i);
                 });
             } else if (node.isOpt()) {
-                Optional<Object> optional = node.getAsOpt(entity);
+                Result<Object> optional = node.getAsOpt(entity);
                 if (optional.isPresent()) {
                     Object i = optional.get();
                     BaseDao<Object> baseDao = (BaseDao<Object>) QueriesService.getInstance().getBaseDao(i.getClass());

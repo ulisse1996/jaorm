@@ -1,5 +1,7 @@
 package io.github.ulisse1996.jaorm.entity.relationship;
 
+import io.github.ulisse1996.jaorm.entity.Result;
+
 import java.util.*;
 import java.util.function.Function;
 
@@ -52,8 +54,8 @@ public class Relationship<T> {
         }
 
         @SuppressWarnings("unchecked")
-        public Optional<Object> getAsOpt(T entity) {
-            return (Optional<Object>) function.apply(entity);
+        public Result<Object> getAsOpt(T entity) {
+            return (Result<Object>) function.apply(entity);
         }
 
         @SuppressWarnings("unchecked")

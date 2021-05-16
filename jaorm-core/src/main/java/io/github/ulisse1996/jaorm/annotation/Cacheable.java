@@ -1,10 +1,11 @@
 package io.github.ulisse1996.jaorm.annotation;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.*;
 
+/**
+ * Specifies that current Entity can be cached by Cache Module
+ */
 @Retention(RetentionPolicy.CLASS)
 @Target(ElementType.TYPE)
+@Documented
 public @interface Cacheable {}

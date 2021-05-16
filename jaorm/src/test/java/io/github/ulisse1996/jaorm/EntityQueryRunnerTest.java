@@ -1,6 +1,7 @@
 package io.github.ulisse1996.jaorm;
 
 import io.github.ulisse1996.jaorm.entity.EntityDelegate;
+import io.github.ulisse1996.jaorm.entity.Result;
 import io.github.ulisse1996.jaorm.entity.sql.DataSourceProvider;
 import io.github.ulisse1996.jaorm.exception.JaormSqlException;
 import org.junit.jupiter.api.Assertions;
@@ -23,7 +24,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Stream;
 
 @ExtendWith(MockitoExtension.class)
@@ -216,7 +216,7 @@ class EntityQueryRunnerTest {
                     .thenReturn(resultSet);
             Mockito.when(resultSet.next())
                     .thenReturn(false);
-            Optional<DelegatesMock.MyEntity> result = testSubject.readOpt(DelegatesMock.MyEntity.class, "", Collections.emptyList());
+            Result<DelegatesMock.MyEntity> result = testSubject.readOpt(DelegatesMock.MyEntity.class, "", Collections.emptyList());
             Assertions.assertFalse(result.isPresent());
         } catch (SQLException | JaormSqlException ex) {
             Assertions.fail(ex);
@@ -239,7 +239,7 @@ class EntityQueryRunnerTest {
             Mockito.when(resultSet.next())
                     .thenReturn(true);
             setResultSet(expected);
-            Optional<DelegatesMock.MyEntity> result = testSubject.readOpt(DelegatesMock.MyEntity.class, "", Collections.emptyList());
+            Result<DelegatesMock.MyEntity> result = testSubject.readOpt(DelegatesMock.MyEntity.class, "", Collections.emptyList());
             Assertions.assertTrue(result.isPresent());
             checkResult(expected, result.get());
         } catch (SQLException | JaormSqlException ex) {
