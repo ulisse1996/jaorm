@@ -13,11 +13,6 @@ import java.lang.annotation.*;
  *     <li>a {@link java.util.List List} for a One To Many or Many to Many Relationship</li>
  *     <li>am Entity Instance for a One To One Relationship</li>
  * </ul>
- *
- * Example:
- * <p>
- *     <pre>{@code @Relationship(columns=@Rela}</pre>
- * </p>
  */
 @Retention(RetentionPolicy.CLASS)
 @Target(ElementType.FIELD)
