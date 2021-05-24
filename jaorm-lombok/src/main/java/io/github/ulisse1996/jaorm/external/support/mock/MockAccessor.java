@@ -4,7 +4,6 @@ import io.github.ulisse1996.jaorm.external.LombokMock;
 
 import javax.lang.model.element.*;
 import javax.lang.model.type.TypeMirror;
-import java.lang.annotation.Annotation;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -98,31 +97,5 @@ public abstract class MockAccessor extends LombokMock implements ExecutableEleme
     @Override
     public Element getEnclosingElement() {
         return element.getEnclosingElement();
-    }
-
-    @Override
-    public List<? extends Element> getEnclosedElements() {
-        return Collections.emptyList();
-    }
-
-    @Override
-    public List<? extends AnnotationMirror> getAnnotationMirrors() {
-        return Collections.emptyList();
-    }
-
-    @Override
-    public <A extends Annotation> A getAnnotation(Class<A> annotationType) {
-        return null;
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public <A extends Annotation> A[] getAnnotationsByType(Class<A> annotationType) {
-        return (A[]) new Annotation[0];
-    }
-
-    @Override
-    public <R, P> R accept(ElementVisitor<R, P> v, P p) {
-        return null;
     }
 }
