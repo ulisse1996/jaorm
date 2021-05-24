@@ -1,5 +1,6 @@
 package io.github.ulisse1996.jaorm.external.support.mock;
 
+import io.github.ulisse1996.jaorm.external.LombokElementMock;
 import io.github.ulisse1996.jaorm.external.LombokMock;
 
 import javax.lang.model.element.*;
@@ -7,7 +8,7 @@ import javax.lang.model.type.TypeMirror;
 import java.util.Collections;
 import java.util.Set;
 
-public class MockParameter extends LombokMock implements VariableElement {
+public class MockParameter extends LombokElementMock implements VariableElement {
 
     private final ExecutableElement method;
 

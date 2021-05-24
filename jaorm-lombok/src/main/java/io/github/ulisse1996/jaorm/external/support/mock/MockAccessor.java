@@ -1,6 +1,6 @@
 package io.github.ulisse1996.jaorm.external.support.mock;
 
-import io.github.ulisse1996.jaorm.external.LombokMock;
+import io.github.ulisse1996.jaorm.external.LombokElementMock;
 
 import javax.lang.model.element.*;
 import javax.lang.model.type.TypeMirror;
@@ -8,7 +8,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-public abstract class MockAccessor extends LombokMock implements ExecutableElement {
+public abstract class MockAccessor extends LombokElementMock implements ExecutableElement {
 
     private final boolean getter;
 
