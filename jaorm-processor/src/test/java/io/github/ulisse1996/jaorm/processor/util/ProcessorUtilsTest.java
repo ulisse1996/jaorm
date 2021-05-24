@@ -755,7 +755,11 @@ class ProcessorUtilsTest {
         }
     }
 
-    private static class FakeAccessor implements LombokMock, ExecutableElement {
+    private static class FakeAccessor extends LombokMock implements ExecutableElement {
+
+        FakeAccessor() {
+            super(null);
+        }
 
         @Override
         public List<? extends TypeParameterElement> getTypeParameters() {

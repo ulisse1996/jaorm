@@ -9,13 +9,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-public abstract class MockAccessor implements LombokMock, ExecutableElement {
+public abstract class MockAccessor extends LombokMock implements ExecutableElement {
 
-    protected final VariableElement element;
     private final boolean getter;
 
     protected MockAccessor(Element element, boolean getter) {
-        this.element = (VariableElement) element;
+        super(element);
         this.getter = getter;
     }
 
