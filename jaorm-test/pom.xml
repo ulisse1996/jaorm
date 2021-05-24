@@ -59,6 +59,17 @@
             <version>${jaorm.version}</version>
         </dependency>
         <dependency>
+            <groupId>io.github.ulisse1996</groupId>
+            <artifactId>jaorm-lombok</artifactId>
+            <version>${jaorm.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.20</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
             <groupId>org.hsqldb</groupId>
             <artifactId>hsqldb</artifactId>
             <version>${hsqldb.version}</version>
