@@ -16,6 +16,7 @@
         <module>jaorm-dsl</module>
         <module>jaorm-cache</module>
         <module>jaorm-transaction</module>
+        <module>jaorm-lombok</module>
     </modules>
 
     <properties>

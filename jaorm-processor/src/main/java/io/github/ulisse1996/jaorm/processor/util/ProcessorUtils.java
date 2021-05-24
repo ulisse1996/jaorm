@@ -8,6 +8,8 @@ import io.github.ulisse1996.jaorm.annotation.Dao;
 import io.github.ulisse1996.jaorm.annotation.Query;
 import io.github.ulisse1996.jaorm.entity.Result;
 import io.github.ulisse1996.jaorm.entity.converter.ValueConverter;
+import io.github.ulisse1996.jaorm.external.LombokMock;
+import io.github.ulisse1996.jaorm.external.LombokSupport;
 import io.github.ulisse1996.jaorm.processor.exception.ProcessorException;
 
 import javax.annotation.processing.ProcessingEnvironment;
@@ -75,12 +77,38 @@ public class ProcessorUtils {
         fieldName = Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1);
         String getter = "get" + fieldName;
         String booleanGetter = "is" + fieldName;
-        return processingEnvironment.getElementUtils().getAllMembers(entity)
+        Optional<ExecutableElement> getterOpt = processingEnvironment.getElementUtils().getAllMembers(entity)
                 .stream()
                 .filter(e -> e.getSimpleName().contentEquals(getter) || e.getSimpleName().contentEquals(booleanGetter))
                 .filter(e -> ElementKind.METHOD.equals(e.getKind()))
                 .map(ExecutableElement.class::cast)
                 .findFirst();
+        if (getterOpt.isPresent()) {
+            return getterOpt;
+        } else {
+            return checkExternalSupport(entity, simpleName.toString(), LombokSupport.GenerationType.GETTER);
+        }
+    }
+
+    private static Optional<ExecutableElement> checkExternalSupport(TypeElement entity, String fieldName,
+                                                                    LombokSupport.GenerationType generationType) {
+        LombokSupport instance = LombokSupport.getInstance();
+        if (!instance.isSupported()) {
+            return Optional.empty();
+        }
+
+        Element field = entity.getEnclosedElements()
+                .stream()
+                .filter(e -> e.getSimpleName().toString().equalsIgnoreCase(fieldName))
+                .findFirst()
+                .orElseThrow(() -> new ProcessorException("Can't find field " + fieldName));
+
+        if (!instance.isLombokGenerated(field)) {
+            return Optional.empty();
+        }
+
+        return Optional.of(instance.generateFakeElement(field, generationType))
+                .map(ExecutableElement.class::cast);
     }
 
     public static ExecutableElement findGetter(ProcessingEnvironment processingEnvironment,
@@ -100,12 +128,17 @@ public class ProcessorUtils {
         String fieldName = simpleName.toString();
         fieldName = Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1);
         String setter = "set" + fieldName;
-        return processingEnvironment.getElementUtils().getAllMembers(entity)
+        Optional<ExecutableElement> setterOpt = processingEnvironment.getElementUtils().getAllMembers(entity)
                 .stream()
                 .filter(e -> e.getSimpleName().contentEquals(setter))
                 .filter(e -> ElementKind.METHOD.equals(e.getKind()))
                 .map(ExecutableElement.class::cast)
                 .findFirst();
+        if (setterOpt.isPresent()) {
+            return setterOpt;
+        } else {
+            return checkExternalSupport(entity, simpleName.toString(), LombokSupport.GenerationType.SETTER);
+        }
     }
 
     public static TypeElement getFieldType(ProcessingEnvironment processingEnvironment, VariableElement variableElement) {
@@ -297,5 +330,40 @@ public class ProcessorUtils {
                     || (modifiers.contains(Modifier.PRIVATE) && !ele.getKind().isField());
         });
         return elements;
+    }
+
+    public static List<ExecutableElement> appendExternalGeneratedMethods(ProcessingEnvironment processingEnvironment,
+                                                                         TypeElement entity, List<? extends Element> elements) {
+        LombokSupport lombokSupport = LombokSupport.getInstance();
+        if (!lombokSupport.isSupported()) {
+            return Collections.emptyList();
+        }
+        List<Element> toBeCreated = elements.stream()
+                .filter(e -> e.getKind().isField())
+                .filter(e -> isLombokMock(processingEnvironment, entity, e)
+                ).collect(Collectors.toList());
+        return toBeCreated.stream()
+                .flatMap(e -> {
+                    List<Element> list = new ArrayList<>();
+                    if (findGetterOpt(processingEnvironment, entity, e.getSimpleName()).map(LombokMock.class::isInstance)
+                            .orElse(false)) {
+                        list.add(lombokSupport.generateFakeElement(e, LombokSupport.GenerationType.GETTER));
+                    }
+                    if (findSetterOpt(processingEnvironment, entity, e.getSimpleName()).map(LombokMock.class::isInstance)
+                            .orElse(false)) {
+                        list.add(lombokSupport.generateFakeElement(e, LombokSupport.GenerationType.SETTER));
+                    }
+                    return list.stream();
+                }).map(ExecutableElement.class::cast)
+                .collect(Collectors.toList());
+    }
+
+    static boolean isLombokMock(ProcessingEnvironment processingEnvironment, TypeElement entity, Element e) {
+        return findGetterOpt(processingEnvironment, entity, e.getSimpleName())
+                .map(LombokMock.class::isInstance)
+                .orElse(false)
+                || findSetterOpt(processingEnvironment, entity, e.getSimpleName())
+                .map(LombokMock.class::isInstance)
+                .orElse(false);
     }
 }

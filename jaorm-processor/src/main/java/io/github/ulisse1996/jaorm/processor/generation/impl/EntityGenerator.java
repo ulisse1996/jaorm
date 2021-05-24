@@ -114,11 +114,12 @@ public class EntityGenerator extends Generator {
 
     private Iterable<MethodSpec> buildDelegation(TypeElement entity) {
         List<? extends Element> elements = ProcessorUtils.getAllValidElements(processingEnvironment, entity);
-        List<? extends ExecutableElement> methods = elements.stream()
+        List<ExecutableElement> methods = elements.stream()
                 .filter(ExecutableElement.class::isInstance)
                 .map(ExecutableElement.class::cast)
                 .filter(e -> !e.getKind().equals(ElementKind.CONSTRUCTOR))
                 .collect(Collectors.toList());
+        methods.addAll(ProcessorUtils.appendExternalGeneratedMethods(processingEnvironment, entity, elements));
         List<Map.Entry<Element, ExecutableElement>> joins = new ArrayList<>();
         for (Element element : elements) {
             if (hasJoinAnnotation(element)) {
