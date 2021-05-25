@@ -5,12 +5,15 @@ import io.github.ulisse1996.jaorm.exception.JaormSqlException;
 import io.github.ulisse1996.jaorm.integration.test.entity.CascadeEntity;
 import io.github.ulisse1996.jaorm.integration.test.entity.CascadeEntityInner;
 import io.github.ulisse1996.jaorm.integration.test.entity.City;
+import io.github.ulisse1996.jaorm.integration.test.entity.CompoundEntity;
 import io.github.ulisse1996.jaorm.integration.test.query.CascadeDAO;
 import io.github.ulisse1996.jaorm.integration.test.query.CascadeInnerDAO;
 import io.github.ulisse1996.jaorm.integration.test.query.CityDAO;
+import io.github.ulisse1996.jaorm.integration.test.query.CompoundEntityDAO;
 import io.github.ulisse1996.jaorm.spi.QueriesService;
 import io.github.ulisse1996.jaorm.spi.QueryRunner;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
@@ -85,5 +88,15 @@ class CoreIT extends AbstractIT {
         cascadeDAO.delete(found);
         Assertions.assertThrows(JaormSqlException.class, () -> cascadeDAO.findById(1));
         Assertions.assertFalse(cascadeInnerDAO.findById(1).isPresent());
+    }
+
+    @Test
+    void should_read_all_mapped_fields() {
+        CompoundEntity compoundEntity = new CompoundEntity();
+        compoundEntity.setCompoundId(1);
+        compoundEntity = QueriesService.getInstance().getQuery(CompoundEntityDAO.class)
+                .read(compoundEntity);
+        Assertions.assertNotNull(compoundEntity.getCreateDate());
+        Assertions.assertNotNull(compoundEntity.getCreationUser());
     }
 }

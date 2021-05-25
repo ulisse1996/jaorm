@@ -104,7 +104,7 @@ public class DslColumnsGenerator extends Generator {
     }
 
     private Set<EntityColumn> getEntityColumns(TypeElement entity) {
-        Set<? extends Element> collect = processingEnvironment.getElementUtils().getAllMembers(entity)
+        Set<? extends Element> collect = ProcessorUtils.getAllValidElements(processingEnvironment, entity)
                 .stream()
                 .filter(el -> el.getKind().isField())
                 .filter(el -> el.getAnnotation(Column.class) != null)

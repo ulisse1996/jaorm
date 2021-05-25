@@ -3,10 +3,11 @@ package io.github.ulisse1996.jaorm.processor.util;
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.TypeSpec;
 import io.github.ulisse1996.jaorm.annotation.*;
+import io.github.ulisse1996.jaorm.entity.converter.ValueConverter;
 import io.github.ulisse1996.jaorm.external.LombokMock;
 import io.github.ulisse1996.jaorm.external.LombokSupport;
+import io.github.ulisse1996.jaorm.processor.CustomName;
 import io.github.ulisse1996.jaorm.processor.exception.ProcessorException;
-import io.github.ulisse1996.jaorm.entity.converter.ValueConverter;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -61,8 +62,16 @@ class ProcessorUtilsTest {
         Element notAnnotated = Mockito.mock(Element.class);
         Mockito.when(environment.getElementUtils())
                 .thenReturn(elements);
+        Mockito.when(environment.getTypeUtils())
+                .thenReturn(types);
+        Mockito.when(types.directSupertypes(Mockito.any()))
+                .thenReturn(Collections.emptyList());
         Mockito.when(elements.getAllMembers(element))
                 .then(invocationOnMock -> Arrays.asList(annotated, notAnnotated));
+        Mockito.when(annotated.getSimpleName())
+                .thenReturn(nameOf("annotated"));
+        Mockito.when(notAnnotated.getSimpleName())
+                .thenReturn(nameOf("notAnnotated"));
         Mockito.when(annotated.getAnnotation(Table.class))
                 .thenReturn(table);
         Assertions.assertEquals(Collections.singletonList(annotated),
@@ -102,6 +111,10 @@ class ProcessorUtilsTest {
                 .thenReturn("name");
         Mockito.when(environment.getElementUtils())
                 .thenReturn(elements);
+        Mockito.when(environment.getTypeUtils())
+                .thenReturn(types);
+        Mockito.when(types.directSupertypes(Mockito.any()))
+                .thenReturn(Collections.emptyList());
         Mockito.when(elements.getAllMembers(element))
                 .then(invocation -> Collections.emptyList());
         Assertions.assertThrows(ProcessorException.class,
@@ -132,6 +145,10 @@ class ProcessorUtilsTest {
                 .thenReturn("name");
         Mockito.when(environment.getElementUtils())
                 .thenReturn(elements);
+        Mockito.when(environment.getTypeUtils())
+                .thenReturn(types);
+        Mockito.when(types.directSupertypes(Mockito.any()))
+                .thenReturn(Collections.emptyList());
         Mockito.when(elements.getAllMembers(element))
                 .then(invocation -> Collections.emptyList());
         Assertions.assertThrows(ProcessorException.class, () ->
@@ -453,6 +470,10 @@ class ProcessorUtilsTest {
         TypeElement objectElement = Mockito.mock(TypeElement.class);
         Mockito.when(environment.getElementUtils())
                 .thenReturn(elements);
+        Mockito.when(environment.getTypeUtils())
+                .thenReturn(types);
+        Mockito.when(types.directSupertypes(Mockito.any()))
+                .thenReturn(Collections.emptyList());
         Mockito.when(elements.getAllMembers(element))
                 .then(invocation -> allElements);
         Mockito.when(elements.getTypeElement("java.lang.Object"))
@@ -494,15 +515,27 @@ class ProcessorUtilsTest {
         Element privateElement = Mockito.mock(Element.class);
         Mockito.when(finalElement.getModifiers())
                 .thenReturn(Collections.singleton(Modifier.FINAL));
+        Mockito.when(finalElement.getSimpleName())
+                .thenReturn(mockName("finalName"));
         Mockito.when(nativeElement.getModifiers())
                 .thenReturn(Collections.singleton(Modifier.NATIVE));
+        Mockito.when(nativeElement.getSimpleName())
+                .thenReturn(mockName("nativeName"));
         Mockito.when(protectedElement.getModifiers())
                 .thenReturn(Collections.singleton(Modifier.PROTECTED));
+        Mockito.when(protectedElement.getSimpleName())
+                .thenReturn(mockName("protectedName"));
         Mockito.when(privateElement.getModifiers())
                 .thenReturn(Collections.singleton(Modifier.PRIVATE));
+        Mockito.when(privateElement.getSimpleName())
+                .thenReturn(mockName("privateName"));
         Mockito.when(privateElement.getKind())
                 .thenReturn(ElementKind.FIELD);
         return Arrays.asList(finalElement, nativeElement, protectedElement, privateElement);
+    }
+
+    private Name mockName(String finalName) {
+        return new CustomName(finalName);
     }
 
     @Test
@@ -517,6 +550,10 @@ class ProcessorUtilsTest {
         try (MockedStatic<LombokSupport> mk = Mockito.mockStatic(LombokSupport.class)) {
             Mockito.when(environment.getElementUtils())
                     .thenReturn(elements);
+            Mockito.when(environment.getTypeUtils())
+                    .thenReturn(types);
+            Mockito.when(types.directSupertypes(Mockito.any()))
+                    .thenReturn(Collections.emptyList());
             Mockito.when(elements.getAllMembers(Mockito.any()))
                     .thenReturn(Collections.emptyList());
             LombokSupport instance = Mockito.spy(new LombokSupport() {
@@ -547,9 +584,11 @@ class ProcessorUtilsTest {
         try (MockedStatic<LombokSupport> mk = Mockito.mockStatic(LombokSupport.class)) {
             Mockito.when(environment.getElementUtils())
                     .thenReturn(elements);
-            Mockito.when(elements.getAllMembers(Mockito.any()))
+            Mockito.when(environment.getTypeUtils())
+                    .thenReturn(types);
+            Mockito.when(types.directSupertypes(Mockito.any()))
                     .thenReturn(Collections.emptyList());
-            Mockito.when(element.getEnclosedElements())
+            Mockito.when(elements.getAllMembers(Mockito.any()))
                     .then(invocation -> Collections.singletonList(variableElement));
             Mockito.when(variableElement.getSimpleName())
                     .thenReturn(nameOf("test"));
@@ -584,9 +623,11 @@ class ProcessorUtilsTest {
         try (MockedStatic<LombokSupport> mk = Mockito.mockStatic(LombokSupport.class)) {
             Mockito.when(environment.getElementUtils())
                     .thenReturn(elements);
-            Mockito.when(elements.getAllMembers(Mockito.any()))
+            Mockito.when(environment.getTypeUtils())
+                    .thenReturn(types);
+            Mockito.when(types.directSupertypes(Mockito.any()))
                     .thenReturn(Collections.emptyList());
-            Mockito.when(element.getEnclosedElements())
+            Mockito.when(elements.getAllMembers(Mockito.any()))
                     .then(invocation -> Collections.singletonList(variableElement));
             Mockito.when(variableElement.getSimpleName())
                     .thenReturn(nameOf("test"));
@@ -736,6 +777,47 @@ class ProcessorUtilsTest {
         }
     }
 
+    @Test
+    void should_return_annotated_field_in_super_class() {
+        TypeMirror objectMirror = Mockito.mock(TypeMirror.class);
+        TypeMirror interfaceMirror = Mockito.mock(TypeMirror.class);
+        TypeMirror superMirror = Mockito.mock(TypeMirror.class);
+        TypeElement objectType = Mockito.mock(TypeElement.class);
+        TypeElement interfaceType = Mockito.mock(TypeElement.class);
+        TypeElement superType = Mockito.mock(TypeElement.class);
+        VariableElement variableElement = Mockito.mock(VariableElement.class);
+        Mockito.when(objectMirror.toString())
+                .thenReturn("java.lang.Object");
+        Mockito.when(interfaceMirror.toString())
+                .thenReturn("MyInterface<Test>");
+        Mockito.when(superMirror.toString())
+                .thenReturn("Super");
+        Mockito.when(environment.getElementUtils())
+                .thenReturn(elements);
+        Mockito.when(elements.getAllMembers(element))
+                .thenReturn(Collections.emptyList());
+        Mockito.when(environment.getTypeUtils())
+                .thenReturn(types);
+        Mockito.when(types.directSupertypes(Mockito.any()))
+                .then(invocation -> Arrays.asList(objectMirror, interfaceMirror, superMirror));
+        Mockito.when(elements.getTypeElement("java.lang.Object"))
+                .thenReturn(objectType);
+        Mockito.when(elements.getTypeElement("MyInterface"))
+                .thenReturn(interfaceType);
+        Mockito.when(elements.getTypeElement("Super"))
+                .thenReturn(superType);
+        Mockito.when(interfaceType.getKind())
+                .thenReturn(ElementKind.INTERFACE);
+        Mockito.when(elements.getAllMembers(superType))
+                .then(invocation -> Collections.singletonList(variableElement));
+        Mockito.when(variableElement.getSimpleName())
+                .thenReturn(nameOf("variable"));
+        Mockito.when(variableElement.getAnnotation(Mockito.any()))
+                .then(invocation -> Mockito.mock(invocation.getArgument(0)));
+        List<Element> found = ProcessorUtils.getAnnotated(environment, element, Column.class);
+        Assertions.assertEquals(Collections.singletonList(variableElement), found);
+    }
+
     private ExecutableElement fakeAccessor() {
         return new FakeAccessor();
     }
@@ -765,12 +847,18 @@ class ProcessorUtilsTest {
                 .thenReturn("name");
         Mockito.when(environment.getElementUtils())
                 .thenReturn(elements);
+        Mockito.when(environment.getTypeUtils())
+                .thenReturn(types);
+        Mockito.when(types.directSupertypes(Mockito.any()))
+                .thenReturn(Collections.emptyList());
         Mockito.when(elements.getAllMembers(element))
                 .then(invocation -> Arrays.asList(setter, notMySetter));
         Mockito.when(setter.getSimpleName())
                 .thenReturn(nameOf("setName"));
         Mockito.when(setter.getKind())
                 .thenReturn(ElementKind.METHOD);
+        Mockito.when(notMySetter.getSimpleName())
+                .thenReturn(nameOf("notMySetter"));
         return setter;
     }
 
@@ -781,12 +869,18 @@ class ProcessorUtilsTest {
                 .thenReturn("name");
         Mockito.when(environment.getElementUtils())
                 .thenReturn(elements);
+        Mockito.when(environment.getTypeUtils())
+                .thenReturn(types);
+        Mockito.when(types.directSupertypes(Mockito.any()))
+                .thenReturn(Collections.emptyList());
         Mockito.when(elements.getAllMembers(element))
                 .then(invocation -> Arrays.asList(getter, notMyGetter));
         Mockito.when(getter.getSimpleName())
                 .thenReturn(nameOf(booleanGetter ? "isName" : "getName"));
         Mockito.when(getter.getKind())
                 .thenReturn(ElementKind.METHOD);
+        Mockito.when(notMyGetter.getSimpleName())
+                .thenReturn(nameOf("notMyGetter"));
         return getter;
     }
 

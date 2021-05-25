@@ -21,6 +21,7 @@ JAORM is divided in modules that are used from main module using **Java SPI**
 - [Cache](#20-cache)
 - [DSL (Domain-Specific Language)](#30-dsl-domain-specific-language)
 - [Transaction](#40-transaction)
+- [Lombok](#50-lombok)
 
 ### **1.0** Core
 
@@ -441,3 +442,11 @@ If **Callable\<V>** is correctly executed , **exec** return the returned value i
 current transaction execute a commit and close current transaction
 
 Transaction is propagated on the current Thread and on each child Thread
+
+### **5.0** Lombok
+
+Jaorm offers supports for Lombok annotations such **@Getter** , **@Setter** or
+**@Data**
+
+Core Module only use custom generated getter and setter from **Lombok** if **Jaorm Lombok**
+is provided as dependency

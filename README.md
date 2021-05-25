@@ -20,6 +20,7 @@ JAORM is divided in modules that are used from main module using **Java SPI**
 - Cache
 - DSL (Domain-Specific Language)
 - Transaction
+- Lombok Support
 
 ## Features
 
@@ -30,5 +31,6 @@ JAORM is divided in modules that are used from main module using **Java SPI**
 - Supports for Basic JDBC Transaction with Transaction Module
 - Easy and Customizable Entity Cache
 - Supports for most of famous RDBMS
+- Supports for **@Getter**, **@Setter** and **@Data** Annotations of [Lombok](https://projectlombok.org/) on Entity
 
 For more details and examples visit : [Jaorm Documentation](https://ulisse1996.github.io/jaorm/#/)
