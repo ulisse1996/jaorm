@@ -9,14 +9,12 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>jaorm-processor</artifactId>
-    <name>JAORM (Processor)</name>
+    <artifactId>jaorm-lombok</artifactId>
 
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
         <javapoet.version>1.13.0</javapoet.version>
-        <compile-testing.version>0.19</compile-testing.version>
         <sonar.coverage.jacoco.xmlReportPaths>${project.basedir}/../${aggregate.report.dir}</sonar.coverage.jacoco.xmlReportPaths>
     </properties>
 
@@ -27,15 +25,15 @@
             <version>0.11.0</version>
         </dependency>
         <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.20</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
             <groupId>com.squareup</groupId>
             <artifactId>javapoet</artifactId>
             <version>${javapoet.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.google.testing.compile</groupId>
-                <artifactId>compile-testing</artifactId>
-            <version>${compile-testing.version}</version>
-            <scope>test</scope>
         </dependency>
     </dependencies>
 

@@ -3,6 +3,8 @@ package io.github.ulisse1996.jaorm.processor.util;
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.TypeSpec;
 import io.github.ulisse1996.jaorm.annotation.*;
+import io.github.ulisse1996.jaorm.external.LombokMock;
+import io.github.ulisse1996.jaorm.external.LombokSupport;
 import io.github.ulisse1996.jaorm.processor.exception.ProcessorException;
 import io.github.ulisse1996.jaorm.entity.converter.ValueConverter;
 import org.junit.jupiter.api.Assertions;
@@ -23,6 +25,7 @@ import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 import java.io.IOException;
+import java.lang.annotation.Annotation;
 import java.util.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -509,6 +512,234 @@ class ProcessorUtilsTest {
         Assertions.assertThrows(ProcessorException.class, () -> ProcessorUtils.getBaseDaoGeneric(element));
     }
 
+    @Test
+    void should_return_empty_optional_for_missing_external_getter() {
+        try (MockedStatic<LombokSupport> mk = Mockito.mockStatic(LombokSupport.class)) {
+            Mockito.when(environment.getElementUtils())
+                    .thenReturn(elements);
+            Mockito.when(elements.getAllMembers(Mockito.any()))
+                    .thenReturn(Collections.emptyList());
+            LombokSupport instance = Mockito.spy(new LombokSupport() {
+                @Override
+                public boolean isSupported() {
+                    return false;
+                }
+
+                @Override
+                public boolean isLombokGenerated(Element element) {
+                    return false;
+                }
+
+                @Override
+                public Element generateFakeElement(Element element, GenerationType generationType) {
+                    return null;
+                }
+            });
+            mk.when(LombokSupport::getInstance)
+                    .thenReturn(instance);
+            Assertions.assertFalse(ProcessorUtils.findGetterOpt(environment, element, nameOf("test")).isPresent());
+            Mockito.verify(instance).isSupported();
+        }
+    }
+
+    @Test
+    void should_return_external_getter() {
+        try (MockedStatic<LombokSupport> mk = Mockito.mockStatic(LombokSupport.class)) {
+            Mockito.when(environment.getElementUtils())
+                    .thenReturn(elements);
+            Mockito.when(elements.getAllMembers(Mockito.any()))
+                    .thenReturn(Collections.emptyList());
+            Mockito.when(element.getEnclosedElements())
+                    .then(invocation -> Collections.singletonList(variableElement));
+            Mockito.when(variableElement.getSimpleName())
+                    .thenReturn(nameOf("test"));
+            LombokSupport instance = Mockito.spy(new LombokSupport() {
+                @Override
+                public boolean isSupported() {
+                    return true;
+                }
+
+                @Override
+                public boolean isLombokGenerated(Element element) {
+                    return true;
+                }
+
+                @Override
+                public Element generateFakeElement(Element element, GenerationType generationType) {
+                    return Mockito.mock(ExecutableElement.class);
+                }
+            });
+            mk.when(LombokSupport::getInstance)
+                    .thenReturn(instance);
+            Optional<ExecutableElement> opt = ProcessorUtils.findGetterOpt(environment, element, nameOf("test"));
+            Assertions.assertTrue(opt.isPresent());
+            Assertions.assertTrue(Mockito.mockingDetails(opt.get()).isMock());
+            Mockito.verify(instance).isSupported();
+            Mockito.verify(instance).isLombokGenerated(Mockito.any());
+        }
+    }
+
+    @Test
+    void should_return_empty_optional_for_not_lombok_generated_field() {
+        try (MockedStatic<LombokSupport> mk = Mockito.mockStatic(LombokSupport.class)) {
+            Mockito.when(environment.getElementUtils())
+                    .thenReturn(elements);
+            Mockito.when(elements.getAllMembers(Mockito.any()))
+                    .thenReturn(Collections.emptyList());
+            Mockito.when(element.getEnclosedElements())
+                    .then(invocation -> Collections.singletonList(variableElement));
+            Mockito.when(variableElement.getSimpleName())
+                    .thenReturn(nameOf("test"));
+            LombokSupport instance = Mockito.spy(new LombokSupport() {
+                @Override
+                public boolean isSupported() {
+                    return true;
+                }
+
+                @Override
+                public boolean isLombokGenerated(Element element) {
+                    return false;
+                }
+
+                @Override
+                public Element generateFakeElement(Element element, GenerationType generationType) {
+                    return null;
+                }
+            });
+            mk.when(LombokSupport::getInstance)
+                    .thenReturn(instance);
+            Assertions.assertFalse(ProcessorUtils.findGetterOpt(environment, element, nameOf("test")).isPresent());
+            Mockito.verify(instance).isSupported();
+            Mockito.verify(instance).isLombokGenerated(variableElement);
+        }
+    }
+
+    @Test
+    void should_return_empty_list_for_not_supported_lombok() {
+        LombokSupport instance = Mockito.mock(LombokSupport.class);
+        try (MockedStatic<LombokSupport> mk = Mockito.mockStatic(LombokSupport.class)) {
+            mk.when(LombokSupport::getInstance)
+                    .thenReturn(instance);
+            Mockito.when(instance.isSupported())
+                    .thenReturn(false);
+            Assertions.assertEquals(Collections.emptyList(),
+                    ProcessorUtils.appendExternalGeneratedMethods(environment, element, Collections.emptyList()));
+        }
+    }
+
+    @Test
+    void should_return_list_with_getter_for_lombok() {
+        LombokSupport instance = Mockito.mock(LombokSupport.class);
+        ExecutableElement getter = fakeAccessor();
+        List<Element> fieldList = Collections.singletonList(variableElement);
+        Mockito.when(variableElement.getKind())
+                .thenReturn(ElementKind.FIELD);
+        try (MockedStatic<LombokSupport> mk = Mockito.mockStatic(LombokSupport.class);
+             MockedStatic<ProcessorUtils> utilsMk = Mockito.mockStatic(ProcessorUtils.class)) {
+            utilsMk.when(() -> ProcessorUtils.appendExternalGeneratedMethods(environment, element, fieldList))
+                    .thenCallRealMethod();
+            utilsMk.when(() -> ProcessorUtils.findGetterOpt(Mockito.any(), Mockito.any(), Mockito.any()))
+                    .thenReturn(Optional.of(getter));
+            utilsMk.when(() -> ProcessorUtils.isLombokMock(Mockito.any(), Mockito.any(), Mockito.any()))
+                    .thenReturn(true);
+            mk.when(LombokSupport::getInstance)
+                    .thenReturn(instance);
+            Mockito.when(instance.isSupported())
+                    .thenReturn(true);
+            Mockito.when(instance.generateFakeElement(variableElement, LombokSupport.GenerationType.GETTER))
+                    .thenReturn(getter);
+            Assertions.assertEquals(Collections.singletonList(getter),
+                    ProcessorUtils.appendExternalGeneratedMethods(environment, element, fieldList));
+        }
+    }
+
+    @Test
+    void should_return_list_with_setter_for_lombok() {
+        LombokSupport instance = Mockito.mock(LombokSupport.class);
+        ExecutableElement setter = fakeAccessor();
+        List<Element> fieldList = Collections.singletonList(variableElement);
+        Mockito.when(variableElement.getKind())
+                .thenReturn(ElementKind.FIELD);
+        try (MockedStatic<LombokSupport> mk = Mockito.mockStatic(LombokSupport.class);
+             MockedStatic<ProcessorUtils> utilsMk = Mockito.mockStatic(ProcessorUtils.class)) {
+            utilsMk.when(() -> ProcessorUtils.appendExternalGeneratedMethods(environment, element, fieldList))
+                    .thenCallRealMethod();
+            utilsMk.when(() -> ProcessorUtils.findSetterOpt(Mockito.any(), Mockito.any(), Mockito.any()))
+                    .thenReturn(Optional.of(setter));
+            utilsMk.when(() -> ProcessorUtils.isLombokMock(Mockito.any(), Mockito.any(), Mockito.any()))
+                    .thenReturn(true);
+            mk.when(LombokSupport::getInstance)
+                    .thenReturn(instance);
+            Mockito.when(instance.isSupported())
+                    .thenReturn(true);
+            Mockito.when(instance.generateFakeElement(variableElement, LombokSupport.GenerationType.SETTER))
+                    .thenReturn(setter);
+            Assertions.assertEquals(Collections.singletonList(setter),
+                    ProcessorUtils.appendExternalGeneratedMethods(environment, element, fieldList));
+        }
+    }
+
+    @Test
+    void should_return_true_for_lombok_mock_for_getter() {
+        Element mock = Mockito.mock(Element.class);
+        ExecutableElement getterMock = Mockito.spy(fakeAccessor());
+        try (MockedStatic<ProcessorUtils> mk = Mockito.mockStatic(ProcessorUtils.class)) {
+            mk.when(() -> ProcessorUtils.isLombokMock(Mockito.any(), Mockito.any(), Mockito.any()))
+                    .thenCallRealMethod();
+            mk.when(() -> ProcessorUtils.findGetterOpt(Mockito.any(), Mockito.any(), Mockito.any()))
+                    .thenReturn(Optional.of(getterMock));
+            Assertions.assertTrue(ProcessorUtils.isLombokMock(environment, element, mock));
+        }
+    }
+
+    @Test
+    void should_return_true_for_lombok_mock_for_setter() {
+        Element mock = Mockito.mock(Element.class);
+        ExecutableElement setterMock = Mockito.spy(fakeAccessor());
+        try (MockedStatic<ProcessorUtils> mk = Mockito.mockStatic(ProcessorUtils.class)) {
+            mk.when(() -> ProcessorUtils.isLombokMock(Mockito.any(), Mockito.any(), Mockito.any()))
+                    .thenCallRealMethod();
+            mk.when(() -> ProcessorUtils.findSetterOpt(Mockito.any(), Mockito.any(), Mockito.any()))
+                    .thenReturn(Optional.of(setterMock));
+            Assertions.assertTrue(ProcessorUtils.isLombokMock(environment, element, mock));
+        }
+    }
+
+    @Test
+    void should_return_list_with_getter_and_setter_for_lombok() {
+        LombokSupport instance = Mockito.mock(LombokSupport.class);
+        ExecutableElement getter = fakeAccessor();
+        ExecutableElement setter = fakeAccessor();
+        List<Element> fieldList = Collections.singletonList(variableElement);
+        Mockito.when(variableElement.getKind())
+                .thenReturn(ElementKind.FIELD);
+        try (MockedStatic<LombokSupport> mk = Mockito.mockStatic(LombokSupport.class);
+            MockedStatic<ProcessorUtils> utilsMk = Mockito.mockStatic(ProcessorUtils.class)) {
+            utilsMk.when(() -> ProcessorUtils.appendExternalGeneratedMethods(environment, element, fieldList))
+                    .thenCallRealMethod();
+            utilsMk.when(() -> ProcessorUtils.findGetterOpt(Mockito.any(), Mockito.any(), Mockito.any()))
+                    .thenReturn(Optional.of(getter));
+            utilsMk.when(() -> ProcessorUtils.findSetterOpt(Mockito.any(), Mockito.any(), Mockito.any()))
+                    .thenReturn(Optional.of(setter));
+            utilsMk.when(() -> ProcessorUtils.isLombokMock(Mockito.any(), Mockito.any(), Mockito.any()))
+                    .thenReturn(true);
+            mk.when(LombokSupport::getInstance)
+                    .thenReturn(instance);
+            Mockito.when(instance.isSupported())
+                    .thenReturn(true);
+            Mockito.when(instance.generateFakeElement(variableElement, LombokSupport.GenerationType.GETTER))
+                    .thenReturn(getter);
+            Mockito.when(instance.generateFakeElement(variableElement, LombokSupport.GenerationType.SETTER))
+                    .thenReturn(setter);
+            Assertions.assertEquals(Arrays.asList(getter, setter),
+                    ProcessorUtils.appendExternalGeneratedMethods(environment, element, fieldList));
+        }
+    }
+
+    private ExecutableElement fakeAccessor() {
+        return new FakeAccessor();
+    }
+
     private void mockConverterClass(TypeMirror mirror, boolean withException) {
         Converter converter = Mockito.mock(Converter.class);
         Class<?> klassMock = MyConverter.class;
@@ -599,6 +830,103 @@ class ProcessorUtilsTest {
         @Override
         public String toSql(String val) {
             return val;
+        }
+    }
+
+    private static class FakeAccessor extends LombokMock implements ExecutableElement {
+
+        FakeAccessor() {
+            super(null);
+        }
+
+        @Override
+        public List<? extends TypeParameterElement> getTypeParameters() {
+            return null;
+        }
+
+        @Override
+        public TypeMirror getReturnType() {
+            return null;
+        }
+
+        @Override
+        public List<? extends VariableElement> getParameters() {
+            return null;
+        }
+
+        @Override
+        public TypeMirror getReceiverType() {
+            return null;
+        }
+
+        @Override
+        public boolean isVarArgs() {
+            return false;
+        }
+
+        @Override
+        public boolean isDefault() {
+            return false;
+        }
+
+        @Override
+        public List<? extends TypeMirror> getThrownTypes() {
+            return null;
+        }
+
+        @Override
+        public AnnotationValue getDefaultValue() {
+            return null;
+        }
+
+        @Override
+        public TypeMirror asType() {
+            return null;
+        }
+
+        @Override
+        public ElementKind getKind() {
+            return null;
+        }
+
+        @Override
+        public Set<Modifier> getModifiers() {
+            return null;
+        }
+
+        @Override
+        public Name getSimpleName() {
+            return null;
+        }
+
+        @Override
+        public Element getEnclosingElement() {
+            return null;
+        }
+
+        @Override
+        public List<? extends Element> getEnclosedElements() {
+            return null;
+        }
+
+        @Override
+        public List<? extends AnnotationMirror> getAnnotationMirrors() {
+            return null;
+        }
+
+        @Override
+        public <A extends Annotation> A getAnnotation(Class<A> annotationType) {
+            return null;
+        }
+
+        @Override
+        public <A extends Annotation> A[] getAnnotationsByType(Class<A> annotationType) {
+            return null;
+        }
+
+        @Override
+        public <R, P> R accept(ElementVisitor<R, P> v, P p) {
+            return null;
         }
     }
 }

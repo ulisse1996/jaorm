@@ -5,7 +5,7 @@
     <parent>
         <artifactId>jaorm-pom</artifactId>
         <groupId>io.github.ulisse1996</groupId>
-        <version>0.10.0</version>
+        <version>0.11.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -24,7 +24,7 @@
         <junit-platform-launcher.version>1.4.1</junit-platform-launcher.version>
         <weld-junit5.version>2.0.2.Final</weld-junit5.version>
         <hsqldb.version>2.5.1</hsqldb.version>
-        <jaorm.version>0.10.0</jaorm.version>
+        <jaorm.version>0.11.0</jaorm.version>
     </properties>
 
     <dependencies>
@@ -57,6 +57,17 @@
             <groupId>io.github.ulisse1996</groupId>
             <artifactId>jaorm-transaction</artifactId>
             <version>${jaorm.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.ulisse1996</groupId>
+            <artifactId>jaorm-lombok</artifactId>
+            <version>${jaorm.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.20</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.hsqldb</groupId>
