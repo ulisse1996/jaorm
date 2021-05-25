@@ -23,6 +23,9 @@ import java.lang.annotation.Annotation;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -65,7 +68,7 @@ public class ProcessorUtils {
     @SafeVarargs
     public static List<Element> getAnnotated(ProcessingEnvironment processingEnvironment,
                                              TypeElement typeElement, Class<? extends Annotation>... annotations) {
-        return processingEnvironment.getElementUtils().getAllMembers(typeElement)
+        return getAllElements(processingEnvironment, typeElement)
                 .stream()
                 .filter(ele -> Stream.of(annotations).anyMatch(an -> ele.getAnnotation(an) != null))
                 .collect(Collectors.toList());
@@ -77,7 +80,7 @@ public class ProcessorUtils {
         fieldName = Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1);
         String getter = "get" + fieldName;
         String booleanGetter = "is" + fieldName;
-        Optional<ExecutableElement> getterOpt = processingEnvironment.getElementUtils().getAllMembers(entity)
+        Optional<ExecutableElement> getterOpt = getAllElements(processingEnvironment, entity)
                 .stream()
                 .filter(e -> e.getSimpleName().contentEquals(getter) || e.getSimpleName().contentEquals(booleanGetter))
                 .filter(e -> ElementKind.METHOD.equals(e.getKind()))
@@ -86,18 +89,19 @@ public class ProcessorUtils {
         if (getterOpt.isPresent()) {
             return getterOpt;
         } else {
-            return checkExternalSupport(entity, simpleName.toString(), LombokSupport.GenerationType.GETTER);
+            return checkExternalSupport(processingEnvironment, entity, simpleName.toString(), LombokSupport.GenerationType.GETTER);
         }
     }
 
-    private static Optional<ExecutableElement> checkExternalSupport(TypeElement entity, String fieldName,
+    private static Optional<ExecutableElement> checkExternalSupport(ProcessingEnvironment processingEnvironment,
+                                                                    TypeElement entity, String fieldName,
                                                                     LombokSupport.GenerationType generationType) {
         LombokSupport instance = LombokSupport.getInstance();
         if (!instance.isSupported()) {
             return Optional.empty();
         }
 
-        Element field = entity.getEnclosedElements()
+        Element field = getAllElements(processingEnvironment, entity)
                 .stream()
                 .filter(e -> e.getSimpleName().toString().equalsIgnoreCase(fieldName))
                 .findFirst()
@@ -128,7 +132,7 @@ public class ProcessorUtils {
         String fieldName = simpleName.toString();
         fieldName = Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1);
         String setter = "set" + fieldName;
-        Optional<ExecutableElement> setterOpt = processingEnvironment.getElementUtils().getAllMembers(entity)
+        Optional<ExecutableElement> setterOpt = getAllElements(processingEnvironment, entity)
                 .stream()
                 .filter(e -> e.getSimpleName().contentEquals(setter))
                 .filter(e -> ElementKind.METHOD.equals(e.getKind()))
@@ -137,7 +141,7 @@ public class ProcessorUtils {
         if (setterOpt.isPresent()) {
             return setterOpt;
         } else {
-            return checkExternalSupport(entity, simpleName.toString(), LombokSupport.GenerationType.SETTER);
+            return checkExternalSupport(processingEnvironment, entity, simpleName.toString(), LombokSupport.GenerationType.SETTER);
         }
     }
 
@@ -313,7 +317,7 @@ public class ProcessorUtils {
 
     public static List<Element> getAllValidElements(ProcessingEnvironment processingEnvironment,
                                                     TypeElement entity) {
-        List<Element> elements = new ArrayList<>(processingEnvironment.getElementUtils().getAllMembers(entity));
+        List<Element> elements = new ArrayList<>(getAllElements(processingEnvironment, entity));
         TypeElement objectElements = processingEnvironment.getElementUtils().getTypeElement("java.lang.Object");
         List<Element> notValidElements = processingEnvironment.getElementUtils().getAllMembers(objectElements)
                 .stream()
@@ -321,7 +325,8 @@ public class ProcessorUtils {
                     Set<Modifier> modifiers = ele.getModifiers();
                     return modifiers.contains(Modifier.FINAL)
                             || modifiers.contains(Modifier.NATIVE)
-                            || modifiers.contains(Modifier.PROTECTED);
+                            || (modifiers.contains(Modifier.PROTECTED) && !ElementKind.FIELD.equals(ele.getKind()))
+                            || modifiers.contains(Modifier.STATIC);
                 }).collect(Collectors.toList());
         elements.removeAll(notValidElements);
         elements.removeIf(ele -> {
@@ -330,6 +335,37 @@ public class ProcessorUtils {
                     || (modifiers.contains(Modifier.PRIVATE) && !ele.getKind().isField());
         });
         return elements;
+    }
+
+    @SuppressWarnings("unchecked")
+    private static List<Element> getAllElements(ProcessingEnvironment processingEnvironment, TypeElement entity) {
+        List<Element> elements = new ArrayList<>(processingEnvironment.getElementUtils().getAllMembers(entity));
+        for (TypeMirror mirror : processingEnvironment.getTypeUtils().directSupertypes(entity.asType())) {
+            TypeElement typeElement = extractWrapperGeneric(processingEnvironment, mirror.toString());
+            if (mirror.toString().equalsIgnoreCase("java.lang.Object")
+                    || ElementKind.INTERFACE.equals(typeElement.getKind())) {
+                continue;
+            }
+            List<Element> allMembers = (List<Element>) processingEnvironment.getElementUtils().getAllMembers(typeElement);
+            elements.addAll(allMembers);
+        }
+        return elements.stream()
+                .filter(distinctByKey(Element::getSimpleName))
+                .collect(Collectors.toList());
+    }
+
+    private static TypeElement extractWrapperGeneric(ProcessingEnvironment processingEnvironment, String typeElement) {
+        String name = typeElement;
+        if (typeElement.contains(STARTING_GENERIC)) {
+            name = typeElement.substring(0, typeElement.indexOf(STARTING_GENERIC));
+        }
+
+        return processingEnvironment.getElementUtils().getTypeElement(name);
+    }
+
+    private static <T> Predicate<T> distinctByKey(Function<? super T, ?> keyExtractor) {
+        Set<Object> seen = ConcurrentHashMap.newKeySet();
+        return t -> seen.add(keyExtractor.apply(t));
     }
 
     public static List<ExecutableElement> appendExternalGeneratedMethods(ProcessingEnvironment processingEnvironment,

@@ -20,6 +20,7 @@ JAORM is divided in modules that are used from main module using **Java SPI**
 - Cache
 - DSL (Domain-Specific Language)
 - Transaction
+- Lombok Support
 
 ## Features
 
