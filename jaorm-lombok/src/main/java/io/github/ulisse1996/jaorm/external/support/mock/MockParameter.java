@@ -1,7 +1,6 @@
 package io.github.ulisse1996.jaorm.external.support.mock;
 
 import io.github.ulisse1996.jaorm.external.LombokElementMock;
-import io.github.ulisse1996.jaorm.external.LombokMock;
 
 import javax.lang.model.element.*;
 import javax.lang.model.type.TypeMirror;

@@ -3,7 +3,6 @@ package io.github.ulisse1996.jaorm.external;
 import javax.lang.model.AnnotatedConstruct;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
-import javax.lang.model.element.ElementVisitor;
 import java.lang.annotation.Annotation;
 import java.util.Collections;
 import java.util.List;
