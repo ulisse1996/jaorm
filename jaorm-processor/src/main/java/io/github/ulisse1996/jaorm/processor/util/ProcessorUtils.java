@@ -325,13 +325,13 @@ public class ProcessorUtils {
                     Set<Modifier> modifiers = ele.getModifiers();
                     return modifiers.contains(Modifier.FINAL)
                             || modifiers.contains(Modifier.NATIVE)
-                            || (modifiers.contains(Modifier.PROTECTED) && !ElementKind.FIELD.equals(ele.getKind()))
+                            || modifiers.contains(Modifier.PROTECTED)
                             || modifiers.contains(Modifier.STATIC);
                 }).collect(Collectors.toList());
         elements.removeAll(notValidElements);
         elements.removeIf(ele -> {
             Set<Modifier> modifiers = ele.getModifiers();
-            return modifiers.contains(Modifier.PROTECTED)
+            return (modifiers.contains(Modifier.PROTECTED) && !ele.getKind().isField())
                     || (modifiers.contains(Modifier.PRIVATE) && !ele.getKind().isField());
         });
         return elements;

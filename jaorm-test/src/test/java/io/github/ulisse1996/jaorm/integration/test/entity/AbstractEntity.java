@@ -10,10 +10,10 @@ import java.util.Date;
 public abstract class AbstractEntity implements PrePersist<RuntimeException> {
 
     @Column(name = "CREATE_DATE")
-    private Date createDate;
+    protected Date createDate;
 
     @Column(name = "CREATE_USER")
-    private String creationUser;
+    protected String creationUser;
 
     @Override
     public void prePersist() {
