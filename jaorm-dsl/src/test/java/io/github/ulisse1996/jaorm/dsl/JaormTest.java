@@ -476,6 +476,72 @@ class JaormTest {
     }
 
     @Test
+    void should_throw_exception_for_bad_limit_row() {
+        try (MockedStatic<DelegatesService> mk = Mockito.mockStatic(DelegatesService.class);
+             MockedStatic<QueryRunner> run = Mockito.mockStatic(QueryRunner.class);
+             MockedStatic<VendorSpecific> vendor = Mockito.mockStatic(VendorSpecific.class)) {
+            DelegatesService delegatesService = Mockito.mock(DelegatesService.class);
+            EntityDelegate<?> delegate = Mockito.mock(EntityDelegate.class);
+            EntityDelegate<?> delegateJoin = Mockito.mock(EntityDelegate.class);
+            QueryRunner runner = Mockito.mock(QueryRunner.class);
+            vendor.when(() -> VendorSpecific.getSpecific(LimitOffsetSpecific.class))
+                    .thenReturn(StandardOffSetLimitSpecific.INSTANCE);
+            mk.when(DelegatesService::getInstance)
+                    .thenReturn(delegatesService);
+            run.when(() -> QueryRunner.getInstance(Mockito.any()))
+                    .thenReturn(runner);
+            Mockito.when(delegatesService.searchDelegate(Object.class))
+                    .thenReturn(() -> delegate);
+            Mockito.when(delegate.getTable())
+                    .thenReturn("TABLE");
+            Mockito.when(delegate.getSelectables())
+                    .thenReturn(new String[]{"COL1", "COL2"});
+            Mockito.when(delegatesService.searchDelegate(MyObject.class))
+                    .thenReturn(() -> delegateJoin);
+            Mockito.when(delegateJoin.getTable())
+                    .thenReturn("TABLE2");
+            Mockito.when(delegateJoin.getSelectables())
+                    .thenReturn(new String[]{"COL3", "COL4"});
+
+            Assertions.assertThrows(IllegalArgumentException.class, () -> Jaorm.select(Object.class)
+                    .limit(-1));
+        }
+    }
+
+    @Test
+    void should_throw_exception_for_bad_offset_row() {
+        try (MockedStatic<DelegatesService> mk = Mockito.mockStatic(DelegatesService.class);
+             MockedStatic<QueryRunner> run = Mockito.mockStatic(QueryRunner.class);
+             MockedStatic<VendorSpecific> vendor = Mockito.mockStatic(VendorSpecific.class)) {
+            DelegatesService delegatesService = Mockito.mock(DelegatesService.class);
+            EntityDelegate<?> delegate = Mockito.mock(EntityDelegate.class);
+            EntityDelegate<?> delegateJoin = Mockito.mock(EntityDelegate.class);
+            QueryRunner runner = Mockito.mock(QueryRunner.class);
+            vendor.when(() -> VendorSpecific.getSpecific(LimitOffsetSpecific.class))
+                    .thenReturn(StandardOffSetLimitSpecific.INSTANCE);
+            mk.when(DelegatesService::getInstance)
+                    .thenReturn(delegatesService);
+            run.when(() -> QueryRunner.getInstance(Mockito.any()))
+                    .thenReturn(runner);
+            Mockito.when(delegatesService.searchDelegate(Object.class))
+                    .thenReturn(() -> delegate);
+            Mockito.when(delegate.getTable())
+                    .thenReturn("TABLE");
+            Mockito.when(delegate.getSelectables())
+                    .thenReturn(new String[]{"COL1", "COL2"});
+            Mockito.when(delegatesService.searchDelegate(MyObject.class))
+                    .thenReturn(() -> delegateJoin);
+            Mockito.when(delegateJoin.getTable())
+                    .thenReturn("TABLE2");
+            Mockito.when(delegateJoin.getSelectables())
+                    .thenReturn(new String[]{"COL3", "COL4"});
+
+            Assertions.assertThrows(IllegalArgumentException.class, () -> Jaorm.select(Object.class)
+                    .offset(-1));
+        }
+    }
+
+    @Test
     void should_create_sql_with_limit_and_offset() {
         try (MockedStatic<DelegatesService> mk = Mockito.mockStatic(DelegatesService.class);
              MockedStatic<QueryRunner> run = Mockito.mockStatic(QueryRunner.class);
