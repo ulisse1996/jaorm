@@ -503,7 +503,7 @@ class JaormTest {
             Mockito.when(delegateJoin.getSelectables())
                     .thenReturn(new String[]{"COL3", "COL4"});
 
-            Assertions.assertThrows(IllegalArgumentException.class, () -> Jaorm.select(Object.class)
+            Assertions.assertThrows(IllegalArgumentException.class, () -> Jaorm.select(Object.class) //NOSONAR
                     .limit(-1));
         }
     }
@@ -536,7 +536,7 @@ class JaormTest {
             Mockito.when(delegateJoin.getSelectables())
                     .thenReturn(new String[]{"COL3", "COL4"});
 
-            Assertions.assertThrows(IllegalArgumentException.class, () -> Jaorm.select(Object.class)
+            Assertions.assertThrows(IllegalArgumentException.class, () -> Jaorm.select(Object.class) //NOSONAR
                     .offset(-1));
         }
     }
