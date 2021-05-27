@@ -2,6 +2,7 @@ package io.github.ulisse1996.jaorm.integration.test;
 
 import io.github.ulisse1996.jaorm.dsl.Jaorm;
 import io.github.ulisse1996.jaorm.dsl.common.LikeType;
+import io.github.ulisse1996.jaorm.dsl.common.OrderType;
 import io.github.ulisse1996.jaorm.entity.EntityComparator;
 import io.github.ulisse1996.jaorm.exception.JaormSqlException;
 import io.github.ulisse1996.jaorm.integration.test.entity.*;
@@ -9,9 +10,14 @@ import io.github.ulisse1996.jaorm.integration.test.query.RoleDAO;
 import io.github.ulisse1996.jaorm.integration.test.query.UserDAO;
 import io.github.ulisse1996.jaorm.integration.test.query.UserRoleDAO;
 import io.github.ulisse1996.jaorm.spi.QueriesService;
+import io.github.ulisse1996.jaorm.vendor.VendorSpecific;
+import io.github.ulisse1996.jaorm.vendor.specific.LimitOffsetSpecific;
+import io.github.ulisse1996.jaorm.vendor.supports.common.StandardOffSetLimitSpecific;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 
 import java.util.Arrays;
 import java.util.List;
@@ -209,5 +215,60 @@ class JaormDSLIT extends AbstractIT {
         Assertions.assertTrue(
                 EntityComparator.getInstance(User.class).equals(user, read)
         );
+    }
+
+    @ParameterizedTest
+    @MethodSource("getSqlTests")
+    void should_limit_read_all(HSQLDBProvider.DatabaseType databaseType, String initSql) {
+        setDataSource(databaseType, initSql);
+
+        UserDAO userDao = QueriesService.getInstance().getQuery(UserDAO.class);
+
+        User user1 = createUser(1);
+        User user2 = createUser(2);
+        User user3 = createUser(3);
+        User user4 = createUser(4);
+        User user5 = createUser(5);
+
+        Assertions.assertTrue(userDao.readAll().isEmpty());
+
+        userDao.insert(Arrays.asList(user1, user2, user3, user4, user5));
+
+        try (MockedStatic<VendorSpecific> mk = Mockito.mockStatic(VendorSpecific.class)) {
+            mk.when(() -> VendorSpecific.getSpecific(LimitOffsetSpecific.class))
+                    .thenReturn(StandardOffSetLimitSpecific.INSTANCE);
+            List<User> readAll = Jaorm.select(User.class)
+                    .orderBy(OrderType.ASC, UserColumns.USER_ID)
+                    .readAll();
+
+            List<User> usersLimit = Jaorm.select(User.class)
+                    .orderBy(OrderType.ASC, UserColumns.USER_ID)
+                    .limit(3)
+                    .readAll();
+
+            List<User> usersLimitOffset = Jaorm.select(User.class)
+                    .orderBy(OrderType.ASC, UserColumns.USER_ID)
+                    .offset(2)
+                    .limit(2)
+                    .readAll();
+
+            Assertions.assertAll(
+                    () -> Assertions.assertEquals(5, readAll.size()),
+                    () -> Assertions.assertEquals(3, usersLimit.size()),
+                    () -> Assertions.assertEquals(1, usersLimit.get(0).getId()),
+                    () -> Assertions.assertEquals(2, usersLimit.get(1).getId()),
+                    () -> Assertions.assertEquals(3, usersLimit.get(2).getId()),
+                    () -> Assertions.assertEquals(2, usersLimitOffset.size()),
+                    () -> Assertions.assertEquals(3, usersLimitOffset.get(0).getId()),
+                    () -> Assertions.assertEquals(4, usersLimitOffset.get(1).getId())
+            );
+        }
+    }
+
+    private User createUser(int i) {
+        User user = new User();
+        user.setId(i);
+        user.setName("NAME_i");
+        return user;
     }
 }

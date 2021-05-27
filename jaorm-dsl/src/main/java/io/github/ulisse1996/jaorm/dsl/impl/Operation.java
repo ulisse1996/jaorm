@@ -14,7 +14,6 @@ public enum Operation {
     LIKE(""),
     NOT_LIKE("");
 
-
     private final String value;
 
     Operation(String value) {

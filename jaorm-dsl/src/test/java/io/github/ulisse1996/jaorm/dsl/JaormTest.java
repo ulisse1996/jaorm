@@ -7,6 +7,9 @@ import io.github.ulisse1996.jaorm.entity.Result;
 import io.github.ulisse1996.jaorm.entity.SqlColumn;
 import io.github.ulisse1996.jaorm.spi.DelegatesService;
 import io.github.ulisse1996.jaorm.spi.QueryRunner;
+import io.github.ulisse1996.jaorm.vendor.VendorSpecific;
+import io.github.ulisse1996.jaorm.vendor.specific.LimitOffsetSpecific;
+import io.github.ulisse1996.jaorm.vendor.supports.common.StandardOffSetLimitSpecific;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
@@ -429,6 +432,87 @@ class JaormTest {
             Assertions.assertThrows(IllegalArgumentException.class, () -> //NOSONAR
                     Jaorm.select(Object.class).join(MyObject.class).on(COL_1).eq(SqlColumn.instance("COL5", Integer.class))
             );
+        }
+    }
+
+    @Test
+    void should_create_sql_with_limit() {
+        try (MockedStatic<DelegatesService> mk = Mockito.mockStatic(DelegatesService.class);
+             MockedStatic<QueryRunner> run = Mockito.mockStatic(QueryRunner.class);
+             MockedStatic<VendorSpecific> vendor = Mockito.mockStatic(VendorSpecific.class)) {
+            DelegatesService delegatesService = Mockito.mock(DelegatesService.class);
+            EntityDelegate<?> delegate = Mockito.mock(EntityDelegate.class);
+            EntityDelegate<?> delegateJoin = Mockito.mock(EntityDelegate.class);
+            QueryRunner runner = Mockito.mock(QueryRunner.class);
+            vendor.when(() -> VendorSpecific.getSpecific(LimitOffsetSpecific.class))
+                    .thenReturn(StandardOffSetLimitSpecific.INSTANCE);
+            mk.when(DelegatesService::getInstance)
+                    .thenReturn(delegatesService);
+            run.when(() -> QueryRunner.getInstance(Mockito.any()))
+                    .thenReturn(runner);
+            Mockito.when(delegatesService.searchDelegate(Object.class))
+                    .thenReturn(() -> delegate);
+            Mockito.when(delegate.getTable())
+                    .thenReturn("TABLE");
+            Mockito.when(delegate.getSelectables())
+                    .thenReturn(new String[]{"COL1", "COL2"});
+            Mockito.when(delegatesService.searchDelegate(MyObject.class))
+                    .thenReturn(() -> delegateJoin);
+            Mockito.when(delegateJoin.getTable())
+                    .thenReturn("TABLE2");
+            Mockito.when(delegateJoin.getSelectables())
+                    .thenReturn(new String[]{"COL3", "COL4"});
+
+            Jaorm.select(Object.class)
+                    .where(COL_1).eq(2)
+                    .limit(10)
+                    .readAll();
+
+            String sqlLimit = "SELECT TABLE.COL1, TABLE.COL2 FROM TABLE WHERE (TABLE.COL1 = ?) LIMIT 10";
+
+            Mockito.verify(runner, Mockito.times(1))
+                    .readAll(Mockito.any(), Mockito.eq(sqlLimit), Mockito.any());
+        }
+    }
+
+    @Test
+    void should_create_sql_with_limit_and_offset() {
+        try (MockedStatic<DelegatesService> mk = Mockito.mockStatic(DelegatesService.class);
+             MockedStatic<QueryRunner> run = Mockito.mockStatic(QueryRunner.class);
+             MockedStatic<VendorSpecific> vendor = Mockito.mockStatic(VendorSpecific.class)) {
+            DelegatesService delegatesService = Mockito.mock(DelegatesService.class);
+            EntityDelegate<?> delegate = Mockito.mock(EntityDelegate.class);
+            EntityDelegate<?> delegateJoin = Mockito.mock(EntityDelegate.class);
+            QueryRunner runner = Mockito.mock(QueryRunner.class);
+            vendor.when(() -> VendorSpecific.getSpecific(LimitOffsetSpecific.class))
+                    .thenReturn(StandardOffSetLimitSpecific.INSTANCE);
+            mk.when(DelegatesService::getInstance)
+                    .thenReturn(delegatesService);
+            run.when(() -> QueryRunner.getInstance(Mockito.any()))
+                    .thenReturn(runner);
+            Mockito.when(delegatesService.searchDelegate(Object.class))
+                    .thenReturn(() -> delegate);
+            Mockito.when(delegate.getTable())
+                    .thenReturn("TABLE");
+            Mockito.when(delegate.getSelectables())
+                    .thenReturn(new String[]{"COL1", "COL2"});
+            Mockito.when(delegatesService.searchDelegate(MyObject.class))
+                    .thenReturn(() -> delegateJoin);
+            Mockito.when(delegateJoin.getTable())
+                    .thenReturn("TABLE2");
+            Mockito.when(delegateJoin.getSelectables())
+                    .thenReturn(new String[]{"COL3", "COL4"});
+
+            Jaorm.select(Object.class)
+                    .where(COL_1).eq(2)
+                    .offset(10)
+                    .limit(10)
+                    .readAll();
+
+            String sqlLimit = "SELECT TABLE.COL1, TABLE.COL2 FROM TABLE WHERE (TABLE.COL1 = ?) LIMIT 10 OFFSET 10";
+
+            Mockito.verify(runner, Mockito.times(1))
+                    .readAll(Mockito.any(), Mockito.eq(sqlLimit), Mockito.any());
         }
     }
 

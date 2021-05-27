@@ -1,0 +1,5 @@
+io.github.ulisse1996.jaorm.vendor.supports.OracleSpecific
+io.github.ulisse1996.jaorm.vendor.supports.PostgreSpecific
+io.github.ulisse1996.jaorm.vendor.supports.MysqlSpecific
+io.github.ulisse1996.jaorm.vendor.supports.SqlServerSpecific
+io.github.ulisse1996.jaorm.vendor.supports.Db2Specific
