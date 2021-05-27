@@ -9,6 +9,8 @@ import io.github.ulisse1996.jaorm.entity.converter.ValueConverter;
 import io.github.ulisse1996.jaorm.entity.sql.SqlParameter;
 import io.github.ulisse1996.jaorm.spi.DelegatesService;
 import io.github.ulisse1996.jaorm.spi.QueryRunner;
+import io.github.ulisse1996.jaorm.vendor.VendorSpecific;
+import io.github.ulisse1996.jaorm.vendor.specific.LimitOffsetSpecific;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -18,6 +20,7 @@ public class SelectImpl implements Select {
 
     private static final String COLUMN_CAN_T_BE_NULL = "Column can't be null !";
     private static final String JOINED_TABLE_CAN_T_BE_NULL = "Joined Table can't be null !";
+    private static final int NOT_ACTIVE = -1;
 
     @Override
     public <T> EndSelect<T> select(Class<T> klass) {
@@ -31,7 +34,7 @@ public class SelectImpl implements Select {
         return new EndSelectImpl<>(from, klass, columns);
     }
 
-    static class EndSelectImpl<T, R, M> implements EndSelect<T>, Order<T> {
+    static class EndSelectImpl<T, R, M> implements EndSelect<T>, Order<T>, Fetch<T>, Offset<T> {
 
         final Class<T> klass;
         final String[] columns;
@@ -39,12 +42,16 @@ public class SelectImpl implements Select {
         private WhereImpl<T, R, M> where;
         private OrderImpl<T> order;
         private final List<JoinImpl<?, ?>> joins;
+        private int limit;
+        private int offset;
 
         public EndSelectImpl(String from, Class<T> klass, String[] columns) {
             this.from = from;
             this.klass = klass;
             this.columns = columns;
             this.joins = new ArrayList<>();
+            this.limit = NOT_ACTIVE;
+            this.offset = NOT_ACTIVE;
         }
 
         @Override
@@ -94,6 +101,24 @@ public class SelectImpl implements Select {
         private Join<T> addJoin(JoinImpl<T, ?> join) {
             this.joins.add(join);
             return join;
+        }
+
+        @Override
+        public Fetch<T> limit(int row) {
+            if (row <= 0) {
+                throw new IllegalArgumentException("Row can't be less or equals to 0");
+            }
+            this.limit = row;
+            return this;
+        }
+
+        @Override
+        public Offset<T> offset(int row) {
+            if (row <= 0) {
+                throw new IllegalArgumentException("Row can't be less or equals to 0");
+            }
+            this.offset = row;
+            return this;
         }
 
         @Override
@@ -151,7 +176,20 @@ public class SelectImpl implements Select {
                 select.append(" ORDER BY ").append(order.getSql());
             }
 
+            buildLimitOffset(select);
+
             return new Pair<>(select.toString(), parameters);
+        }
+
+        private void buildLimitOffset(StringBuilder select) {
+            if (limit != NOT_ACTIVE || offset != NOT_ACTIVE) {
+                LimitOffsetSpecific specific = VendorSpecific.getSpecific(LimitOffsetSpecific.class);
+                if (limit != NOT_ACTIVE && offset != NOT_ACTIVE) {
+                    select.append(specific.convertOffSetLimitSupport(limit, offset));
+                } else {
+                    select.append(specific.convertOffSetLimitSupport(limit));
+                }
+            }
         }
 
         @Override

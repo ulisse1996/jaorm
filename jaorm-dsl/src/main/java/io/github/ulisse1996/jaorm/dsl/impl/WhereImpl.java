@@ -182,6 +182,18 @@ public class WhereImpl<T, R, M> implements Where<T, R>, IntermediateWhere<T> {
         return this.parent.orderBy(type, column);
     }
 
+    @Override
+    public Fetch<T> limit(int row) {
+        this.parent.limit(row);
+        return this.parent;
+    }
+
+    @Override
+    public Offset<T> offset(int row) {
+        this.parent.offset(row);
+        return this.parent;
+    }
+
     private void checkColumn(SqlColumn<T, ?> column) {
         Objects.requireNonNull(column, COLUMN_CAN_T_BE_NULL);
         checkColumn(column.getName());

@@ -9,4 +9,6 @@ public interface IntermediateWhere<T> extends Readable<T> {
     <L> Where<T, L> and(SqlColumn<T, L> column);
     <L> Where<T, L> or(SqlColumn<T, L> column);
     Order<T> orderBy(OrderType type, SqlColumn<T, ?> column);
+    Fetch<T> limit(int row);
+    Offset<T> offset(int row);
 }

@@ -112,8 +112,8 @@ The following table define how user must use **@RelationshipColumn**
 
 Supported type for **@Relationship** annotated fields are :
 
-- **java.util.Optional\<T>** , for an optional One to One relationship
-- **java.util.List\<T>** , for One To Many or Many To Many relationship
+- **io.github.ulisse1996.jaorm.entity.Result\<T>** , for an optional One to One relationship
+- **java.util.List\<T>** , for One To Many or Many-To-Many relationship
 - a User defined Entity, for One to One relationship
 
 ##### **1.1.3.1** Cascade Operations
