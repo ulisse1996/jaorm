@@ -1,23 +1,1033 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Jaorm - Just Another Object-Relational Mapping</title>
-  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
-  <meta name="description" content="Description">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
-  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify@4/lib/themes/vue.css">
-</head>
-<body>
-  <div id="app"></div>
-  <script>
-    window.$docsify = {
-      name: 'Jaorm',
-      repo: ''
-    }
-  </script>
-  <!-- Docsify v4 -->
-  <script src="//cdn.jsdelivr.net/npm/docsify@4"></script>
-  <script src="//cdn.jsdelivr.net/npm/prismjs@1.23.0/components/prism-java.min.js"></script>
-</body>
+
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>User Documentation</title>
+
+    <style media="screen">
+      .highlight table td { padding: 5px; }
+.highlight table pre { margin: 0; }
+.highlight .gh {
+  color: #999999;
+}
+.highlight .sr {
+  color: #f6aa11;
+}
+.highlight .go {
+  color: #888888;
+}
+.highlight .gp {
+  color: #555555;
+}
+.highlight .gs {
+}
+.highlight .gu {
+  color: #aaaaaa;
+}
+.highlight .nb {
+  color: #f6aa11;
+}
+.highlight .cm {
+  color: #75715e;
+}
+.highlight .cp {
+  color: #75715e;
+}
+.highlight .c1 {
+  color: #75715e;
+}
+.highlight .cs {
+  color: #75715e;
+}
+.highlight .c, .highlight .ch, .highlight .cd, .highlight .cpf {
+  color: #75715e;
+}
+.highlight .err {
+  color: #960050;
+}
+.highlight .gr {
+  color: #960050;
+}
+.highlight .gt {
+  color: #960050;
+}
+.highlight .gd {
+  color: #49483e;
+}
+.highlight .gi {
+  color: #49483e;
+}
+.highlight .ge {
+  color: #49483e;
+}
+.highlight .kc {
+  color: #66d9ef;
+}
+.highlight .kd {
+  color: #66d9ef;
+}
+.highlight .kr {
+  color: #66d9ef;
+}
+.highlight .no {
+  color: #66d9ef;
+}
+.highlight .kt {
+  color: #66d9ef;
+}
+.highlight .mf {
+  color: #ae81ff;
+}
+.highlight .mh {
+  color: #ae81ff;
+}
+.highlight .il {
+  color: #ae81ff;
+}
+.highlight .mi {
+  color: #ae81ff;
+}
+.highlight .mo {
+  color: #ae81ff;
+}
+.highlight .m, .highlight .mb, .highlight .mx {
+  color: #ae81ff;
+}
+.highlight .sc {
+  color: #ae81ff;
+}
+.highlight .se {
+  color: #ae81ff;
+}
+.highlight .ss {
+  color: #ae81ff;
+}
+.highlight .sd {
+  color: #e6db74;
+}
+.highlight .s2 {
+  color: #e6db74;
+}
+.highlight .sb {
+  color: #e6db74;
+}
+.highlight .sh {
+  color: #e6db74;
+}
+.highlight .si {
+  color: #e6db74;
+}
+.highlight .sx {
+  color: #e6db74;
+}
+.highlight .s1 {
+  color: #e6db74;
+}
+.highlight .s, .highlight .sa, .highlight .dl {
+  color: #e6db74;
+}
+.highlight .na {
+  color: #a6e22e;
+}
+.highlight .nc {
+  color: #a6e22e;
+}
+.highlight .nd {
+  color: #a6e22e;
+}
+.highlight .ne {
+  color: #a6e22e;
+}
+.highlight .nf, .highlight .fm {
+  color: #a6e22e;
+}
+.highlight .vc {
+  color: #ffffff;
+}
+.highlight .nn {
+  color: #ffffff;
+}
+.highlight .ni {
+  color: #ffffff;
+}
+.highlight .bp {
+  color: #ffffff;
+}
+.highlight .vg {
+  color: #ffffff;
+}
+.highlight .vi {
+  color: #ffffff;
+}
+.highlight .nv, .highlight .vm {
+  color: #ffffff;
+}
+.highlight .w {
+  color: #ffffff;
+}
+.highlight {
+  color: #ffffff;
+}
+.highlight .n, .highlight .py, .highlight .nx {
+  color: #ffffff;
+}
+.highlight .nl {
+  color: #f92672;
+}
+.highlight .ow {
+  color: #f92672;
+}
+.highlight .nt {
+  color: #f92672;
+}
+.highlight .k, .highlight .kv {
+  color: #f92672;
+}
+.highlight .kn {
+  color: #f92672;
+}
+.highlight .kp {
+  color: #f92672;
+}
+.highlight .o {
+  color: #f92672;
+}
+    </style>
+    <style media="print">
+      * {
+        -webkit-transition:none!important;
+        transition:none!important;
+      }
+      .highlight table td { padding: 5px; }
+.highlight table pre { margin: 0; }
+.highlight, .highlight .w {
+  color: #586e75;
+}
+.highlight .err {
+  color: #002b36;
+  background-color: #dc322f;
+}
+.highlight .c, .highlight .ch, .highlight .cd, .highlight .cm, .highlight .cpf, .highlight .c1, .highlight .cs {
+  color: #657b83;
+}
+.highlight .cp {
+  color: #b58900;
+}
+.highlight .nt {
+  color: #b58900;
+}
+.highlight .o, .highlight .ow {
+  color: #93a1a1;
+}
+.highlight .p, .highlight .pi {
+  color: #93a1a1;
+}
+.highlight .gi {
+  color: #859900;
+}
+.highlight .gd {
+  color: #dc322f;
+}
+.highlight .gh {
+  color: #268bd2;
+  background-color: #002b36;
+  font-weight: bold;
+}
+.highlight .k, .highlight .kn, .highlight .kp, .highlight .kr, .highlight .kv {
+  color: #6c71c4;
+}
+.highlight .kc {
+  color: #cb4b16;
+}
+.highlight .kt {
+  color: #cb4b16;
+}
+.highlight .kd {
+  color: #cb4b16;
+}
+.highlight .s, .highlight .sb, .highlight .sc, .highlight .dl, .highlight .sd, .highlight .s2, .highlight .sh, .highlight .sx, .highlight .s1 {
+  color: #859900;
+}
+.highlight .sa {
+  color: #6c71c4;
+}
+.highlight .sr {
+  color: #2aa198;
+}
+.highlight .si {
+  color: #d33682;
+}
+.highlight .se {
+  color: #d33682;
+}
+.highlight .nn {
+  color: #b58900;
+}
+.highlight .nc {
+  color: #b58900;
+}
+.highlight .no {
+  color: #b58900;
+}
+.highlight .na {
+  color: #268bd2;
+}
+.highlight .m, .highlight .mb, .highlight .mf, .highlight .mh, .highlight .mi, .highlight .il, .highlight .mo, .highlight .mx {
+  color: #859900;
+}
+.highlight .ss {
+  color: #859900;
+}
+    </style>
+    <link href="stylesheets/screen-c9d8fa83.css" rel="stylesheet" media="screen" />
+    <link href="stylesheets/print-953e3353.css" rel="stylesheet" media="print" />
+      <script src="javascripts/all-a9fde460.js"></script>
+
+    <script>
+      $(function() { setupCodeCopy(); });
+    </script>
+  </head>
+
+  <body class="index" data-languages="[&quot;java&quot;]">
+    <a href="#" id="nav-button">
+      <span>
+        NAV
+        <img src="images/navbar-cad8cdcb.png" alt="" />
+      </span>
+    </a>
+    <div class="toc-wrapper">
+      <img src="images/logo-137c5ebe.png" class="logo" alt="" />
+        <div class="lang-selector">
+              <a href="#" data-language-name="java">java</a>
+        </div>
+        <div class="search">
+          <input type="text" class="search" id="input-search" placeholder="Search">
+        </div>
+        <ul class="search-results"></ul>
+      <ul id="toc" class="toc-list-h1">
+          <li>
+            <a href="#jaorm" class="toc-h1 toc-link" data-title="JAORM">JAORM</a>
+          </li>
+          <li>
+            <a href="#modules" class="toc-h1 toc-link" data-title="Modules">Modules</a>
+          </li>
+          <li>
+            <a href="#core" class="toc-h1 toc-link" data-title="Core">Core</a>
+              <ul class="toc-list-h2">
+                  <li>
+                    <a href="#entity-mapper" class="toc-h2 toc-link" data-title="Entity Mapper">Entity Mapper</a>
+                  </li>
+                  <li>
+                    <a href="#id" class="toc-h2 toc-link" data-title="Id">Id</a>
+                  </li>
+                  <li>
+                    <a href="#converter" class="toc-h2 toc-link" data-title="Converter">Converter</a>
+                  </li>
+                  <li>
+                    <a href="#relationship" class="toc-h2 toc-link" data-title="Relationship">Relationship</a>
+                  </li>
+                  <li>
+                    <a href="#cascade-operations" class="toc-h2 toc-link" data-title="Cascade Operations">Cascade Operations</a>
+                  </li>
+                  <li>
+                    <a href="#equals-checks" class="toc-h2 toc-link" data-title="Equals Checks">Equals Checks</a>
+                  </li>
+                  <li>
+                    <a href="#entity-comparator" class="toc-h2 toc-link" data-title="Entity Comparator">Entity Comparator</a>
+                  </li>
+                  <li>
+                    <a href="#query" class="toc-h2 toc-link" data-title="Query">Query</a>
+                  </li>
+                  <li>
+                    <a href="#logging" class="toc-h2 toc-link" data-title="Logging">Logging</a>
+                  </li>
+              </ul>
+          </li>
+          <li>
+            <a href="#cache" class="toc-h1 toc-link" data-title="Cache">Cache</a>
+          </li>
+          <li>
+            <a href="#dsl-domain-specific-language" class="toc-h1 toc-link" data-title="DSL (Domain-Specific Language)">DSL (Domain-Specific Language)</a>
+              <ul class="toc-list-h2">
+                  <li>
+                    <a href="#vendor-specific" class="toc-h2 toc-link" data-title="Vendor Specific">Vendor Specific</a>
+                  </li>
+              </ul>
+          </li>
+          <li>
+            <a href="#transaction" class="toc-h1 toc-link" data-title="Transaction">Transaction</a>
+          </li>
+          <li>
+            <a href="#lombok" class="toc-h1 toc-link" data-title="Lombok">Lombok</a>
+          </li>
+      </ul>
+        <ul class="toc-footer">
+            <li><a href='https://github.com/slatedocs/slate'>Documentation Powered by Slate</a></li>
+        </ul>
+    </div>
+    <div class="page-wrapper">
+      <div class="dark-box"></div>
+      <div class="content">
+        <h1 id='jaorm'>JAORM</h1>
+<p>Just Another Object-Relational Mapping</p>
+
+<p><img src="https://github.com/ulisse1996/JAORM/workflows/build/badge.svg" alt="Build Status" />
+<a href="https://sonarcloud.io/dashboard?id=ulisse1996_JAORM"><img src="https://sonarcloud.io/api/project_badges/measure?project=ulisse1996_JAORM&amp;metric=alert_status" alt="Sonarcloud Status" /></a>
+<a href="https://sonarcloud.io/component_measures/metric/coverage/list?id=ulisse1996_JAORM"><img src="https://sonarcloud.io/api/project_badges/measure?project=ulisse1996_JAORM&amp;metric=coverage" alt="SonarCloud Coverage" /></a>
+<a href="https://sonarcloud.io/component_measures/metric/reliability_rating/list?id=ulisse1996_JAORM"><img src="https://sonarcloud.io/api/project_badges/measure?project=ulisse1996_JAORM&amp;metric=bugs" alt="SonarCloud Bugs" /></a>
+<a href="https://sonarcloud.io/component_measures/metric/security_rating/list?id=ulisse1996_JAORM"><img src="https://sonarcloud.io/api/project_badges/measure?project=ulisse1996_JAORM&amp;metric=vulnerabilities" alt="SonarCloud Vulnerabilities" /></a></p>
+
+<p>JAORM is a lightweight modular compile-time based Java ORM.</p>
+
+<p>JAORM use <strong>Java Annotation Processor <a href="https://jcp.org/en/jsr/detail?id=269">JSR 269</a></strong> for Entity Mapping Generation instead of
+<strong>Runtime Reflection API-based</strong> mappers which have high performance cost.</p>
+
+<p>JAORM is divided in modules that are used from main module using <strong>Java SPI</strong></p>
+<h1 id='modules'>Modules</h1><div class="highlight"><pre class="highlight xml tab-xml"><code>Core Module
+<span class="nt">&lt;dependency&gt;</span>
+    <span class="nt">&lt;groupId&gt;</span>io.github.ulisse1996<span class="nt">&lt;/groupId&gt;</span>
+    <span class="nt">&lt;artifactId&gt;</span>jaorm<span class="nt">&lt;/artifactId&gt;</span>
+    <span class="nt">&lt;version&gt;</span>${jaorm.version}<span class="nt">&lt;/version&gt;</span>
+<span class="nt">&lt;/dependency&gt;</span>
+
+Dsl Module
+<span class="nt">&lt;dependency&gt;</span>
+    <span class="nt">&lt;groupId&gt;</span>io.github.ulisse1996<span class="nt">&lt;/groupId&gt;</span>
+    <span class="nt">&lt;artifactId&gt;</span>jaorm-dsl<span class="nt">&lt;/artifactId&gt;</span>
+    <span class="nt">&lt;version&gt;</span>${jaorm.version}<span class="nt">&lt;/version&gt;</span>
+<span class="nt">&lt;/dependency&gt;</span>
+
+Cache Module Module
+<span class="nt">&lt;dependency&gt;</span>
+    <span class="nt">&lt;groupId&gt;</span>io.github.ulisse1996<span class="nt">&lt;/groupId&gt;</span>
+    <span class="nt">&lt;artifactId&gt;</span>jaorm-cache<span class="nt">&lt;/artifactId&gt;</span>
+    <span class="nt">&lt;version&gt;</span>${jaorm.version}<span class="nt">&lt;/version&gt;</span>
+<span class="nt">&lt;/dependency&gt;</span>
+
+Transaction Module
+<span class="nt">&lt;dependency&gt;</span>
+    <span class="nt">&lt;groupId&gt;</span>io.github.ulisse1996<span class="nt">&lt;/groupId&gt;</span>
+    <span class="nt">&lt;artifactId&gt;</span>jaorm-transaction<span class="nt">&lt;/artifactId&gt;</span>
+    <span class="nt">&lt;version&gt;</span>${jaorm.version}<span class="nt">&lt;/version&gt;</span>
+<span class="nt">&lt;/dependency&gt;</span>
+
+Lombok Module
+<span class="nt">&lt;dependency&gt;</span>
+    <span class="nt">&lt;groupId&gt;</span>io.github.ulisse1996<span class="nt">&lt;/groupId&gt;</span>
+    <span class="nt">&lt;artifactId&gt;</span>jaorm-lombok<span class="nt">&lt;/artifactId&gt;</span>
+    <span class="nt">&lt;version&gt;</span>${jaorm.version}<span class="nt">&lt;/version&gt;</span>
+<span class="nt">&lt;/dependency&gt;</span>
+</code></pre></div>
+<p>1 <a href="#core">Core (Entity Mapper and Query)</a></p>
+
+<p>2 <a href="#cache">Cache</a></p>
+
+<p>3 <a href="#dsl-domain-specific-language">DSL (Domain-Specific Language)</a></p>
+
+<p>4 <a href="#transaction">Transaction</a></p>
+
+<p>5 <a href="#lombok">Lombok</a></p>
+<h1 id='core'>Core</h1>
+<p>Core Module contains <a href="#entity-mapper">Entity Mapper</a> and <a href="#query">Query</a> annotated services</p>
+<div class="highlight"><pre class="highlight java tab-java"><code><span class="kn">import</span> <span class="nn">io.github.ulisse1996.jaorm.entity.sql.DataSourceProvider</span><span class="o">;</span>
+
+<span class="kn">import</span> <span class="nn">javax.enterprise.inject.spi.CDI</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">javax.enterprise.util.AnnotationLiteral</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">javax.sql.DataSource</span><span class="o">;</span>
+
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">DataSourceProviderImpl</span> <span class="kd">extends</span> <span class="nc">DataSourceProvider</span> <span class="o">{</span>
+
+    <span class="nd">@Override</span>
+    <span class="kd">public</span> <span class="nc">DataSource</span> <span class="nf">getDataSource</span><span class="o">()</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="no">CDI</span><span class="o">.</span><span class="na">current</span><span class="o">().</span><span class="na">select</span><span class="o">(</span><span class="nc">DataSource</span><span class="o">.</span><span class="na">class</span><span class="o">)</span>
+                <span class="o">.</span><span class="na">get</span><span class="o">();</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div>
+<p>User must define and <a href="https://docs.oracle.com/javase/tutorial/sound/SPI-intro.html">register</a> a custom implementation of <strong>io.github.ulisse1996.jaorm.entity.sql.DataSourceProvider</strong> that return an instance of <strong>javax.sql.DataSource</strong>
+for execute Sql Statements</p>
+<h2 id='entity-mapper'>Entity Mapper</h2><div class="highlight"><pre class="highlight java tab-java"><code><span class="kn">import</span> <span class="nn">io.github.ulisse1996.jaorm.annotation.*</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">io.github.ulisse1996.jaorm.entity.converter.BooleanIntConverter</span><span class="o">;</span>
+
+<span class="kn">import</span> <span class="nn">java.util.List</span><span class="o">;</span>
+
+<span class="nd">@Table</span><span class="o">(</span><span class="n">name</span> <span class="o">=</span> <span class="s">"TABLE_NAME"</span><span class="o">)</span>
+<span class="nd">@Cacheable</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">Entity</span> <span class="o">{</span>
+
+    <span class="nd">@Id</span><span class="o">(</span><span class="n">autoGenerated</span> <span class="o">=</span> <span class="kc">true</span><span class="o">)</span>
+    <span class="nd">@Column</span><span class="o">(</span><span class="n">name</span> <span class="o">=</span> <span class="s">"COLUMN_1"</span><span class="o">)</span>
+    <span class="kd">private</span> <span class="nc">String</span> <span class="n">column1</span><span class="o">;</span>
+
+    <span class="nd">@Column</span><span class="o">(</span><span class="n">name</span> <span class="o">=</span> <span class="s">"COLUMN_2"</span><span class="o">)</span>
+    <span class="kd">private</span> <span class="kt">int</span> <span class="n">column2</span><span class="o">;</span>
+
+    <span class="nd">@Column</span><span class="o">(</span><span class="n">name</span> <span class="o">=</span> <span class="s">"READ_CONFIRM"</span><span class="o">)</span>
+    <span class="nd">@Converter</span><span class="o">(</span><span class="nc">BooleanIntConverter</span><span class="o">.</span><span class="na">class</span><span class="o">)</span>
+    <span class="kd">private</span> <span class="kt">boolean</span> <span class="n">aBoolean</span><span class="o">;</span>
+
+    <span class="nd">@Relationship</span><span class="o">(</span><span class="n">columns</span> <span class="o">=</span> 
+      <span class="nd">@Relationship</span><span class="o">.</span><span class="na">RelationshipColumn</span><span class="o">(</span><span class="n">sourceColumn</span> <span class="o">=</span> <span class="s">"COLUMN_1"</span><span class="o">,</span> <span class="n">targetColumn</span> <span class="o">=</span> <span class="s">"COLUMN_REF_1"</span><span class="o">)</span>
+    <span class="o">)</span>
+    <span class="nd">@Cascade</span><span class="o">(</span><span class="nc">CascadeType</span><span class="o">.</span><span class="na">ALL</span><span class="o">)</span>
+    <span class="kd">private</span> <span class="nc">List</span><span class="o">&lt;</span><span class="nc">RefEntity</span><span class="o">&gt;</span> <span class="n">refEntities</span><span class="o">;</span>
+
+    <span class="c1">// Getter and Setter omitted for brevity</span>
+<span class="o">}</span>
+</code></pre></div>
+<p>An <strong>Entity</strong> is a POJO representing data that can be persisted to the database</p>
+
+<p>Each <strong>Entity</strong> could contain :</p>
+
+<ul>
+<li>1..1 <strong>@Table</strong> annotation that represent database table name</li>
+<li>0..1 <strong>@Cacheable</strong> annotation that define an Entity as cacheable</li>
+<li>1..N <strong>@Column</strong> annotated fields that represent column in database table</li>
+<li>0..N <strong>@Id</strong> annotated fields that represent a key column in database table</li>
+<li>0..N <strong>@Converter</strong> annotated fields that represent a logical conversion between a sql type, 
+and a custom/not supported type</li>
+<li>0..N <strong>@Relationship</strong> annotated fields that represent a logical relationship between two database tables</li>
+<li>0..N <strong>@Cascade</strong> annotated fields that are affected by operation done on parent entity</li>
+</ul>
+
+<p>For each <strong>@Column</strong> annotated fields , user must also define a getter, and a setter for that field</p>
+
+<p>A standard Constructor with no args must also be provided</p>
+<h2 id='id'>Id</h2>
+<p>In contrast to JPA , Jaorm does not use compound id class</p>
+
+<p>User can declare one or more <strong>@Id</strong> annotation in a single entity that are used to define how Entity must be selected, updated and deleted 
+from database</p>
+
+<p>An <strong>@Id</strong> annotation can also be marked as auto-generated. </p>
+
+<aside class="success">
+  Jaorm retrieve and set auto-generated keys during persist events
+</aside>
+<h2 id='converter'>Converter</h2><div class="highlight"><pre class="highlight java tab-java"><code><span class="kd">public</span> <span class="kd">class</span> <span class="nc">BooleanIntConverter</span> <span class="kd">implements</span> <span class="nc">ValueConverter</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">,</span> <span class="nc">Boolean</span><span class="o">&gt;</span> <span class="o">{</span>
+
+    <span class="kd">public</span> <span class="kd">static</span> <span class="kd">final</span> <span class="nc">BooleanIntConverter</span> <span class="no">INSTANCE</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">BooleanIntConverter</span><span class="o">();</span>
+
+    <span class="kd">private</span> <span class="nf">BooleanIntConverter</span><span class="o">()</span> <span class="o">{}</span>
+
+    <span class="nd">@Override</span>
+    <span class="kd">public</span> <span class="nc">Boolean</span> <span class="nf">fromSql</span><span class="o">(</span><span class="nc">Integer</span> <span class="n">val</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="n">val</span> <span class="o">!=</span> <span class="kc">null</span> <span class="o">&amp;&amp;</span> <span class="n">val</span> <span class="o">==</span> <span class="mi">1</span><span class="o">;</span>
+    <span class="o">}</span>
+
+    <span class="nd">@Override</span>
+    <span class="kd">public</span> <span class="nc">Integer</span> <span class="nf">toSql</span><span class="o">(</span><span class="nc">Boolean</span> <span class="n">val</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="n">val</span> <span class="o">!=</span> <span class="kc">null</span> <span class="o">&amp;&amp;</span> <span class="n">val</span> <span class="o">?</span> <span class="mi">1</span> <span class="o">:</span> <span class="mi">0</span><span class="o">;</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div>
+<p>User can define a custom Converter between a custom defined type
+(or a simple different type from the one defined on table column) and table column referenced by <strong>@Column</strong> annotation
+using an implementation of <strong>ValueConverter<T,R></strong> where <strong>T</strong> is the table column type and <strong>R</strong> is the custom defined type</p>
+
+<p>Jaorm contains two custom implementation for Boolean type :</p>
+
+<ul>
+<li>BooleanStringConverter, that convert a matching &quot;Y&quot; string to true , otherwise to false</li>
+<li>BooleanIntConverter, that convert 1 to true, otherwise to false</li>
+</ul>
+
+<p>Each of them contains standard implementation for ValueConverter with a public static instance (aka Singleton) named INSTANCE.</p>
+
+<aside class="notice">
+  User can follow standard implementation (defining a INSTANCE field) or defining a public constructor
+</aside>
+<h2 id='relationship'>Relationship</h2>
+<p>User can define one of One To One, One To Many, Many To Many relationships between two entities using <strong>@Relationship</strong>
+annotation on a field.</p>
+<div class="highlight"><pre class="highlight java tab-java"><code><span class="kn">import</span> <span class="nn">io.github.ulisse1996.jaorm.annotation.*</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">io.github.ulisse1996.jaorm.entity.Result</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">io.github.ulisse1996.jaorm.entity.ParameterConverter</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">io.github.ulisse1996.jaorm.entity.converter.BooleanIntConverter</span><span class="o">;</span>
+
+<span class="kn">import</span> <span class="nn">java.util.List</span><span class="o">;</span>
+
+<span class="nd">@Table</span><span class="o">(</span><span class="n">name</span> <span class="o">=</span> <span class="s">"TABLE_NAME"</span><span class="o">)</span>
+<span class="nd">@Cacheable</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">Entity</span> <span class="o">{</span>
+
+    <span class="nd">@Id</span><span class="o">(</span><span class="n">autoGenerated</span> <span class="o">=</span> <span class="kc">true</span><span class="o">)</span>
+    <span class="nd">@Column</span><span class="o">(</span><span class="n">name</span> <span class="o">=</span> <span class="s">"COLUMN_1"</span><span class="o">)</span>
+    <span class="kd">private</span> <span class="nc">String</span> <span class="n">column1</span><span class="o">;</span>
+
+    <span class="nd">@Column</span><span class="o">(</span><span class="n">name</span> <span class="o">=</span> <span class="s">"COLUMN_2"</span><span class="o">)</span>
+    <span class="kd">private</span> <span class="kt">int</span> <span class="n">column2</span><span class="o">;</span>
+
+    <span class="nd">@Column</span><span class="o">(</span><span class="n">name</span> <span class="o">=</span> <span class="s">"READ_CONFIRM"</span><span class="o">)</span>
+    <span class="nd">@Converter</span><span class="o">(</span><span class="nc">BooleanIntConverter</span><span class="o">.</span><span class="na">class</span><span class="o">)</span>
+    <span class="kd">private</span> <span class="kt">boolean</span> <span class="n">aBoolean</span><span class="o">;</span>
+
+    <span class="nd">@Relationship</span><span class="o">(</span><span class="n">columns</span> <span class="o">=</span> 
+      <span class="nd">@Relationship</span><span class="o">.</span><span class="na">RelationshipColumn</span><span class="o">(</span><span class="n">sourceColumn</span> <span class="o">=</span> <span class="s">"COLUMN_1"</span><span class="o">,</span> <span class="n">targetColumn</span> <span class="o">=</span> <span class="s">"COLUMN_REF_1"</span><span class="o">)</span>
+    <span class="o">)</span>
+    <span class="nd">@Cascade</span><span class="o">(</span><span class="nc">CascadeType</span><span class="o">.</span><span class="na">ALL</span><span class="o">)</span>
+    <span class="kd">private</span> <span class="nc">List</span><span class="o">&lt;</span><span class="nc">RefEntity</span><span class="o">&gt;</span> <span class="n">refEntities</span><span class="o">;</span>
+
+    <span class="nd">@Relationship</span><span class="o">(</span><span class="n">columns</span> <span class="o">=</span> 
+      <span class="nd">@Relationship</span><span class="o">.</span><span class="na">RelationshipColumn</span><span class="o">(</span><span class="n">defaultValue</span><span class="o">=</span><span class="s">"1"</span><span class="o">,</span> 
+      <span class="n">converter</span><span class="o">=</span><span class="nc">ParameterConverter</span><span class="o">.</span><span class="na">BIG_DECIMAL</span><span class="o">,</span> <span class="n">targetColumn</span> <span class="o">=</span> <span class="s">"COLUMN_REF_1"</span><span class="o">)</span>
+    <span class="o">)</span>
+    <span class="kd">private</span> <span class="nc">Result</span><span class="o">&lt;</span><span class="nc">OptEntity</span><span class="o">&gt;</span> <span class="n">refEntities</span><span class="o">;</span>
+
+    <span class="nd">@Relationship</span><span class="o">(</span><span class="n">columns</span> <span class="o">=</span> 
+      <span class="nd">@Relationship</span><span class="o">.</span><span class="na">RelationshipColumn</span><span class="o">(</span><span class="n">defaultValue</span><span class="o">=</span><span class="s">"aString"</span><span class="o">,</span> <span class="n">targetColumn</span> <span class="o">=</span> <span class="s">"COLUMN_REF_1"</span><span class="o">)</span>
+    <span class="o">)</span>
+    <span class="kd">private</span> <span class="nc">AnotherEntity</span> <span class="n">refEntities</span><span class="o">;</span>
+
+    <span class="c1">// Getter and Setter omitted for brevity</span>
+<span class="o">}</span>
+</code></pre></div>
+<p>Each <strong>@Relationship</strong> must contain 1..N <strong>@RelationshipColumn</strong></p>
+
+<p>Each <strong>@RelationshipColumn</strong> could contain :</p>
+
+<ul>
+<li>a default value , for relationship with a constant value</li>
+<li>a converter from ones defined in <strong>ParameterConverter</strong> that convert default value in a different sql type</li>
+<li>a source column , that match a table column defined in current entity</li>
+<li>a target column , that match a table column defined in relationship entity</li>
+</ul>
+
+<p>The following table define how user must use <strong>@RelationshipColumn</strong></p>
+
+<table><thead>
+<tr>
+<th></th>
+<th><strong>Default Value</strong></th>
+<th><strong>Converter</strong></th>
+<th><strong>Source Column</strong></th>
+<th><strong>Target Column</strong></th>
+</tr>
+</thead><tbody>
+<tr>
+<td><strong>Default Value</strong></td>
+<td></td>
+<td><span style="color:LimeGreen">Optional</td>
+<td><span style="color:blue">Not Required</td>
+<td><span style="color:Maroon">Required</td>
+</tr>
+<tr>
+<td><strong>Converter</strong></td>
+<td><span style="color:Maroon">Required</td>
+<td></td>
+<td><span style="color:blue">Not Required</td>
+<td><span style="color:Maroon">Required</td>
+</tr>
+<tr>
+<td><strong>Source Column</strong></td>
+<td><span style="color:blue">Not Required</td>
+<td><span style="color:blue">Not Required</td>
+<td></td>
+<td><span style="color:Maroon">Required</td>
+</tr>
+</tbody></table>
+
+<p>Supported type for <strong>@Relationship</strong> annotated fields are :</p>
+
+<ul>
+<li><strong>io.github.ulisse1996.jaorm.entity.Result&lt;T&gt;</strong> , for an optional One to One relationship</li>
+<li><strong>java.util.List&lt;T&gt;</strong> , for One To Many or Many-To-Many relationship</li>
+<li>a User defined Entity, for One to One relationship</li>
+</ul>
+<h2 id='cascade-operations'>Cascade Operations</h2>
+<p>Jaorm also supports Cascade operation with <strong>@Cascade</strong> annotation on relationship fields</p>
+<div class="highlight"><pre class="highlight java tab-java"><code><span class="nd">@Table</span><span class="o">(</span><span class="n">name</span> <span class="o">=</span> <span class="s">"USER"</span><span class="o">)</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">User</span> <span class="o">{</span>
+
+    <span class="nd">@Id</span>
+    <span class="nd">@Column</span><span class="o">(</span><span class="n">name</span> <span class="o">=</span> <span class="s">"COL1"</span><span class="o">)</span>
+    <span class="kd">private</span> <span class="nc">String</span> <span class="n">id</span><span class="o">;</span>
+
+    <span class="nd">@Column</span><span class="o">(</span><span class="n">name</span> <span class="o">=</span> <span class="s">"COL2"</span><span class="o">)</span>
+    <span class="kd">private</span> <span class="nc">String</span> <span class="n">col2</span><span class="o">;</span>
+
+    <span class="nd">@Cascade</span><span class="o">(</span><span class="nc">CascadeType</span><span class="o">.</span><span class="na">ALL</span><span class="o">)</span>
+    <span class="nd">@Relationship</span><span class="o">(</span><span class="n">columns</span> <span class="o">=</span> <span class="nd">@Relationship</span><span class="o">.</span><span class="na">RelationshipColumn</span><span class="o">(</span><span class="n">defaultValue</span> <span class="o">=</span> <span class="s">"DEPARTMENT_ID"</span><span class="o">,</span> 
+            <span class="n">targetColumn</span> <span class="o">=</span> <span class="s">"DEPARTMENT_ID"</span><span class="o">))</span>
+    <span class="kd">private</span> <span class="nc">Department</span> <span class="n">department</span><span class="o">;</span>
+
+    <span class="c1">// getter and setters</span>
+<span class="o">}</span>
+</code></pre></div>
+<p>Supported operations :</p>
+
+<ul>
+<li>ALL , on Insert , Update or Delete , linked entities are affected by the operation on the entity</li>
+<li>PERSIST , on Insert , linked entities are affected by the insert on the entity</li>
+<li>REMOVE , on Delete , linked entities are affected by the remove on the entity</li>
+<li>UPDATE , on Update , linked entities are affected by the update on the entity</li>
+</ul>
+
+<aside class="notice">
+  If nested links are created , only annotated fields with <b>@Cascade</b> and with matched <b>CascadeType</b> are affected
+  by the operation
+</aside>
+<h2 id='equals-checks'>Equals Checks</h2><div class="highlight"><pre class="highlight java tab-java"><code><span class="kd">public</span> <span class="kd">class</span> <span class="nc">Example</span> <span class="o">{</span>
+
+  <span class="nd">@Table</span><span class="o">(</span><span class="n">name</span> <span class="o">=</span> <span class="s">"USER"</span><span class="o">)</span>
+  <span class="kd">public</span> <span class="kd">static</span> <span class="kd">class</span> <span class="nc">User</span> <span class="o">{</span>
+
+    <span class="nd">@Id</span>
+    <span class="nd">@Column</span><span class="o">(</span><span class="n">name</span> <span class="o">=</span> <span class="s">"COL1"</span><span class="o">)</span>
+    <span class="kd">private</span> <span class="nc">String</span> <span class="n">id</span><span class="o">;</span>
+
+    <span class="nd">@Column</span><span class="o">(</span><span class="n">name</span> <span class="o">=</span> <span class="s">"COL2"</span><span class="o">)</span>
+    <span class="kd">private</span> <span class="nc">String</span> <span class="n">col2</span><span class="o">;</span>
+
+    <span class="nd">@Override</span>
+    <span class="kd">public</span> <span class="kt">boolean</span> <span class="nf">equals</span><span class="o">(</span><span class="nc">Object</span> <span class="n">o</span><span class="o">)</span> <span class="o">{</span>
+      <span class="k">if</span> <span class="o">(</span><span class="k">this</span> <span class="o">==</span> <span class="n">o</span><span class="o">)</span> <span class="k">return</span> <span class="kc">true</span><span class="o">;</span>
+      <span class="k">if</span> <span class="o">(</span><span class="n">o</span> <span class="o">==</span> <span class="kc">null</span> <span class="o">||</span> <span class="n">getClass</span><span class="o">()</span> <span class="o">!=</span> <span class="n">o</span><span class="o">.</span><span class="na">getClass</span><span class="o">())</span> <span class="k">return</span> <span class="kc">false</span><span class="o">;</span>
+      <span class="nc">User</span> <span class="n">user</span> <span class="o">=</span> <span class="o">(</span><span class="nc">User</span><span class="o">)</span> <span class="n">o</span><span class="o">;</span>
+      <span class="k">return</span> <span class="nc">Objects</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="n">id</span><span class="o">,</span> <span class="n">id</span><span class="o">)</span> <span class="o">&amp;&amp;</span> <span class="nc">Objects</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="n">col2</span><span class="o">,</span> <span class="n">user</span><span class="o">.</span><span class="na">col2</span><span class="o">);</span>
+    <span class="o">}</span>
+
+    <span class="nd">@Override</span>
+    <span class="kd">public</span> <span class="kt">int</span> <span class="nf">hashCode</span><span class="o">()</span> <span class="o">{</span>
+      <span class="k">return</span> <span class="nc">Objects</span><span class="o">.</span><span class="na">hash</span><span class="o">(</span><span class="n">id</span><span class="o">,</span> <span class="n">col2</span><span class="o">);</span>
+    <span class="o">}</span>
+
+    <span class="c1">// getter and setters</span>
+  <span class="o">}</span>
+
+  <span class="kd">public</span> <span class="kt">void</span> <span class="nf">should_return_true_for_same_entity</span><span class="o">()</span> <span class="o">{</span>
+      <span class="nc">UserDAO</span> <span class="n">dao</span> <span class="o">=</span> <span class="nc">QueriesService</span><span class="o">.</span><span class="na">getInstance</span><span class="o">().</span><span class="na">getQuery</span><span class="o">(</span><span class="nc">UserDAO</span><span class="o">.</span><span class="na">class</span><span class="o">);</span>
+
+      <span class="nc">User</span> <span class="n">user</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">User</span><span class="o">();</span>
+      <span class="n">user</span><span class="o">.</span><span class="na">setId</span><span class="o">(</span><span class="s">"id"</span><span class="o">);</span>
+      <span class="n">user</span><span class="o">.</span><span class="na">setName</span><span class="o">(</span><span class="s">"name"</span><span class="o">);</span>
+
+      <span class="nc">User</span> <span class="n">found</span> <span class="o">=</span> <span class="n">dao</span><span class="o">.</span><span class="na">read</span><span class="o">(</span><span class="n">user</span><span class="o">);</span>
+
+      <span class="c1">// Return true, delegate instance underline check equality with two User instance</span>
+      <span class="kt">boolean</span> <span class="n">foundEquals</span> <span class="o">=</span> <span class="n">found</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="n">user</span><span class="o">);</span>
+
+      <span class="c1">// Return false , because found.getClass() != User.class</span>
+      <span class="kt">boolean</span> <span class="n">userEquals</span> <span class="o">=</span> <span class="n">user</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="n">found</span><span class="o">);</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div>
+<p>In Jaorm , equality between two Entity can be tricky.</p>
+
+<p>Jaorm use <strong>Delegation</strong> pattern for Entity Mapping and Lazy fetching of linked entities , so a fetched Entity
+retrieved with <strong>Query</strong>, <strong>Dao</strong> or <strong>DSL</strong> is an instance of selected Entity but doesn&#39;t have the same class at runtime</p>
+<h2 id='entity-comparator'>Entity Comparator</h2><div class="highlight"><pre class="highlight java tab-java"><code><span class="kd">public</span> <span class="kd">class</span> <span class="nc">Test</span> <span class="o">{</span>
+
+  <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="nc">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">)</span> <span class="o">{</span> 
+    <span class="nc">User</span> <span class="n">user1</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">User</span><span class="o">();</span>
+    <span class="nc">User</span> <span class="n">user2</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">User</span><span class="o">();</span>
+    <span class="nc">EntityComprator</span><span class="o">.</span><span class="na">getInstance</span><span class="o">(</span><span class="nc">User</span><span class="o">.</span><span class="na">class</span><span class="o">)</span>
+            <span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="n">user1</span><span class="o">,</span> <span class="n">user2</span><span class="o">);</span>
+    <span class="nc">EntityComprator</span><span class="o">.</span><span class="na">getInstance</span><span class="o">(</span><span class="nc">User</span><span class="o">.</span><span class="na">class</span><span class="o">)</span>
+            <span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="nc">Collections</span><span class="o">.</span><span class="na">singletonList</span><span class="o">(</span><span class="n">user1</span><span class="o">),</span> <span class="nc">Collections</span><span class="o">.</span><span class="na">singletonList</span><span class="o">(</span><span class="n">user2</span><span class="o">));</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div>
+<p>For support with <strong>distinct()</strong> in Java 8 <strong>Stream API</strong> , user can also use
+<strong>EntityComparator.distinct(Function&lt;? super T,?&gt; function)</strong></p>
+<div class="highlight"><pre class="highlight java tab-java"><code><span class="kd">public</span> <span class="kd">class</span> <span class="nc">Test</span> <span class="o">{</span>
+
+    <span class="kt">void</span> <span class="nf">method</span><span class="o">()</span> <span class="o">{</span>
+        <span class="nc">List</span><span class="o">&lt;</span><span class="nc">User</span><span class="o">&gt;</span> <span class="n">users</span> <span class="o">=</span> <span class="nc">QueriesService</span><span class="o">.</span><span class="na">getQuery</span><span class="o">(</span><span class="nc">UserDao</span><span class="o">.</span><span class="na">class</span><span class="o">)</span>
+                <span class="o">.</span><span class="na">readAll</span><span class="o">();</span>
+        <span class="nc">List</span><span class="o">&lt;</span><span class="nc">User</span><span class="o">&gt;</span> <span class="n">usersDistinctId</span> <span class="o">=</span> 
+                <span class="n">users</span><span class="o">.</span><span class="na">stream</span><span class="o">()</span>
+                      <span class="o">.</span><span class="na">filter</span><span class="o">(</span><span class="nc">EntityComparator</span><span class="o">.</span><span class="na">distinct</span><span class="o">(</span><span class="nl">User:</span><span class="o">:</span><span class="n">getUserId</span><span class="o">))</span>
+                      <span class="o">.</span><span class="na">collect</span><span class="o">(</span><span class="nc">Collectors</span><span class="o">.</span><span class="na">toList</span><span class="o">);</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div>
+<p>For Equals check between two Entities , <strong>EntityComparator</strong> must be used if <strong>equals</strong> implementation use <strong>getClass()</strong>
+checks</p>
+<h2 id='query'>Query</h2><div class="highlight"><pre class="highlight java tab-java"><code><span class="kd">public</span> <span class="kd">interface</span> <span class="nc">UserDao</span> <span class="kd">extends</span> <span class="nc">BaseDao</span><span class="o">&lt;</span><span class="nc">User</span><span class="o">&gt;</span> <span class="o">{</span>
+
+    <span class="nd">@Query</span><span class="o">(</span><span class="n">sql</span> <span class="o">=</span> <span class="s">"SELECT * FROM USER WHERE USER_ID = ? AND USERNAME = ?"</span><span class="o">)</span>
+    <span class="nc">User</span> <span class="nf">getUser</span><span class="o">(</span><span class="nc">String</span> <span class="n">userId</span><span class="o">,</span> <span class="nc">String</span> <span class="n">username</span><span class="o">);</span>
+
+    <span class="nd">@Query</span><span class="o">(</span><span class="n">sql</span> <span class="o">=</span> <span class="s">"SELECT * FROM USER WHERE USER_ID = ? AND USERNAME = ?"</span><span class="o">)</span>
+    <span class="nc">Optional</span><span class="o">&lt;</span><span class="nc">User</span><span class="o">&gt;</span> <span class="nf">getUserOpt</span><span class="o">(</span><span class="nc">String</span> <span class="n">userId</span><span class="o">,</span> <span class="nc">String</span> <span class="n">username</span><span class="o">);</span>
+
+    <span class="nd">@Query</span><span class="o">(</span><span class="n">sql</span> <span class="o">=</span> <span class="s">"SELECT * FROM USER WHERE USER_ID = ? AND USERNAME = ?"</span><span class="o">)</span>
+    <span class="nc">List</span><span class="o">&lt;</span><span class="nc">User</span><span class="o">&gt;</span> <span class="nf">getAllUsers</span><span class="o">(</span><span class="nc">String</span> <span class="n">userId</span><span class="o">,</span> <span class="nc">String</span> <span class="n">username</span><span class="o">);</span>
+
+    <span class="nd">@Query</span><span class="o">(</span><span class="n">sql</span> <span class="o">=</span> <span class="s">"SELECT * FROM USER WHERE USER_ID = :userId 
+        AND USERNAME = :username AND NAME = :username"</span><span class="o">)</span>
+    <span class="nc">User</span> <span class="nf">getUserNamed</span><span class="o">(</span><span class="nc">String</span> <span class="n">userId</span><span class="o">,</span> <span class="nc">String</span> <span class="n">username</span><span class="o">);</span>
+
+    <span class="nd">@Query</span><span class="o">(</span><span class="n">sql</span> <span class="o">=</span> <span class="s">"SELECT * FROM USER WHERE USER_ID = :userId 
+        AND USERNAME = :username AND NAME = :username"</span><span class="o">)</span>
+    <span class="nc">User</span> <span class="nf">getUserNamed2</span><span class="o">(</span><span class="nc">String</span> <span class="n">userId</span><span class="o">,</span> <span class="nd">@Param</span><span class="o">(</span><span class="n">name</span> <span class="o">=</span> <span class="s">"USERNAME"</span><span class="o">)</span> <span class="nc">String</span> <span class="n">name</span><span class="o">);</span>
+
+    <span class="nd">@Query</span><span class="o">(</span><span class="n">sql</span> <span class="o">=</span> <span class="s">"SELECT * FROM USER WHERE USER_ID = ?1 AND USERNAME = ?2 AND NAME = ?1"</span><span class="o">)</span>
+    <span class="nc">User</span> <span class="nf">getUserOrdered</span><span class="o">(</span><span class="nc">String</span> <span class="n">userId</span><span class="o">,</span> <span class="nc">String</span> <span class="n">username</span><span class="o">);</span>
+
+    <span class="nd">@Query</span><span class="o">(</span><span class="n">sql</span> <span class="o">=</span> <span class="s">"SELECT * FROM USER WHERE USER_ID = @userId 
+        AND USERNAME = @username AND NAME = @username"</span><span class="o">)</span>
+    <span class="nc">User</span> <span class="nf">getUserAtNamed</span><span class="o">(</span><span class="nc">String</span> <span class="n">userId</span><span class="o">,</span> <span class="nc">String</span> <span class="n">username</span><span class="o">);</span>
+
+    <span class="nd">@Query</span><span class="o">(</span><span class="n">sql</span> <span class="o">=</span> <span class="s">"SELECT * FROM USER WHERE USER_ID = @userId 
+        AND USERNAME = @username AND NAME = @username"</span><span class="o">)</span>
+    <span class="nc">TableRow</span> <span class="nf">getUserTableRow</span><span class="o">(</span><span class="nc">String</span> <span class="n">userId</span><span class="o">,</span> <span class="nc">String</span> <span class="n">username</span><span class="o">);</span>
+
+    <span class="nd">@Query</span><span class="o">(</span><span class="n">sql</span> <span class="o">=</span> <span class="s">"SELECT * FROM USER WHERE USER_ID = @userId 
+        AND USERNAME = @username AND NAME = @username"</span><span class="o">)</span>
+    <span class="nc">Optional</span><span class="o">&lt;</span><span class="nc">TableRow</span><span class="o">&gt;</span> <span class="nf">getUserTableRowOpt</span><span class="o">(</span><span class="nc">String</span> <span class="n">userId</span><span class="o">,</span> <span class="nc">String</span> <span class="n">username</span><span class="o">);</span>
+
+    <span class="nd">@Query</span><span class="o">(</span><span class="n">sql</span> <span class="o">=</span> <span class="s">"SELECT * FROM USER WHERE USER_ID = @userId 
+        AND USERNAME = @username AND NAME = @username"</span><span class="o">)</span>
+    <span class="nc">Stream</span><span class="o">&lt;</span><span class="nc">TableRow</span><span class="o">&gt;</span> <span class="nf">getUserTableRowStream</span><span class="o">(</span><span class="nc">String</span> <span class="n">userId</span><span class="o">,</span> <span class="nc">String</span> <span class="n">username</span><span class="o">);</span>
+
+    <span class="nd">@Query</span><span class="o">(</span><span class="n">sql</span> <span class="o">=</span> <span class="s">"UPDATE USER SET USER_ID = :userId where USERNAME = :username"</span><span class="o">)</span>
+    <span class="kt">void</span> <span class="nf">updateUser</span><span class="o">(</span><span class="nc">String</span> <span class="n">userId</span><span class="o">,</span> <span class="nc">String</span> <span class="n">username</span><span class="o">);</span>
+
+    <span class="nd">@Query</span><span class="o">(</span><span class="n">sql</span> <span class="o">=</span> <span class="s">"DELETE FROM USER"</span><span class="o">,</span> <span class="n">noArgs</span> <span class="o">=</span> <span class="kc">true</span><span class="o">)</span>
+    <span class="kt">void</span> <span class="nf">deleteAll</span><span class="o">();</span>
+<span class="o">}</span>
+</code></pre></div>
+<p>For each interface that contains a method with <strong>@Query</strong> annotation or is annotated with <strong>@Dao</strong> annotation, an implementation is generated.</p>
+
+<p>Implemented Method execute sql value in the annotation and return an object for a non-void method. If returned Object is an Entity , 
+Core module create the mapped entity else the first column is returned.</p>
+
+<aside class="notice">
+  Custom runtime mapper are also supported with the use of <b>TableRow</b> return type.
+</aside>
+
+<p>Query supports different arguments matchers likes :</p>
+
+<ul>
+<li>Standard Wildcards</li>
+<li>A named parameter (es :name)</li>
+<li>Ordered Wildcards (es: ?1,?2)</li>
+<li>At Names (es: @name, @name2)</li>
+<li>No Args (<strong>@Query.noArgs</strong> must be set to true for this special case)</li>
+</ul>
+
+<p>Query uses parameter name or annotated parameter with Param for retrive the current value</p>
+<div class="highlight"><pre class="highlight java tab-java"><code><span class="nd">@Dao</span>
+<span class="nd">@RequestScoped</span>
+<span class="kd">public</span> <span class="kd">interface</span> <span class="nc">MyDao</span> <span class="kd">extends</span> <span class="nc">BaseDao</span><span class="o">&lt;</span><span class="nc">User</span><span class="o">&gt;</span> <span class="o">{}</span>
+
+<span class="nd">@RequestScoped</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">MyDaoImpl</span> <span class="kd">implements</span> <span class="nc">MyDao</span> <span class="o">{}</span> <span class="c1">// @RequestScoped is propagated</span>
+</code></pre></div>
+<p>Annotations on an interface with <strong>@Query</strong> methods or <strong>@Dao</strong> annotation are also propagated in the implementation</p>
+
+<aside class="warning">
+  User can also use custom types that can be converted to sql types if the converter is already used on an <b>Entity</b>
+</aside>
+<h2 id='logging'>Logging</h2>
+<p>A default NoOp Logger is created for each service that use <strong>JaormLogger</strong>.</p>
+
+<p>User can redirect and use logged information implementing and <a href="https://docs.oracle.com/javase/tutorial/sound/SPI-intro.html">registering</a> a custom <strong>JaormLoggerHandler</strong></p>
+<h1 id='cache'>Cache</h1><div class="highlight"><pre class="highlight java tab-java"><code><span class="nd">@Cacheable</span>
+<span class="nd">@Table</span><span class="o">(</span><span class="n">name</span> <span class="o">=</span> <span class="s">"TABLE_NAME"</span><span class="o">)</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">Entity</span> <span class="o">{</span>
+
+    <span class="nd">@Id</span>
+    <span class="nd">@Column</span><span class="o">(</span><span class="n">name</span> <span class="o">=</span> <span class="s">"COLUMN_1"</span><span class="o">)</span>
+    <span class="kd">private</span> <span class="nc">String</span> <span class="n">column1</span><span class="o">;</span>
+
+    <span class="nd">@Column</span><span class="o">(</span><span class="n">name</span> <span class="o">=</span> <span class="s">"COLUMN_2"</span><span class="o">)</span>
+    <span class="kd">private</span> <span class="kt">int</span> <span class="n">column2</span><span class="o">;</span>
+<span class="o">}</span>
+</code></pre></div><div class="highlight"><pre class="highlight java tab-java"><code><span class="kd">public</span> <span class="kd">class</span> <span class="nc">Startup</span> <span class="o">{</span>
+
+    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">doStartup</span><span class="o">()</span> <span class="o">{</span>
+        <span class="nc">CacheService</span> <span class="n">cacheService</span> <span class="o">=</span> <span class="nc">CacheService</span><span class="o">.</span><span class="na">getInstance</span><span class="o">();</span>
+        <span class="nc">MyCacheConfiguration</span> <span class="n">configuration</span> <span class="o">=</span> <span class="nc">MyCacheConfiguration</span><span class="o">.</span><span class="na">INSTANCE</span><span class="o">;</span> 
+        <span class="c1">// or use default StandardConfiguration in cache module</span>
+
+        <span class="n">cacheService</span><span class="o">.</span><span class="na">setConfiguration</span><span class="o">(</span><span class="nc">User</span><span class="o">.</span><span class="na">class</span><span class="o">,</span> <span class="n">configuration</span><span class="o">);</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div>
+<p>Cache module implements a key based cache for <strong>@Cacheable</strong> annotated entities.</p>
+
+<p>Each time a request for a select query is done with <strong>@Query</strong> implementation,
+an entity is stored with selected keys.
+In the followings requests , cached entities are returned if previous request was successful.</p>
+
+<p>Default cache implementation is <a href="https://github.com/ben-manes/caffeine">Caffeine</a> but user can override it
+implementing custom <strong>JaormCache</strong> and <strong>JaormAllCache</strong> using an <strong>AbstractCacheConfiguration</strong>.</p>
+
+<aside class="warning">
+  If custom implementation is used , user must create an SPI file for <b>CacheService</b> and cache module
+  must be omitted from dependencies.
+</aside>
+
+<p>Default cache implementation require a startup configuration for each entity that are <strong>@Cacheable</strong>
+annotated.</p>
+<h1 id='dsl-domain-specific-language'>DSL (Domain-Specific Language)</h1>
+<p>DSL is an abstraction over simple SQL Queries using a DSL.
+It can be combined with Query annotated implementation or used in a stand-alone class.</p>
+
+<p>Processor check if DSL is present in the classpath during processing annotation phase and create
+custom {EntityName}Columns class that contains constant defined columns used for type-safety building</p>
+<div class="highlight"><pre class="highlight java tab-java"><code><span class="kd">public</span> <span class="kd">class</span> <span class="nc">Test</span> <span class="o">{</span>
+
+    <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="nc">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">)</span> <span class="o">{</span>
+        <span class="nc">Jaorm</span><span class="o">.</span><span class="na">select</span><span class="o">(</span><span class="nc">Entity</span><span class="o">.</span><span class="na">class</span><span class="o">)</span>
+                <span class="o">.</span><span class="na">where</span><span class="o">(</span><span class="nc">EntityColumns</span><span class="o">.</span><span class="na">COL1</span><span class="o">).</span><span class="na">eq</span><span class="o">(</span><span class="s">"TEST"</span><span class="o">)</span>
+                <span class="o">.</span><span class="na">where</span><span class="o">(</span><span class="nc">EntityColumns</span><span class="o">.</span><span class="na">COL2</span><span class="o">).</span><span class="na">ne</span><span class="o">(</span><span class="mi">2</span><span class="o">)</span>
+                <span class="o">.</span><span class="na">read</span><span class="o">();</span>
+    <span class="o">}</span>
+
+    <span class="kd">public</span> <span class="kd">static</span> <span class="kd">class</span> <span class="nc">Entity</span> <span class="o">{</span>
+
+        <span class="nd">@Id</span>
+        <span class="nd">@Column</span><span class="o">(</span><span class="n">name</span> <span class="o">=</span> <span class="s">"COL1"</span><span class="o">)</span>
+        <span class="kd">private</span> <span class="nc">String</span> <span class="n">col1</span><span class="o">;</span>
+
+        <span class="nd">@Column</span><span class="o">(</span><span class="n">name</span> <span class="o">=</span> <span class="s">"COL2"</span><span class="o">)</span>
+        <span class="kd">private</span> <span class="kt">int</span> <span class="n">col2</span><span class="o">;</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div>
+<p>Supported operations :</p>
+
+<table><thead>
+<tr>
+<th>Operation</th>
+<th>EL Name</th>
+<th>Standard Name</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>=</td>
+<td>eq</td>
+<td>equalsTo</td>
+</tr>
+<tr>
+<td>!= (&lt;&gt;)</td>
+<td>ne</td>
+<td>notEqualsTo</td>
+</tr>
+<tr>
+<td>&gt;</td>
+<td>gt</td>
+<td>greaterThan</td>
+</tr>
+<tr>
+<td>&lt;</td>
+<td>lt</td>
+<td>lessThan</td>
+</tr>
+<tr>
+<td>&gt;=</td>
+<td>ge</td>
+<td>greaterOrEqualsTo</td>
+</tr>
+<tr>
+<td>&lt;=</td>
+<td>le</td>
+<td>lessOrEqualsTo</td>
+</tr>
+</tbody></table>
+
+<p>DSL also supports :</p>
+
+<ul>
+<li>In, with an <strong>Iterable&lt;T&gt;</strong> </li>
+<li>Not in , with an <strong>Iterable&lt;T&gt;</strong></li>
+<li>IsNull, null check</li>
+<li>isNotNull, not null check</li>
+<li>like , with support for Start, End or Full check (See <strong>LikeType</strong>)</li>
+<li>notLike , with support for Start, End or Full check (See <strong>LikeType</strong>)</li>
+<li>limit, with vendor specific syntax</li>
+<li>offset, with vendor specific syntax</li>
+</ul>
+
+<p>DSL produce :</p>
+
+<ul>
+<li>A <strong>java.util.Optional&lt;T&gt;</strong>, for an optional result, using <strong>readOpt</strong> method</li>
+<li>A <strong>java.util.List&lt;T&gt;</strong>, for a list of result, using <strong>readAll</strong> method</li>
+<li>An Entity instance , for a single result, using <strong>read</strong> method</li>
+</ul>
+<h2 id='vendor-specific'>Vendor Specific</h2>
+<p><strong>VendorSpecific</strong> use Driver information for modify unsupported SQL Syntax in DSL Module</p>
+
+<ul>
+<li><strong>Like Support</strong>
+
+<ul>
+<li><strong>OracleSpecific</strong> and <strong>PostgreSpecific</strong> convert default <strong>CONCAT()</strong> function in <strong>Pipe Concatenation</strong> 
+for <strong>Like</strong> and <strong>NotLike</strong> Operation</li>
+</ul></li>
+<li><strong>Limit Offset Support</strong></li>
+</ul>
+
+<aside class="success">
+User can register vendor specific supports for special syntax or contact Jaorm's author for request a feature that supports missing driver
+</aside>
+<h1 id='transaction'>Transaction</h1><div class="highlight"><pre class="highlight java tab-java"><code><span class="kd">public</span> <span class="kd">class</span> <span class="nc">TransactionalTest</span> <span class="o">{</span>
+
+  <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="nc">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">)</span> <span class="o">{</span>
+      <span class="nc">Transactional</span><span class="o">.</span><span class="na">exec</span><span class="o">(()</span> <span class="o">-&gt;</span> <span class="o">{</span>
+        <span class="nc">UserDAO</span> <span class="n">dao</span> <span class="o">=</span> <span class="nc">QueriesService</span><span class="o">.</span><span class="na">getInstance</span><span class="o">().</span><span class="na">getQuery</span><span class="o">(</span><span class="nc">UserDAO</span><span class="o">.</span><span class="na">class</span><span class="o">);</span>
+
+        <span class="nc">User</span> <span class="n">user</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">User</span><span class="o">();</span>
+        <span class="n">user</span><span class="o">.</span><span class="na">setId</span><span class="o">(</span><span class="s">"id"</span><span class="o">);</span>
+        <span class="n">user</span><span class="o">.</span><span class="na">setName</span><span class="o">(</span><span class="s">"name"</span><span class="o">);</span>
+
+        <span class="n">dao</span><span class="o">.</span><span class="na">insert</span><span class="o">(</span><span class="n">user</span><span class="o">);</span>
+
+        <span class="c1">// After this , commit is done on current transaction</span>
+      <span class="o">},</span> <span class="nc">Exception</span><span class="o">.</span><span class="na">class</span><span class="o">);</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div>
+<p>Jaorm natively supports <strong>@org.springframework.transaction.annotation.Transactional</strong>
+and <strong>@javax.transaction.Transactional</strong> for JTA or Spring Managed Beans.</p>
+
+<p>For SE applications, <strong>Transactional</strong> module can also be used.</p>
+
+<p><strong>Transactional.exec(Callable&lt;V&gt; callable, Class&lt;X&gt; exceptionClass)</strong> create a new Transaction and execute <strong>Callable&lt;V&gt;</strong> as first argument.</p>
+
+<p>If an exception , matched with the second argument is thrown , the exception is propagated, 
+current transaction execute a rollback and close current transaction</p>
+
+<p>If an exception that doesn&#39;t match with second argument , is thrown , an <strong>UnexpectedException</strong> is thrown , 
+current transaction execute a rollback and close current transaction</p>
+
+<p>If <strong>Callable&lt;V&gt;</strong> is correctly executed , <strong>exec</strong> return the returned value if any is provided,
+current transaction execute a commit and close current transaction</p>
+
+<p>Transaction is propagated on the current Thread and on each child Thread</p>
+<h1 id='lombok'>Lombok</h1><div class="highlight"><pre class="highlight java tab-java"><code><span class="nd">@Data</span>
+<span class="nd">@Table</span><span class="o">(</span><span class="n">name</span> <span class="o">=</span> <span class="s">"LOMB"</span><span class="o">)</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">Lombok</span> <span class="o">{</span>
+
+    <span class="nd">@Id</span>
+    <span class="nd">@Column</span><span class="o">(</span><span class="n">name</span> <span class="o">=</span> <span class="s">"LOMBOK_ID"</span><span class="o">)</span>
+    <span class="kd">private</span> <span class="kt">int</span> <span class="n">lombokId</span><span class="o">;</span>
+
+    <span class="nd">@Column</span><span class="o">(</span><span class="n">name</span> <span class="o">=</span> <span class="s">"LOMBOK_NAME"</span><span class="o">)</span>
+    <span class="kd">private</span> <span class="nc">String</span> <span class="n">name</span><span class="o">;</span>
+
+<span class="o">}</span>
+</code></pre></div>
+<p>Jaorm offers supports for Lombok annotations such <strong>@Getter</strong> , <strong>@Setter</strong> or
+<strong>@Data</strong></p>
+
+<p>Core Module only use custom generated getter and setter from <strong>Lombok</strong> if <strong>Jaorm Lombok</strong>
+is provided as dependency</p>
+
+      </div>
+      <div class="dark-box">
+          <div class="lang-selector">
+                <a href="#" data-language-name="java">java</a>
+          </div>
+      </div>
+    </div>
+  </body>
 </html>
