@@ -55,7 +55,7 @@
         <developer>
             <name>Leone Donato</name>
             <email>ulissis1996@gmail.com</email>
-            <timezone>+2</timezone>
+            <timezone>+1</timezone>
             <url>https://github.com/ulisse1996</url>
             <roles>
                 <role>Author</role>
@@ -67,7 +67,7 @@
         <url>https://github.com/ulisse1996/jaorm</url>
         <connection>scm:git:https://github.com/ulisse1996/jaorm.git</connection>
         <developerConnection>scm:git:git@github.com:ulisse1996/jaorm.git</developerConnection>
-        <tag>record-builder-1.16</tag>
+        <tag>jaorm</tag>
     </scm>
 
     <issueManagement>
