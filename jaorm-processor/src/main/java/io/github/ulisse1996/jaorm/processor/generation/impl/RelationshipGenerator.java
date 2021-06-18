@@ -1,13 +1,13 @@
 package io.github.ulisse1996.jaorm.processor.generation.impl;
 
 import com.squareup.javapoet.*;
-import io.github.ulisse1996.jaorm.processor.generation.Generator;
 import io.github.ulisse1996.jaorm.annotation.Cascade;
 import io.github.ulisse1996.jaorm.annotation.CascadeType;
 import io.github.ulisse1996.jaorm.annotation.Table;
 import io.github.ulisse1996.jaorm.entity.relationship.EntityEventType;
 import io.github.ulisse1996.jaorm.entity.relationship.Relationship;
 import io.github.ulisse1996.jaorm.processor.exception.ProcessorException;
+import io.github.ulisse1996.jaorm.processor.generation.Generator;
 import io.github.ulisse1996.jaorm.processor.util.GeneratedFile;
 import io.github.ulisse1996.jaorm.processor.util.ProcessorUtils;
 import io.github.ulisse1996.jaorm.processor.util.ReturnTypeDefinition;
@@ -61,11 +61,13 @@ public class RelationshipGenerator extends Generator {
         List<RelationshipAccessor> annotated = processingEnvironment.getElementUtils().getAllMembers(entity)
                 .stream()
                 .filter(el -> el.getAnnotation(Cascade.class) != null)
+                .filter(el -> el.getAnnotation(io.github.ulisse1996.jaorm.annotation.Relationship.class) != null)
+                .sorted(Comparator.comparing(el -> el.getAnnotation(io.github.ulisse1996.jaorm.annotation.Relationship.class).priority()))
                 .map(el -> {
                     ExecutableElement getter = ProcessorUtils.findGetter(processingEnvironment, entity, el.getSimpleName());
                     ReturnTypeDefinition returnTypeDefinition = new ReturnTypeDefinition(processingEnvironment, getter.getReturnType());
-                    CascadeType cascadeType = el.getAnnotation(Cascade.class).value();
-                    return new RelationshipAccessor(returnTypeDefinition, getter, cascadeType);
+                    CascadeType[] cascadeTypes = el.getAnnotation(Cascade.class).value();
+                    return new RelationshipAccessor(returnTypeDefinition, getter, cascadeTypes);
                 }).collect(Collectors.toList());
         annotated.forEach(acc -> checkBaseDao(acc.returnTypeDefinition.getRealClass(), daoTypes));
         return new RelationshipInfo(entity, annotated);
@@ -108,15 +110,8 @@ public class RelationshipGenerator extends Generator {
             builder.addStatement("map.put($T.class, new $T<>($T.class))", info.entity, Relationship.class, info.entity);
             for (RelationshipAccessor relationship : info.annotated) {
                 String events;
-                if (relationship.cascadeType.equals(CascadeType.ALL)) {
-                    events = asVarArgs(EntityEventType.values());
-                } else if (relationship.cascadeType.equals(CascadeType.REMOVE)) {
-                    events = asVarArgs(EntityEventType.REMOVE);
-                } else if (relationship.cascadeType.equals(CascadeType.PERSIST)) {
-                    events = asVarArgs(EntityEventType.PERSIST);
-                } else {
-                    events = asVarArgs(EntityEventType.UPDATE);
-                }
+                EntityEventType[] values = getEvents(relationship);
+                events = asVarArgs(values);
                 builder.addStatement("map.get($T.class).add(new $T<>(e -> (($T)e).$L(), $L, $L, $L))",
                         info.entity, Relationship.Node.class,
                         info.entity,
@@ -130,6 +125,23 @@ public class RelationshipGenerator extends Generator {
 
         return builder.addStatement("this.relationships = $T.unmodifiableMap(map)", Collections.class)
                 .build();
+    }
+
+    private EntityEventType[] getEvents(RelationshipAccessor relationship) {
+        List<EntityEventType> events = new ArrayList<>();
+        for (CascadeType cascadeType : relationship.cascadeTypes) {
+            if (cascadeType.equals(CascadeType.ALL)) {
+                events.addAll(Arrays.asList(EntityEventType.values()));
+            } else if (cascadeType.equals(CascadeType.REMOVE)) {
+                events.add(EntityEventType.REMOVE);
+            } else if (cascadeType.equals(CascadeType.PERSIST)) {
+                events.add(EntityEventType.PERSIST);
+            } else {
+                events.add(EntityEventType.UPDATE);
+            }
+        }
+
+        return events.toArray(new EntityEventType[0]);
     }
 
     private String asVarArgs(EntityEventType... types) {
@@ -174,13 +186,13 @@ public class RelationshipGenerator extends Generator {
 
         private final ReturnTypeDefinition returnTypeDefinition;
         private final ExecutableElement getter;
-        private final CascadeType cascadeType;
+        private final CascadeType[] cascadeTypes;
 
         private RelationshipAccessor(ReturnTypeDefinition returnTypeDefinition,
-                                    ExecutableElement getter, CascadeType cascadeType) {
+                                    ExecutableElement getter, CascadeType[] cascadeTypes) {
             this.returnTypeDefinition = returnTypeDefinition;
             this.getter = getter;
-            this.cascadeType = cascadeType;
+            this.cascadeTypes = cascadeTypes;
         }
     }
 }
