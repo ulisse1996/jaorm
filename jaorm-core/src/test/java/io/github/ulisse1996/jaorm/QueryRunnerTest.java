@@ -2,6 +2,7 @@ package io.github.ulisse1996.jaorm;
 
 import io.github.ulisse1996.jaorm.entity.sql.DataSourceProvider;
 import io.github.ulisse1996.jaorm.entity.sql.SqlParameter;
+import io.github.ulisse1996.jaorm.exception.JaormSqlException;
 import io.github.ulisse1996.jaorm.spi.DelegatesService;
 import io.github.ulisse1996.jaorm.spi.QueryRunner;
 import io.github.ulisse1996.jaorm.spi.TransactionManager;
@@ -212,6 +213,110 @@ class QueryRunnerTest {
                     .thenReturn(connection);
             Assertions.assertDoesNotThrow(() -> runner.update("UPDATE", Collections.emptyList()));
         }
+    }
+
+    @Test
+    void should_return_generate_keys_with_alternative_method() throws SQLException {
+        Connection connection = Mockito.mock(Connection.class);
+        PreparedStatement preparedStatement = Mockito.mock(PreparedStatement.class);
+        ResultSet resultSet = Mockito.mock(ResultSet.class);
+        ResultSetMetaData metaData = Mockito.mock(ResultSetMetaData.class);
+        Mockito.when(connection.prepareStatement(Mockito.anyString(), Mockito.any(String[].class)))
+                .thenReturn(preparedStatement);
+        Mockito.when(preparedStatement.getGeneratedKeys())
+                .thenReturn(resultSet);
+        Mockito.when(resultSet.getMetaData())
+                .thenReturn(metaData);
+        Mockito.when(resultSet.next())
+                .thenReturn(true, false);
+        Mockito.when(resultSet.getString("NAME1"))
+                .thenThrow(customSql());
+        Mockito.when(resultSet.getString("NAME2"))
+                .thenThrow(customSql());
+        Mockito.when(metaData.getColumnCount())
+                .thenReturn(2);
+        Mockito.when(metaData.getColumnName(1))
+                .thenReturn("NAME1");
+        Mockito.when(metaData.getColumnName(2))
+                .thenReturn("NAME2");
+        Mockito.when(resultSet.getObject(1, String.class))
+                .thenReturn("RETURN1");
+        Mockito.when(resultSet.getObject(2, String.class))
+                .thenReturn("RETURN2");
+
+        QueryRunner runner = new MockedRunner() {
+            @Override
+            public <R> R insert(R entity, String query, List<SqlParameter> params) {
+                Map<String, Object> expected = new HashMap<>();
+                expected.put("NAME1", "RETURN1");
+                expected.put("NAME2", "RETURN2");
+
+                Map<String, Class<?>> autoGen = new HashMap<>();
+                autoGen.put("NAME1", String.class);
+                autoGen.put("NAME2", String.class);
+
+                Map<String,Object> map = doUpdate(query, params, autoGen);
+                Assertions.assertFalse(map.isEmpty());
+                Assertions.assertEquals(expected, map);
+                return entity;
+            }
+
+            @Override
+            protected Connection getConnection() {
+                return connection;
+            }
+        };
+        runner.insert(new Object(), "", Collections.emptyList());
+    }
+
+    private Throwable customSql() {
+        return new SQLException("", "", 17023);
+    }
+
+    @Test
+    void should_throw_exception_for_generate_keys() throws SQLException {
+        Connection connection = Mockito.mock(Connection.class);
+        PreparedStatement preparedStatement = Mockito.mock(PreparedStatement.class);
+        ResultSet resultSet = Mockito.mock(ResultSet.class);
+        ResultSetMetaData metaData = Mockito.mock(ResultSetMetaData.class);
+        Mockito.when(connection.prepareStatement(Mockito.anyString(), Mockito.any(String[].class)))
+                .thenReturn(preparedStatement);
+        Mockito.when(preparedStatement.getGeneratedKeys())
+                .thenReturn(resultSet);
+        Mockito.when(resultSet.getMetaData())
+                .thenReturn(metaData);
+        Mockito.when(resultSet.next())
+                .thenReturn(true, false);
+        Mockito.when(resultSet.getString("NAME1"))
+                .thenThrow(SQLException.class);
+        Mockito.when(resultSet.getString("NAME2"))
+                .thenThrow(SQLException.class);
+        Mockito.when(metaData.getColumnCount())
+                .thenReturn(0);
+
+        QueryRunner runner = new MockedRunner() {
+            @Override
+            public <R> R insert(R entity, String query, List<SqlParameter> params) {
+                Map<String, Object> expected = new HashMap<>();
+                expected.put("NAME1", "RETURN1");
+                expected.put("NAME2", "RETURN2");
+
+                Map<String, Class<?>> autoGen = new HashMap<>();
+                autoGen.put("NAME1", String.class);
+                autoGen.put("NAME2", String.class);
+
+                Map<String,Object> map = doUpdate(query, params, autoGen);
+                Assertions.assertFalse(map.isEmpty());
+                Assertions.assertEquals(expected, map);
+                return entity;
+            }
+
+            @Override
+            protected Connection getConnection() {
+                return connection;
+            }
+        };
+        Assertions.assertThrows(JaormSqlException.class, () -> runner.insert(new Object(), "", Collections.emptyList()));
     }
 
     private QueryRunner buildRunner() {

@@ -2,6 +2,9 @@ package io.github.ulisse1996.jaorm.entity.relationship;
 
 import io.github.ulisse1996.jaorm.Arguments;
 import io.github.ulisse1996.jaorm.BaseDao;
+import io.github.ulisse1996.jaorm.entity.event.PostPersist;
+import io.github.ulisse1996.jaorm.entity.event.PrePersist;
+import io.github.ulisse1996.jaorm.exception.PersistEventException;
 import io.github.ulisse1996.jaorm.spi.DelegatesService;
 import io.github.ulisse1996.jaorm.spi.QueriesService;
 import io.github.ulisse1996.jaorm.spi.QueryRunner;
@@ -61,6 +64,108 @@ class PersistEventTest extends EventTest {
                     .insert(Mockito.any(), Mockito.any(), Mockito.any());
             Mockito.verify(baseDao)
                     .insert(Mockito.any(RelEntity.class));
+        }
+    }
+
+    @Test
+    void should_apply_pre_persist() throws Exception {
+        PrePersist<?> mock = Mockito.mock(PrePersist.class);
+        Relationship<?> fakeRel = new Relationship<>(Object.class);
+        RelationshipService relationshipService = Mockito.mock(RelationshipService.class);
+        QueryRunner runner = Mockito.mock(QueryRunner.class);
+        DelegatesService delegatesService = Mockito.mock(DelegatesService.class);
+        try (MockedStatic<QueryRunner> runnerMk = Mockito.mockStatic(QueryRunner.class);
+            MockedStatic<RelationshipService> relMk = Mockito.mockStatic(RelationshipService.class);
+            MockedStatic<DelegatesService> delegateMk = Mockito.mockStatic(DelegatesService.class)) {
+            runnerMk.when(() -> QueryRunner.getInstance(Mockito.any()))
+                    .thenReturn(runner);
+            relMk.when(RelationshipService::getInstance)
+                    .thenReturn(relationshipService);
+            delegateMk.when(DelegatesService::getInstance)
+                    .thenReturn(delegatesService);
+            Mockito.when(delegatesService.asInsert(Mockito.any()))
+                    .thenReturn(Arguments.empty());
+            Mockito.when(relationshipService.getRelationships(Mockito.any()))
+                    .then(onMock -> fakeRel);
+            testSubject.applyAndReturn(mock);
+            Mockito.verify(mock).prePersist();
+        }
+    }
+
+    @Test
+    void should_apply_post_persist() throws Exception {
+        PostPersist<?> mock = Mockito.mock(PostPersist.class);
+        Relationship<?> fakeRel = new Relationship<>(Object.class);
+        RelationshipService relationshipService = Mockito.mock(RelationshipService.class);
+        QueryRunner runner = Mockito.mock(QueryRunner.class);
+        DelegatesService delegatesService = Mockito.mock(DelegatesService.class);
+        try (MockedStatic<QueryRunner> runnerMk = Mockito.mockStatic(QueryRunner.class);
+             MockedStatic<RelationshipService> relMk = Mockito.mockStatic(RelationshipService.class);
+             MockedStatic<DelegatesService> delegateMk = Mockito.mockStatic(DelegatesService.class)) {
+            runnerMk.when(() -> QueryRunner.getInstance(Mockito.any()))
+                    .thenReturn(runner);
+            relMk.when(RelationshipService::getInstance)
+                    .thenReturn(relationshipService);
+            delegateMk.when(DelegatesService::getInstance)
+                    .thenReturn(delegatesService);
+            Mockito.when(delegatesService.asInsert(Mockito.any()))
+                    .thenReturn(Arguments.empty());
+            Mockito.when(relationshipService.getRelationships(Mockito.any()))
+                    .then(onMock -> fakeRel);
+            testSubject.applyAndReturn(mock);
+            Mockito.verify(mock).postPersist();
+        }
+    }
+
+    @Test
+    void should_throw_exception_for_pre_persist() throws Exception {
+        PrePersist<?> mock = Mockito.mock(PrePersist.class);
+        Relationship<?> fakeRel = new Relationship<>(Object.class);
+        RelationshipService relationshipService = Mockito.mock(RelationshipService.class);
+        QueryRunner runner = Mockito.mock(QueryRunner.class);
+        DelegatesService delegatesService = Mockito.mock(DelegatesService.class);
+        try (MockedStatic<QueryRunner> runnerMk = Mockito.mockStatic(QueryRunner.class);
+             MockedStatic<RelationshipService> relMk = Mockito.mockStatic(RelationshipService.class);
+             MockedStatic<DelegatesService> delegateMk = Mockito.mockStatic(DelegatesService.class)) {
+            runnerMk.when(() -> QueryRunner.getInstance(Mockito.any()))
+                    .thenReturn(runner);
+            relMk.when(RelationshipService::getInstance)
+                    .thenReturn(relationshipService);
+            delegateMk.when(DelegatesService::getInstance)
+                    .thenReturn(delegatesService);
+            Mockito.when(delegatesService.asInsert(Mockito.any()))
+                    .thenReturn(Arguments.empty());
+            Mockito.when(relationshipService.getRelationships(Mockito.any()))
+                    .then(onMock -> fakeRel);
+            Mockito.doThrow(Exception.class)
+                    .when(mock).prePersist();
+            Assertions.assertThrows(PersistEventException.class, () -> testSubject.applyAndReturn(mock));
+        }
+    }
+
+    @Test
+    void should_throw_exception_for_post_persist() throws Exception {
+        PostPersist<?> mock = Mockito.mock(PostPersist.class);
+        Relationship<?> fakeRel = new Relationship<>(Object.class);
+        RelationshipService relationshipService = Mockito.mock(RelationshipService.class);
+        QueryRunner runner = Mockito.mock(QueryRunner.class);
+        DelegatesService delegatesService = Mockito.mock(DelegatesService.class);
+        try (MockedStatic<QueryRunner> runnerMk = Mockito.mockStatic(QueryRunner.class);
+             MockedStatic<RelationshipService> relMk = Mockito.mockStatic(RelationshipService.class);
+             MockedStatic<DelegatesService> delegateMk = Mockito.mockStatic(DelegatesService.class)) {
+            runnerMk.when(() -> QueryRunner.getInstance(Mockito.any()))
+                    .thenReturn(runner);
+            relMk.when(RelationshipService::getInstance)
+                    .thenReturn(relationshipService);
+            delegateMk.when(DelegatesService::getInstance)
+                    .thenReturn(delegatesService);
+            Mockito.when(delegatesService.asInsert(Mockito.any()))
+                    .thenReturn(Arguments.empty());
+            Mockito.when(relationshipService.getRelationships(Mockito.any()))
+                    .then(onMock -> fakeRel);
+            Mockito.doThrow(Exception.class)
+                    .when(mock).postPersist();
+            Assertions.assertThrows(PersistEventException.class, () -> testSubject.applyAndReturn(mock));
         }
     }
 }
