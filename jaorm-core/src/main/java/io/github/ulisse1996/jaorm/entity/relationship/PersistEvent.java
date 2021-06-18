@@ -2,6 +2,9 @@ package io.github.ulisse1996.jaorm.entity.relationship;
 
 import io.github.ulisse1996.jaorm.BaseDao;
 import io.github.ulisse1996.jaorm.entity.Result;
+import io.github.ulisse1996.jaorm.entity.event.PostPersist;
+import io.github.ulisse1996.jaorm.entity.event.PrePersist;
+import io.github.ulisse1996.jaorm.exception.PersistEventException;
 import io.github.ulisse1996.jaorm.spi.DelegatesService;
 import io.github.ulisse1996.jaorm.spi.QueriesService;
 import io.github.ulisse1996.jaorm.spi.QueryRunner;
@@ -21,9 +24,11 @@ public class PersistEvent implements EntityEvent {
     public <T> T applyAndReturn(T entity) {
         Class<T> klass = (Class<T>) entity.getClass();
         Relationship<T> tree = RelationshipService.getInstance().getRelationships(klass);
+        doPrePersist(entity);
         T insert = QueryRunner.getInstance(klass)
                 .insert(entity, DelegatesService.getInstance().getInsertSql(entity),
                         DelegatesService.getInstance().asInsert(entity).asSqlParameters());
+        doPostPersist(entity);
         for (Relationship.Node<T> node : tree.getNodeSet()) {
             if (node.isCollection()) {
                 node.getAsCollection(insert).forEach(i -> {
@@ -46,5 +51,25 @@ public class PersistEvent implements EntityEvent {
         }
 
         return insert;
+    }
+
+    private <T> void doPostPersist(T entity) {
+        if (entity instanceof PostPersist<?>) {
+            try {
+                ((PostPersist<?>) entity).postPersist();
+            } catch (Exception ex) {
+                throw new PersistEventException(ex);
+            }
+        }
+    }
+
+    private <T> void doPrePersist(T entity) {
+        if (entity instanceof PrePersist<?>) {
+            try {
+                ((PrePersist<?>) entity).prePersist();
+            } catch (Exception ex) {
+                throw new PersistEventException(ex);
+            }
+        }
     }
 }

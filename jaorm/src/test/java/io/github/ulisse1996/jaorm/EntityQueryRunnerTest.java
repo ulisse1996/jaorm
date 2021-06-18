@@ -282,7 +282,7 @@ class EntityQueryRunnerTest {
             DataSource dataSource = DataSourceProvider.getCurrent().getDataSource();
             Mockito.when(dataSource.getConnection())
                     .thenReturn(connection);
-            Mockito.when(connection.prepareStatement(Mockito.anyString(), Mockito.any(String[].class)))
+            Mockito.when(connection.prepareStatement(Mockito.anyString()))
                     .thenReturn(preparedStatement);
             DelegatesMock.MyEntity result = testSubject.insert(expected, "QUERY", Collections.emptyList());
             Assertions.assertNotEquals(expected, result);
@@ -300,7 +300,7 @@ class EntityQueryRunnerTest {
             DataSource dataSource = DataSourceProvider.getCurrent().getDataSource();
             Mockito.when(dataSource.getConnection())
                     .thenReturn(connection);
-            Mockito.when(connection.prepareStatement(Mockito.anyString(), Mockito.any(String[].class)))
+            Mockito.when(connection.prepareStatement(Mockito.anyString()))
                     .thenReturn(preparedStatement);
             testSubject.update("", Collections.emptyList());
         } catch (SQLException | JaormSqlException ex) {
@@ -317,7 +317,7 @@ class EntityQueryRunnerTest {
             DataSource dataSource = DataSourceProvider.getCurrent().getDataSource();
             Mockito.when(dataSource.getConnection())
                     .thenReturn(connection);
-            Mockito.when(connection.prepareStatement(Mockito.anyString(), Mockito.any(String[].class)))
+            Mockito.when(connection.prepareStatement(Mockito.anyString()))
                     .thenReturn(preparedStatement);
             testSubject.delete("", Collections.emptyList());
         } catch (SQLException | JaormSqlException ex) {

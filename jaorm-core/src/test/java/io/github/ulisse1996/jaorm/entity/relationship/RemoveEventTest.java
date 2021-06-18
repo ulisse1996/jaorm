@@ -2,6 +2,9 @@ package io.github.ulisse1996.jaorm.entity.relationship;
 
 import io.github.ulisse1996.jaorm.Arguments;
 import io.github.ulisse1996.jaorm.BaseDao;
+import io.github.ulisse1996.jaorm.entity.event.PostRemove;
+import io.github.ulisse1996.jaorm.entity.event.PreRemove;
+import io.github.ulisse1996.jaorm.exception.PersistEventException;
 import io.github.ulisse1996.jaorm.spi.DelegatesService;
 import io.github.ulisse1996.jaorm.spi.QueriesService;
 import io.github.ulisse1996.jaorm.spi.QueryRunner;
@@ -103,6 +106,120 @@ class RemoveEventTest extends EventTest {
                     .delete(Mockito.any(), Mockito.any());
             Mockito.verify(baseDao)
                     .delete(Mockito.any(RelEntity.class));
+        }
+    }
+
+    @Test
+    void should_apply_pre_remove() throws Exception {
+        RemoveEvent subject = Mockito.spy(testSubject);
+        PreRemove<?> mock = Mockito.mock(PreRemove.class);
+        Relationship<?> fakeRel = new Relationship<>(Object.class);
+        RelationshipService relationshipService = Mockito.mock(RelationshipService.class);
+        QueryRunner runner = Mockito.mock(QueryRunner.class);
+        DelegatesService delegatesService = Mockito.mock(DelegatesService.class);
+        try (MockedStatic<QueryRunner> runnerMk = Mockito.mockStatic(QueryRunner.class);
+             MockedStatic<RelationshipService> relMk = Mockito.mockStatic(RelationshipService.class);
+             MockedStatic<DelegatesService> delegateMk = Mockito.mockStatic(DelegatesService.class)) {
+            runnerMk.when(() -> QueryRunner.getInstance(Mockito.any()))
+                    .thenReturn(runner);
+            relMk.when(RelationshipService::getInstance)
+                    .thenReturn(relationshipService);
+            delegateMk.when(DelegatesService::getInstance)
+                    .thenReturn(delegatesService);
+            Mockito.when(delegatesService.asWhere(Mockito.any()))
+                    .thenReturn(Arguments.empty());
+            Mockito.when(relationshipService.getRelationships(Mockito.any()))
+                    .then(onMock -> fakeRel);
+            Mockito.doNothing()
+                    .when(subject).doPreApply(Mockito.any(), Mockito.any());
+            subject.apply(mock);
+            Mockito.verify(mock).preRemove();
+        }
+    }
+
+    @Test
+    void should_apply_post_remove() throws Exception {
+        RemoveEvent subject = Mockito.spy(testSubject);
+        PostRemove<?> mock = Mockito.mock(PostRemove.class);
+        Relationship<?> fakeRel = new Relationship<>(Object.class);
+        RelationshipService relationshipService = Mockito.mock(RelationshipService.class);
+        QueryRunner runner = Mockito.mock(QueryRunner.class);
+        DelegatesService delegatesService = Mockito.mock(DelegatesService.class);
+        try (MockedStatic<QueryRunner> runnerMk = Mockito.mockStatic(QueryRunner.class);
+             MockedStatic<RelationshipService> relMk = Mockito.mockStatic(RelationshipService.class);
+             MockedStatic<DelegatesService> delegateMk = Mockito.mockStatic(DelegatesService.class)) {
+            runnerMk.when(() -> QueryRunner.getInstance(Mockito.any()))
+                    .thenReturn(runner);
+            relMk.when(RelationshipService::getInstance)
+                    .thenReturn(relationshipService);
+            delegateMk.when(DelegatesService::getInstance)
+                    .thenReturn(delegatesService);
+            Mockito.when(delegatesService.asWhere(Mockito.any()))
+                    .thenReturn(Arguments.empty());
+            Mockito.when(relationshipService.getRelationships(Mockito.any()))
+                    .then(onMock -> fakeRel);
+            Mockito.doNothing()
+                    .when(subject).doPreApply(Mockito.any(), Mockito.any());
+            subject.apply(mock);
+            Mockito.verify(mock).postRemove();
+        }
+    }
+
+    @Test
+    void should_throw_exception_for_pre_remove() throws Exception {
+        RemoveEvent subject = Mockito.spy(testSubject);
+        PreRemove<?> mock = Mockito.mock(PreRemove.class);
+        Relationship<?> fakeRel = new Relationship<>(Object.class);
+        RelationshipService relationshipService = Mockito.mock(RelationshipService.class);
+        QueryRunner runner = Mockito.mock(QueryRunner.class);
+        DelegatesService delegatesService = Mockito.mock(DelegatesService.class);
+        try (MockedStatic<QueryRunner> runnerMk = Mockito.mockStatic(QueryRunner.class);
+             MockedStatic<RelationshipService> relMk = Mockito.mockStatic(RelationshipService.class);
+             MockedStatic<DelegatesService> delegateMk = Mockito.mockStatic(DelegatesService.class)) {
+            runnerMk.when(() -> QueryRunner.getInstance(Mockito.any()))
+                    .thenReturn(runner);
+            relMk.when(RelationshipService::getInstance)
+                    .thenReturn(relationshipService);
+            delegateMk.when(DelegatesService::getInstance)
+                    .thenReturn(delegatesService);
+            Mockito.when(delegatesService.asWhere(Mockito.any()))
+                    .thenReturn(Arguments.empty());
+            Mockito.when(relationshipService.getRelationships(Mockito.any()))
+                    .then(onMock -> fakeRel);
+            Mockito.doThrow(Exception.class)
+                    .when(mock).preRemove();
+            Mockito.doNothing()
+                    .when(subject).doPreApply(Mockito.any(), Mockito.any());
+            Assertions.assertThrows(PersistEventException.class, () -> subject.apply(mock));
+        }
+    }
+
+    @Test
+    void should_throw_exception_for_post_remove() throws Exception {
+        RemoveEvent subject = Mockito.spy(testSubject);
+        PostRemove<?> mock = Mockito.mock(PostRemove.class);
+        Relationship<?> fakeRel = new Relationship<>(Object.class);
+        RelationshipService relationshipService = Mockito.mock(RelationshipService.class);
+        QueryRunner runner = Mockito.mock(QueryRunner.class);
+        DelegatesService delegatesService = Mockito.mock(DelegatesService.class);
+        try (MockedStatic<QueryRunner> runnerMk = Mockito.mockStatic(QueryRunner.class);
+             MockedStatic<RelationshipService> relMk = Mockito.mockStatic(RelationshipService.class);
+             MockedStatic<DelegatesService> delegateMk = Mockito.mockStatic(DelegatesService.class)) {
+            runnerMk.when(() -> QueryRunner.getInstance(Mockito.any()))
+                    .thenReturn(runner);
+            relMk.when(RelationshipService::getInstance)
+                    .thenReturn(relationshipService);
+            delegateMk.when(DelegatesService::getInstance)
+                    .thenReturn(delegatesService);
+            Mockito.when(delegatesService.asWhere(Mockito.any()))
+                    .thenReturn(Arguments.empty());
+            Mockito.when(relationshipService.getRelationships(Mockito.any()))
+                    .then(onMock -> fakeRel);
+            Mockito.doThrow(Exception.class)
+                    .when(mock).postRemove();
+            Mockito.doNothing()
+                    .when(subject).doPreApply(Mockito.any(), Mockito.any());
+            Assertions.assertThrows(PersistEventException.class, () -> subject.apply(mock));
         }
     }
 }
