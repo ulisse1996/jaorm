@@ -316,7 +316,7 @@ class QueryRunnerTest {
                 return connection;
             }
         };
-        Assertions.assertThrows(JaormSqlException.class, () -> runner.insert(new Object(), "", Collections.emptyList()));
+        Assertions.assertThrows(JaormSqlException.class, () -> runner.insert(new Object(), "", Collections.emptyList())); //NOSONAR
     }
 
     private QueryRunner buildRunner() {
