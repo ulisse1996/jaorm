@@ -2,6 +2,7 @@ package io.github.ulisse1996.jaorm;
 
 import io.github.ulisse1996.jaorm.entity.relationship.EntityEvent;
 import io.github.ulisse1996.jaorm.entity.relationship.EntityEventType;
+import io.github.ulisse1996.jaorm.entity.relationship.Relationship;
 import io.github.ulisse1996.jaorm.entity.sql.SqlParameter;
 import io.github.ulisse1996.jaorm.exception.PersistEventException;
 import io.github.ulisse1996.jaorm.exception.RemoveEventException;
@@ -49,27 +50,39 @@ class BaseDaoTest {
     void should_throw_event_exception_for_pre_update() {
         final DelegatesMock.MyEntity entity = Mockito.spy(new DelegatesMock.MyEntity());
         final MyDao dao = new MyDao();
-        Mockito.doThrow(IllegalArgumentException.class)
-                .when(entity).preUpdate();
-        Assertions.assertThrows(UpdateEventException.class, () -> dao.update(entity));
+        try (MockedStatic<RelationshipService> mk = Mockito.mockStatic(RelationshipService.class)) {
+            mk.when(RelationshipService::getInstance)
+                    .thenReturn(new RelationshipMock());
+            Mockito.doThrow(IllegalArgumentException.class)
+                    .when(entity).preUpdate();
+            Assertions.assertThrows(UpdateEventException.class, () -> dao.update(entity));
+        }
     }
 
     @Test
     void should_throw_event_exception_for_pre_persist() {
         final DelegatesMock.MyEntity entity = Mockito.spy(new DelegatesMock.MyEntity());
         final MyDao dao = new MyDao();
-        Mockito.doThrow(IllegalArgumentException.class)
-                .when(entity).prePersist();
-        Assertions.assertThrows(PersistEventException.class, () -> dao.insert(entity));
+        try (MockedStatic<RelationshipService> mk = Mockito.mockStatic(RelationshipService.class)) {
+            mk.when(RelationshipService::getInstance)
+                    .thenReturn(new RelationshipMock());
+            Mockito.doThrow(IllegalArgumentException.class)
+                    .when(entity).prePersist();
+            Assertions.assertThrows(PersistEventException.class, () -> dao.insert(entity));
+        }
     }
 
     @Test
     void should_throw_event_exception_for_pre_remove() {
         final DelegatesMock.MyEntity entity = Mockito.spy(new DelegatesMock.MyEntity());
         final MyDao dao = new MyDao();
-        Mockito.doThrow(IllegalArgumentException.class)
-                .when(entity).preRemove();
-        Assertions.assertThrows(RemoveEventException.class, () -> dao.delete(entity));
+        try (MockedStatic<RelationshipService> mk = Mockito.mockStatic(RelationshipService.class)) {
+            mk.when(RelationshipService::getInstance)
+                    .thenReturn(new RelationshipMock());
+            Mockito.doThrow(IllegalArgumentException.class)
+                    .when(entity).preRemove();
+            Assertions.assertThrows(RemoveEventException.class, () -> dao.delete(entity));
+        }
     }
 
     @Test
@@ -318,6 +331,19 @@ class BaseDaoTest {
 
         @Override
         public List<DelegatesMock.MyEntity> readAll() {
+            return null;
+        }
+    }
+
+    private static class RelationshipMock implements RelationshipService{
+
+        @Override
+        public <T> boolean isEventActive(Class<T> entityClass, EntityEventType eventType) {
+            return false;
+        }
+
+        @Override
+        public <T> Relationship<T> getRelationships(Class<T> entityClass) {
             return null;
         }
     }

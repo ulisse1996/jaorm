@@ -30,7 +30,7 @@ class SimpleQueryRunnerTest {
     @Mock private ResultSetMetaData metaData;
 
     @BeforeEach
-    public void beforeAll() {
+    public void beforeEach() {
         DatasourceProviderImpl.DATA_SOURCE_THREAD_LOCAL.remove();
     }
 
@@ -291,7 +291,7 @@ class SimpleQueryRunnerTest {
             DataSource dataSource = DataSourceProvider.getCurrent().getDataSource();
             Mockito.when(dataSource.getConnection())
                     .thenReturn(connection);
-            Mockito.when(connection.prepareStatement(Mockito.anyString(), Mockito.any(String[].class)))
+            Mockito.when(connection.prepareStatement(Mockito.anyString()))
                     .thenThrow(SQLException.class);
             testSubject.update("", Collections.emptyList());
         } catch (SQLException ex) {
@@ -307,7 +307,7 @@ class SimpleQueryRunnerTest {
             DataSource dataSource = DataSourceProvider.getCurrent().getDataSource();
             Mockito.when(dataSource.getConnection())
                     .thenReturn(connection);
-            Mockito.when(connection.prepareStatement(Mockito.anyString(), Mockito.any(String[].class)))
+            Mockito.when(connection.prepareStatement(Mockito.anyString()))
                     .thenThrow(SQLException.class);
             testSubject.delete("", Collections.emptyList());
         } catch (SQLException ex) {
@@ -426,7 +426,7 @@ class SimpleQueryRunnerTest {
             DataSource dataSource = DataSourceProvider.getCurrent().getDataSource();
             Mockito.when(dataSource.getConnection())
                     .thenReturn(connection);
-            Mockito.when(connection.prepareStatement(Mockito.anyString(), Mockito.any(String[].class)))
+            Mockito.when(connection.prepareStatement(Mockito.anyString()))
                     .thenReturn(preparedStatement);
             testSubject.update("", Collections.emptyList());
             Mockito.verify(preparedStatement).executeUpdate();
@@ -441,7 +441,7 @@ class SimpleQueryRunnerTest {
             DataSource dataSource = DataSourceProvider.getCurrent().getDataSource();
             Mockito.when(dataSource.getConnection())
                     .thenReturn(connection);
-            Mockito.when(connection.prepareStatement(Mockito.anyString(), Mockito.any(String[].class)))
+            Mockito.when(connection.prepareStatement(Mockito.anyString()))
                     .thenReturn(preparedStatement);
             testSubject.delete("", Collections.emptyList());
             Mockito.verify(preparedStatement).executeUpdate();
