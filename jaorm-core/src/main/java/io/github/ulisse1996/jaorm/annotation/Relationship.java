@@ -20,6 +20,7 @@ import java.lang.annotation.*;
 public @interface Relationship {
 
     RelationshipColumn[] columns();
+    int priority() default 0;
 
     @interface RelationshipColumn {
 

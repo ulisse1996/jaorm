@@ -11,5 +11,5 @@ import java.lang.annotation.*;
 @Documented
 public @interface Cascade {
 
-    CascadeType value();
+    CascadeType[] value();
 }
