@@ -209,10 +209,17 @@ public class QueryGenerator extends Generator {
                 QueryRunner.class, definition.getRealClass(), definition.getRealClass(), sql
         };
         if (definition.isOptional()) {
-            return new AbstractMap.SimpleImmutableEntry<>(
-                    "return $T.getInstance($T.class).readOpt($T.class, $S, params).toOptional()",
-                    stmParams
-            );
+            if (definition.isTableRow()) {
+                return new AbstractMap.SimpleImmutableEntry<>(
+                        "return $T.getSimple().readOpt($S, params)",
+                        new Object[] {QueryRunner.class, sql}
+                );
+            } else {
+                return new AbstractMap.SimpleImmutableEntry<>(
+                        "return $T.getInstance($T.class).readOpt($T.class, $S, params).toOptional()",
+                        stmParams
+                );
+            }
         } else if (definition.isCollection()) {
             return new AbstractMap.SimpleImmutableEntry<>(
                     "return $T.getInstance($T.class).readAll($T.class, $S, params)",

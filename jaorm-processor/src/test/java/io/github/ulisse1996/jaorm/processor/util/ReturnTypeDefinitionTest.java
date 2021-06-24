@@ -40,16 +40,42 @@ class ReturnTypeDefinitionTest {
     @Test
     void should_return_optional() {
         TypeElement element = Mockito.mock(TypeElement.class);
+        TypeMirror mirrorUser = Mockito.mock(TypeMirror.class);
         Mockito.when(mirror.toString())
                 .thenReturn("java.util.Optional<io.test.User>");
         Mockito.when(environment.getElementUtils())
                 .thenReturn(elements);
         Mockito.when(elements.getTypeElement("io.test.User"))
                 .thenReturn(element);
+        Mockito.when(element.asType())
+                .thenReturn(mirrorUser);
+        Mockito.when(mirrorUser.toString())
+                .thenReturn("io.test.User");
         ReturnTypeDefinition definition = new ReturnTypeDefinition(environment, mirror);
         Assertions.assertTrue(definition.isOptional());
         Assertions.assertEquals(element, definition.getRealClass());
         assertAllFalls(definition.isSimple(), definition.isCollection(), definition.isStream(), definition.isStreamTableRow(), definition.isTableRow());
+    }
+
+    @Test
+    void should_return_optional_table_row() {
+        TypeElement element = Mockito.mock(TypeElement.class);
+        TypeMirror mirrorTableRow = Mockito.mock(TypeMirror.class);
+        Mockito.when(mirror.toString())
+                .thenReturn("java.util.Optional<io.github.ulisse1996.jaorm.mapping.TableRow>");
+        Mockito.when(environment.getElementUtils())
+                .thenReturn(elements);
+        Mockito.when(elements.getTypeElement("io.github.ulisse1996.jaorm.mapping.TableRow"))
+                .thenReturn(element);
+        Mockito.when(element.asType())
+                .thenReturn(mirrorTableRow);
+        Mockito.when(mirrorTableRow.toString())
+                .thenReturn("io.github.ulisse1996.jaorm.mapping.TableRow");
+        ReturnTypeDefinition definition = new ReturnTypeDefinition(environment, mirror);
+        Assertions.assertTrue(definition.isOptional());
+        Assertions.assertEquals(element, definition.getRealClass());
+        Assertions.assertTrue(definition.isTableRow());
+        assertAllFalls(definition.isSimple(), definition.isCollection(), definition.isStream(), definition.isStreamTableRow());
     }
 
     @Test
