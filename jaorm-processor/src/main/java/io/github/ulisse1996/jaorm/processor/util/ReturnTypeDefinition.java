@@ -54,6 +54,9 @@ public class ReturnTypeDefinition {
         if (regex.contains("Result") || regex.contains("Optional")) {
             this.optional = true;
             this.realClass = asElement(processingEnvironment, regex, typeName);
+            if (realClass.asType().toString().contains(SUPPORTED[4])) {
+                this.tableRow = true;
+            }
         } else if (regex.contains("List")) {
             this.realClass = asElement(processingEnvironment, regex, typeName);
             this.collection = true;

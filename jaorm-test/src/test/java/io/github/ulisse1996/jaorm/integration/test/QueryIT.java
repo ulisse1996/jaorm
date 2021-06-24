@@ -2,14 +2,18 @@ package io.github.ulisse1996.jaorm.integration.test;
 
 import io.github.ulisse1996.jaorm.entity.EntityComparator;
 import io.github.ulisse1996.jaorm.entity.EntityDelegate;
+import io.github.ulisse1996.jaorm.exception.JaormSqlException;
 import io.github.ulisse1996.jaorm.integration.test.entity.*;
 import io.github.ulisse1996.jaorm.integration.test.query.*;
+import io.github.ulisse1996.jaorm.mapping.RowMapper;
+import io.github.ulisse1996.jaorm.mapping.TableRow;
 import io.github.ulisse1996.jaorm.spi.QueriesService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import java.math.BigDecimal;
+import java.sql.SQLException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -202,6 +206,63 @@ class QueryIT extends AbstractIT {
         user = dao.read(user);
 
         Assertions.assertFalse(user.getUserSpecific().isPresent());
+    }
+
+    @ParameterizedTest
+    @MethodSource("getSqlTests")
+    void should_create_and_use_correct_table_row_mapping(HSQLDBProvider.DatabaseType type, String initSql) throws SQLException {
+        setDataSource(type, initSql);
+
+        User user = getUser(1);
+        UserDAO dao = QueriesService.getInstance().getQuery(UserDAO.class);
+        TableRowUserDao rowDao = QueriesService.getInstance().getQuery(TableRowUserDao.class);
+
+        dao.insert(user);
+
+        RowMapper<User> userRowMapper = rs -> {
+            User mapped = new User();
+            mapped.setId(rs.getInt("USER_ID"));
+            mapped.setName(rs.getString("USER_NAME"));
+            return mapped;
+        };
+
+        try (TableRow row = rowDao.readById(1)){
+            User mapped = row.mapRow(userRowMapper);
+            Assertions.assertTrue(
+                    EntityComparator.getInstance(User.class)
+                        .equals(user, mapped)
+            );
+        }
+
+        List<User> users = rowDao.readStreamById(1)
+                .map(row -> {
+                    try {
+                        return row.mapRow(userRowMapper);
+                    } catch (SQLException ex) {
+                        throw new JaormSqlException(ex);
+                    }
+                }).collect(Collectors.toList());
+
+        Assertions.assertFalse(users.isEmpty());
+        Assertions.assertTrue(
+                EntityComparator.getInstance(User.class)
+                        .equals(user, users.get(0))
+        );
+
+        Optional<User> userOpt = rowDao.readByIdOpt(1)
+                .map(row -> {
+                    try {
+                        return row.mapRow(userRowMapper);
+                    } catch (SQLException ex) {
+                        throw new JaormSqlException(ex);
+                    }
+                });
+
+        Assertions.assertTrue(userOpt.isPresent());
+        Assertions.assertTrue(
+                EntityComparator.getInstance(User.class)
+                        .equals(user, userOpt.get())
+        );
     }
 
     private User getUser(int i) {

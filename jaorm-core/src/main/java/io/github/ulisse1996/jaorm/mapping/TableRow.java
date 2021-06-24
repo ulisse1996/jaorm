@@ -8,7 +8,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
-public class TableRow implements Closeable {
+public class TableRow implements Closeable, AutoCloseable {
 
     private final Connection connection;
     private final PreparedStatement preparedStatement;
