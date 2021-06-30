@@ -23,6 +23,9 @@ public class PersistEvent implements EntityEvent {
     @SuppressWarnings("unchecked")
     public <T> T applyAndReturn(T entity) {
         Class<T> klass = (Class<T>) entity.getClass();
+        if (isDelegate(entity)) {
+            klass = (Class<T>) getRealClass(klass);
+        }
         Relationship<T> tree = RelationshipService.getInstance().getRelationships(klass);
         doPrePersist(entity);
         T insert = QueryRunner.getInstance(klass)

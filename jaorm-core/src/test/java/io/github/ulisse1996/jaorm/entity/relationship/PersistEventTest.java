@@ -67,6 +67,50 @@ class PersistEventTest extends EventTest {
         }
     }
 
+    @ParameterizedTest
+    @MethodSource("getRelationship")
+    @SuppressWarnings("unchecked")
+    void should_insert_values_for_linked_entities_with_delegate(Relationship<Entity> tree) {
+        RelationshipService relationshipService = Mockito.mock(RelationshipService.class);
+        QueryRunner queryRunner = Mockito.mock(QueryRunner.class);
+        DelegatesService delegatesService = Mockito.mock(DelegatesService.class);
+        QueriesService queriesService = Mockito.mock(QueriesService.class);
+        BaseDao<RelEntity> baseDao = Mockito.mock(BaseDao.class);
+        try (MockedStatic<RelationshipService> mkRel = Mockito.mockStatic(RelationshipService.class);
+             MockedStatic<QueryRunner> mkRunner = Mockito.mockStatic(QueryRunner.class);
+             MockedStatic<DelegatesService> mkDelegates = Mockito.mockStatic(DelegatesService.class);
+             MockedStatic<QueriesService> mkQueries = Mockito.mockStatic(QueriesService.class)) {
+            mkRel.when(RelationshipService::getInstance)
+                    .thenReturn(relationshipService);
+            mkRunner.when(() -> QueryRunner.getInstance(Entity.class))
+                    .thenReturn(queryRunner);
+            mkDelegates.when(DelegatesService::getInstance)
+                    .thenReturn(delegatesService);
+            mkQueries.when(QueriesService::getInstance)
+                    .thenReturn(queriesService);
+
+            Mockito.when(delegatesService.getEntityClass(MyEntityDelegate.class))
+                    .then(invocation -> Entity.class);
+            Mockito.when(relationshipService.getRelationships(Entity.class))
+                    .thenReturn(tree);
+            Mockito.when(delegatesService.getInsertSql(Mockito.any()))
+                    .thenReturn("");
+            Mockito.when(delegatesService.asInsert(Mockito.any()))
+                    .thenReturn(Arguments.empty());
+            Mockito.when(queriesService.getBaseDao(RelEntity.class))
+                    .thenReturn(baseDao);
+            Mockito.when(queryRunner.insert(Mockito.any(), Mockito.any(), Mockito.any()))
+                    .then(invocation -> invocation.getArgument(0));
+
+            testSubject.applyAndReturn(new MyEntityDelegate());
+
+            Mockito.verify(queryRunner)
+                    .insert(Mockito.any(), Mockito.any(), Mockito.any());
+            Mockito.verify(baseDao)
+                    .insert(Mockito.any(RelEntity.class));
+        }
+    }
+
     @Test
     void should_apply_pre_persist() throws Exception {
         PrePersist<?> mock = Mockito.mock(PrePersist.class);
