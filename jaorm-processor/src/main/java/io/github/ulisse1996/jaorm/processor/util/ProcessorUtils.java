@@ -323,18 +323,22 @@ public class ProcessorUtils {
                 .stream()
                 .filter(ele -> {
                     Set<Modifier> modifiers = ele.getModifiers();
-                    return modifiers.contains(Modifier.FINAL)
-                            || modifiers.contains(Modifier.NATIVE)
-                            || modifiers.contains(Modifier.PROTECTED)
-                            || modifiers.contains(Modifier.STATIC);
+                    return modifiers.contains(Modifier.PROTECTED) || isNotSupportedModifier(modifiers);
                 }).collect(Collectors.toList());
         elements.removeAll(notValidElements);
         elements.removeIf(ele -> {
             Set<Modifier> modifiers = ele.getModifiers();
             return (modifiers.contains(Modifier.PROTECTED) && !ele.getKind().isField())
-                    || (modifiers.contains(Modifier.PRIVATE) && !ele.getKind().isField());
+                    || (modifiers.contains(Modifier.PRIVATE) && !ele.getKind().isField())
+                    || isNotSupportedModifier(modifiers);
         });
         return elements;
+    }
+
+    private static boolean isNotSupportedModifier(Set<Modifier> modifiers) {
+        return modifiers.contains(Modifier.FINAL)
+                || modifiers.contains(Modifier.NATIVE)
+                || modifiers.contains(Modifier.STATIC);
     }
 
     @SuppressWarnings("unchecked")

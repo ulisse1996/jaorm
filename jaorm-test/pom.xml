@@ -5,7 +5,7 @@
     <parent>
         <artifactId>jaorm-pom</artifactId>
         <groupId>io.github.ulisse1996</groupId>
-        <version>0.13.2</version>
+        <version>0.13.3</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -24,7 +24,7 @@
         <junit-platform-launcher.version>1.4.1</junit-platform-launcher.version>
         <weld-junit5.version>2.0.2.Final</weld-junit5.version>
         <hsqldb.version>2.5.1</hsqldb.version>
-        <jaorm.version>0.13.2</jaorm.version>
+        <jaorm.version>0.13.3</jaorm.version>
     </properties>
 
     <dependencies>
