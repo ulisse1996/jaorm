@@ -37,8 +37,8 @@ public class QueriesMock extends QueriesService {
         }
 
         @Override
-        public void delete(Object entity) {
-
+        public int delete(Object entity) {
+            return 0;
         }
 
         @Override

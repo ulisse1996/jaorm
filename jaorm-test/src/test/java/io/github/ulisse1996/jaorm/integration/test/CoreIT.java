@@ -1,11 +1,10 @@
 package io.github.ulisse1996.jaorm.integration.test;
 
+import io.github.ulisse1996.jaorm.BaseDao;
+import io.github.ulisse1996.jaorm.entity.EntityComparator;
 import io.github.ulisse1996.jaorm.entity.Result;
 import io.github.ulisse1996.jaorm.exception.JaormSqlException;
-import io.github.ulisse1996.jaorm.integration.test.entity.CascadeEntity;
-import io.github.ulisse1996.jaorm.integration.test.entity.CascadeEntityInner;
-import io.github.ulisse1996.jaorm.integration.test.entity.City;
-import io.github.ulisse1996.jaorm.integration.test.entity.CompoundEntity;
+import io.github.ulisse1996.jaorm.integration.test.entity.*;
 import io.github.ulisse1996.jaorm.integration.test.query.CascadeDAO;
 import io.github.ulisse1996.jaorm.integration.test.query.CascadeInnerDAO;
 import io.github.ulisse1996.jaorm.integration.test.query.CityDAO;
@@ -18,6 +17,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.stream.Collectors;
 
 class CoreIT extends AbstractIT {
@@ -88,6 +88,35 @@ class CoreIT extends AbstractIT {
         cascadeDAO.delete(found);
         Assertions.assertThrows(JaormSqlException.class, () -> cascadeDAO.findById(1));
         Assertions.assertFalse(cascadeInnerDAO.findById(1).isPresent());
+    }
+
+    @ParameterizedTest
+    @MethodSource("getSqlTests")
+    void should_cascade_with_simple_entity(HSQLDBProvider.DatabaseType type, String initSql) {
+        setDataSource(type, initSql);
+
+        BaseDao<City> cityDao = QueriesService.getInstance().getBaseDao(City.class);
+        BaseDao<Store> storeDao = QueriesService.getInstance().getBaseDao(Store.class);
+
+        City city = new City();
+        city.setCityId(10);
+        city.setName("NAME");
+
+        cityDao.insert(city);
+        city = cityDao.read(city);
+        Assertions.assertTrue(city.getStores().isEmpty());
+        Assertions.assertTrue(storeDao.readAll().isEmpty());
+
+        city.getStores().add(new Store());
+        city.getStores().get(0).setCityId(10);
+        city.getStores().get(0).setName("NAME_2");
+        city.getStores().get(0).setStoreId(1);
+
+        cityDao.update(city);
+
+        List<Store> stores = storeDao.readAll();
+        Assertions.assertFalse(stores.isEmpty());
+        Assertions.assertTrue(EntityComparator.getInstance(Store.class).equals(city.getStores().get(0), stores.get(0)));
     }
 
     @Test

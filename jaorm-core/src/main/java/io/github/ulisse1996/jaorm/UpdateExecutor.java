@@ -10,16 +10,21 @@ import java.util.List;
 public class UpdateExecutor implements SqlExecutor {
 
     private final ResultSet resultSet;
+    private final int updateRow;
 
     public UpdateExecutor(PreparedStatement pr, List<SqlParameter> parameters) throws SQLException {
         this.prepare(pr, parameters);
 
-        pr.executeUpdate();
+        this.updateRow = pr.executeUpdate();
         this.resultSet = pr.getGeneratedKeys();
     }
 
     public ResultSet getResultSet() {
         return resultSet;
+    }
+
+    public int getUpdateRow() {
+        return updateRow;
     }
 
     @Override

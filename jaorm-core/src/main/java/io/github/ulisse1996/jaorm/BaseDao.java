@@ -1,5 +1,6 @@
 package io.github.ulisse1996.jaorm;
 
+import io.github.ulisse1996.jaorm.entity.EntityDelegate;
 import io.github.ulisse1996.jaorm.entity.event.*;
 import io.github.ulisse1996.jaorm.spi.DelegatesService;
 import io.github.ulisse1996.jaorm.spi.QueryRunner;
@@ -24,8 +25,9 @@ public interface BaseDao<R> {
     Optional<R> readOpt(R entity);
     List<R> readAll();
 
-    default void delete(R entity) {
+    default int delete(R entity) {
         Objects.requireNonNull(entity);
+        int res = 0;
         RelationshipService relationshipService = RelationshipService.getInstance();
         if (relationshipService.isEventActive(entity.getClass(), EntityEventType.REMOVE)) {
             EntityEvent.forType(EntityEventType.REMOVE)
@@ -38,7 +40,7 @@ public interface BaseDao<R> {
                     throw new RemoveEventException(ex);
                 }
             }
-            QueryRunner.getInstance(entity.getClass())
+            res = QueryRunner.getInstance(entity.getClass())
                     .delete(DelegatesService.getInstance().getDeleteSql(entity.getClass()),
                             DelegatesService.getInstance().asWhere(entity).asSqlParameters());
             if (entity instanceof PostRemove) {
@@ -49,6 +51,8 @@ public interface BaseDao<R> {
                 }
             }
         }
+
+        return res;
     }
 
     default R update(R entity) {
@@ -69,8 +73,11 @@ public interface BaseDao<R> {
                     DelegatesService.getInstance().asArguments(entity).asSqlParameters().stream(),
                     DelegatesService.getInstance().asWhere(entity).asSqlParameters().stream()
             ).collect(Collectors.toList());
-            QueryRunner.getInstance(entity.getClass())
+            int updated = QueryRunner.getInstance(entity.getClass())
                     .update(DelegatesService.getInstance().getUpdateSql(entity.getClass()), parameterList);
+            if (entity instanceof EntityDelegate<?>) {
+                ((EntityDelegate<?>) entity).setUpdateRow(updated);
+            }
             if (entity instanceof PostUpdate) {
                 try {
                     ((PostUpdate<?>) entity).postUpdate();

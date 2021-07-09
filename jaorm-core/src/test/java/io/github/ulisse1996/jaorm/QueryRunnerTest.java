@@ -322,12 +322,13 @@ class QueryRunnerTest {
     private QueryRunner buildRunner() {
         return new MockedRunner() {
             @Override
-            public void update(String query, List<SqlParameter> params) {
+            public int update(String query, List<SqlParameter> params) {
                 try {
                     getConnection();
                 } catch (Exception ex) {
                     Assertions.fail(ex);
                 }
+                return 0;
             }
         };
     }

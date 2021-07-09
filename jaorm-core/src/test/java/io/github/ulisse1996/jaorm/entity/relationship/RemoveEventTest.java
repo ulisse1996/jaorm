@@ -131,7 +131,7 @@ class RemoveEventTest extends EventTest {
             Mockito.when(relationshipService.getRelationships(Mockito.any()))
                     .then(onMock -> fakeRel);
             Mockito.doNothing()
-                    .when(subject).doPreApply(Mockito.any(), Mockito.any());
+                    .when(subject).doPreApply(Mockito.any(), Mockito.any(), Mockito.anyBoolean());
             subject.apply(mock);
             Mockito.verify(mock).preRemove();
         }
@@ -159,7 +159,7 @@ class RemoveEventTest extends EventTest {
             Mockito.when(relationshipService.getRelationships(Mockito.any()))
                     .then(onMock -> fakeRel);
             Mockito.doNothing()
-                    .when(subject).doPreApply(Mockito.any(), Mockito.any());
+                    .when(subject).doPreApply(Mockito.any(), Mockito.any(), Mockito.anyBoolean());
             subject.apply(mock);
             Mockito.verify(mock).postRemove();
         }
@@ -189,7 +189,7 @@ class RemoveEventTest extends EventTest {
             Mockito.doThrow(Exception.class)
                     .when(mock).preRemove();
             Mockito.doNothing()
-                    .when(subject).doPreApply(Mockito.any(), Mockito.any());
+                    .when(subject).doPreApply(Mockito.any(), Mockito.any(), Mockito.anyBoolean());
             Assertions.assertThrows(PersistEventException.class, () -> subject.apply(mock));
         }
     }
@@ -218,7 +218,7 @@ class RemoveEventTest extends EventTest {
             Mockito.doThrow(Exception.class)
                     .when(mock).postRemove();
             Mockito.doNothing()
-                    .when(subject).doPreApply(Mockito.any(), Mockito.any());
+                    .when(subject).doPreApply(Mockito.any(), Mockito.any(), Mockito.anyBoolean());
             Assertions.assertThrows(PersistEventException.class, () -> subject.apply(mock));
         }
     }

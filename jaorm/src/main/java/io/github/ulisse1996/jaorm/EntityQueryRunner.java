@@ -144,12 +144,12 @@ public class EntityQueryRunner extends QueryRunner {
     }
 
     @Override
-    public void update(String query, List<SqlParameter> params) {
-        doUpdate(query, params, Collections.emptyMap());
+    public int update(String query, List<SqlParameter> params) {
+        return doSimpleUpdate(query, params);
     }
 
     @Override
-    public void delete(String query, List<SqlParameter> params) {
-        doUpdate(query, params, Collections.emptyMap());
+    public int delete(String query, List<SqlParameter> params) {
+        return doSimpleUpdate(query, params);
     }
 }
