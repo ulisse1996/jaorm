@@ -106,6 +106,7 @@ public class EntityGenerator extends Generator {
         builder.addField(addInsertSql());
         builder.addField(addUpdateSql());
         builder.addField(addDeleteSql());
+        builder.addField(TypeName.INT, "modifiedRow", Modifier.PRIVATE);
         builder.addField(boolean.class, "modified", Modifier.PRIVATE);
         builder.addMethods(buildDelegation(entity));
         builder.addMethods(buildOverrideEntity(entity));
@@ -328,10 +329,19 @@ public class EntityGenerator extends Generator {
         MethodSpec modified = MethodSpec.overriding(ProcessorUtils.getMethod(processingEnvironment, "isModified", EntityDelegate.class))
                 .addStatement("return this.modified")
                 .build();
+        MethodSpec setUpdateRow = MethodSpec.overriding(ProcessorUtils.getMethod(processingEnvironment, "setUpdateRow", EntityDelegate.class))
+                .addStatement("this.modifiedRow = $L", extractParameterNames(ProcessorUtils.getMethod(processingEnvironment, "setUpdateRow", EntityDelegate.class)))
+                .build();
+        MethodSpec getAndResetUpdateRow = MethodSpec.overriding(ProcessorUtils.getMethod(processingEnvironment, "getAndResetUpdateRow", EntityDelegate.class))
+                .addStatement("int curr = this.modifiedRow")
+                .addStatement("this.modifiedRow = 0")
+                .addStatement("return curr")
+                .build();
         return Stream.of(supplierEntity, entityMapper,
                 setEntity, setEntityObj, baseSql, keysWhere,
                 insertSql, selectables, table, updateSql,
-                getEntity, deleteSql, modified)
+                getEntity, deleteSql, modified, setUpdateRow,
+                getAndResetUpdateRow)
                 .collect(Collectors.toList());
     }
 

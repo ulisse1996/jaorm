@@ -78,6 +78,7 @@ public class DelegatesMock extends DelegatesService {
     public static class MyEntityDelegate extends MyEntity implements EntityDelegate<MyEntity> {
 
         private MyEntity entity;
+        private int updatedRow;
 
         @Override
         public String getField1() {
@@ -155,6 +156,16 @@ public class DelegatesMock extends DelegatesService {
         @Override
         public boolean isModified() {
             return false;
+        }
+
+        @Override
+        public void setUpdateRow(int row) {
+            this.updatedRow = row;
+        }
+
+        @Override
+        public int getAndResetUpdateRow() {
+            return this.updatedRow;
         }
     }
 }

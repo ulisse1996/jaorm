@@ -247,6 +247,38 @@ class BaseDaoTest {
     }
 
     @Test
+    void should_do_correct_list_update_with_saved_update_row() {
+        final MyDao dao = Mockito.spy(new MyDao());
+        final DelegatesMock.MyEntityDelegate entity = new DelegatesMock.MyEntityDelegate();
+        QueryRunner runner = Mockito.mock(QueryRunner.class);
+        DelegatesService delegates = Mockito.mock(DelegatesService.class);
+        RelationshipService relationshipService = Mockito.mock(RelationshipService.class);
+        try (MockedStatic<QueryRunner> mkRunner = Mockito.mockStatic(QueryRunner.class);
+             MockedStatic<DelegatesService> mkDelegates = Mockito.mockStatic(DelegatesService.class);
+             MockedStatic<RelationshipService> mkRelationship = Mockito.mockStatic(RelationshipService.class)) {
+            mkRunner.when(() -> QueryRunner.getInstance(Mockito.any()))
+                    .thenReturn(runner);
+            mkDelegates.when(DelegatesService::getInstance)
+                    .thenReturn(delegates);
+            mkRelationship.when(RelationshipService::getInstance)
+                    .thenReturn(relationshipService);
+            Mockito.when(delegates.getUpdateSql(Mockito.any()))
+                    .thenReturn("TEST");
+            Mockito.when(delegates.asArguments(Mockito.any()))
+                    .thenReturn(Arguments.empty());
+            Mockito.when(delegates.asWhere(Mockito.any()))
+                    .thenReturn(Arguments.empty());
+            Mockito.when(runner.update(Mockito.anyString(), Mockito.any()))
+                    .thenReturn(1);
+            
+            dao.update(Collections.singletonList(entity));
+
+            Mockito.verify(dao).update(Mockito.any(DelegatesMock.MyEntityDelegate.class));
+            Assertions.assertEquals(1, entity.getAndResetUpdateRow());
+        }
+    }
+
+    @Test
     void should_do_correct_list_delete() {
         final MyDao dao = Mockito.spy(new MyDao());
         final DelegatesMock.MyEntity entity = new DelegatesMock.MyEntity();

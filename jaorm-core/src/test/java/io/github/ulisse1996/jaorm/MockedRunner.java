@@ -62,12 +62,12 @@ public class MockedRunner extends QueryRunner {
     }
 
     @Override
-    public void update(String query, List<SqlParameter> params) {
-
+    public int update(String query, List<SqlParameter> params) {
+        return 0;
     }
 
     @Override
-    public void delete(String query, List<SqlParameter> params) {
-
+    public int delete(String query, List<SqlParameter> params) {
+        return 0;
     }
 }

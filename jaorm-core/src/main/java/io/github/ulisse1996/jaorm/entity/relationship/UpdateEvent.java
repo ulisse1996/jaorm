@@ -1,6 +1,6 @@
 package io.github.ulisse1996.jaorm.entity.relationship;
 
-import io.github.ulisse1996.jaorm.BaseDao;
+import io.github.ulisse1996.jaorm.entity.EntityDelegate;
 import io.github.ulisse1996.jaorm.entity.event.PostUpdate;
 import io.github.ulisse1996.jaorm.entity.event.PreUpdate;
 import io.github.ulisse1996.jaorm.entity.sql.SqlParameter;
@@ -16,7 +16,14 @@ public class UpdateEvent extends PreApplyEvent {
 
     @Override
     public <T> void apply(T entity) {
-        doPreApply(entity, BaseDao::update);
+        doPreApply(entity, (dao, i) -> {
+            Object obj = dao.update(i);
+            int val = 0;
+            if (obj instanceof EntityDelegate<?>) {
+                val = ((EntityDelegate<?>) obj).getAndResetUpdateRow();
+            }
+            return val;
+        }, true);
         if (entity instanceof PreUpdate<?>) {
             try {
                 ((PreUpdate<?>) entity).preUpdate();

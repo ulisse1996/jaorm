@@ -11,7 +11,7 @@ public class RemoveEvent extends PreApplyEvent {
 
     @Override
     public <T> void apply(T entity) {
-        doPreApply(entity, BaseDao::delete);
+        doPreApply(entity, BaseDao::delete, false);
         if (entity instanceof PreRemove<?>) {
             try {
                 ((PreRemove<?>) entity).preRemove();

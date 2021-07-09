@@ -15,7 +15,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -169,12 +168,12 @@ public class SimpleQueryRunner extends QueryRunner {
     }
 
     @Override
-    public void update(String query, List<SqlParameter> params) {
-        doUpdate(query, params, Collections.emptyMap());
+    public int update(String query, List<SqlParameter> params) {
+        return doSimpleUpdate(query, params);
     }
 
     @Override
-    public void delete(String query, List<SqlParameter> params) {
-        doUpdate(query, params, Collections.emptyMap());
+    public int delete(String query, List<SqlParameter> params) {
+        return doSimpleUpdate(query, params);
     }
 }
