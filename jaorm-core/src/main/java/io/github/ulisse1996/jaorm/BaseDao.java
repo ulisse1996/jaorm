@@ -1,18 +1,17 @@
 package io.github.ulisse1996.jaorm;
 
-import io.github.ulisse1996.jaorm.entity.EntityDelegate;
 import io.github.ulisse1996.jaorm.entity.event.*;
-import io.github.ulisse1996.jaorm.entity.relationship.UpdateEvent;
-import io.github.ulisse1996.jaorm.spi.DelegatesService;
-import io.github.ulisse1996.jaorm.spi.QueryRunner;
-import io.github.ulisse1996.jaorm.spi.RelationshipService;
 import io.github.ulisse1996.jaorm.entity.relationship.EntityEvent;
 import io.github.ulisse1996.jaorm.entity.relationship.EntityEventType;
+import io.github.ulisse1996.jaorm.entity.relationship.UpdateEvent;
 import io.github.ulisse1996.jaorm.entity.sql.SqlAccessor;
 import io.github.ulisse1996.jaorm.entity.sql.SqlParameter;
 import io.github.ulisse1996.jaorm.exception.PersistEventException;
 import io.github.ulisse1996.jaorm.exception.RemoveEventException;
 import io.github.ulisse1996.jaorm.exception.UpdateEventException;
+import io.github.ulisse1996.jaorm.spi.DelegatesService;
+import io.github.ulisse1996.jaorm.spi.QueryRunner;
+import io.github.ulisse1996.jaorm.spi.RelationshipService;
 
 import java.util.List;
 import java.util.Objects;
