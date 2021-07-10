@@ -39,7 +39,12 @@ public abstract class ConverterService {
                     return converterPair.getConverter().fromSql((T) getterValue);
                 },
                 (pr, index, value) -> {
-                    Object setterValue = converterPair.getConverter().toSql((R) value);
+                    Object setterValue;
+                    if (converterPair.getOnSql().isInstance(value)) {
+                        setterValue = value;
+                    } else {
+                        setterValue = converterPair.getConverter().toSql((R) value);
+                    }
                     SqlAccessor found = Optional.ofNullable(setterValue)
                             .map(Object::getClass)
                             .map(SqlAccessor::find)

@@ -44,4 +44,17 @@ class ConverterServiceTest {
         Mockito.verify(pr).setInt(1, 1);
         Mockito.verify(rs).getInt("COL");
     }
+
+    @Test
+    void should_use_converted_value_and_not_apply_conversion() throws SQLException {
+        ConverterMock testSubject = new ConverterMock();
+        SqlAccessor found = testSubject.findConverter(Boolean.class);
+        PreparedStatement pr = Mockito.mock(PreparedStatement.class);
+        ResultSet rs = Mockito.mock(ResultSet.class);
+        found.getSetter().set(pr, 1, 1);
+        Object value = found.getGetter().get(rs, "COL");
+        Assertions.assertTrue(value instanceof Boolean);
+        Mockito.verify(pr).setInt(1, 1);
+        Mockito.verify(rs).getInt("COL");
+    }
 }
