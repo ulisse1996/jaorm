@@ -16,6 +16,13 @@ public class UpdateEvent extends PreApplyEvent {
 
     @Override
     public <T> void apply(T entity) {
+        if (entity instanceof PreUpdate<?>) {
+            try {
+                ((PreUpdate<?>) entity).preUpdate();
+            } catch (Exception ex) {
+                throw new PersistEventException(ex);
+            }
+        }
         doPreApply(entity, (dao, i) -> {
             Object obj = dao.update(i);
             int val = 0;
@@ -24,25 +31,25 @@ public class UpdateEvent extends PreApplyEvent {
             }
             return val;
         }, true);
-        if (entity instanceof PreUpdate<?>) {
-            try {
-                ((PreUpdate<?>) entity).preUpdate();
-            } catch (Exception ex) {
-                throw new PersistEventException(ex);
-            }
-        }
-        List<SqlParameter> parameterList =
-                Stream.concat(DelegatesService.getInstance().asArguments(entity).asSqlParameters().stream(),
-                        DelegatesService.getInstance().asWhere(entity).asSqlParameters().stream())
-                .collect(Collectors.toList());
-        QueryRunner.getInstance(entity.getClass())
-                .update(DelegatesService.getInstance().getUpdateSql(entity.getClass()), parameterList);
+        updateEntity(entity);
         if (entity instanceof PostUpdate<?>) {
             try {
                 ((PostUpdate<?>) entity).postUpdate();
             } catch (Exception ex) {
                 throw new PersistEventException(ex);
             }
+        }
+    }
+
+    public static <T> void updateEntity(T entity) {
+        List<SqlParameter> parameterList =
+                Stream.concat(DelegatesService.getInstance().asArguments(entity).asSqlParameters().stream(),
+                        DelegatesService.getInstance().asWhere(entity).asSqlParameters().stream())
+                .collect(Collectors.toList());
+        int update = QueryRunner.getInstance(entity.getClass())
+                .update(DelegatesService.getInstance().getUpdateSql(entity.getClass()), parameterList);
+        if (entity instanceof EntityDelegate<?>) {
+            ((EntityDelegate<?>) entity).setUpdateRow(update);
         }
     }
 
