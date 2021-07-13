@@ -97,16 +97,6 @@ public abstract class EventTest {
         public boolean isModified() {
             return false;
         }
-
-        @Override
-        public void setUpdateRow(int row) {
-
-        }
-
-        @Override
-        public int getAndResetUpdateRow() {
-            return 0;
-        }
     }
 
     protected static class RelEntity {}

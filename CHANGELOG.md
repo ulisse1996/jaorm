@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 0.14.1
+## 0.14.2
 
 - Bugfix: Fix Conversion for Custom Sql Parameter Types
 - Bugfix: Fix PreUpdate and PreRemove called after Update/Remove event

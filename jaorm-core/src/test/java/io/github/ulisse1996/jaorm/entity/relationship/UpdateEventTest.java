@@ -45,7 +45,7 @@ class UpdateEventTest extends EventTest {
              MockedStatic<QueriesService> mkQueries = Mockito.mockStatic(QueriesService.class)) {
             mkRel.when(RelationshipService::getInstance)
                     .thenReturn(relationshipService);
-            mkRunner.when(() -> QueryRunner.getInstance(Entity.class))
+            mkRunner.when(() -> QueryRunner.getInstance(Mockito.any()))
                     .thenReturn(queryRunner);
             mkDelegates.when(DelegatesService::getInstance)
                     .thenReturn(delegatesService);

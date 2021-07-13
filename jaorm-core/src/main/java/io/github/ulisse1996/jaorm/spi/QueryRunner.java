@@ -23,6 +23,7 @@ public abstract class QueryRunner {
     protected static final SqlJaormLogger logger = JaormLogger.getSqlLogger(ResultSetExecutor.class);
     private static final Singleton<QueryRunner> ENTITY_RUNNER = Singleton.instance();
     private static final Singleton<QueryRunner> SIMPLE_RUNNER = Singleton.instance();
+    private static final ThreadLocal<Map<Object, Integer>> UPDATED_ROWS_LOCAL = ThreadLocal.withInitial(HashMap::new); //NOSONAR
 
     public static QueryRunner getInstance(Class<?> klass) {
         if (!isDelegate(klass)) {
@@ -136,6 +137,14 @@ public abstract class QueryRunner {
                 return delegate.getConnection();
             }
         }
+    }
+
+    public void registerUpdatedRows(Object object, int rows) {
+        UPDATED_ROWS_LOCAL.get().put(object, rows);
+    }
+
+    public int getUpdatedRows(Object object) {
+        return UPDATED_ROWS_LOCAL.get().get(object);
     }
 
     public abstract boolean isCompatible(Class<?> klass);
