@@ -1,6 +1,5 @@
 package io.github.ulisse1996.jaorm.entity.relationship;
 
-import io.github.ulisse1996.jaorm.entity.EntityDelegate;
 import io.github.ulisse1996.jaorm.entity.event.PostUpdate;
 import io.github.ulisse1996.jaorm.entity.event.PreUpdate;
 import io.github.ulisse1996.jaorm.entity.sql.SqlParameter;
@@ -24,12 +23,8 @@ public class UpdateEvent extends PreApplyEvent {
             }
         }
         doPreApply(entity, (dao, i) -> {
-            Object obj = dao.update(i);
-            int val = 0;
-            if (obj instanceof EntityDelegate<?>) {
-                val = ((EntityDelegate<?>) obj).getAndResetUpdateRow();
-            }
-            return val;
+            dao.update(i);
+            return QueryRunner.getInstance(i.getClass()).getUpdatedRows(i);
         }, true);
         updateEntity(entity);
         if (entity instanceof PostUpdate<?>) {
@@ -48,9 +43,8 @@ public class UpdateEvent extends PreApplyEvent {
                 .collect(Collectors.toList());
         int update = QueryRunner.getInstance(entity.getClass())
                 .update(DelegatesService.getInstance().getUpdateSql(entity.getClass()), parameterList);
-        if (entity instanceof EntityDelegate<?>) {
-            ((EntityDelegate<?>) entity).setUpdateRow(update);
-        }
+        QueryRunner.getInstance(entity.getClass())
+                .registerUpdatedRows(entity, update);
     }
 
     @Override

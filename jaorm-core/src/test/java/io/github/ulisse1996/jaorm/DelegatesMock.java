@@ -157,15 +157,5 @@ public class DelegatesMock extends DelegatesService {
         public boolean isModified() {
             return false;
         }
-
-        @Override
-        public void setUpdateRow(int row) {
-            this.updatedRow = row;
-        }
-
-        @Override
-        public int getAndResetUpdateRow() {
-            return this.updatedRow;
-        }
     }
 }

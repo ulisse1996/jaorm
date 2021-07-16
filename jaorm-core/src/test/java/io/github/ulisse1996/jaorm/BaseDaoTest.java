@@ -274,7 +274,6 @@ class BaseDaoTest {
             dao.update(Collections.singletonList(entity));
 
             Mockito.verify(dao).update(Mockito.any(DelegatesMock.MyEntityDelegate.class));
-            Assertions.assertEquals(1, entity.getAndResetUpdateRow());
         }
     }
 

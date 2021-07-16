@@ -59,6 +59,10 @@ public class Result<T> {
         }
     }
 
+    public T orElse(T val) {
+        return isPresent() ? this.entity : val;
+    }
+
     public Optional<T> toOptional() {
         return Optional.ofNullable(this.entity);
     }

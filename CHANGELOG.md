@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.14.2
+- Bugfix: Moved Updated Row from EntityDelete
+- Feature: Add **orElse(any)** to Result for Optional compliance
+
 ## 0.14.1
 
 - Bugfix: Fix Conversion for Custom Sql Parameter Types
