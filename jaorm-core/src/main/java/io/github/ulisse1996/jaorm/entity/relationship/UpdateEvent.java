@@ -1,6 +1,5 @@
 package io.github.ulisse1996.jaorm.entity.relationship;
 
-import io.github.ulisse1996.jaorm.entity.EntityDelegate;
 import io.github.ulisse1996.jaorm.entity.event.PostUpdate;
 import io.github.ulisse1996.jaorm.entity.event.PreUpdate;
 import io.github.ulisse1996.jaorm.entity.sql.SqlParameter;
