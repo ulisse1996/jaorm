@@ -71,4 +71,18 @@ class ResultTest {
         val.ifPresent(i -> out.append(" + 2"));
         Assertions.assertEquals("1", out.toString());
     }
+
+    @Test
+    void should_return_else() {
+        Result<Integer> empty = Result.empty();
+        int res = empty.orElse(2);
+        Assertions.assertEquals(2, res);
+    }
+
+    @Test
+    void should_return_current_value() {
+        Result<Integer> empty = Result.of(1);
+        int res = empty.orElse(2);
+        Assertions.assertEquals(1, res);
+    }
 }
