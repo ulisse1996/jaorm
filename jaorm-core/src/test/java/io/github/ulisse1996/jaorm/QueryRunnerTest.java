@@ -38,8 +38,9 @@ class QueryRunnerTest {
 
     @Test
     void should_return_same_rows() {
-        QueryRunner.getSimple().registerUpdatedRows(1, 10);
-        Assertions.assertEquals(10, QueryRunner.getSimple().getUpdatedRows(1));
+        MockedRunner runner = new MockedRunner();
+        runner.registerUpdatedRows(1, 10);
+        Assertions.assertEquals(10, runner.getUpdatedRows(1));
     }
 
     @Test
