@@ -28,6 +28,8 @@ public abstract class Generator {
                 return new CacheGenerator(processingEnvironment);
             case CONVERTER:
                 return new ConverterGenerator(processingEnvironment);
+            case LISTENERS:
+                return new ListenersGenerator(processingEnvironment);
             default:
                 throw new IllegalArgumentException("Can't find validator");
         }

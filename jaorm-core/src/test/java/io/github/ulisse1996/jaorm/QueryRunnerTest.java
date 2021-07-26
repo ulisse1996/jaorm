@@ -37,6 +37,12 @@ class QueryRunnerTest {
     }
 
     @Test
+    void should_return_same_rows() {
+        QueryRunner.getSimple().registerUpdatedRows(1, 10);
+        Assertions.assertEquals(10, QueryRunner.getSimple().getUpdatedRows(1));
+    }
+
+    @Test
     void should_not_find_simple_query_runner() {
         try (MockedStatic<ServiceFinder> mk = Mockito.mockStatic(ServiceFinder.class)) {
             mk.when(() -> ServiceFinder.loadServices(QueryRunner.class))

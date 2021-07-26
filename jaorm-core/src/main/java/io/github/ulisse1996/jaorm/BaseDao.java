@@ -10,6 +10,7 @@ import io.github.ulisse1996.jaorm.exception.PersistEventException;
 import io.github.ulisse1996.jaorm.exception.RemoveEventException;
 import io.github.ulisse1996.jaorm.exception.UpdateEventException;
 import io.github.ulisse1996.jaorm.spi.DelegatesService;
+import io.github.ulisse1996.jaorm.spi.ListenersService;
 import io.github.ulisse1996.jaorm.spi.QueryRunner;
 import io.github.ulisse1996.jaorm.spi.RelationshipService;
 
@@ -30,9 +31,12 @@ public interface BaseDao<R> {
         int res = 0;
         RelationshipService relationshipService = RelationshipService.getInstance();
         if (relationshipService.isEventActive(entity.getClass(), EntityEventType.REMOVE)) {
+            ListenersService.getInstance().fireEvent(entity, GlobalEventType.PRE_REMOVE);
             EntityEvent.forType(EntityEventType.REMOVE)
                     .apply(entity);
+            ListenersService.getInstance().fireEvent(entity, GlobalEventType.POST_REMOVE);
         } else {
+            ListenersService.getInstance().fireEvent(entity, GlobalEventType.PRE_REMOVE);
             if (entity instanceof PreRemove) {
                 try {
                     ((PreRemove<?>) entity).preRemove();
@@ -43,6 +47,7 @@ public interface BaseDao<R> {
             res = QueryRunner.getInstance(entity.getClass())
                     .delete(DelegatesService.getInstance().getDeleteSql(entity.getClass()),
                             DelegatesService.getInstance().asWhere(entity).asSqlParameters());
+            ListenersService.getInstance().fireEvent(entity, GlobalEventType.POST_REMOVE);
             if (entity instanceof PostRemove) {
                 try {
                     ((PostRemove<?>) entity).postRemove();
@@ -59,9 +64,12 @@ public interface BaseDao<R> {
         Objects.requireNonNull(entity);
         RelationshipService relationshipService = RelationshipService.getInstance();
         if (relationshipService.isEventActive(entity.getClass(), EntityEventType.UPDATE)) {
+            ListenersService.getInstance().fireEvent(entity, GlobalEventType.PRE_UPDATE);
             EntityEvent.forType(EntityEventType.UPDATE)
                     .apply(entity);
+            ListenersService.getInstance().fireEvent(entity, GlobalEventType.POST_UPDATE);
         } else {
+            ListenersService.getInstance().fireEvent(entity, GlobalEventType.PRE_UPDATE);
             if (entity instanceof PreUpdate) {
                 try {
                     ((PreUpdate<?>) entity).preUpdate();
@@ -70,6 +78,7 @@ public interface BaseDao<R> {
                 }
             }
             UpdateEvent.updateEntity(entity);
+            ListenersService.getInstance().fireEvent(entity, GlobalEventType.POST_UPDATE);
             if (entity instanceof PostUpdate) {
                 try {
                     ((PostUpdate<?>) entity).postUpdate();
@@ -86,9 +95,12 @@ public interface BaseDao<R> {
         Objects.requireNonNull(entity);
         RelationshipService relationshipService = RelationshipService.getInstance();
         if (relationshipService.isEventActive(entity.getClass(), EntityEventType.PERSIST)) {
+            ListenersService.getInstance().fireEvent(entity, GlobalEventType.PRE_PERSIST);
             entity = EntityEvent.forType(EntityEventType.PERSIST)
                     .applyAndReturn(entity);
+            ListenersService.getInstance().fireEvent(entity, GlobalEventType.POST_PERSIST);
         } else {
+            ListenersService.getInstance().fireEvent(entity, GlobalEventType.PRE_PERSIST);
             if (entity instanceof PrePersist) {
                 try {
                     ((PrePersist<?>) entity).prePersist();
@@ -101,6 +113,7 @@ public interface BaseDao<R> {
                     DelegatesService.getInstance().getInsertSql(entity),
                     argumentsAsParameters(DelegatesService.getInstance().asInsert(entity).getValues())
             );
+            ListenersService.getInstance().fireEvent(entity, GlobalEventType.POST_PERSIST);
             if (entity instanceof PostPersist) {
                 try {
                     ((PostPersist<?>) entity).postPersist();

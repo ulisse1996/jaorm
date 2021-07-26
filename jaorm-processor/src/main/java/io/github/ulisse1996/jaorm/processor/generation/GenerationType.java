@@ -6,5 +6,6 @@ public enum GenerationType {
     RELATIONSHIP,
     DSL,
     CACHE,
-    CONVERTER
+    CONVERTER,
+    LISTENERS
 }
