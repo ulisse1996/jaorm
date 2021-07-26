@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.15.0
+- Feature: Global Listener for Persist, Update and Remove events
+- Feature: Feature Configuration for Insert after failed Update
+
 ## 0.14.2
 - Bugfix: Moved Updated Row from EntityDelete
 - Feature: Add **orElse(any)** to Result for Optional compliance

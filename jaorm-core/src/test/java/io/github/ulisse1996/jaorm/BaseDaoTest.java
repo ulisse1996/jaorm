@@ -316,6 +316,8 @@ class BaseDaoTest {
                     .thenReturn(true);
             mkEntity.when(() -> EntityEvent.forType(eventType))
                     .thenReturn(event);
+            Mockito.when(event.applyAndReturn(Mockito.any()))
+                    .then(i -> i.getArgument(0));
             switch (eventType) {
                 case PERSIST:
                     dao.insert(new DelegatesMock.MyEntity());

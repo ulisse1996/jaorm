@@ -3,6 +3,7 @@ package io.github.ulisse1996.jaorm.entity.relationship;
 import io.github.ulisse1996.jaorm.BaseDao;
 import io.github.ulisse1996.jaorm.entity.Result;
 import io.github.ulisse1996.jaorm.logger.JaormLogger;
+import io.github.ulisse1996.jaorm.spi.FeatureConfigurator;
 import io.github.ulisse1996.jaorm.spi.QueriesService;
 import io.github.ulisse1996.jaorm.spi.RelationshipService;
 
@@ -55,7 +56,7 @@ public abstract class PreApplyEvent implements EntityEvent {
     }
 
     private <T> void tryInsert(BaseDao<Object> baseDao, Relationship.Node<T> node, Object i) {
-        if (node.matchEvent(EntityEventType.PERSIST)) {
+        if (node.matchEvent(EntityEventType.PERSIST) && FeatureConfigurator.getInstance().isInsertAfterFailedUpdateEnabled()) {
             baseDao.insert(i);
         } else {
             JaormLogger.getLogger(PreApplyEvent.class).debug(() -> {
