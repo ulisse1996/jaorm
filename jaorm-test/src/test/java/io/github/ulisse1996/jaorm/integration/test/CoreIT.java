@@ -5,17 +5,14 @@ import io.github.ulisse1996.jaorm.entity.EntityComparator;
 import io.github.ulisse1996.jaorm.entity.Result;
 import io.github.ulisse1996.jaorm.exception.JaormSqlException;
 import io.github.ulisse1996.jaorm.integration.test.entity.*;
-import io.github.ulisse1996.jaorm.integration.test.query.CascadeDAO;
-import io.github.ulisse1996.jaorm.integration.test.query.CascadeInnerDAO;
-import io.github.ulisse1996.jaorm.integration.test.query.CityDAO;
-import io.github.ulisse1996.jaorm.integration.test.query.CompoundEntityDAO;
+import io.github.ulisse1996.jaorm.integration.test.query.*;
 import io.github.ulisse1996.jaorm.spi.QueriesService;
 import io.github.ulisse1996.jaorm.spi.QueryRunner;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -119,13 +116,38 @@ class CoreIT extends AbstractIT {
         Assertions.assertTrue(EntityComparator.getInstance(Store.class).equals(city.getStores().get(0), stores.get(0)));
     }
 
-    @Test
-    void should_read_all_mapped_fields() {
+    @ParameterizedTest
+    @MethodSource("getSqlTests")
+    void should_read_all_mapped_fields(HSQLDBProvider.DatabaseType type, String initSql) {
+        setDataSource(type, initSql);
         CompoundEntity compoundEntity = new CompoundEntity();
         compoundEntity.setCompoundId(1);
         compoundEntity = QueriesService.getInstance().getQuery(CompoundEntityDAO.class)
                 .read(compoundEntity);
         Assertions.assertNotNull(compoundEntity.getCreateDate());
         Assertions.assertNotNull(compoundEntity.getCreationUser());
+    }
+
+    @ParameterizedTest
+    @MethodSource("getSqlTests")
+    void should_return_all_generated_columns(HSQLDBProvider.DatabaseType type, String initSql) {
+        setDataSource(type, initSql);
+
+        EntityWithProgressive p = new EntityWithProgressive();
+        p.setValue("222");
+        ProgressiveDao dao = QueriesService.getInstance().getQuery(ProgressiveDao.class);
+        p = dao.insert(p);
+
+        Assertions.assertNotNull(p.getId());
+        Assertions.assertEquals(BigDecimal.ONE, p.getId());
+        Assertions.assertNotNull(p.getProgressive());
+        Assertions.assertEquals(BigDecimal.valueOf(23), p.getProgressive());
+
+        EntityWithProgressive pr = new EntityWithProgressive();
+        pr.setId(p.getId());
+
+        pr = dao.read(pr);
+
+        Assertions.assertTrue(EntityComparator.getInstance(EntityWithProgressive.class).equals(pr, p));
     }
 }

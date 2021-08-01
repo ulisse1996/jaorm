@@ -5,7 +5,7 @@
     <parent>
         <artifactId>jaorm-pom</artifactId>
         <groupId>io.github.ulisse1996</groupId>
-        <version>0.15.0</version>
+        <version>0.16.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -23,8 +23,8 @@
         <spring-boot-starter-test.version>2.4.3</spring-boot-starter-test.version>
         <junit-platform-launcher.version>1.4.1</junit-platform-launcher.version>
         <weld-junit5.version>2.0.2.Final</weld-junit5.version>
-        <hsqldb.version>2.5.1</hsqldb.version>
-        <jaorm.version>0.15.0</jaorm.version>
+        <hsqldb.version>2.5.2</hsqldb.version>
+        <jaorm.version>0.16.0</jaorm.version>
     </properties>
 
     <dependencies>
