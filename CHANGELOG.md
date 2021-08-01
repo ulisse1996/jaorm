@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 0.16.0
+- Feature: Add Column Auto Generated
+
 ## 0.15.0
 - Feature: Global Listener for Persist, Update and Remove events
 - Feature: Feature Configuration for Insert after failed Update
