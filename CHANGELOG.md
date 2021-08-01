@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 0.16.1
+- Bugfix: Fix Service loading exception catch
+
 ## 0.16.0
 - Feature: Add Column Auto Generated
 

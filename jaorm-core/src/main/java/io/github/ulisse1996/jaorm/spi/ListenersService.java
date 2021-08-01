@@ -6,6 +6,7 @@ import io.github.ulisse1996.jaorm.entity.event.GlobalEventType;
 import io.github.ulisse1996.jaorm.spi.common.Singleton;
 
 import java.util.Collections;
+import java.util.ServiceConfigurationError;
 import java.util.Set;
 
 public abstract class ListenersService {
@@ -16,7 +17,7 @@ public abstract class ListenersService {
         if (!INSTANCE.isPresent()) {
             try {
                 INSTANCE.set(ServiceFinder.loadService(ListenersService.class));
-            } catch (Exception ex) {
+            } catch (Exception | ServiceConfigurationError ex) {
                 INSTANCE.set(NoOp.INSTANCE);
             }
         }
