@@ -32,7 +32,7 @@ class GeneratedValidatorTest {
         TableGenerated generated = Mockito.mock(TableGenerated.class);
         Mockito.when(element.getAnnotation(TableGenerated.class))
                 .thenReturn(generated);
-        Assertions.assertThrows(ProcessorException.class, () -> validator.validate(Collections.singletonList(element)));
+        Assertions.assertThrows(ProcessorException.class, () -> validator.validate(Collections.singletonList(element))); //NOSONAR
     }
 
     @Test
@@ -44,7 +44,7 @@ class GeneratedValidatorTest {
                 .thenReturn(generated);
         Mockito.when(element.getAnnotation(Column.class))
                 .thenReturn(column);
-        Assertions.assertThrows(ProcessorException.class, () -> validator.validate(Collections.singletonList(element)));
+        Assertions.assertThrows(ProcessorException.class, () -> validator.validate(Collections.singletonList(element))); //NOSONAR
     }
 
     @Test
@@ -58,7 +58,7 @@ class GeneratedValidatorTest {
                 .thenReturn(null);
         Mockito.when(element.getAnnotation(Id.class))
                 .thenReturn(id);
-        Assertions.assertThrows(ProcessorException.class, () -> validator.validate(Collections.singletonList(element)));
+        Assertions.assertThrows(ProcessorException.class, () -> validator.validate(Collections.singletonList(element))); //NOSONAR
     }
 
     @Test
@@ -103,7 +103,7 @@ class GeneratedValidatorTest {
                     .thenReturn(Collections.singletonList(customType));
             mk.when(() -> ProcessorUtils.getUnboxed(Mockito.any(), Mockito.any()))
                     .thenReturn(null); // Null Unboxed
-            Assertions.assertThrows(ProcessorException.class, () -> myValidator.validate(Collections.singletonList(element)));
+            Assertions.assertThrows(ProcessorException.class, () -> myValidator.validate(Collections.singletonList(element))); //NOSONAR
         }
     }
 }
