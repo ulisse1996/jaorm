@@ -13,6 +13,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import java.math.BigDecimal;
+import java.sql.SQLException;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -149,5 +150,28 @@ class CoreIT extends AbstractIT {
         pr = dao.read(pr);
 
         Assertions.assertTrue(EntityComparator.getInstance(EntityWithProgressive.class).equals(pr, p));
+    }
+
+    @ParameterizedTest
+    @MethodSource("getSqlTests")
+    void should_generate_columns_with_table(HSQLDBProvider.DatabaseType type, String initSql) throws SQLException {
+        setDataSource(type, initSql);
+
+        QueryRunner.getSimple()
+                .read("SELECT SEQ_VAL FROM SEQ_TABLE WHERE ID_SEQ = 'ENTITY'", Collections.emptyList())
+                .mapRow(row -> {
+                    Assertions.assertEquals(BigDecimal.ONE, row.getBigDecimal(1));
+                    return null;
+                });
+
+        SequenceDao dao = QueriesService.getInstance().getQuery(SequenceDao.class);
+
+        Sequence sequence = new Sequence();
+        sequence.setVal("VAL");
+
+        Sequence generated = dao.insert(sequence);
+
+        Assertions.assertEquals(BigDecimal.ONE, generated.getId());
+        Assertions.assertEquals(BigDecimal.valueOf(2), generated.getSeq());
     }
 }

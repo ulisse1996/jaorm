@@ -7,5 +7,6 @@ public enum GenerationType {
     DSL,
     CACHE,
     CONVERTER,
-    LISTENERS
+    LISTENERS,
+    GENERATORS
 }

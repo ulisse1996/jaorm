@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.function.Supplier;
 
 class DelegatesServiceTest {
@@ -27,7 +28,7 @@ class DelegatesServiceTest {
         entity.setField2(BigDecimal.ONE);
         Arguments arguments = testSubject.asInsert(entity);
         Assertions.assertEquals(2, arguments.getValues().length);
-        Assertions.assertTrue(Arrays.equals(new Object[] {entity.getField1(), entity.getField2()}, arguments.getValues()));
+        Assertions.assertArrayEquals(new Object[]{entity.getField1(), entity.getField2()}, arguments.getValues());
     }
 
     @Test
@@ -59,7 +60,7 @@ class DelegatesServiceTest {
         DelegatesMock.MyEntity entity = new DelegatesMock.MyEntity();
         entity.setField1("TEST_FIELD");
         Arguments arguments = testSubject.asWhere(entity);
-        Assertions.assertTrue(Arrays.equals(new Object[] {entity.getField1()}, arguments.getValues()));
+        Assertions.assertArrayEquals(new Object[]{entity.getField1()}, arguments.getValues());
     }
 
     @Test
@@ -69,7 +70,7 @@ class DelegatesServiceTest {
         entity.setField2(BigDecimal.ONE);
         Arguments arguments = testSubject.asArguments(entity);
         Assertions.assertEquals(2, arguments.getValues().length);
-        Assertions.assertTrue(Arrays.equals(new Object[] {entity.getField1(), entity.getField2()}, arguments.getValues()));
+        Assertions.assertArrayEquals(new Object[]{entity.getField1(), entity.getField2()}, arguments.getValues());
     }
 
     @Test
@@ -87,5 +88,11 @@ class DelegatesServiceTest {
     @Test
     void should_return_real_class_from_delegate_class() {
         Assertions.assertEquals(DelegatesMock.MyEntity.class, testSubject.getEntityClass(DelegatesMock.MyEntityDelegate.class));
+    }
+
+    @Test
+    void should_create_insert_arguments_with_generated_values() {
+        Arguments arguments = testSubject.asInsert(new DelegatesMock.MyEntity(), Collections.emptyMap());
+        Assertions.assertEquals(2, arguments.getValues().length);
     }
 }
