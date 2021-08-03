@@ -1,6 +1,7 @@
 package io.github.ulisse1996.jaorm.processor.validation;
 
 import io.github.ulisse1996.jaorm.processor.validation.impl.EntityValidator;
+import io.github.ulisse1996.jaorm.processor.validation.impl.GeneratedValidator;
 import io.github.ulisse1996.jaorm.processor.validation.impl.QueryValidator;
 import io.github.ulisse1996.jaorm.processor.validation.impl.RelationshipValidator;
 
@@ -24,6 +25,8 @@ public abstract class Validator {
                 return new EntityValidator(processingEnvironment);
             case RELATIONSHIP:
                 return new RelationshipValidator(processingEnvironment);
+            case GENERATORS:
+                return new GeneratedValidator(processingEnvironment);
             default:
                 throw new IllegalArgumentException("Can't find validator");
         }

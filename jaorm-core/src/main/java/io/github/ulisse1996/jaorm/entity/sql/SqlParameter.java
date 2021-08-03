@@ -1,5 +1,9 @@
 package io.github.ulisse1996.jaorm.entity.sql;
 
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 public class SqlParameter {
 
     private final Object val;
@@ -17,6 +21,17 @@ public class SqlParameter {
         } else {
             this.accessor = SqlAccessor.NULL.getSetter();
         }
+    }
+
+    public static List<SqlParameter> argumentsAsParameters(Object[] arguments) {
+        return Stream.of(arguments)
+                .map(a -> {
+                    SqlAccessor accessor = SqlAccessor.NULL;
+                    if (a != null) {
+                        accessor = SqlAccessor.find(a.getClass());
+                    }
+                    return new SqlParameter(a, accessor.getSetter());
+                }).collect(Collectors.toList());
     }
 
     public Object getVal() {

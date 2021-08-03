@@ -148,7 +148,17 @@ public class ProcessorUtils {
     public static TypeElement getFieldType(ProcessingEnvironment processingEnvironment, VariableElement variableElement) {
         TypeMirror typeMirror = variableElement.asType();
         String realType = extractRealType(typeMirror);
-        return processingEnvironment.getElementUtils().getTypeElement(realType);
+        TypeElement element = processingEnvironment.getElementUtils().getTypeElement(realType);
+        if (element == null) {
+            return WRAPPER_TYPE_MAP.entrySet()
+                    .stream()
+                    .filter(e -> e.getValue().getName().equals(realType))
+                    .findFirst()
+                    .map(e -> processingEnvironment.getElementUtils().getTypeElement(e.getKey().getName()))
+                    .orElse(null);
+        }
+
+        return element;
     }
 
     private static String extractRealType(TypeMirror typeMirror) {
@@ -170,14 +180,14 @@ public class ProcessorUtils {
         return null;
     }
 
-    public static List<TypeElement> getGenericTypes(ProcessingEnvironment processingEnvironment, TypeMirror mirror) {
+    public static List<TypeElement> getGenericTypes(ProcessingEnvironment processingEnvironment, TypeMirror mirror, String name) {
         TypeElement typeElement = (TypeElement) processingEnvironment.getTypeUtils().asElement(mirror);
         TypeMirror converterType = typeElement.getInterfaces().get(0);
-        return getParameters(processingEnvironment, converterType);
+        return getParameters(processingEnvironment, converterType, name);
     }
 
-    private static List<TypeElement> getParameters(ProcessingEnvironment processingEnvironment, TypeMirror mirror) {
-        String[] param = mirror.toString().replace(ValueConverter.class.getName(), "")
+    private static List<TypeElement> getParameters(ProcessingEnvironment processingEnvironment, TypeMirror mirror, String name) {
+        String[] param = mirror.toString().replace(name, "")
                 .replace(STARTING_GENERIC, "").replace(ENDING_GENERING, "")
                 .split(",");
         return Stream.of(param)
@@ -249,7 +259,7 @@ public class ProcessorUtils {
     public static List<TypeElement> getConverterTypes(ProcessingEnvironment processingEnvironment,
                                                       VariableElement variableElement) {
         TypeMirror converterClass = getConverterClass(processingEnvironment, variableElement);
-        return getGenericTypes(processingEnvironment, converterClass);
+        return getGenericTypes(processingEnvironment, converterClass, ValueConverter.class.getName());
     }
 
     private static TypeMirror getConverterClass(ProcessingEnvironment environment, VariableElement variableElement) {

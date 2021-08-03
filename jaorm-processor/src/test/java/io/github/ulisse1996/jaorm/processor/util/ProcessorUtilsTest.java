@@ -231,7 +231,7 @@ class ProcessorUtilsTest {
         Mockito.when(elements.getTypeElement(type2))
                 .thenReturn(elementType2);
         Assertions.assertEquals(Arrays.asList(elementType1, elementType2),
-                ProcessorUtils.getGenericTypes(environment, mirror));
+                ProcessorUtils.getGenericTypes(environment, mirror, "io.github.ulisse1996.jaorm.entity.converter.ValueConverter"));
     }
 
     @Test

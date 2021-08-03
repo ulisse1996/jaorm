@@ -1,9 +1,6 @@
 package io.github.ulisse1996.jaorm.processor.validation;
 
-import io.github.ulisse1996.jaorm.annotation.Dao;
-import io.github.ulisse1996.jaorm.annotation.Query;
-import io.github.ulisse1996.jaorm.annotation.Relationship;
-import io.github.ulisse1996.jaorm.annotation.Table;
+import io.github.ulisse1996.jaorm.annotation.*;
 
 import java.lang.annotation.Annotation;
 import java.util.Arrays;
@@ -12,7 +9,8 @@ import java.util.List;
 public enum ValidatorType {
     QUERY(Query.class, Dao.class),
     ENTITY(Table.class),
-    RELATIONSHIP(Relationship.class);
+    RELATIONSHIP(Relationship.class),
+    GENERATORS(CustomGenerated.class, TableGenerated.class);
 
     private final List<Class<? extends Annotation>> supported;
 

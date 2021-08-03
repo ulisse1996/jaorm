@@ -85,6 +85,12 @@ public abstract class DelegatesService {
         return delegate.getEntityMapper().getAllColumns(entity, true);
     }
 
+    @SuppressWarnings("unchecked")
+    public <R> Arguments asInsert(R entity, Map<String, Object> generated) {
+        EntityDelegate<R> delegate = (EntityDelegate<R>) searchDelegate(entity.getClass()).get();
+        return delegate.getEntityMapper().getAllColumns(entity, true, generated);
+    }
+
     public <R> String getUpdateSql(Class<R> entity) {
         EntityDelegate<?> delegate = searchDelegate(entity).get();
         return delegate.getUpdateSql() + delegate.getKeysWhere();

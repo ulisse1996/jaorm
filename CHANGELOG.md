@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 0.17.0
+- Feature: Add custom generation with **@TableGenerated** and **@CustomGenerated**
+
 ## 0.16.1
 - Bugfix: Fix Service loading exception catch
 
