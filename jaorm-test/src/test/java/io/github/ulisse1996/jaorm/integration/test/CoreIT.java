@@ -4,6 +4,7 @@ import io.github.ulisse1996.jaorm.BaseDao;
 import io.github.ulisse1996.jaorm.entity.EntityComparator;
 import io.github.ulisse1996.jaorm.entity.Result;
 import io.github.ulisse1996.jaorm.exception.JaormSqlException;
+import io.github.ulisse1996.jaorm.generated.Tables;
 import io.github.ulisse1996.jaorm.integration.test.entity.*;
 import io.github.ulisse1996.jaorm.integration.test.query.*;
 import io.github.ulisse1996.jaorm.spi.QueriesService;
@@ -16,6 +17,7 @@ import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 class CoreIT extends AbstractIT {
@@ -173,5 +175,29 @@ class CoreIT extends AbstractIT {
 
         Assertions.assertEquals(BigDecimal.ONE, generated.getId());
         Assertions.assertEquals(BigDecimal.valueOf(2), generated.getSeq());
+    }
+
+    @ParameterizedTest
+    @MethodSource("getSqlTests")
+    void should_read_entity_using_tables(HSQLDBProvider.DatabaseType type, String initSql) {
+        setDataSource(type, initSql);
+
+        Optional<City> cityOpt = Tables.CITY.cityId(10)
+                .readOpt();
+
+        City city = new City();
+        city.setCityId(11);
+        city.setName("NAME");
+
+
+        Assertions.assertFalse(cityOpt.isPresent());
+
+        QueriesService.getInstance().getQuery(CityDAO.class).insert(city);
+
+        cityOpt = Tables.CITY.cityId(11)
+                .readOpt();
+
+        Assertions.assertTrue(cityOpt.isPresent());
+        Assertions.assertTrue(EntityComparator.getInstance(City.class).equals(city, cityOpt.get()));
     }
 }

@@ -8,5 +8,6 @@ public enum GenerationType {
     CACHE,
     CONVERTER,
     LISTENERS,
-    GENERATORS
+    GENERATORS,
+    TABLES
 }

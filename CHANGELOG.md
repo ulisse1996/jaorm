@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.18.0
+- Feature: Add **Tables** , a utility class that can retrieve entity using 
+processed keys without using a new Entity instance
+
 ## 0.17.0
 - Feature: Add custom generation with **@TableGenerated** and **@CustomGenerated**
 
