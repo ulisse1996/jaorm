@@ -12,11 +12,14 @@ import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.*;
 import java.util.List;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class TablesGenerator extends Generator {
 
     private static final String ENTITY = "entity";
+    private static final Pattern CAMEL_CASE_TO_SNAKE_CASE_PATTERN = Pattern
+            .compile("((?<=[a-z0-9])[A-Z]|(?!^)[A-Z](?=[a-z]))");
 
     public TablesGenerator(ProcessingEnvironment processingEnvironment) {
         super(processingEnvironment);
@@ -62,8 +65,8 @@ public class TablesGenerator extends Generator {
     }
 
     private String toSnake(String name) {
-        return name.replaceAll("([A-Z]+)([A-Z][a-z])", "$1_$2").replaceAll("([a-z])([A-Z])", "$1_$2")
-                .toUpperCase();
+        return CAMEL_CASE_TO_SNAKE_CASE_PATTERN.matcher(name)
+                .replaceAll("_$1").toUpperCase();
     }
 
     private TypeSpec toTableImpl(TypeElement typeElement) {
