@@ -54,7 +54,6 @@
             <version>${jaorm.version}</version>
         </dependency>
         <dependency>
-<<<<<<< HEAD
             <groupId>io.github.ulisse1996</groupId>
             <artifactId>jaorm-lombok</artifactId>
             <version>${jaorm.version}</version>
@@ -65,8 +64,6 @@
             <version>${jaorm.version}</version>
         </dependency>
         <dependency>
-=======
->>>>>>> a84ce417fe46112b57d04963d4510c91bfe4df42
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <version>1.18.20</version>
