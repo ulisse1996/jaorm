@@ -5,7 +5,7 @@
     <parent>
         <artifactId>jaorm-pom</artifactId>
         <groupId>io.github.ulisse1996</groupId>
-        <version>0.18.0</version>
+        <version>0.19.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -24,7 +24,7 @@
         <junit-platform-launcher.version>1.4.1</junit-platform-launcher.version>
         <weld-junit5.version>2.0.2.Final</weld-junit5.version>
         <hsqldb.version>2.5.2</hsqldb.version>
-        <jaorm.version>0.18.0</jaorm.version>
+        <jaorm.version>0.19.0</jaorm.version>
     </properties>
 
     <dependencies>
@@ -40,11 +40,6 @@
         </dependency>
         <dependency>
             <groupId>io.github.ulisse1996</groupId>
-            <artifactId>jaorm-processor</artifactId>
-            <version>${jaorm.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.github.ulisse1996</groupId>
             <artifactId>jaorm-dsl</artifactId>
             <version>${jaorm.version}</version>
         </dependency>
@@ -56,11 +51,6 @@
         <dependency>
             <groupId>io.github.ulisse1996</groupId>
             <artifactId>jaorm-transaction</artifactId>
-            <version>${jaorm.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.github.ulisse1996</groupId>
-            <artifactId>jaorm-lombok</artifactId>
             <version>${jaorm.version}</version>
         </dependency>
         <dependency>
@@ -118,7 +108,39 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.1</version>
+                <version>3.6.1</version>
+                <configuration>
+                    <compilerArgs>
+                        <arg>-parameters</arg>
+                    </compilerArgs>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>io.github.ulisse1996</groupId>
+                            <artifactId>jaorm-processor</artifactId>
+                            <version>${jaorm.version}</version>
+                        </path>
+                    </annotationProcessorPaths>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>test-compile</id>
+                        <goals>
+                            <goal>testCompile</goal>
+                        </goals>
+                        <configuration>
+                            <compilerArgs>
+                                <arg>-parameters</arg>
+                            </compilerArgs>
+                            <annotationProcessorPaths>
+                                <path>
+                                    <groupId>io.github.ulisse1996</groupId>
+                                    <artifactId>jaorm-processor</artifactId>
+                                    <version>${jaorm.version}</version>
+                                </path>
+                            </annotationProcessorPaths>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

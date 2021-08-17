@@ -35,4 +35,49 @@ JAORM is divided in modules that are used from main module using **Java SPI**
 - Supports for most of famous RDBMS
 - Supports for **@Getter**, **@Setter** and **@Data** Annotations of [Lombok](https://projectlombok.org/) on Entity
 
+## Use
+
+For use Jaorm , just include desired modules in **dependencies** and provide the following
+compile configuration for maven
+
+```
+<plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-compiler-plugin</artifactId>
+    <version>3.8.1</version>
+    <configuration>
+        <compilerArgs>
+            <arg>-parameters</arg>
+        </compilerArgs>
+        <annotationProcessorPaths>
+            <path>
+                <groupId>io.github.ulisse1996</groupId>
+                <artifactId>jaorm-processor</artifactId>
+                <version>${jaorm.version}</version>
+            </path>
+        </annotationProcessorPaths>
+    </configuration>
+    <executions>
+        <execution>
+            <id>test-compile</id>
+            <goals>
+                <goal>testCompile</goal>
+            </goals>
+            <configuration>
+                <compilerArgs>
+                    <arg>-parameters</arg>
+                </compilerArgs>
+                <annotationProcessorPaths>
+                    <path>
+                        <groupId>io.github.ulisse1996</groupId>
+                        <artifactId>jaorm-processor</artifactId>
+                        <version>${jaorm.version}</version>
+                    </path>
+                </annotationProcessorPaths>
+            </configuration>
+        </execution>
+    </executions>
+</plugin>
+```
+
 For more details and examples visit : [Jaorm Documentation](https://ulisse1996.github.io/jaorm/#/)
