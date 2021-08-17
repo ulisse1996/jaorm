@@ -40,7 +40,7 @@ JAORM is divided in modules that are used from main module using **Java SPI**
 For use Jaorm , just include desired modules in **dependencies** and provide the following
 compile configuration for maven
 
-```
+```xml
 <plugin>
     <groupId>org.apache.maven.plugins</groupId>
     <artifactId>maven-compiler-plugin</artifactId>
