@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 0.19.0
+- Feature: Move processor to compile plugin annotation processor path (see [README.md](README.md) for more details)
+
 ## 0.18.0
 - Feature: Add **Tables** , a utility class that can retrieve entity using 
 processed keys without using a new Entity instance
