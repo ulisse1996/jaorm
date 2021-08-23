@@ -21,30 +21,33 @@ import java.util.stream.Stream;
 public abstract class QueryRunner {
 
     protected static final SqlJaormLogger logger = JaormLogger.getSqlLogger(ResultSetExecutor.class);
-    private static final Singleton<QueryRunner> ENTITY_RUNNER = Singleton.instance();
     private static final Singleton<QueryRunner> SIMPLE_RUNNER = Singleton.instance();
     private static final ThreadLocal<Map<Object, Integer>> UPDATED_ROWS_LOCAL = ThreadLocal.withInitial(HashMap::new); //NOSONAR
+
+    private Class<?> delegateClass;
 
     public static QueryRunner getInstance(Class<?> klass) {
         if (!isDelegate(klass)) {
             return getSimple();
         }
 
-        if (!ENTITY_RUNNER.isPresent()) {
-            for (QueryRunner runner : ServiceFinder.loadServices(QueryRunner.class)) {
-                if (runner.isCompatible(klass)) {
-                    ENTITY_RUNNER.set(runner);
-                }
+        QueryRunner found = null;
+        for (QueryRunner runner : ServiceFinder.loadServices(QueryRunner.class)) {
+            if (runner.isCompatible(klass)) {
+                found = runner;
             }
-
-            if (ENTITY_RUNNER.isPresent()) {
-                return ENTITY_RUNNER.get();
-            }
-        } else {
-            return ENTITY_RUNNER.get();
         }
 
-        throw new IllegalArgumentException("Can't find a matched runner for klass " + klass);
+        if (found == null) {
+            throw new IllegalArgumentException("Can't find a matched runner for klass " + klass);
+        }
+
+        if (FeatureConfigurator.getInstance()
+                .isMultiDatasourceEnabled()) {
+            found.delegateClass = klass;
+        }
+
+        return found;
     }
 
     private static boolean isDelegate(Class<?> klass) {
@@ -124,6 +127,14 @@ public abstract class QueryRunner {
     }
 
     protected Connection getConnection() throws SQLException {
+        if (delegateClass != null) {
+            return getMultiSchemaConnection();
+        } else {
+            return getDefaultConnection();
+        }
+    }
+
+    private Connection getDefaultConnection() throws SQLException {
         DataSourceProvider provider = DataSourceProvider.getCurrent();
         TransactionManager manager = TransactionManager.getInstance();
         if (manager instanceof TransactionManager.NoOpTransactionManager || manager.getCurrentTransaction() == null) {
@@ -133,6 +144,22 @@ public abstract class QueryRunner {
             if (delegate == null) {
                 DataSourceProvider.setDelegate(manager.createDelegate(provider));
                 return DataSourceProvider.getCurrentDelegate().getConnection();
+            } else {
+                return delegate.getConnection();
+            }
+        }
+    }
+
+    private Connection getMultiSchemaConnection() throws SQLException {
+        MultiSchemaDatasourceProvider provider = MultiSchemaDatasourceProvider.getInstance();
+        MultiSchemaTransactionManager manager = MultiSchemaTransactionManager.getInstance();
+        if (manager instanceof MultiSchemaTransactionManager.NoOpTransactionManager || manager.getCurrentTransaction() == null) {
+            return provider.getDatasource(this.delegateClass).getConnection();
+        } else {
+            DataSourceProvider delegate = MultiSchemaDatasourceProvider.getCurrentDelegate(this.delegateClass);
+            if (delegate == null) {
+                MultiSchemaDatasourceProvider.setDelegate(this.delegateClass, manager.createDelegate(manager.toProvider(provider, this.delegateClass)));
+                return MultiSchemaDatasourceProvider.getCurrentDelegate(this.delegateClass).getConnection();
             } else {
                 return delegate.getConnection();
             }

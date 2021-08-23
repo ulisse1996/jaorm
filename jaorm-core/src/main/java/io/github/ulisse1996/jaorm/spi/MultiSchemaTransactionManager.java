@@ -6,31 +6,43 @@ import io.github.ulisse1996.jaorm.entity.sql.DataSourceProvider;
 import io.github.ulisse1996.jaorm.spi.common.Singleton;
 import io.github.ulisse1996.jaorm.spi.common.TransactionSupport;
 
+import javax.sql.DataSource;
 import java.util.Iterator;
 
-public interface TransactionManager extends TransactionSupport {
+public abstract class MultiSchemaTransactionManager implements TransactionSupport {
 
-    Singleton<TransactionManager> INSTANCE = Singleton.instance();
+    private static final Singleton<MultiSchemaTransactionManager> INSTANCE = Singleton.instance();
 
-    static TransactionManager getInstance() {
-        if (!INSTANCE.isPresent()) {
-            Iterator<TransactionManager> services = ServiceFinder.loadServices(TransactionManager.class)
-                    .iterator();
-            if (services.hasNext()) {
-                INSTANCE.set(services.next());
-            } else {
-                INSTANCE.set(NoOpTransactionManager.INSTANCE);
-            }
+    protected MultiSchemaTransactionManager() {}
+
+    public static synchronized MultiSchemaTransactionManager getInstance() {
+        if (INSTANCE.isPresent()) {
+            return INSTANCE.get();
+        }
+
+        Iterator<MultiSchemaTransactionManager> services = ServiceFinder.loadServices(MultiSchemaTransactionManager.class)
+                .iterator();
+        if (services.hasNext()) {
+            INSTANCE.set(services.next());
+        } else {
+            INSTANCE.set(NoOpTransactionManager.INSTANCE);
         }
 
         return INSTANCE.get();
     }
 
-    class NoOpTransactionManager implements TransactionManager {
+    public DataSourceProvider toProvider(MultiSchemaDatasourceProvider provider, Class<?> delegateClass) {
+        return new DataSourceProvider() {
+            @Override
+            public DataSource getDataSource() {
+                return provider.getDatasource(delegateClass);
+            }
+        };
+    }
 
-        public static final TransactionManager INSTANCE = new NoOpTransactionManager();
+    public static class NoOpTransactionManager extends MultiSchemaTransactionManager {
 
-        private NoOpTransactionManager() {}
+        private static final NoOpTransactionManager INSTANCE = new NoOpTransactionManager();
 
         @Override
         public Transaction getCurrentTransaction() {
@@ -39,7 +51,7 @@ public interface TransactionManager extends TransactionSupport {
 
         @Override
         public void createTransaction() {
-            // Nothing here
+            throw new UnsupportedOperationException("createTransaction is not supported");
         }
 
         @Override

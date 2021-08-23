@@ -20,6 +20,7 @@ public abstract class FeatureConfigurator {
     }
 
     public abstract boolean isInsertAfterFailedUpdateEnabled();
+    public abstract boolean isMultiDatasourceEnabled();
 
     protected static class DefaultConfiguration extends FeatureConfigurator {
 
@@ -28,6 +29,11 @@ public abstract class FeatureConfigurator {
         @Override
         public boolean isInsertAfterFailedUpdateEnabled() {
             return true;
+        }
+
+        @Override
+        public boolean isMultiDatasourceEnabled() {
+            return false;
         }
     }
 }

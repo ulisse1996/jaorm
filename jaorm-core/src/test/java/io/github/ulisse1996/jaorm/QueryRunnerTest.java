@@ -26,11 +26,8 @@ class QueryRunnerTest {
         // Reset all singleton
         try {
             Field simpleRunner = QueryRunner.class.getDeclaredField("SIMPLE_RUNNER");
-            Field entityRunner = QueryRunner.class.getDeclaredField("ENTITY_RUNNER");
             simpleRunner.setAccessible(true);
-            entityRunner.setAccessible(true);
             ((Singleton<QueryRunner>)simpleRunner.get(null)).set(null);
-            ((Singleton<QueryRunner>)entityRunner.get(null)).set(null);
         } catch (Exception ex) {
             throw new IllegalStateException(ex);
         }
@@ -99,7 +96,7 @@ class QueryRunnerTest {
     }
 
     @Test
-    void should_call_service_load_for_entity_runner_only_first_time() {
+    void should_call_service_load_for_entity_runner_every_time() {
         MockedRunner expected = new MockedRunner();
         try (MockedStatic<ServiceFinder> mk = Mockito.mockStatic(ServiceFinder.class)) {
             mk.when(() -> ServiceFinder.loadServices(QueryRunner.class))
@@ -110,7 +107,7 @@ class QueryRunnerTest {
             Assertions.assertEquals(expected, runner);
             QueryRunner runner1 = QueryRunner.getInstance(DelegatesMock.MyEntity.class);
             Assertions.assertEquals(runner, runner1);
-            mk.verify(() -> ServiceFinder.loadServices(QueryRunner.class));
+            mk.verify(() -> ServiceFinder.loadServices(QueryRunner.class), Mockito.times(2));
         }
     }
 
