@@ -36,9 +36,9 @@ class GenerationInfoTest {
     @Test
     void should_generate_value_with_generator() throws SQLException {
         GenerationInfo info = new GenerationInfo("COL", generator);
-        info.generate(BigDecimal.class);
+        info.generate(Object.class, BigDecimal.class);
         Mockito.verify(generator)
-                .generate(BigDecimal.class, "COL");
+                .generate(Object.class, BigDecimal.class, "COL");
     }
 
     @SuppressWarnings("MagicConstant")
@@ -62,7 +62,7 @@ class GenerationInfoTest {
                     .thenReturn(true);
             Mockito.when(resultSet.getBigDecimal(Mockito.anyString()))
                     .thenReturn(BigDecimal.TEN);
-            info.generate(BigDecimal.class);
+            info.generate(Object.class, BigDecimal.class);
             Mockito.verify(resultSet)
                     .updateObject(Mockito.anyString(), Mockito.any());
             Mockito.verify(resultSet).updateRow();
@@ -94,7 +94,7 @@ class GenerationInfoTest {
                     .thenReturn(true);
             Mockito.when(resultSet.getBigDecimal(Mockito.anyString()))
                     .thenReturn(BigDecimal.TEN);
-            info.generate(BigDecimal.class);
+            info.generate(Object.class, BigDecimal.class);
             Mockito.verify(resultSet)
                     .updateObject(Mockito.anyString(), Mockito.any());
             Mockito.verify(resultSet).updateRow();
@@ -120,7 +120,7 @@ class GenerationInfoTest {
                     .thenReturn(resultSet);
             Mockito.when(resultSet.next())
                     .thenReturn(false);
-            Assertions.assertThrows(IllegalArgumentException.class, () -> info.generate(BigDecimal.class));
+            Assertions.assertThrows(IllegalArgumentException.class, () -> info.generate(Object.class, BigDecimal.class));
         }
     }
 

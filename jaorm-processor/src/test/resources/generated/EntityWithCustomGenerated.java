@@ -20,7 +20,7 @@ public class EntityWithCustomGenerated {
 
     public static class MyCustomGenerator implements CustomGenerator<Integer> {
 
-        public Integer generate(Class<?> columnClass, String columnName) {
+        public Integer generate(Class<?> entityClass, Class<?> columnClass, String columnName) {
             return 1;
         }
     }

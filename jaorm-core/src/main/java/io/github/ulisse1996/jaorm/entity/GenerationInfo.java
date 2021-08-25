@@ -49,9 +49,9 @@ public class GenerationInfo {
     }
 
     @SuppressWarnings("unchecked")
-    public <T> T generate(Class<?> columnClass) throws SQLException {
+    public <T> T generate(Class<?> entityClass, Class<?> columnClass) throws SQLException {
         if (generator != null) {
-            return (T) generator.generate(columnClass, columnName);
+            return (T) generator.generate(entityClass, columnClass, columnName);
         } else {
             return getValue(columnClass);
         }

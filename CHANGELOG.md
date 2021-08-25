@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 0.19.1
+- Bugfix: Missing Class Entity on Custom Generator
+
 ## 0.19.0
 - Feature: Move processor to compile plugin annotation processor path (see [README.md](README.md) for more details)
 
