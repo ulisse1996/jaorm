@@ -93,7 +93,7 @@ class GeneratorsServiceTest {
                     .thenReturn(Collections.singletonList(generators));
             Mockito.when(generators.getInfo().getColumnName())
                     .thenReturn("NAME");
-            Mockito.when(generators.getInfo().generate(BigDecimal.class))
+            Mockito.when(generators.getInfo().generate(Object.class, BigDecimal.class))
                     .thenReturn(BigDecimal.ONE);
             GeneratorsService instance = GeneratorsService.getInstance();
             Object val = instance.generate(Object.class, "NAME", BigDecimal.class);

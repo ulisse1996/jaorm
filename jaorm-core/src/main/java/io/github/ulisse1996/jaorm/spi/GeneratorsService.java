@@ -45,7 +45,7 @@ public abstract class GeneratorsService {
             throw new IllegalArgumentException("Can't process generation");
         }
 
-        return info.get().generate(columnClass);
+        return info.get().generate(klass, columnClass);
     }
 
     public boolean needGeneration(Class<?> entityClass) {
