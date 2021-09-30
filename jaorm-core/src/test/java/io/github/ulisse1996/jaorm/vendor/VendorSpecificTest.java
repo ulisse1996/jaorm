@@ -1,8 +1,6 @@
 package io.github.ulisse1996.jaorm.vendor;
 
 import io.github.ulisse1996.jaorm.ServiceFinder;
-import io.github.ulisse1996.jaorm.vendor.specific.DriverType;
-import io.github.ulisse1996.jaorm.vendor.specific.LikeSpecific;
 import io.github.ulisse1996.jaorm.vendor.specific.Specific;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,101 +33,6 @@ class VendorSpecificTest {
             mk.when(() -> ServiceFinder.loadServices(Mockito.any()))
                     .thenReturn(Collections.emptySet());
             Assertions.assertThrows(IllegalArgumentException.class, () -> VendorSpecific.getSpecific(Specific.class));
-        }
-    }
-
-    @Test
-    void should_throw_exception_for_not_supported_specific() {
-        try (MockedStatic<ServiceFinder> mk = Mockito.mockStatic(ServiceFinder.class)) {
-            mk.when(() -> ServiceFinder.loadServices(Specific.class))
-                    .thenReturn(Collections.singletonList(new Specific() {
-                        @Override
-                        public DriverType getDriverType() {
-                            return null;
-                        }
-
-                        @Override
-                        public boolean supportSpecific() {
-                            return false;
-                        }
-                    }));
-            Assertions.assertThrows(IllegalArgumentException.class, () -> VendorSpecific.getSpecific(Specific.class));
-        }
-    }
-
-    @Test
-    void should_find_specific() {
-        try (MockedStatic<ServiceFinder> mk = Mockito.mockStatic(ServiceFinder.class)) {
-            mk.when(() -> ServiceFinder.loadServices(Specific.class))
-                    .thenReturn(Collections.singletonList(new Specific() {
-                        @Override
-                        public DriverType getDriverType() {
-                            return null;
-                        }
-
-                        @Override
-                        public boolean supportSpecific() {
-                            return true;
-                        }
-                    }));
-            try {
-                VendorSpecific.getSpecific(Specific.class);
-            } catch (IllegalArgumentException ex) {
-                Assertions.fail(ex);
-            }
-        }
-    }
-
-    @Test
-    void should_return_cached_specific() {
-        try (MockedStatic<ServiceFinder> mk = Mockito.mockStatic(ServiceFinder.class)) {
-            mk.when(() -> ServiceFinder.loadServices(Specific.class))
-                    .thenReturn(Collections.singletonList(new Specific() {
-                        @Override
-                        public DriverType getDriverType() {
-                            return null;
-                        }
-
-                        @Override
-                        public boolean supportSpecific() {
-                            return true;
-                        }
-                    }));
-            try {
-                Specific specific = VendorSpecific.getSpecific(Specific.class);
-                Assertions.assertSame(specific, VendorSpecific.getSpecific(Specific.class));
-            } catch (IllegalArgumentException ex) {
-                Assertions.fail(ex);
-            }
-        }
-    }
-
-    @Test
-    void should_return_cached_specific_saved_for_different_specific() {
-        try (MockedStatic<ServiceFinder> mk = Mockito.mockStatic(ServiceFinder.class)) {
-            mk.when(() -> ServiceFinder.loadServices(LikeSpecific.class))
-                    .thenReturn(Collections.singletonList(new LikeSpecific() {
-                        @Override
-                        public String convertToLikeSupport(LikeType type) {
-                            return "null";
-                        }
-
-                        @Override
-                        public DriverType getDriverType() {
-                            return null;
-                        }
-
-                        @Override
-                        public boolean supportSpecific() {
-                            return true;
-                        }
-                    }));
-            try {
-                LikeSpecific specific = VendorSpecific.getSpecific(LikeSpecific.class);
-                Assertions.assertSame(specific, VendorSpecific.getSpecific(Specific.class));
-            } catch (IllegalArgumentException ex) {
-                Assertions.fail(ex);
-            }
         }
     }
 }

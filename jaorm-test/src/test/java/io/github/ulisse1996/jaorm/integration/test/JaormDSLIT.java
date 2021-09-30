@@ -12,7 +12,6 @@ import io.github.ulisse1996.jaorm.integration.test.query.UserRoleDAO;
 import io.github.ulisse1996.jaorm.spi.QueriesService;
 import io.github.ulisse1996.jaorm.vendor.VendorSpecific;
 import io.github.ulisse1996.jaorm.vendor.specific.LimitOffsetSpecific;
-import io.github.ulisse1996.jaorm.vendor.supports.common.StandardOffSetLimitSpecific;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -270,5 +269,20 @@ class JaormDSLIT extends AbstractIT {
         user.setId(i);
         user.setName("NAME_i");
         return user;
+    }
+
+    private static class StandardOffSetLimitSpecific implements LimitOffsetSpecific {
+
+        public static final StandardOffSetLimitSpecific INSTANCE = new StandardOffSetLimitSpecific();
+
+        @Override
+        public String convertOffSetLimitSupport(int limitRow) {
+            return String.format(" LIMIT %d", limitRow);
+        }
+
+        @Override
+        public String convertOffSetLimitSupport(int limitRow, int offsetRow) {
+            return String.format(" LIMIT %d OFFSET %d", limitRow, offsetRow);
+        }
     }
 }

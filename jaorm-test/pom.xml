@@ -5,7 +5,7 @@
     <parent>
         <artifactId>jaorm-pom</artifactId>
         <groupId>io.github.ulisse1996</groupId>
-        <version>0.19.1</version>
+        <version>0.20.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -24,7 +24,7 @@
         <junit-platform-launcher.version>1.4.1</junit-platform-launcher.version>
         <weld-junit5.version>2.0.2.Final</weld-junit5.version>
         <hsqldb.version>2.5.2</hsqldb.version>
-        <jaorm.version>0.19.1</jaorm.version>
+        <jaorm.version>0.20.0</jaorm.version>
     </properties>
 
     <dependencies>
@@ -61,6 +61,27 @@
         <dependency>
             <groupId>io.github.ulisse1996</groupId>
             <artifactId>jaorm-processor</artifactId>
+            <version>${jaorm.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.ulisse1996</groupId>
+            <artifactId>jaorm-sql-specific</artifactId>
+            <version>${jaorm.version}</version>
+            <type>pom</type>
+        </dependency>
+        <dependency>
+            <groupId>io.github.ulisse1996</groupId>
+            <artifactId>jaorm-sql-specific-oracle</artifactId>
+            <version>${jaorm.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.ulisse1996</groupId>
+            <artifactId>jaorm-sql-specific-postgre</artifactId>
+            <version>${jaorm.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.ulisse1996</groupId>
+            <artifactId>jaorm-sql-specific-sql-server</artifactId>
             <version>${jaorm.version}</version>
         </dependency>
         <dependency>

@@ -30,6 +30,11 @@ class ListenersServiceTest {
             instance.setAccessible(true);
             Singleton<ListenersService> singleton = (Singleton<ListenersService>) instance.get(null);
             singleton.set(null);
+
+            Field globalInstance = GlobalEventListener.class.getDeclaredField("INSTANCE");
+            globalInstance.setAccessible(true);
+            Singleton<GlobalEventListener> globalSingleton = (Singleton<GlobalEventListener>) globalInstance.get(null);
+            globalSingleton.set(null);
         } catch (Exception ex) {
             throw new IllegalArgumentException(ex);
         }
@@ -69,6 +74,8 @@ class ListenersServiceTest {
         try (MockedStatic<ServiceFinder> mk = Mockito.mockStatic(ServiceFinder.class)) {
             mk.when(() -> ServiceFinder.loadService(ListenersService.class))
                     .thenReturn(mock);
+            mk.when(() -> ServiceFinder.loadService(GlobalEventListener.class))
+                    .thenReturn(listener);
             Assertions.assertEquals(mock, ListenersService.getInstance()); // Loaded
             Assertions.assertEquals(mock, ListenersService.getInstance());
             mk.verify(() -> ServiceFinder.loadService(ListenersService.class));

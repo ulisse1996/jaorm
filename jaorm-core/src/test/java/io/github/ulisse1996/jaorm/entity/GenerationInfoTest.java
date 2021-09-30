@@ -4,7 +4,7 @@ import io.github.ulisse1996.jaorm.annotation.CustomGenerator;
 import io.github.ulisse1996.jaorm.entity.converter.ParameterConverter;
 import io.github.ulisse1996.jaorm.entity.sql.DataSourceProvider;
 import io.github.ulisse1996.jaorm.vendor.VendorSpecific;
-import io.github.ulisse1996.jaorm.vendor.supports.OracleSpecific;
+import io.github.ulisse1996.jaorm.vendor.specific.LockSpecific;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -77,7 +77,12 @@ class GenerationInfoTest {
                 "VALUE", "1", "TABLE", ParameterConverter.BIG_DECIMAL,
                 null
         );
-        OracleSpecific oracleSpecific = new OracleSpecific();
+        LockSpecific oracleSpecific = new LockSpecific() {
+            @Override
+            public String selectWithLock(String table, String wheres, String... columns) {
+                return String.format("SELECT %s FROM %s %s FOR UPDATE", String.join(",", columns), table, wheres);
+            }
+        };
         try (MockedStatic<DataSourceProvider> mk = Mockito.mockStatic(DataSourceProvider.class);
              MockedStatic<VendorSpecific> vMk = Mockito.mockStatic(VendorSpecific.class)) {
             vMk.when(VendorSpecific.getSpecific(Mockito.any()))

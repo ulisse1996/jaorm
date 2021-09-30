@@ -9,7 +9,6 @@ import io.github.ulisse1996.jaorm.spi.DelegatesService;
 import io.github.ulisse1996.jaorm.spi.QueryRunner;
 import io.github.ulisse1996.jaorm.vendor.VendorSpecific;
 import io.github.ulisse1996.jaorm.vendor.specific.LimitOffsetSpecific;
-import io.github.ulisse1996.jaorm.vendor.supports.common.StandardOffSetLimitSpecific;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
@@ -702,4 +701,19 @@ class JaormTest {
     }
 
     private static class MyObject {}
+
+    private static class StandardOffSetLimitSpecific implements LimitOffsetSpecific {
+
+        public static final StandardOffSetLimitSpecific INSTANCE = new StandardOffSetLimitSpecific();
+
+        @Override
+        public String convertOffSetLimitSupport(int limitRow) {
+            return String.format(" LIMIT %d", limitRow);
+        }
+
+        @Override
+        public String convertOffSetLimitSupport(int limitRow, int offsetRow) {
+            return String.format(" LIMIT %d OFFSET %d", limitRow, offsetRow);
+        }
+    }
 }
