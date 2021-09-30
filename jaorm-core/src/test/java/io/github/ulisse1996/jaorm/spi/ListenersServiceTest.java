@@ -31,9 +31,9 @@ class ListenersServiceTest {
             Singleton<ListenersService> singleton = (Singleton<ListenersService>) instance.get(null);
             singleton.set(null);
 
-            Field globalInstance = ListenersService.class.getDeclaredField("INSTANCE");
+            Field globalInstance = GlobalEventListener.class.getDeclaredField("INSTANCE");
             globalInstance.setAccessible(true);
-            Singleton<ListenersService> globalSingleton = (Singleton<ListenersService>) globalInstance.get(null);
+            Singleton<GlobalEventListener> globalSingleton = (Singleton<GlobalEventListener>) globalInstance.get(null);
             globalSingleton.set(null);
         } catch (Exception ex) {
             throw new IllegalArgumentException(ex);
