@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 0.20.1
+- Feature: Move Documento to Jaorm Docs
+
+## 0.20.0
+- Feature: Move SQL Specific Syntax to Jaorm Sql Specific Parent Project
+
 ## 0.19.1
 - Bugfix: Missing Class Entity on Custom Generator
 
