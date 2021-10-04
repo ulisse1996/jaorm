@@ -80,4 +80,4 @@ compile configuration for maven
 </plugin>
 ```
 
-For more details and examples visit : [Jaorm Documentation](https://ulisse1996.github.io/jaorm/#/)
+For more details and examples visit : [Jaorm Documentation](https://ulisse1996.github.io/jaorm-docs/)
