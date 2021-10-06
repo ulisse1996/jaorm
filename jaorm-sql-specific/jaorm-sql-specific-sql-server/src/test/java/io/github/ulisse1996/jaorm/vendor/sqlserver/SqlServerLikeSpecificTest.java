@@ -27,6 +27,27 @@ class SqlServerLikeSpecificTest {
             default:
                 Assertions.fail();
         }
-        Assertions.assertEquals(expected, testSubject.convertToLikeSupport(type));
+        Assertions.assertEquals(expected, testSubject.convertToLikeSupport(type, false));
+    }
+
+    @ParameterizedTest
+    @EnumSource(LikeSpecific.LikeType.class)
+    void should_convert_like_type_with_case_insensitive(LikeSpecific.LikeType type) {
+        String expected = null;
+        switch (type) {
+
+            case FULL:
+                expected = " CONCAT('%',UPPER(?),'%')";
+                break;
+            case START:
+                expected = " CONCAT('%',UPPER(?))";
+                break;
+            case END:
+                expected = " CONCAT(UPPER(?),'%')";
+                break;
+            default:
+                Assertions.fail();
+        }
+        Assertions.assertEquals(expected, testSubject.convertToLikeSupport(type, true));
     }
 }

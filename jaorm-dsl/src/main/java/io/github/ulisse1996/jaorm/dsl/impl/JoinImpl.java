@@ -377,7 +377,7 @@ public class JoinImpl<T, R> implements Join<T>, On<T, R>, IntermediateJoin<T> {
         return this.parent.readAll();
     }
 
-    public String getSql() {
+    public String getSql(boolean caseInsensitiveLike) {
         StringBuilder sql = new StringBuilder(this.joinType.getValue() + this.joinTable + " ON");
         boolean first = true;
         for (OnClause clause : clauses) {
@@ -388,24 +388,24 @@ public class JoinImpl<T, R> implements Join<T>, On<T, R>, IntermediateJoin<T> {
                 sql.append(clause.or ? OR : AND);
             }
             sql.append("(");
-            buildClause(sql, clause);
+            buildClause(sql, clause, caseInsensitiveLike);
             sql.append(")");
         }
 
         return sql.toString();
     }
 
-    private void buildClause(StringBuilder builder, OnClause clause) {
-        builder.append(String.format(ALIAS_COLUMN, this.parent.from, clause.joinedColumn)).append(evaluateOperation(clause));
+    private void buildClause(StringBuilder builder, OnClause clause, boolean caseInsensitiveLike) {
+        builder.append(String.format(ALIAS_COLUMN, this.parent.from, clause.joinedColumn)).append(evaluateOperation(clause, caseInsensitiveLike));
         if (!clause.linked.isEmpty()) {
             for (OnClause inner : clause.linked) {
                 builder.append(inner.or ? OR : AND)
-                        .append(String.format(ALIAS_COLUMN, this.parent.from, inner.joinedColumn)).append(evaluateOperation(inner));
+                        .append(String.format(ALIAS_COLUMN, this.parent.from, inner.joinedColumn)).append(evaluateOperation(inner, caseInsensitiveLike));
             }
         }
     }
 
-    private String evaluateOperation(OnClause clause) {
+    private String evaluateOperation(OnClause clause, boolean caseInsensitiveLike) {
         switch (clause.operation) {
             case EQUALS:
             case NOT_EQUALS:
@@ -435,9 +435,9 @@ public class JoinImpl<T, R> implements Join<T>, On<T, R>, IntermediateJoin<T> {
                 }
                 return String.format(" %s (%s)", Operation.IN.equals(clause.operation) ? "IN" : "NOT IN", columns);
             case NOT_LIKE:
-                return " NOT LIKE" + (clause.joinColumn != null ? clause.likeType.format(this.joinTable, clause.joinColumn) : clause.likeType.getValue());
+                return " NOT LIKE" + (clause.joinColumn != null ? clause.likeType.format(this.joinTable, clause.joinColumn, caseInsensitiveLike) : clause.likeType.getValue(caseInsensitiveLike));
             case LIKE:
-                return " LIKE" + (clause.joinColumn != null ? clause.likeType.format(this.joinTable, clause.joinColumn) : clause.likeType.getValue());
+                return " LIKE" + (clause.joinColumn != null ? clause.likeType.format(this.joinTable, clause.joinColumn, caseInsensitiveLike) : clause.likeType.getValue(caseInsensitiveLike));
             default:
                 throw new IllegalArgumentException("Can't find operation type");
         }

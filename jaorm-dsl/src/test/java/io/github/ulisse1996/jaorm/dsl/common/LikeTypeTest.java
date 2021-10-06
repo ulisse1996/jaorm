@@ -11,7 +11,7 @@ class LikeTypeTest {
 
     @Test
     void should_return_vendor_specific_full() {
-        LikeSpecific likeSpecific = type -> {
+        LikeSpecific likeSpecific = (type, caseInsensitiveLike) -> {
             switch (type) {
                 case FULL:
                     return "'%' || ? || '%'";
@@ -26,7 +26,7 @@ class LikeTypeTest {
         try (MockedStatic<VendorSpecific> vendor = Mockito.mockStatic(VendorSpecific.class)) {
             vendor.when(() -> VendorSpecific.getSpecific(LikeSpecific.class))
                     .thenReturn(likeSpecific);
-            String result = LikeType.FULL.getValue();
+            String result = LikeType.FULL.getValue(false);
             Assertions.assertEquals("'%' || ? || '%'", result);
         }
     }

@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 0.21.0
+- Feature: Case insensitive for like checks
+
 ## 0.20.1
 - Feature: Move Documento to Jaorm Docs
 

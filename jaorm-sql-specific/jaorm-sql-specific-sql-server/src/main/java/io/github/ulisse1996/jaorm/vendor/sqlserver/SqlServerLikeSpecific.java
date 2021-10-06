@@ -5,14 +5,14 @@ import io.github.ulisse1996.jaorm.vendor.specific.LikeSpecific;
 public class SqlServerLikeSpecific implements LikeSpecific {
 
     @Override
-    public String convertToLikeSupport(LikeType type) {
+    public String convertToLikeSupport(LikeType type, boolean caseInsensitiveLike) {
         switch (type) {
             case FULL:
-                return " CONCAT('%',?,'%')";
+                return caseInsensitiveLike ? " CONCAT('%',UPPER(?),'%')" : " CONCAT('%',?,'%')";
             case START:
-                return " CONCAT('%',?)";
+                return caseInsensitiveLike ? " CONCAT('%',UPPER(?))" : " CONCAT('%',?)";
             case END:
-                return " CONCAT(?,'%')";
+                return caseInsensitiveLike ? " CONCAT(UPPER(?),'%')" : " CONCAT(?,'%')";
             default:
                 throw new IllegalStateException("Unexpected value: " + type);
         }

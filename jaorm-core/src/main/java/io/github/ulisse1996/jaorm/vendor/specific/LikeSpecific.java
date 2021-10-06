@@ -6,5 +6,6 @@ public interface LikeSpecific extends Specific {
         FULL, START, END
     }
 
-    String convertToLikeSupport(LikeType type);
+    String convertToLikeSupport(LikeType type, boolean caseInsensitive);
+
 }
