@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 0.22.0
+- Feature: Count select for DSL
+- Feature: Join Column Where for DSL Joins
+- Feature: Processor Log with Messager
+- Bugfix: Fix Wrong Upper in where conditions
+
 ## 0.21.0
 - Feature: Case insensitive for like checks
 - Bugfix: Fix README logo

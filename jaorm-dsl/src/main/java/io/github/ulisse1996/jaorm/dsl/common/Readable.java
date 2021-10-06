@@ -8,4 +8,5 @@ public interface Readable<T> {
     T read();
     Optional<T> readOpt();
     List<T> readAll();
+    long count();
 }

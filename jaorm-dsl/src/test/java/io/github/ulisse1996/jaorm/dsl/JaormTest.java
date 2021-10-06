@@ -423,6 +423,213 @@ class JaormTest {
     }
 
     @Test
+    void should_create_case_insensitive_sql() {
+        try (MockedStatic<DelegatesService> mk = Mockito.mockStatic(DelegatesService.class);
+             MockedStatic<QueryRunner> run = Mockito.mockStatic(QueryRunner.class)) {
+            DelegatesService delegatesService = Mockito.mock(DelegatesService.class);
+            EntityDelegate<?> delegate = Mockito.mock(EntityDelegate.class);
+            EntityDelegate<?> delegateJoin = Mockito.mock(EntityDelegate.class);
+            QueryRunner runner = Mockito.mock(QueryRunner.class);
+            mk.when(DelegatesService::getInstance)
+                    .thenReturn(delegatesService);
+            run.when(() -> QueryRunner.getInstance(Mockito.any()))
+                    .thenReturn(runner);
+            Mockito.when(delegatesService.searchDelegate(Object.class))
+                    .thenReturn(() -> delegate);
+            Mockito.when(delegate.getTable())
+                    .thenReturn("TABLE");
+            Mockito.when(delegate.getSelectables())
+                    .thenReturn(new String[]{"COL1", "COL2"});
+            Mockito.when(delegatesService.searchDelegate(MyObject.class))
+                    .thenReturn(() -> delegateJoin);
+            Mockito.when(delegateJoin.getTable())
+                    .thenReturn("TABLE2");
+            Mockito.when(delegateJoin.getSelectables())
+                    .thenReturn(new String[]{"COL3", "COL4"});
+            Mockito.when(runner.readOpt(Mockito.any(), Mockito.any(), Mockito.any()))
+                    .thenReturn(Result.empty());
+
+            Jaorm.select(Object.class, true)
+                    .where(COL_1).eq(2)
+                    .where(COL_2).like(LikeType.FULL, "3")
+                    .read();
+
+            Jaorm.select(Object.class, true)
+                    .where(COL_1).eq(2)
+                    .where(COL_2).like(LikeType.FULL, "3").or(COL_2).eq("VAL")
+                    .read();
+
+            String simpleSql = "SELECT TABLE.COL1, TABLE.COL2 FROM TABLE WHERE (TABLE.COL1 = ?) AND (UPPER(TABLE.COL2) LIKE CONCAT('%',UPPER(?),'%'))";
+            String sqlNested = "SELECT TABLE.COL1, TABLE.COL2 FROM TABLE WHERE (TABLE.COL1 = ?) AND (UPPER(TABLE.COL2) LIKE CONCAT('%',UPPER(?),'%') OR TABLE.COL2 = ?)";
+
+            Mockito.verify(runner, Mockito.times(1))
+                    .read(Mockito.any(), Mockito.eq(simpleSql), Mockito.any());
+            Mockito.verify(runner, Mockito.times(1))
+                    .read(Mockito.any(), Mockito.eq(sqlNested), Mockito.any());
+        }
+    }
+
+    @Test
+    void should_throw_exception_for_bad_column_in_where_join() {
+        try (MockedStatic<DelegatesService> mk = Mockito.mockStatic(DelegatesService.class);
+             MockedStatic<QueryRunner> run = Mockito.mockStatic(QueryRunner.class)) {
+            DelegatesService delegatesService = Mockito.mock(DelegatesService.class);
+            EntityDelegate<?> delegate = Mockito.mock(EntityDelegate.class);
+            EntityDelegate<?> delegateJoin = Mockito.mock(EntityDelegate.class);
+            QueryRunner runner = Mockito.mock(QueryRunner.class);
+            mk.when(DelegatesService::getInstance)
+                    .thenReturn(delegatesService);
+            run.when(() -> QueryRunner.getInstance(Mockito.any()))
+                    .thenReturn(runner);
+            Mockito.when(delegatesService.searchDelegate(Object.class))
+                    .thenReturn(() -> delegate);
+            Mockito.when(delegate.getTable())
+                    .thenReturn("TABLE");
+            Mockito.when(delegate.getSelectables())
+                    .thenReturn(new String[]{"COL1", "COL2"});
+            Mockito.when(delegatesService.searchDelegate(MyObject.class))
+                    .thenReturn(() -> delegateJoin);
+            Mockito.when(delegateJoin.getTable())
+                    .thenReturn("TABLE2");
+            Mockito.when(delegateJoin.getSelectables())
+                    .thenReturn(new String[]{"COL3", "COL4"});
+            Mockito.when(runner.readOpt(Mockito.any(), Mockito.any(), Mockito.any()))
+                    .thenReturn(Result.empty());
+
+            Assertions.assertThrows(IllegalArgumentException.class, () -> Jaorm.select(Object.class)
+                    .join(MyObject.class).on(COL_1).eq(COL_3)
+                    .where(COL_2).eq("VAL")
+                    .whereJoinColumn(SqlColumn.instance("COL_NOT_VALID", Integer.class)).eq(1));
+
+            Assertions.assertThrows(IllegalArgumentException.class, () -> Jaorm.select(Object.class)
+                    .join(MyObject.class).on(COL_1).eq(COL_3)
+                    .whereJoinColumn(SqlColumn.instance("COL_NOT_VALID", Integer.class)).eq(1));
+        }
+    }
+
+    @Test
+    void should_count_record() {
+        try (MockedStatic<DelegatesService> mk = Mockito.mockStatic(DelegatesService.class);
+             MockedStatic<QueryRunner> run = Mockito.mockStatic(QueryRunner.class)) {
+            DelegatesService delegatesService = Mockito.mock(DelegatesService.class);
+            EntityDelegate<?> delegate = Mockito.mock(EntityDelegate.class);
+            EntityDelegate<?> delegateJoin = Mockito.mock(EntityDelegate.class);
+            QueryRunner runner = Mockito.mock(QueryRunner.class);
+            mk.when(DelegatesService::getInstance)
+                    .thenReturn(delegatesService);
+            run.when(QueryRunner::getSimple)
+                    .thenReturn(runner);
+            Mockito.when(delegatesService.searchDelegate(Object.class))
+                    .thenReturn(() -> delegate);
+            Mockito.when(delegate.getTable())
+                    .thenReturn("TABLE");
+            Mockito.when(delegate.getSelectables())
+                    .thenReturn(new String[]{"COL1", "COL2"});
+            Mockito.when(delegatesService.searchDelegate(MyObject.class))
+                    .thenReturn(() -> delegateJoin);
+            Mockito.when(delegateJoin.getTable())
+                    .thenReturn("TABLE2");
+            Mockito.when(delegateJoin.getSelectables())
+                    .thenReturn(new String[]{"COL3", "COL4"});
+            Mockito.when(runner.read(Mockito.eq(Long.class), Mockito.any(), Mockito.any()))
+                    .thenReturn(0L);
+
+            Jaorm.select(Object.class)
+                    .join(MyObject.class).on(COL_1).eq(COL_3)
+                    .whereJoinColumn(COL_3).eq(1)
+                    .count();
+
+            Jaorm.select(Object.class)
+                    .join(MyObject.class).on(COL_1).eq(COL_3)
+                    .count();
+
+            String countJoin = "SELECT COUNT(*) FROM TABLE JOIN TABLE2 ON (TABLE.COL1 = TABLE2.COL3) WHERE (TABLE2.COL3 = ?)";
+            String countJoinSimple = "SELECT COUNT(*) FROM TABLE JOIN TABLE2 ON (TABLE.COL1 = TABLE2.COL3)";
+
+            Mockito.verify(runner, Mockito.times(1))
+                    .read(Mockito.eq(Long.class), Mockito.eq(countJoin), Mockito.any());
+            Mockito.verify(runner, Mockito.times(1))
+                    .read(Mockito.eq(Long.class), Mockito.eq(countJoinSimple), Mockito.any());
+        }
+    }
+
+    @Test
+    void should_create_sql_with_join_wheres() {
+        try (MockedStatic<DelegatesService> mk = Mockito.mockStatic(DelegatesService.class);
+             MockedStatic<QueryRunner> run = Mockito.mockStatic(QueryRunner.class)) {
+            DelegatesService delegatesService = Mockito.mock(DelegatesService.class);
+            EntityDelegate<?> delegate = Mockito.mock(EntityDelegate.class);
+            EntityDelegate<?> delegateJoin = Mockito.mock(EntityDelegate.class);
+            QueryRunner runner = Mockito.mock(QueryRunner.class);
+            mk.when(DelegatesService::getInstance)
+                    .thenReturn(delegatesService);
+            run.when(() -> QueryRunner.getInstance(Mockito.any()))
+                    .thenReturn(runner);
+            Mockito.when(delegatesService.searchDelegate(Object.class))
+                    .thenReturn(() -> delegate);
+            Mockito.when(delegate.getTable())
+                    .thenReturn("TABLE");
+            Mockito.when(delegate.getSelectables())
+                    .thenReturn(new String[]{"COL1", "COL2"});
+            Mockito.when(delegatesService.searchDelegate(MyObject.class))
+                    .thenReturn(() -> delegateJoin);
+            Mockito.when(delegateJoin.getTable())
+                    .thenReturn("TABLE2");
+            Mockito.when(delegateJoin.getSelectables())
+                    .thenReturn(new String[]{"COL3", "COL4"});
+            Mockito.when(runner.readOpt(Mockito.any(), Mockito.any(), Mockito.any()))
+                    .thenReturn(Result.empty());
+
+            Jaorm.select(Object.class)
+                    .join(MyObject.class).on(COL_1).eq(COL_3)
+                    .whereJoinColumn(COL_3).eq(1)
+                    .read();
+
+            Jaorm.select(Object.class)
+                    .join(MyObject.class).on(COL_1).eq(COL_3)
+                    .where(COL_2).eq("VAL")
+                    .whereJoinColumn(COL_3).eq(1)
+                    .read();
+
+            Jaorm.select(Object.class)
+                    .join(MyObject.class).on(COL_1).eq(COL_3)
+                    .where(COL_2).eq("VAL")
+                    .whereJoinColumn(COL_3).eq(1).andJoinColumn(COL_3).ne(3)
+                    .read();
+
+            Jaorm.select(Object.class)
+                    .join(MyObject.class).on(COL_1).eq(COL_3)
+                    .where(COL_2).eq("VAL")
+                    .whereJoinColumn(COL_3).eq(1).orJoinColumn(COL_3).ne(3)
+                    .read();
+
+            Jaorm.select(Object.class)
+                    .join(MyObject.class).on(COL_1).eq(COL_3)
+                    .where(COL_2).eq("VAL")
+                    .whereJoinColumn(COL_3).eq(1)
+                    .orWhereJoinColumn(COL_3).ne(3)
+                    .read();
+
+            String directSqlJoin = "SELECT TABLE.COL1, TABLE.COL2 FROM TABLE JOIN TABLE2 ON (TABLE.COL1 = TABLE2.COL3) WHERE (TABLE2.COL3 = ?)";
+            String simpleSqlJoin = "SELECT TABLE.COL1, TABLE.COL2 FROM TABLE JOIN TABLE2 ON (TABLE.COL1 = TABLE2.COL3) WHERE (TABLE.COL2 = ?) AND (TABLE2.COL3 = ?)";
+            String sqlJoinWhereInnerAnd = "SELECT TABLE.COL1, TABLE.COL2 FROM TABLE JOIN TABLE2 ON (TABLE.COL1 = TABLE2.COL3) WHERE (TABLE.COL2 = ?) AND (TABLE2.COL3 = ? AND TABLE2.COL3 <> ?)";
+            String sqlJoinWhereInnerOr = "SELECT TABLE.COL1, TABLE.COL2 FROM TABLE JOIN TABLE2 ON (TABLE.COL1 = TABLE2.COL3) WHERE (TABLE.COL2 = ?) AND (TABLE2.COL3 = ? OR TABLE2.COL3 <> ?)";
+            String sqlJoinWhereOr = "SELECT TABLE.COL1, TABLE.COL2 FROM TABLE JOIN TABLE2 ON (TABLE.COL1 = TABLE2.COL3) WHERE (TABLE.COL2 = ?) AND (TABLE2.COL3 = ?) OR (TABLE2.COL3 <> ?)";
+
+            Mockito.verify(runner, Mockito.times(1))
+                    .read(Mockito.any(), Mockito.eq(directSqlJoin), Mockito.any());
+            Mockito.verify(runner, Mockito.times(1))
+                    .read(Mockito.any(), Mockito.eq(simpleSqlJoin), Mockito.any());
+            Mockito.verify(runner, Mockito.times(1))
+                    .read(Mockito.any(), Mockito.eq(sqlJoinWhereInnerAnd), Mockito.any());
+            Mockito.verify(runner, Mockito.times(1))
+                    .read(Mockito.any(), Mockito.eq(sqlJoinWhereInnerOr), Mockito.any());
+            Mockito.verify(runner, Mockito.times(1))
+                    .read(Mockito.any(), Mockito.eq(sqlJoinWhereOr), Mockito.any());
+        }
+    }
+
+    @Test
     void should_throw_exception_for_missing_column_in_join_table() {
         try (MockedStatic<DelegatesService> mk = Mockito.mockStatic(DelegatesService.class);
              MockedStatic<QueryRunner> run = Mockito.mockStatic(QueryRunner.class)) {
