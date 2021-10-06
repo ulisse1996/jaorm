@@ -8,6 +8,7 @@ import io.github.ulisse1996.jaorm.processor.CustomName;
 import io.github.ulisse1996.jaorm.processor.exception.ProcessorException;
 import io.github.ulisse1996.jaorm.processor.util.ProcessorUtils;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -15,6 +16,7 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
@@ -30,7 +32,15 @@ import java.util.Set;
 class EntityValidatorTest {
 
     @Mock private TypeElement entity;
-    private final EntityValidator testSubject = new EntityValidator(Mockito.mock(ProcessingEnvironment.class));
+    private EntityValidator testSubject;
+
+    @BeforeEach
+    void init() {
+        ProcessingEnvironment processingEnvironment = Mockito.mock(ProcessingEnvironment.class);
+        Mockito.when(processingEnvironment.getMessager())
+                .thenReturn(Mockito.mock(Messager.class));
+        testSubject = new EntityValidator(processingEnvironment);
+    }
 
     @Test
     void should_throw_exception_for_missing_constructor() {

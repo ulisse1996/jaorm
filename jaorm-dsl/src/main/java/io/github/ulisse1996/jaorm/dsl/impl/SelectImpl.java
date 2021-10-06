@@ -1,6 +1,7 @@
 package io.github.ulisse1996.jaorm.dsl.impl;
 
 import io.github.ulisse1996.jaorm.dsl.common.*;
+import io.github.ulisse1996.jaorm.dsl.common.Readable;
 import io.github.ulisse1996.jaorm.dsl.select.Select;
 import io.github.ulisse1996.jaorm.dsl.util.Pair;
 import io.github.ulisse1996.jaorm.entity.EntityDelegate;
@@ -60,8 +61,27 @@ public class SelectImpl implements Select {
         @SuppressWarnings("unchecked")
         public <L> Where<T, L> where(SqlColumn<T, L> column) {
             checkColumn(column);
-            this.where = new WhereImpl<>(this, column.getName(),false, (ValueConverter<?, R>) column.getConverter());
+            this.where = new WhereImpl<>(this, column.getName(),false, (ValueConverter<?, R>) column.getConverter(), "");
             return (Where<T, L>) this.where;
+        }
+
+        @Override
+        @SuppressWarnings("unchecked")
+        public <A,L> Where<T, L> whereJoinColumn(SqlColumn<A, L> column) {
+            String table = checkJoin(column);
+            this.where = new WhereImpl<>(this, column.getName(),false, (ValueConverter<?, R>) column.getConverter(), table);
+            return (Where<T, L>) this.where;
+        }
+
+        private <L, A> String checkJoin(SqlColumn<A,L> column) {
+            Objects.requireNonNull(column, COLUMN_CAN_T_BE_NULL);
+            Optional<JoinImpl<?, ?>> found = this.getJoins()
+                    .stream().filter(j -> j.getJoinTableColumns().contains(column.getName()))
+                    .findFirst();
+            if (!found.isPresent()) {
+                throw new IllegalArgumentException(String.format("Can't find column %s in joined columns", column));
+            }
+            return found.get().getJoinTable();
         }
 
         void checkColumn(SqlColumn<T, ?> column) {
@@ -140,30 +160,41 @@ public class SelectImpl implements Select {
         }
 
         @Override
+        public Readable<T> getParent() {
+            return this;
+        }
+
+        @Override
         public T read() {
-            Pair<String, List<SqlParameter>> pair = buildSql();
+            Pair<String, List<SqlParameter>> pair = buildSql(false);
             return QueryRunner.getInstance(this.klass).read(klass, pair.getKey(), pair.getValue());
         }
 
         @Override
         public Optional<T> readOpt() {
-            Pair<String, List<SqlParameter>> pair = buildSql();
+            Pair<String, List<SqlParameter>> pair = buildSql(false);
             return QueryRunner.getInstance(klass).readOpt(klass, pair.getKey(), pair.getValue())
                     .toOptional();
         }
 
         @Override
         public List<T> readAll() {
-            Pair<String, List<SqlParameter>> pair = buildSql();
+            Pair<String, List<SqlParameter>> pair = buildSql(false);
             return QueryRunner.getInstance(klass).readAll(klass, pair.getKey(), pair.getValue());
         }
 
-        Pair<String, List<SqlParameter>> buildSql() {
+        @Override
+        public long count() {
+            Pair<String, List<SqlParameter>> pair = buildSql(true);
+            return QueryRunner.getSimple().read(Long.class, pair.getKey(), pair.getValue());
+        }
+
+        Pair<String, List<SqlParameter>> buildSql(boolean forCount) {
             List<SqlParameter> parameters = new ArrayList<>();
             List<String> cols = Stream.of(columns)
                     .map(s -> from + "." + s)
                     .collect(Collectors.toList());
-            StringBuilder select = new StringBuilder("SELECT " + String.join(", ", cols) + " FROM " + from);
+            StringBuilder select = new StringBuilder("SELECT " + (forCount ? "COUNT(*)" : String.join(", ", cols)) + " FROM " + from);
             if (!joins.isEmpty()) {
                 for (JoinImpl<?,?> join : joins) {
                     select.append(join.getSql(caseInsensitiveLike));
@@ -196,9 +227,13 @@ public class SelectImpl implements Select {
 
         @Override
         public String toString() {
-            Pair<String, List<SqlParameter>> pair = buildSql();
+            Pair<String, List<SqlParameter>> pair = buildSql(false);
             return pair.getKey() + " [" +
                     pair.getValue().stream().map(par -> String.valueOf(par.getVal())).collect(Collectors.joining(",")) + "]";
+        }
+
+        public List<JoinImpl<?, ?>> getJoins() { //NOSONAR
+            return joins;
         }
     }
 }

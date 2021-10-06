@@ -7,6 +7,7 @@ import io.github.ulisse1996.jaorm.processor.validation.impl.RelationshipValidato
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Element;
+import javax.tools.Diagnostic;
 import java.util.List;
 
 public abstract class Validator {
@@ -30,6 +31,10 @@ public abstract class Validator {
             default:
                 throw new IllegalArgumentException("Can't find validator");
         }
+    }
+
+    protected void debugMessage(String message) {
+        processingEnvironment.getMessager().printMessage(Diagnostic.Kind.NOTE, message);
     }
 
     public abstract void validate(List<? extends Element> annotated);

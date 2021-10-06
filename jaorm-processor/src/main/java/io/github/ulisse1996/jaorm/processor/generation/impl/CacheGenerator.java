@@ -1,11 +1,10 @@
 package io.github.ulisse1996.jaorm.processor.generation.impl;
 
 import com.squareup.javapoet.*;
-import io.github.ulisse1996.jaorm.processor.generation.Generator;
 import io.github.ulisse1996.jaorm.annotation.Cacheable;
 import io.github.ulisse1996.jaorm.annotation.Table;
 import io.github.ulisse1996.jaorm.cache.EntityCache;
-import io.github.ulisse1996.jaorm.logger.JaormLogger;
+import io.github.ulisse1996.jaorm.processor.generation.Generator;
 import io.github.ulisse1996.jaorm.processor.util.GeneratedFile;
 import io.github.ulisse1996.jaorm.processor.util.ProcessorUtils;
 import io.github.ulisse1996.jaorm.spi.CacheService;
@@ -19,8 +18,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 public class CacheGenerator extends Generator {
-
-    private static final JaormLogger logger = JaormLogger.getLogger(CacheGenerator.class);
 
     public CacheGenerator(ProcessingEnvironment processingEnvironment) {
         super(processingEnvironment);
@@ -38,7 +35,7 @@ public class CacheGenerator extends Generator {
         if (!cacheables.isEmpty()) {
             generateCaches(cacheables);
         } else {
-            logger.debug("Skipping Caches Generation"::toString);
+            debugMessage("Skipping Caches Generation");
         }
     }
 

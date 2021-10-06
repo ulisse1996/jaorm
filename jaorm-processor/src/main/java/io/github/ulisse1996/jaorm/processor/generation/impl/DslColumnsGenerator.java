@@ -1,15 +1,14 @@
 package io.github.ulisse1996.jaorm.processor.generation.impl;
 
 import com.squareup.javapoet.*;
-import io.github.ulisse1996.jaorm.processor.generation.Generator;
-import io.github.ulisse1996.jaorm.spi.DslService;
 import io.github.ulisse1996.jaorm.annotation.Column;
 import io.github.ulisse1996.jaorm.annotation.Converter;
 import io.github.ulisse1996.jaorm.annotation.Table;
 import io.github.ulisse1996.jaorm.entity.SqlColumn;
-import io.github.ulisse1996.jaorm.logger.JaormLogger;
+import io.github.ulisse1996.jaorm.processor.generation.Generator;
 import io.github.ulisse1996.jaorm.processor.util.GeneratedFile;
 import io.github.ulisse1996.jaorm.processor.util.ProcessorUtils;
+import io.github.ulisse1996.jaorm.spi.DslService;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
@@ -24,7 +23,6 @@ import java.util.stream.Collectors;
 
 public class DslColumnsGenerator extends Generator {
 
-    private static final JaormLogger logger = JaormLogger.getLogger(DslColumnsGenerator.class);
     private static final Map<String, Class<?>> WRAPPERS_AND_PRIMITIVES;
     private static final Map<Class<?>, Class<?>> PRIMITIVE_TO_WRAPPERS;
 
@@ -64,7 +62,7 @@ public class DslColumnsGenerator extends Generator {
     public void generate(RoundEnvironment roundEnvironment) {
         boolean supported = DslService.getInstance().isSupported();
         if (!supported) {
-            logger.debug("Skipping Dsl generation"::toString);
+            debugMessage("Skipping Dsl generation");
         }
         List<TypeElement> entities = roundEnvironment.getElementsAnnotatedWith(Table.class)
                 .stream()
@@ -76,7 +74,7 @@ public class DslColumnsGenerator extends Generator {
     }
 
     private void generate(TypeElement entity) {
-        logger.debug(() -> "Generating Dsl Columns for Entity " + entity);
+        debugMessage("Generating Dsl Columns for Entity " + entity);
         Set<EntityColumn> columns = getEntityColumns(entity);
         TypeSpec.Builder typeSpecBuilder = TypeSpec.classBuilder(entity.getSimpleName() + "Columns")
                 .addModifiers(Modifier.PUBLIC, Modifier.FINAL);

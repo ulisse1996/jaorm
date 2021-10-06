@@ -34,6 +34,14 @@ public class JoinImpl<T, R> implements Join<T>, On<T, R>, IntermediateJoin<T> {
         this.clauses = new ArrayList<>();
     }
 
+    public String getJoinTable() {
+        return joinTable;
+    }
+
+    public List<String> getJoinTableColumns() {
+        return joinTableColumns;
+    }
+
     private JoinImpl.OnClause getCurrent() {
         JoinImpl.OnClause last = this.clauses.get(this.clauses.size() - 1);
         if (linkedCause) {
@@ -307,6 +315,11 @@ public class JoinImpl<T, R> implements Join<T>, On<T, R>, IntermediateJoin<T> {
     }
 
     @Override
+    public <A, L> Where<T, L> whereJoinColumn(SqlColumn<A, L> column) {
+        return this.parent.whereJoinColumn(column);
+    }
+
+    @Override
     public Join<T> join(Class<?> table) {
         return this.parent.join(table);
     }
@@ -363,18 +376,8 @@ public class JoinImpl<T, R> implements Join<T>, On<T, R>, IntermediateJoin<T> {
     }
 
     @Override
-    public T read() {
-        return this.parent.read();
-    }
-
-    @Override
-    public Optional<T> readOpt() {
-        return this.parent.readOpt();
-    }
-
-    @Override
-    public List<T> readAll() {
-        return this.parent.readAll();
+    public SelectImpl.EndSelectImpl<T, ?, ?> getParent() {
+        return parent;
     }
 
     public String getSql(boolean caseInsensitiveLike) {

@@ -21,10 +21,10 @@ public class WhereImpl<T, R, M> implements Where<T, R>, IntermediateWhere<T> {
     private final SelectImpl.EndSelectImpl<T, R, M> parent;
     private boolean linkedCause;
 
-    public WhereImpl(SelectImpl.EndSelectImpl<T, R, M> endSelect, String column, boolean or, ValueConverter<?,R> converter) {
+    public WhereImpl(SelectImpl.EndSelectImpl<T, R, M> endSelect, String column, boolean or, ValueConverter<?,R> converter, String table) {
         this.parent = endSelect;
         this.clauses = new ArrayList<>();
-        this.clauses.add(new WhereClause(column, or, converter));
+        this.clauses.add(new WhereClause(column, or, converter, table));
     }
 
     @Override
@@ -160,21 +160,15 @@ public class WhereImpl<T, R, M> implements Where<T, R>, IntermediateWhere<T> {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public <L> Where<T, L> where(SqlColumn<T, L> column) {
         checkColumn(column);
-        this.linkedCause = false;
-        this.clauses.add(new WhereClause(column.getName(), false, column.getConverter()));
-        return (Where<T, L>) this;
+        return getWhere(column, "");
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public <L> Where<T, L> orWhere(SqlColumn<T, L> column) {
         checkColumn(column);
-        this.linkedCause = false;
-        this.clauses.add(new WhereClause(column.getName(), true, column.getConverter()));
-        return (Where<T, L>) this;
+        return getOrWhere(column, "");
     }
 
     @Override
@@ -207,35 +201,82 @@ public class WhereImpl<T, R, M> implements Where<T, R>, IntermediateWhere<T> {
     }
 
     @Override
-    public T read() {
-        return this.parent.read();
+    public SelectImpl.EndSelectImpl<T, R, M> getParent() {
+        return parent;
     }
 
     @Override
-    public Optional<T> readOpt() {
-        return this.parent.readOpt();
-    }
-
-    @Override
-    public List<T> readAll() {
-        return this.parent.readAll();
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
     public <L> Where<T, L> and(SqlColumn<T, L> column) {
         checkColumn(column);
-        WhereClause cause = new WhereClause(column.getName(), false, column.getConverter());
+        return getAndLinkedWhere(column, "");
+    }
+
+    @Override
+    public <L> Where<T, L> or(SqlColumn<T, L> column) {
+        checkColumn(column);
+        return getOrLinkedWhere(column, "");
+    }
+
+    @Override
+    public <A, L> Where<T, L> whereJoinColumn(SqlColumn<A, L> column) {
+        String table = checkJoinColumn(column);
+        return getWhere(column, table);
+    }
+
+    private <L, A> String checkJoinColumn(SqlColumn<A,L> column) {
+        Objects.requireNonNull(column, COLUMN_CAN_T_BE_NULL);
+        Optional<JoinImpl<?, ?>> found = this.parent.getJoins()
+                .stream().filter(j -> j.getJoinTableColumns().contains(column.getName()))
+                .findFirst();
+        if (!found.isPresent()) {
+            throw new IllegalArgumentException(String.format("Can't find column %s in joined columns", column));
+        }
+        return found.get().getJoinTable();
+    }
+
+    @Override
+    public <A, L> Where<T, L> orWhereJoinColumn(SqlColumn<A, L> column) {
+        String table = checkJoinColumn(column);
+        return getOrWhere(column, table);
+    }
+
+    @Override
+    public <A, L> Where<T, L> andJoinColumn(SqlColumn<A, L> column) {
+        String table = checkJoinColumn(column);
+        return getAndLinkedWhere(column, table);
+    }
+
+    @Override
+    public <A, L> Where<T, L> orJoinColumn(SqlColumn<A, L> column) {
+        String table = checkJoinColumn(column);
+        return getOrLinkedWhere(column, table);
+    }
+
+    @SuppressWarnings("unchecked")
+    private <A, L> Where<T, L> getWhere(SqlColumn<A, L> column, String table) {
+        this.linkedCause = false;
+        this.clauses.add(new WhereClause(column.getName(), false, column.getConverter(), table));
+        return (Where<T, L>) this;
+    }
+
+    @SuppressWarnings("unchecked")
+    private <A, L> Where<T, L> getOrWhere(SqlColumn<A, L> column, String table) {
+        this.linkedCause = false;
+        this.clauses.add(new WhereClause(column.getName(), true, column.getConverter(), table));
+        return (Where<T, L>) this;
+    }
+
+    @SuppressWarnings("unchecked")
+    private <A, L> Where<T, L> getAndLinkedWhere(SqlColumn<A, L> column, String table) {
+        WhereClause cause = new WhereClause(column.getName(), false, column.getConverter(), table);
         getCurrent().linked.add(cause);
         this.linkedCause = true;
         return (Where<T, L>) this;
     }
 
-    @Override
     @SuppressWarnings("unchecked")
-    public <L> Where<T, L> or(SqlColumn<T, L> column) {
-        checkColumn(column);
-        WhereClause cause = new WhereClause(column.getName(), true, column.getConverter());
+    private <A, L> Where<T, L> getOrLinkedWhere(SqlColumn<A, L> column, String table) {
+        WhereClause cause = new WhereClause(column.getName(), true, column.getConverter(), table);
         getCurrent().linked.add(cause);
         this.linkedCause = true;
         return (Where<T, L>) this;
@@ -264,13 +305,22 @@ public class WhereImpl<T, R, M> implements Where<T, R>, IntermediateWhere<T> {
     }
 
     private void buildClause(StringBuilder builder, WhereClause clause, boolean caseInsensitiveLike) {
-        String format = caseInsensitiveLike ? "UPPER(%s.%s)" : "%s.%s";
-        builder.append(String.format(format, this.parent.from, clause.column)).append(evaluateOperation(clause, caseInsensitiveLike));
+        String format = caseInsensitiveLike && clause.likeType != null ? "UPPER(%s.%s)" : "%s.%s";
+        builder.append(String.format(format, getFrom(clause), clause.column)).append(evaluateOperation(clause, caseInsensitiveLike));
         if (!clause.linked.isEmpty()) {
             for (WhereClause inner : clause.linked) {
+                String innerFormat = caseInsensitiveLike && inner.likeType != null ? "UPPER(%s.%s)" : "%s.%s";
                 builder.append(inner.or ? OR : AND)
-                        .append(String.format(format, this.parent.from, inner.column)).append(evaluateOperation(inner, caseInsensitiveLike));
+                        .append(String.format(innerFormat, getFrom(inner), inner.column)).append(evaluateOperation(inner, caseInsensitiveLike));
             }
+        }
+    }
+
+    private String getFrom(WhereClause clause) {
+        if (clause.table == null || clause.table.isEmpty()) {
+            return this.parent.from;
+        } else {
+            return clause.table;
         }
     }
 
@@ -341,12 +391,14 @@ public class WhereImpl<T, R, M> implements Where<T, R>, IntermediateWhere<T> {
         private LikeType likeType;
         private Operation operation;
         private Object val;
+        private final String table;
 
-        public WhereClause(String column, boolean or, ValueConverter<?,?> converter) {
+        public WhereClause(String column, boolean or, ValueConverter<?,?> converter, String table) {
             this.column = column;
             this.or = or;
             this.linked = new ArrayList<>();
             this.converter = converter;
+            this.table = table;
         }
     }
 }

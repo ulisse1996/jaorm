@@ -5,6 +5,7 @@ import io.github.ulisse1996.jaorm.processor.CustomName;
 import io.github.ulisse1996.jaorm.processor.exception.ProcessorException;
 import io.github.ulisse1996.jaorm.processor.util.ReturnTypeDefinition;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -12,6 +13,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.MockedConstruction;
 import org.mockito.Mockito;
 
+import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.VariableElement;
@@ -22,7 +24,15 @@ import java.util.stream.Stream;
 
 class QueryValidatorTest {
 
-    private final QueryValidator testSubject = new QueryValidator(Mockito.mock(ProcessingEnvironment.class));
+    private QueryValidator testSubject;
+
+    @BeforeEach
+    void init() {
+        ProcessingEnvironment environment = Mockito.mock(ProcessingEnvironment.class);
+        Mockito.when(environment.getMessager())
+                .thenReturn(Mockito.mock(Messager.class));
+        testSubject = new QueryValidator(environment);
+    }
 
     @Test
     void should_throw_exception_for_unsupported_sql() {

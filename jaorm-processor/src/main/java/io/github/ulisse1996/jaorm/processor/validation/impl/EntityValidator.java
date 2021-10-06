@@ -1,25 +1,25 @@
 package io.github.ulisse1996.jaorm.processor.validation.impl;
 
-import io.github.ulisse1996.jaorm.processor.exception.ProcessorException;
-import io.github.ulisse1996.jaorm.processor.util.ProcessorUtils;
-import io.github.ulisse1996.jaorm.processor.validation.Validator;
 import io.github.ulisse1996.jaorm.annotation.Column;
 import io.github.ulisse1996.jaorm.annotation.Converter;
 import io.github.ulisse1996.jaorm.annotation.Relationship;
 import io.github.ulisse1996.jaorm.annotation.Table;
-import io.github.ulisse1996.jaorm.logger.JaormLogger;
+import io.github.ulisse1996.jaorm.processor.exception.ProcessorException;
+import io.github.ulisse1996.jaorm.processor.util.ProcessorUtils;
+import io.github.ulisse1996.jaorm.processor.validation.Validator;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.*;
 import javax.lang.model.type.PrimitiveType;
 import javax.lang.model.type.TypeMirror;
-import java.util.*;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class EntityValidator extends Validator {
-
-    private static final JaormLogger logger = JaormLogger.getLogger(EntityValidator.class);
 
     public EntityValidator(ProcessingEnvironment processingEnvironment) {
         super(processingEnvironment);
@@ -28,7 +28,7 @@ public class EntityValidator extends Validator {
     @Override
     public void validate(List<? extends Element> annotated) {
         for (Element element : annotated) {
-            logger.debug(() -> "Check validation for Entity " + element.getSimpleName());
+            debugMessage("Check validation for Entity " + element.getSimpleName());
             validate(element);
         }
     }
