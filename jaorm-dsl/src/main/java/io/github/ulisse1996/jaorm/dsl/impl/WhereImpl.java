@@ -165,21 +165,15 @@ public class WhereImpl<T, R, M> implements Where<T, R>, IntermediateWhere<T> {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public <L> Where<T, L> where(SqlColumn<T, L> column) {
         checkColumn(column);
-        this.linkedCause = false;
-        this.clauses.add(new WhereClause(column.getName(), false, column.getConverter()));
-        return (Where<T, L>) this;
+        return getWhere(column, "");
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public <L> Where<T, L> orWhere(SqlColumn<T, L> column) {
         checkColumn(column);
-        this.linkedCause = false;
-        this.clauses.add(new WhereClause(column.getName(), true, column.getConverter()));
-        return (Where<T, L>) this;
+        return getOrWhere(column, "");
     }
 
     @Override
@@ -232,32 +226,21 @@ public class WhereImpl<T, R, M> implements Where<T, R>, IntermediateWhere<T> {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public <L> Where<T, L> and(SqlColumn<T, L> column) {
         checkColumn(column);
-        WhereClause cause = new WhereClause(column.getName(), false, column.getConverter());
-        getCurrent().linked.add(cause);
-        this.linkedCause = true;
-        return (Where<T, L>) this;
+        return getAndLinkedWhere(column, "");
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public <L> Where<T, L> or(SqlColumn<T, L> column) {
         checkColumn(column);
-        WhereClause cause = new WhereClause(column.getName(), true, column.getConverter());
-        getCurrent().linked.add(cause);
-        this.linkedCause = true;
-        return (Where<T, L>) this;
+        return getOrLinkedWhere(column, "");
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public <A, L> Where<T, L> whereJoinColumn(SqlColumn<A, L> column) {
         String table = checkJoinColumn(column);
-        this.linkedCause = false;
-        this.clauses.add(new WhereClause(column.getName(), false, column.getConverter(), table));
-        return (Where<T, L>) this;
+        return getWhere(column, table);
     }
 
     private <L, A> String checkJoinColumn(SqlColumn<A,L> column) {
@@ -271,19 +254,40 @@ public class WhereImpl<T, R, M> implements Where<T, R>, IntermediateWhere<T> {
         return found.get().getJoinTable();
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public <A, L> Where<T, L> orWhereJoinColumn(SqlColumn<A, L> column) {
         String table = checkJoinColumn(column);
+        return getOrWhere(column, table);
+    }
+
+    @Override
+    public <A, L> Where<T, L> andJoinColumn(SqlColumn<A, L> column) {
+        String table = checkJoinColumn(column);
+        return getAndLinkedWhere(column, table);
+    }
+
+    @Override
+    public <A, L> Where<T, L> orJoinColumn(SqlColumn<A, L> column) {
+        String table = checkJoinColumn(column);
+        return getOrLinkedWhere(column, table);
+    }
+
+    @SuppressWarnings("unchecked")
+    private <A, L> Where<T, L> getWhere(SqlColumn<A, L> column, String table) {
+        this.linkedCause = false;
+        this.clauses.add(new WhereClause(column.getName(), false, column.getConverter(), table));
+        return (Where<T, L>) this;
+    }
+
+    @SuppressWarnings("unchecked")
+    private <A, L> Where<T, L> getOrWhere(SqlColumn<A, L> column, String table) {
         this.linkedCause = false;
         this.clauses.add(new WhereClause(column.getName(), true, column.getConverter(), table));
         return (Where<T, L>) this;
     }
 
     @SuppressWarnings("unchecked")
-    @Override
-    public <A, L> Where<T, L> andJoinColumn(SqlColumn<A, L> column) {
-        String table = checkJoinColumn(column);
+    private <A, L> Where<T, L> getAndLinkedWhere(SqlColumn<A, L> column, String table) {
         WhereClause cause = new WhereClause(column.getName(), false, column.getConverter(), table);
         getCurrent().linked.add(cause);
         this.linkedCause = true;
@@ -291,9 +295,7 @@ public class WhereImpl<T, R, M> implements Where<T, R>, IntermediateWhere<T> {
     }
 
     @SuppressWarnings("unchecked")
-    @Override
-    public <A, L> Where<T, L> orJoinColumn(SqlColumn<A, L> column) {
-        String table = checkJoinColumn(column);
+    private <A, L> Where<T, L> getOrLinkedWhere(SqlColumn<A, L> column, String table) {
         WhereClause cause = new WhereClause(column.getName(), true, column.getConverter(), table);
         getCurrent().linked.add(cause);
         this.linkedCause = true;
@@ -410,10 +412,6 @@ public class WhereImpl<T, R, M> implements Where<T, R>, IntermediateWhere<T> {
         private Operation operation;
         private Object val;
         private final String table;
-
-        public WhereClause(String column, boolean or, ValueConverter<?,?> converter) {
-            this(column, or, converter, "");
-        }
 
         public WhereClause(String column, boolean or, ValueConverter<?,?> converter, String table) {
             this.column = column;

@@ -496,12 +496,12 @@ class JaormTest {
             Mockito.when(runner.readOpt(Mockito.any(), Mockito.any(), Mockito.any()))
                     .thenReturn(Result.empty());
 
-            Assertions.assertThrows(IllegalArgumentException.class, () -> Jaorm.select(Object.class)
+            Assertions.assertThrows(IllegalArgumentException.class, () -> Jaorm.select(Object.class) //NOSONAR
                     .join(MyObject.class).on(COL_1).eq(COL_3)
                     .where(COL_2).eq("VAL")
                     .whereJoinColumn(SqlColumn.instance("COL_NOT_VALID", Integer.class)).eq(1));
 
-            Assertions.assertThrows(IllegalArgumentException.class, () -> Jaorm.select(Object.class)
+            Assertions.assertThrows(IllegalArgumentException.class, () -> Jaorm.select(Object.class) //NOSONAR
                     .join(MyObject.class).on(COL_1).eq(COL_3)
                     .whereJoinColumn(SqlColumn.instance("COL_NOT_VALID", Integer.class)).eq(1));
         }
