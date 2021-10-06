@@ -4,6 +4,7 @@ import io.github.ulisse1996.jaorm.processor.generation.impl.*;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
+import javax.tools.Diagnostic;
 
 public abstract class Generator {
 
@@ -37,6 +38,10 @@ public abstract class Generator {
             default:
                 throw new IllegalArgumentException("Can't find validator");
         }
+    }
+
+    protected void debugMessage(String message) {
+        processingEnvironment.getMessager().printMessage(Diagnostic.Kind.NOTE, message);
     }
 
     public abstract void generate(RoundEnvironment roundEnvironment);

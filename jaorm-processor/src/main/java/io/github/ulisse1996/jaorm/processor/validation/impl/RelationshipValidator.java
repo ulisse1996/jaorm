@@ -1,10 +1,9 @@
 package io.github.ulisse1996.jaorm.processor.validation.impl;
 
+import io.github.ulisse1996.jaorm.annotation.Relationship;
 import io.github.ulisse1996.jaorm.processor.exception.ProcessorException;
 import io.github.ulisse1996.jaorm.processor.util.ProcessorUtils;
 import io.github.ulisse1996.jaorm.processor.validation.Validator;
-import io.github.ulisse1996.jaorm.annotation.Relationship;
-import io.github.ulisse1996.jaorm.logger.JaormLogger;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Element;
@@ -14,8 +13,6 @@ import java.util.List;
 import java.util.Optional;
 
 public class RelationshipValidator extends Validator {
-
-    private static final JaormLogger logger = JaormLogger.getLogger(RelationshipValidator.class);
 
     public RelationshipValidator(ProcessingEnvironment processingEnvironment) {
         super(processingEnvironment);
@@ -29,7 +26,7 @@ public class RelationshipValidator extends Validator {
     }
 
     private void checkRelationship(VariableElement variableElement) {
-        logger.debug(() -> "Check validation for Relationship field " +  variableElement.getSimpleName());
+        debugMessage("Check validation for Relationship field " +  variableElement.getSimpleName());
         TypeElement fieldType = ProcessorUtils.getFieldType(processingEnvironment, variableElement);
         TypeElement entityType = (TypeElement) variableElement.getEnclosingElement();
         Relationship relationship = variableElement.getAnnotation(Relationship.class);

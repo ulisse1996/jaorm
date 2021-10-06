@@ -3,7 +3,6 @@ package io.github.ulisse1996.jaorm.processor.generation.impl;
 import com.squareup.javapoet.*;
 import io.github.ulisse1996.jaorm.annotation.Converter;
 import io.github.ulisse1996.jaorm.entity.converter.ConverterPair;
-import io.github.ulisse1996.jaorm.logger.JaormLogger;
 import io.github.ulisse1996.jaorm.processor.generation.Generator;
 import io.github.ulisse1996.jaorm.processor.util.GeneratedFile;
 import io.github.ulisse1996.jaorm.processor.util.ProcessorUtils;
@@ -20,8 +19,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class ConverterGenerator extends Generator {
-
-    private static final JaormLogger logger = JaormLogger.getLogger(ConverterGenerator.class);
 
     public ConverterGenerator(ProcessingEnvironment processingEnvironment) {
         super(processingEnvironment);
@@ -47,7 +44,7 @@ public class ConverterGenerator extends Generator {
     }
 
     private void generateConverters(List<ConverterInfo> conversions) {
-        logger.debug("Generating Converters"::toString);
+        debugMessage("Generating Converters");
         TypeSpec converters = TypeSpec.classBuilder("Converters")
                 .addModifiers(Modifier.PUBLIC)
                 .superclass(ConverterService.class)

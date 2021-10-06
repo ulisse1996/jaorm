@@ -1,9 +1,6 @@
 package io.github.ulisse1996.jaorm.processor.generation.impl;
 
 import com.squareup.javapoet.*;
-import io.github.ulisse1996.jaorm.processor.generation.Generator;
-import io.github.ulisse1996.jaorm.spi.DelegatesService;
-import io.github.ulisse1996.jaorm.spi.QueryRunner;
 import io.github.ulisse1996.jaorm.Arguments;
 import io.github.ulisse1996.jaorm.BaseDao;
 import io.github.ulisse1996.jaorm.DaoImplementation;
@@ -12,12 +9,14 @@ import io.github.ulisse1996.jaorm.annotation.Query;
 import io.github.ulisse1996.jaorm.annotation.Table;
 import io.github.ulisse1996.jaorm.cache.Cacheable;
 import io.github.ulisse1996.jaorm.entity.sql.SqlParameter;
-import io.github.ulisse1996.jaorm.logger.JaormLogger;
+import io.github.ulisse1996.jaorm.processor.generation.Generator;
 import io.github.ulisse1996.jaorm.processor.strategy.QueryStrategy;
 import io.github.ulisse1996.jaorm.processor.util.GeneratedFile;
 import io.github.ulisse1996.jaorm.processor.util.ProcessorUtils;
 import io.github.ulisse1996.jaorm.processor.util.ReturnTypeDefinition;
+import io.github.ulisse1996.jaorm.spi.DelegatesService;
 import io.github.ulisse1996.jaorm.spi.QueriesService;
+import io.github.ulisse1996.jaorm.spi.QueryRunner;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
@@ -34,7 +33,6 @@ public class QueryGenerator extends Generator {
     private static final String MAP_FORMAT = "$T values = new $T<>()";
     private static final String REQUIRED_NOT_NULL_STATEMENT = "$T.requireNonNull(arg0, $S)";
     private static final String ENTITY_CAN_T_BE_NULL = "Entity can't be null !";
-    private static final JaormLogger logger = JaormLogger.getLogger(QueryGenerator.class);
 
     public QueryGenerator(ProcessingEnvironment processingEnvironment) {
         super(processingEnvironment);
@@ -48,7 +46,7 @@ public class QueryGenerator extends Generator {
                 .collect(Collectors.toList());
         List<TypeElement> queries = ProcessorUtils.getAllDao(roundEnvironment);
         for (TypeElement query : queries) {
-            logger.debug(() -> "Generating Query Implementation for Query " + query);
+            debugMessage("Generating Query Implementation for Query " + query);
             Set<MethodSpec> methods = new HashSet<>();
             for (Element ele : processingEnvironment.getElementUtils().getAllMembers(query)) {
                 if (ele.getAnnotation(Query.class) != null) {

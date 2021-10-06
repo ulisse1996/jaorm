@@ -1,13 +1,15 @@
 package io.github.ulisse1996.jaorm.processor.validation.impl;
 
+import io.github.ulisse1996.jaorm.annotation.Relationship;
 import io.github.ulisse1996.jaorm.processor.exception.ProcessorException;
 import io.github.ulisse1996.jaorm.processor.util.ProcessorUtils;
-import io.github.ulisse1996.jaorm.annotation.Relationship;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
+import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Name;
 import javax.lang.model.element.TypeElement;
@@ -17,7 +19,15 @@ import java.util.Optional;
 
 class RelationshipValidatorTest {
 
-    private final RelationshipValidator testSubject = new RelationshipValidator(Mockito.mock(ProcessingEnvironment.class));
+    private RelationshipValidator testSubject;
+
+    @BeforeEach
+    void init() {
+        ProcessingEnvironment processingEnvironment = Mockito.mock(ProcessingEnvironment.class);
+        Mockito.when(processingEnvironment.getMessager())
+                .thenReturn(Mockito.mock(Messager.class));
+        testSubject = new RelationshipValidator(processingEnvironment);
+    }
 
     @Test
     void should_not_found_opt_column() {

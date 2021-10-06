@@ -2,10 +2,6 @@ package io.github.ulisse1996.jaorm.processor.generation.impl;
 
 import com.squareup.javapoet.*;
 import io.github.ulisse1996.jaorm.annotation.*;
-import io.github.ulisse1996.jaorm.processor.generation.Generator;
-import io.github.ulisse1996.jaorm.spi.DelegatesService;
-import io.github.ulisse1996.jaorm.spi.GeneratorsService;
-import io.github.ulisse1996.jaorm.spi.QueryRunner;
 import io.github.ulisse1996.jaorm.entity.ColumnGetter;
 import io.github.ulisse1996.jaorm.entity.ColumnSetter;
 import io.github.ulisse1996.jaorm.entity.EntityDelegate;
@@ -13,10 +9,13 @@ import io.github.ulisse1996.jaorm.entity.EntityMapper;
 import io.github.ulisse1996.jaorm.entity.converter.ParameterConverter;
 import io.github.ulisse1996.jaorm.entity.sql.SqlAccessor;
 import io.github.ulisse1996.jaorm.entity.sql.SqlParameter;
-import io.github.ulisse1996.jaorm.logger.JaormLogger;
+import io.github.ulisse1996.jaorm.processor.generation.Generator;
 import io.github.ulisse1996.jaorm.processor.util.GeneratedFile;
 import io.github.ulisse1996.jaorm.processor.util.ProcessorUtils;
 import io.github.ulisse1996.jaorm.processor.util.ReturnTypeDefinition;
+import io.github.ulisse1996.jaorm.spi.DelegatesService;
+import io.github.ulisse1996.jaorm.spi.GeneratorsService;
+import io.github.ulisse1996.jaorm.spi.QueryRunner;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
@@ -35,7 +34,6 @@ public class EntityGenerator extends Generator {
     private static final String BUILDER_SIMPLE_APPEND = "builder.append($S)";
     private static final String KEYS_WHERE = "KEYS_WHERE";
     private static final String MAP_FORMAT = "$T values = new $T<>()";
-    private static final JaormLogger logger = JaormLogger.getLogger(EntityGenerator.class);
 
     public EntityGenerator(ProcessingEnvironment processingEnvironment) {
         super(processingEnvironment);
@@ -92,7 +90,7 @@ public class EntityGenerator extends Generator {
     }
 
     private GeneratedFile generate(TypeElement entity) {
-        logger.debug(() -> "Generating Delegate for Entity " + entity);
+        debugMessage("Generating Delegate for Entity " + entity);
         String delegateName = entity.getSimpleName() + "Delegate";
         TypeSpec.Builder builder = TypeSpec.classBuilder(ClassName.get(getPackage(entity), delegateName))
                 .addModifiers(Modifier.PUBLIC)

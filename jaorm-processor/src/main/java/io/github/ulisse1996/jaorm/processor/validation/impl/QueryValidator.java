@@ -1,10 +1,9 @@
 package io.github.ulisse1996.jaorm.processor.validation.impl;
 
+import io.github.ulisse1996.jaorm.annotation.Query;
 import io.github.ulisse1996.jaorm.processor.exception.ProcessorException;
 import io.github.ulisse1996.jaorm.processor.strategy.QueryStrategy;
 import io.github.ulisse1996.jaorm.processor.validation.Validator;
-import io.github.ulisse1996.jaorm.annotation.Query;
-import io.github.ulisse1996.jaorm.logger.JaormLogger;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Element;
@@ -14,8 +13,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class QueryValidator extends Validator {
-
-    private static final JaormLogger logger = JaormLogger.getLogger(QueryValidator.class);
 
     public QueryValidator(ProcessingEnvironment processingEnvironment) {
         super(processingEnvironment);
@@ -31,7 +28,7 @@ public class QueryValidator extends Validator {
     }
 
     private void checkQuery(ExecutableElement executableElement) {
-        logger.debug(() -> "Check validation for Query " + executableElement.getSimpleName());
+        debugMessage("Check validation for Query " + executableElement.getSimpleName());
         Query query = executableElement.getAnnotation(Query.class);
         String sql = query.sql();
         for (QueryStrategy queryStrategy : QueryStrategy.values()) {
