@@ -21,11 +21,6 @@ public class WhereImpl<T, R, M> implements Where<T, R>, IntermediateWhere<T> {
     private final SelectImpl.EndSelectImpl<T, R, M> parent;
     private boolean linkedCause;
 
-    public WhereImpl(SelectImpl.EndSelectImpl<T, R, M> endSelect, String column, boolean or, ValueConverter<?,R> converter) {
-        this(endSelect, column, or, converter, "");
-    }
-
-
     public WhereImpl(SelectImpl.EndSelectImpl<T, R, M> endSelect, String column, boolean or, ValueConverter<?,R> converter, String table) {
         this.parent = endSelect;
         this.clauses = new ArrayList<>();
@@ -206,23 +201,8 @@ public class WhereImpl<T, R, M> implements Where<T, R>, IntermediateWhere<T> {
     }
 
     @Override
-    public T read() {
-        return this.parent.read();
-    }
-
-    @Override
-    public Optional<T> readOpt() {
-        return this.parent.readOpt();
-    }
-
-    @Override
-    public List<T> readAll() {
-        return this.parent.readAll();
-    }
-
-    @Override
-    public long count() {
-        return this.parent.count();
+    public SelectImpl.EndSelectImpl<T, R, M> getParent() {
+        return parent;
     }
 
     @Override

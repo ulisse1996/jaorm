@@ -1,6 +1,7 @@
 package io.github.ulisse1996.jaorm.dsl.impl;
 
 import io.github.ulisse1996.jaorm.dsl.common.*;
+import io.github.ulisse1996.jaorm.dsl.common.Readable;
 import io.github.ulisse1996.jaorm.dsl.select.Select;
 import io.github.ulisse1996.jaorm.dsl.util.Pair;
 import io.github.ulisse1996.jaorm.entity.EntityDelegate;
@@ -60,7 +61,7 @@ public class SelectImpl implements Select {
         @SuppressWarnings("unchecked")
         public <L> Where<T, L> where(SqlColumn<T, L> column) {
             checkColumn(column);
-            this.where = new WhereImpl<>(this, column.getName(),false, (ValueConverter<?, R>) column.getConverter());
+            this.where = new WhereImpl<>(this, column.getName(),false, (ValueConverter<?, R>) column.getConverter(), "");
             return (Where<T, L>) this.where;
         }
 
@@ -156,6 +157,11 @@ public class SelectImpl implements Select {
             }
 
             this.order.add(type, column);
+        }
+
+        @Override
+        public Readable<T> getParent() {
+            return this;
         }
 
         @Override

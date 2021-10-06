@@ -376,23 +376,8 @@ public class JoinImpl<T, R> implements Join<T>, On<T, R>, IntermediateJoin<T> {
     }
 
     @Override
-    public T read() {
-        return this.parent.read();
-    }
-
-    @Override
-    public Optional<T> readOpt() {
-        return this.parent.readOpt();
-    }
-
-    @Override
-    public List<T> readAll() {
-        return this.parent.readAll();
-    }
-
-    @Override
-    public long count() {
-        return this.parent.count();
+    public SelectImpl.EndSelectImpl<T, ?, ?> getParent() {
+        return parent;
     }
 
     public String getSql(boolean caseInsensitiveLike) {

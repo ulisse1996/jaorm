@@ -5,8 +5,21 @@ import java.util.Optional;
 
 public interface Readable<T> {
 
-    T read();
-    Optional<T> readOpt();
-    List<T> readAll();
-    long count();
+    Readable<T> getParent();
+
+    default T read() {
+        return getParent().read();
+    }
+
+    default Optional<T> readOpt() {
+        return getParent().readOpt();
+    }
+
+    default List<T> readAll() {
+        return getParent().readAll();
+    }
+
+    default long count() {
+        return getParent().count();
+    }
 }
