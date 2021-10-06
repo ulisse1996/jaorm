@@ -8,8 +8,11 @@ import io.github.ulisse1996.jaorm.entity.SqlColumn;
 import io.github.ulisse1996.jaorm.spi.DelegatesService;
 import io.github.ulisse1996.jaorm.spi.QueryRunner;
 import io.github.ulisse1996.jaorm.vendor.VendorSpecific;
+import io.github.ulisse1996.jaorm.vendor.specific.LikeSpecific;
 import io.github.ulisse1996.jaorm.vendor.specific.LimitOffsetSpecific;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -32,6 +35,22 @@ class JaormTest {
     private static final SqlColumn<Object, String> COL_2 = SqlColumn.instance("COL2", String.class);
     private static final SqlColumn<MyObject, Integer> COL_3 = SqlColumn.instance("COL3", Integer.class);
     private static final SqlColumn<MyObject, String> COL_4 = SqlColumn.instance("COL4", String.class);
+
+    private static MockedStatic<VendorSpecific> vendorSpecificMockedStatic;
+
+    @BeforeAll
+    public static void beforeAll() {
+        vendorSpecificMockedStatic = Mockito.mockStatic(VendorSpecific.class);
+        vendorSpecificMockedStatic.when(() -> VendorSpecific.getSpecific(LikeSpecific.class))
+                .thenThrow(RuntimeException.class);
+    }
+
+    @AfterAll
+    public static void afterAll() {
+        if (vendorSpecificMockedStatic != null) {
+            vendorSpecificMockedStatic.close();
+        }
+    }
 
     @Test
     void should_throw_unsupported_for_instantiation() {
@@ -437,14 +456,13 @@ class JaormTest {
     @Test
     void should_create_sql_with_limit() {
         try (MockedStatic<DelegatesService> mk = Mockito.mockStatic(DelegatesService.class);
-             MockedStatic<QueryRunner> run = Mockito.mockStatic(QueryRunner.class);
-             MockedStatic<VendorSpecific> vendor = Mockito.mockStatic(VendorSpecific.class)) {
+             MockedStatic<QueryRunner> run = Mockito.mockStatic(QueryRunner.class)) {
             DelegatesService delegatesService = Mockito.mock(DelegatesService.class);
             EntityDelegate<?> delegate = Mockito.mock(EntityDelegate.class);
             EntityDelegate<?> delegateJoin = Mockito.mock(EntityDelegate.class);
             QueryRunner runner = Mockito.mock(QueryRunner.class);
-            vendor.when(() -> VendorSpecific.getSpecific(LimitOffsetSpecific.class))
-                    .thenReturn(StandardOffSetLimitSpecific.INSTANCE);
+            vendorSpecificMockedStatic.when(() -> VendorSpecific.getSpecific(LimitOffsetSpecific.class))
+                    .thenReturn(new LimitOffsetStandard());
             mk.when(DelegatesService::getInstance)
                     .thenReturn(delegatesService);
             run.when(() -> QueryRunner.getInstance(Mockito.any()))
@@ -477,14 +495,11 @@ class JaormTest {
     @Test
     void should_throw_exception_for_bad_limit_row() {
         try (MockedStatic<DelegatesService> mk = Mockito.mockStatic(DelegatesService.class);
-             MockedStatic<QueryRunner> run = Mockito.mockStatic(QueryRunner.class);
-             MockedStatic<VendorSpecific> vendor = Mockito.mockStatic(VendorSpecific.class)) {
+             MockedStatic<QueryRunner> run = Mockito.mockStatic(QueryRunner.class)) {
             DelegatesService delegatesService = Mockito.mock(DelegatesService.class);
             EntityDelegate<?> delegate = Mockito.mock(EntityDelegate.class);
             EntityDelegate<?> delegateJoin = Mockito.mock(EntityDelegate.class);
             QueryRunner runner = Mockito.mock(QueryRunner.class);
-            vendor.when(() -> VendorSpecific.getSpecific(LimitOffsetSpecific.class))
-                    .thenReturn(StandardOffSetLimitSpecific.INSTANCE);
             mk.when(DelegatesService::getInstance)
                     .thenReturn(delegatesService);
             run.when(() -> QueryRunner.getInstance(Mockito.any()))
@@ -510,14 +525,11 @@ class JaormTest {
     @Test
     void should_throw_exception_for_bad_offset_row() {
         try (MockedStatic<DelegatesService> mk = Mockito.mockStatic(DelegatesService.class);
-             MockedStatic<QueryRunner> run = Mockito.mockStatic(QueryRunner.class);
-             MockedStatic<VendorSpecific> vendor = Mockito.mockStatic(VendorSpecific.class)) {
+             MockedStatic<QueryRunner> run = Mockito.mockStatic(QueryRunner.class)) {
             DelegatesService delegatesService = Mockito.mock(DelegatesService.class);
             EntityDelegate<?> delegate = Mockito.mock(EntityDelegate.class);
             EntityDelegate<?> delegateJoin = Mockito.mock(EntityDelegate.class);
             QueryRunner runner = Mockito.mock(QueryRunner.class);
-            vendor.when(() -> VendorSpecific.getSpecific(LimitOffsetSpecific.class))
-                    .thenReturn(StandardOffSetLimitSpecific.INSTANCE);
             mk.when(DelegatesService::getInstance)
                     .thenReturn(delegatesService);
             run.when(() -> QueryRunner.getInstance(Mockito.any()))
@@ -543,14 +555,13 @@ class JaormTest {
     @Test
     void should_create_sql_with_limit_and_offset() {
         try (MockedStatic<DelegatesService> mk = Mockito.mockStatic(DelegatesService.class);
-             MockedStatic<QueryRunner> run = Mockito.mockStatic(QueryRunner.class);
-             MockedStatic<VendorSpecific> vendor = Mockito.mockStatic(VendorSpecific.class)) {
+             MockedStatic<QueryRunner> run = Mockito.mockStatic(QueryRunner.class)) {
             DelegatesService delegatesService = Mockito.mock(DelegatesService.class);
             EntityDelegate<?> delegate = Mockito.mock(EntityDelegate.class);
             EntityDelegate<?> delegateJoin = Mockito.mock(EntityDelegate.class);
             QueryRunner runner = Mockito.mock(QueryRunner.class);
-            vendor.when(() -> VendorSpecific.getSpecific(LimitOffsetSpecific.class))
-                    .thenReturn(StandardOffSetLimitSpecific.INSTANCE);
+            vendorSpecificMockedStatic.when(() -> VendorSpecific.getSpecific(LimitOffsetSpecific.class))
+                    .thenReturn(new LimitOffsetStandard());
             mk.when(DelegatesService::getInstance)
                     .thenReturn(delegatesService);
             run.when(() -> QueryRunner.getInstance(Mockito.any()))
@@ -702,9 +713,7 @@ class JaormTest {
 
     private static class MyObject {}
 
-    private static class StandardOffSetLimitSpecific implements LimitOffsetSpecific {
-
-        public static final StandardOffSetLimitSpecific INSTANCE = new StandardOffSetLimitSpecific();
+    private static final class LimitOffsetStandard implements LimitOffsetSpecific {
 
         @Override
         public String convertOffSetLimitSupport(int limitRow) {

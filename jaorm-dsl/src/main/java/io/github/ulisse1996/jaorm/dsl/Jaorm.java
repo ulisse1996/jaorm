@@ -12,7 +12,11 @@ public class Jaorm {
     }
 
     public static <T> EndSelect<T> select(Class<T> klass) {
+        return select(klass, false);
+    }
+
+    public static <T> EndSelect<T> select(Class<T> klass, boolean caseInsensitiveLike) {
         Objects.requireNonNull(klass, "Entity class can't be null !");
-        return new SelectImpl().select(klass);
+        return new SelectImpl().select(klass, caseInsensitiveLike);
     }
 }

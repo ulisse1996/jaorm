@@ -23,15 +23,15 @@ public class SelectImpl implements Select {
     private static final int NOT_ACTIVE = -1;
 
     @Override
-    public <T> EndSelect<T> select(Class<T> klass) {
+    public <T> EndSelect<T> select(Class<T> klass, boolean caseInsensitiveLike) {
         EntityDelegate<?> delegate = DelegatesService.getInstance().searchDelegate(klass).get();
         String[] columns = delegate.getSelectables();
         String table = delegate.getTable();
-        return selectFrom(table, klass, columns);
+        return selectFrom(table, klass, columns, caseInsensitiveLike);
     }
     
-    private <T> EndSelect<T> selectFrom(String from , Class<T> klass, String[] columns) {
-        return new EndSelectImpl<>(from, klass, columns);
+    private <T> EndSelect<T> selectFrom(String from, Class<T> klass, String[] columns, boolean caseInsensitiveLike) {
+        return new EndSelectImpl<>(from, klass, columns, caseInsensitiveLike);
     }
 
     static class EndSelectImpl<T, R, M> implements EndSelect<T>, Order<T>, Fetch<T>, Offset<T> {
@@ -39,19 +39,21 @@ public class SelectImpl implements Select {
         final Class<T> klass;
         final String[] columns;
         final String from;
+        private final boolean caseInsensitiveLike;
         private WhereImpl<T, R, M> where;
         private OrderImpl<T> order;
         private final List<JoinImpl<?, ?>> joins;
         private int limit;
         private int offset;
 
-        public EndSelectImpl(String from, Class<T> klass, String[] columns) {
+        public EndSelectImpl(String from, Class<T> klass, String[] columns, boolean caseInsensitiveLike) {
             this.from = from;
             this.klass = klass;
             this.columns = columns;
             this.joins = new ArrayList<>();
             this.limit = NOT_ACTIVE;
             this.offset = NOT_ACTIVE;
+            this.caseInsensitiveLike = caseInsensitiveLike;
         }
 
         @Override
@@ -164,12 +166,12 @@ public class SelectImpl implements Select {
             StringBuilder select = new StringBuilder("SELECT " + String.join(", ", cols) + " FROM " + from);
             if (!joins.isEmpty()) {
                 for (JoinImpl<?,?> join : joins) {
-                    select.append(join.getSql());
+                    select.append(join.getSql(caseInsensitiveLike));
                     parameters.addAll(join.getParameters());
                 }
             }
             if (where != null && where.hasClauses()) {
-                select.append(where.getSql());
+                select.append(where.getSql(caseInsensitiveLike));
                 parameters.addAll(where.getParameters());
             }
             if (order != null) {

@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.21.0
+- Feature: Case insensitive for like checks
+- Bugfix: Fix README logo
+
 ## 0.20.1
 - Feature: Move Documento to Jaorm Docs
 

@@ -1,4 +1,4 @@
-![Jaorm](/docs/logo.png)
+![Jaorm](logo.png)
 
 # JAORM
 Just Another Object-Relational Mapping

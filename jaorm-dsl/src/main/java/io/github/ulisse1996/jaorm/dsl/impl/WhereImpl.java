@@ -245,7 +245,7 @@ public class WhereImpl<T, R, M> implements Where<T, R>, IntermediateWhere<T> {
         return !this.clauses.isEmpty();
     }
 
-    public String getSql() {
+    public String getSql(boolean caseInsensitiveLike) {
         boolean first = true;
         StringBuilder builder = new StringBuilder();
         for (WhereClause clause : clauses) {
@@ -256,24 +256,25 @@ public class WhereImpl<T, R, M> implements Where<T, R>, IntermediateWhere<T> {
                 builder.append(clause.or ? OR : AND);
             }
             builder.append("(");
-            buildClause(builder, clause);
+            buildClause(builder, clause, caseInsensitiveLike);
             builder.append(")");
         }
 
         return builder.toString();
     }
 
-    private void buildClause(StringBuilder builder, WhereClause clause) {
-        builder.append(String.format("%s.%s", this.parent.from, clause.column)).append(evaluateOperation(clause));
+    private void buildClause(StringBuilder builder, WhereClause clause, boolean caseInsensitiveLike) {
+        String format = caseInsensitiveLike ? "UPPER(%s.%s)" : "%s.%s";
+        builder.append(String.format(format, this.parent.from, clause.column)).append(evaluateOperation(clause, caseInsensitiveLike));
         if (!clause.linked.isEmpty()) {
             for (WhereClause inner : clause.linked) {
                 builder.append(inner.or ? OR : AND)
-                        .append(String.format("%s.%s", this.parent.from, inner.column)).append(evaluateOperation(inner));
+                        .append(String.format(format, this.parent.from, inner.column)).append(evaluateOperation(inner, caseInsensitiveLike));
             }
         }
     }
 
-    private String evaluateOperation(WhereClause clause) {
+    private String evaluateOperation(WhereClause clause, boolean caseInsensitiveLike) {
         switch (clause.operation) {
             case EQUALS:
             case NOT_EQUALS:
@@ -291,9 +292,9 @@ public class WhereImpl<T, R, M> implements Where<T, R>, IntermediateWhere<T> {
                 String wildcards = String.join(",", Collections.nCopies(getSize(clause.iterable), "?"));
                 return String.format(" %s (%s)", Operation.IN.equals(clause.operation) ? "IN" : "NOT IN", wildcards);
             case NOT_LIKE:
-                return " NOT LIKE" + clause.likeType.getValue();
+                return " NOT LIKE" + clause.likeType.getValue(caseInsensitiveLike);
             case LIKE:
-                return " LIKE" + clause.likeType.getValue();
+                return " LIKE" + clause.likeType.getValue(caseInsensitiveLike);
             default:
                 throw new IllegalArgumentException("Can't find operation type");
         }

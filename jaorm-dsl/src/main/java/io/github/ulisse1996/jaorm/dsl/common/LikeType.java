@@ -6,29 +6,32 @@ import io.github.ulisse1996.jaorm.vendor.specific.LikeSpecific;
 
 public enum LikeType {
 
-    FULL(" CONCAT('%',?,'%')"),
-    START(" CONCAT('%',?)"),
-    END(" CONCAT(?,'%')");
+    FULL(" CONCAT('%',?,'%')", " CONCAT('%',UPPER(?),'%')"),
+    START(" CONCAT('%',?)", " CONCAT('%',UPPER(?))"),
+    END(" CONCAT(?,'%')", " CONCAT(UPPER(?),'%')");
 
     private static final JaormLogger logger = JaormLogger.getLogger(LikeType.class);
     private final String value;
+    private final String caseInsensitiveValue;
 
-    LikeType(String value) {
+    LikeType(String value, String caseInsensitiveValue) {
         this.value = value;
+        this.caseInsensitiveValue = caseInsensitiveValue;
     }
 
-    public String getValue() {
+    public String getValue(boolean caseInsensitiveLike) {
         try {
             return VendorSpecific.getSpecific(LikeSpecific.class)
-                    .convertToLikeSupport(LikeSpecific.LikeType.valueOf(name()));
+                    .convertToLikeSupport(LikeSpecific.LikeType.valueOf(name()), caseInsensitiveLike);
         } catch (Exception ex) {
             logger.info("Can't find specific for like type , please contact author"::toString);
         }
 
-        return value;
+        return caseInsensitiveLike ? caseInsensitiveValue : value;
     }
 
-    public String format(String joinTable, String joinedColumn) {
-        return this.value.replace("?", String.format("%s.%s",joinTable, joinedColumn));
+    public String format(String joinTable, String joinedColumn, boolean caseInsensitiveLike) {
+        String sel = caseInsensitiveLike ? this.caseInsensitiveValue : this.value;
+        return sel.replace("?", String.format("%s.%s",joinTable, joinedColumn));
     }
 }
