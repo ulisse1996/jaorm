@@ -39,6 +39,7 @@ public class SimpleQueryRunner extends QueryRunner {
     @Override
     @SuppressWarnings("unchecked")
     public <R> R read(Class<R> klass, String query, List<SqlParameter> params) {
+        logger.logSql(query, params);
         try (Connection connection = DataSourceProvider.getCurrent().getConnection();
              PreparedStatement pr = connection.prepareStatement(query);
              ResultSetExecutor rs = new ResultSetExecutor(pr, params)) {
@@ -52,6 +53,7 @@ public class SimpleQueryRunner extends QueryRunner {
     @Override
     @SuppressWarnings("unchecked")
     public <R> Result<R> readOpt(Class<R> klass, String query, List<SqlParameter> params) {
+        logger.logSql(query, params);
         try (Connection connection = DataSourceProvider.getCurrent().getConnection();
              PreparedStatement pr = connection.prepareStatement(query);
              ResultSetExecutor rs = new ResultSetExecutor(pr, params)) {
@@ -68,6 +70,7 @@ public class SimpleQueryRunner extends QueryRunner {
     @Override
     @SuppressWarnings("unchecked")
     public <R> List<R> readAll(Class<R> klass, String query, List<SqlParameter> params) {
+        logger.logSql(query, params);
         List<R> values = new ArrayList<>();
         try (Connection connection = DataSourceProvider.getCurrent().getConnection();
              PreparedStatement pr = connection.prepareStatement(query);
