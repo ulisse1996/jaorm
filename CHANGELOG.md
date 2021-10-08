@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 0.23.0
+- Feature: Order By Join Column with Alias
+- Feature: Where Join with Alias
+- Feature: Join With Alias
+- Bugfix: Add missing log for SimpleQueryRunner
+
 ## 0.22.0
 - Feature: Count select for DSL
 - Feature: Join Column Where for DSL Joins
