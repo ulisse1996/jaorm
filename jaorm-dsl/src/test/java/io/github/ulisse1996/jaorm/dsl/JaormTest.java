@@ -165,7 +165,6 @@ class JaormTest {
             DelegatesService delegatesService = Mockito.mock(DelegatesService.class);
             EntityDelegate<?> delegate = Mockito.mock(EntityDelegate.class);
             QueryRunner runner = Mockito.mock(QueryRunner.class);
-            Object expected = new Object();
             mk.when(DelegatesService::getInstance)
                     .thenReturn(delegatesService);
             run.when(() -> QueryRunner.getInstance(Mockito.any()))
@@ -627,11 +626,11 @@ class JaormTest {
             String limitJoin = "SELECT TABLE.COL1 FROM TABLE JOIN TABLE2 AS A ON (TABLE.COL1 = A.COL3) LIMIT 10";
 
             Mockito.verify(runner, Mockito.times(1))
-                    .readOpt(Mockito.eq(Object.class), Mockito.eq(orderByJoin), Mockito.eq(Collections.emptyList()));
+                    .readOpt(Mockito.eq(Object.class), Mockito.eq(orderByJoin), Mockito.any());
             Mockito.verify(runner, Mockito.times(1))
-                    .readOpt(Mockito.eq(Object.class), Mockito.eq(limitOffsetJoin), Mockito.eq(Collections.emptyList()));
+                    .readOpt(Mockito.eq(Object.class), Mockito.eq(limitOffsetJoin), Mockito.any());
             Mockito.verify(runner, Mockito.times(1))
-                    .readOpt(Mockito.eq(Object.class), Mockito.eq(limitJoin), Mockito.eq(Collections.emptyList()));
+                    .readOpt(Mockito.eq(Object.class), Mockito.eq(limitJoin), Mockito.any());
         }
     }
 
@@ -680,9 +679,9 @@ class JaormTest {
             String orderByJoinWithAlias = "SELECT TABLE.COL1 FROM TABLE JOIN TABLE2 AS A ON (TABLE.COL1 = A.COL3) ORDER BY A.COL3 ASC";
 
             Mockito.verify(runner, Mockito.times(1))
-                    .readOpt(Mockito.eq(Object.class), Mockito.eq(orderByJoin), Mockito.eq(Collections.emptyList()));
+                    .readOpt(Mockito.eq(Object.class), Mockito.eq(orderByJoin), Mockito.any());
             Mockito.verify(runner, Mockito.times(1))
-                    .readOpt(Mockito.eq(Object.class), Mockito.eq(orderByJoinWithAlias), Mockito.eq(Collections.emptyList()));
+                    .readOpt(Mockito.eq(Object.class), Mockito.eq(orderByJoinWithAlias), Mockito.any());
         }
     }
 
