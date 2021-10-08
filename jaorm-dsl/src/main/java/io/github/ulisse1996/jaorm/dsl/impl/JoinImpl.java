@@ -23,19 +23,21 @@ public class JoinImpl<T, R> implements Join<T>, On<T, R>, IntermediateJoin<T> {
     private final SelectImpl.EndSelectImpl<T, ?, ?> parent;
     private final List<JoinImpl.OnClause> clauses;
     private final List<String> joinTableColumns;
+    private final String alias;
     private boolean linkedCause;
 
-    public JoinImpl(SelectImpl.EndSelectImpl<T, ?, ?> parent, Class<?> joinClass, JoinType type) {
+    public JoinImpl(SelectImpl.EndSelectImpl<T, ?, ?> parent, Class<?> joinClass, JoinType type, String alias) {
         EntityDelegate<?> delegate = DelegatesService.getInstance().searchDelegate(joinClass).get();
         this.parent = parent;
         this.joinTable = delegate.getTable();
         this.joinTableColumns = Arrays.asList(delegate.getSelectables());
         this.joinType = type;
+        this.alias = alias;
         this.clauses = new ArrayList<>();
     }
 
-    public String getJoinTable() {
-        return joinTable;
+    public String getJoinTableOrAlias() {
+        return this.alias != null ? this.alias : this.joinTable;
     }
 
     public List<String> getJoinTableColumns() {
@@ -320,6 +322,11 @@ public class JoinImpl<T, R> implements Join<T>, On<T, R>, IntermediateJoin<T> {
     }
 
     @Override
+    public <A, L> Where<T, L> whereJoinColumn(SqlColumn<A, L> column, String alias) {
+        return this.parent.whereJoinColumn(column, alias);
+    }
+
+    @Override
     public Join<T> join(Class<?> table) {
         return this.parent.join(table);
     }
@@ -337,6 +344,51 @@ public class JoinImpl<T, R> implements Join<T>, On<T, R>, IntermediateJoin<T> {
     @Override
     public Join<T> fullJoin(Class<?> table) {
         return this.parent.fullJoin(table);
+    }
+
+    @Override
+    public Join<T> join(Class<?> table, String alias) {
+        return this.parent.join(table, alias);
+    }
+
+    @Override
+    public Join<T> leftJoin(Class<?> table, String alias) {
+        return this.parent.leftJoin(table, alias);
+    }
+
+    @Override
+    public Join<T> rightJoin(Class<?> table, String alias) {
+        return this.parent.rightJoin(table, alias);
+    }
+
+    @Override
+    public Join<T> fullJoin(Class<?> table, String alias) {
+        return this.parent.fullJoin(table, alias);
+    }
+
+    @Override
+    public Order<T> orderBy(OrderType type, SqlColumn<T, ?> column) {
+        return this.parent.orderBy(type, column);
+    }
+
+    @Override
+    public Order<T> orderByJoinColumn(OrderType type, SqlColumn<?, ?> column) {
+        return this.parent.orderByJoinColumn(type, column);
+    }
+
+    @Override
+    public Order<T> orderByJoinColumn(OrderType type, SqlColumn<?, ?> column, String alias) {
+        return this.parent.orderByJoinColumn(type, column, alias);
+    }
+
+    @Override
+    public Fetch<T> limit(int row) {
+        return this.parent.limit(row);
+    }
+
+    @Override
+    public Offset<T> offset(int row) {
+        return this.parent.offset(row);
     }
 
     @Override
@@ -381,7 +433,7 @@ public class JoinImpl<T, R> implements Join<T>, On<T, R>, IntermediateJoin<T> {
     }
 
     public String getSql(boolean caseInsensitiveLike) {
-        StringBuilder sql = new StringBuilder(this.joinType.getValue() + this.joinTable + " ON");
+        StringBuilder sql = new StringBuilder(this.joinType.getValue() + this.joinTable + asAlias() + " ON");
         boolean first = true;
         for (OnClause clause : clauses) {
             if (first) {
@@ -398,6 +450,10 @@ public class JoinImpl<T, R> implements Join<T>, On<T, R>, IntermediateJoin<T> {
         return sql.toString();
     }
 
+    private String asAlias() {
+        return alias != null ? String.format(" AS %s", alias) : "";
+    }
+
     private void buildClause(StringBuilder builder, OnClause clause, boolean caseInsensitiveLike) {
         builder.append(String.format(ALIAS_COLUMN, this.parent.from, clause.joinedColumn)).append(evaluateOperation(clause, caseInsensitiveLike));
         if (!clause.linked.isEmpty()) {
@@ -406,6 +462,10 @@ public class JoinImpl<T, R> implements Join<T>, On<T, R>, IntermediateJoin<T> {
                         .append(String.format(ALIAS_COLUMN, this.parent.from, inner.joinedColumn)).append(evaluateOperation(inner, caseInsensitiveLike));
             }
         }
+    }
+
+    private String fromOrAlias() {
+        return this.alias != null ? alias : this.joinTable;
     }
 
     private String evaluateOperation(OnClause clause, boolean caseInsensitiveLike) {
@@ -417,7 +477,7 @@ public class JoinImpl<T, R> implements Join<T>, On<T, R>, IntermediateJoin<T> {
             case LESS_EQUALS:
             case GREATER_EQUALS:
                 if (clause.value == null) {
-                    return clause.operation.getValue() + String.format(ALIAS_COLUMN, this.joinTable, clause.joinColumn);
+                    return clause.operation.getValue() + String.format(ALIAS_COLUMN, fromOrAlias(), clause.joinColumn);
                 } else {
                     return clause.operation.getValue() + "?";
                 }
@@ -433,14 +493,14 @@ public class JoinImpl<T, R> implements Join<T>, On<T, R>, IntermediateJoin<T> {
                 } else {
                     columns = clause.columns
                             .stream()
-                            .map(s -> String.format(ALIAS_COLUMN, this.joinTable, s))
+                            .map(s -> String.format(ALIAS_COLUMN, fromOrAlias(), s))
                             .collect(Collectors.joining(","));
                 }
                 return String.format(" %s (%s)", Operation.IN.equals(clause.operation) ? "IN" : "NOT IN", columns);
             case NOT_LIKE:
-                return " NOT LIKE" + (clause.joinColumn != null ? clause.likeType.format(this.joinTable, clause.joinColumn, caseInsensitiveLike) : clause.likeType.getValue(caseInsensitiveLike));
+                return " NOT LIKE" + (clause.joinColumn != null ? clause.likeType.format(fromOrAlias(), clause.joinColumn, caseInsensitiveLike) : clause.likeType.getValue(caseInsensitiveLike));
             case LIKE:
-                return " LIKE" + (clause.joinColumn != null ? clause.likeType.format(this.joinTable, clause.joinColumn, caseInsensitiveLike) : clause.likeType.getValue(caseInsensitiveLike));
+                return " LIKE" + (clause.joinColumn != null ? clause.likeType.format(fromOrAlias(), clause.joinColumn, caseInsensitiveLike) : clause.likeType.getValue(caseInsensitiveLike));
             default:
                 throw new IllegalArgumentException("Can't find operation type");
         }

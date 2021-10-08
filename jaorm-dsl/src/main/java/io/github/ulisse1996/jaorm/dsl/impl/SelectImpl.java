@@ -1,7 +1,7 @@
 package io.github.ulisse1996.jaorm.dsl.impl;
 
-import io.github.ulisse1996.jaorm.dsl.common.*;
 import io.github.ulisse1996.jaorm.dsl.common.Readable;
+import io.github.ulisse1996.jaorm.dsl.common.*;
 import io.github.ulisse1996.jaorm.dsl.select.Select;
 import io.github.ulisse1996.jaorm.dsl.util.Pair;
 import io.github.ulisse1996.jaorm.entity.EntityDelegate;
@@ -42,7 +42,7 @@ public class SelectImpl implements Select {
         final String from;
         private final boolean caseInsensitiveLike;
         private WhereImpl<T, R, M> where;
-        private OrderImpl<T> order;
+        private OrderImpl order;
         private final List<JoinImpl<?, ?>> joins;
         private int limit;
         private int offset;
@@ -66,22 +66,29 @@ public class SelectImpl implements Select {
         }
 
         @Override
-        @SuppressWarnings("unchecked")
         public <A,L> Where<T, L> whereJoinColumn(SqlColumn<A, L> column) {
-            String table = checkJoin(column);
+            return this.whereJoinColumn(column, null);
+        }
+
+        @Override
+        @SuppressWarnings("unchecked")
+        public <A, L> Where<T, L> whereJoinColumn(SqlColumn<A, L> column, String alias) {
+            String table = checkJoin(column, alias);
             this.where = new WhereImpl<>(this, column.getName(),false, (ValueConverter<?, R>) column.getConverter(), table);
             return (Where<T, L>) this.where;
         }
 
-        private <L, A> String checkJoin(SqlColumn<A,L> column) {
+        private <L, A> String checkJoin(SqlColumn<A,L> column, String alias) {
             Objects.requireNonNull(column, COLUMN_CAN_T_BE_NULL);
             Optional<JoinImpl<?, ?>> found = this.getJoins()
-                    .stream().filter(j -> j.getJoinTableColumns().contains(column.getName()))
+                    .stream()
+                    .filter(j -> j.getJoinTableColumns().contains(column.getName()))
+                    .filter(s -> alias == null || s.getJoinTableOrAlias().equalsIgnoreCase(alias))
                     .findFirst();
             if (!found.isPresent()) {
                 throw new IllegalArgumentException(String.format("Can't find column %s in joined columns", column));
             }
-            return found.get().getJoinTable();
+            return found.get().getJoinTableOrAlias();
         }
 
         void checkColumn(SqlColumn<T, ?> column) {
@@ -99,25 +106,49 @@ public class SelectImpl implements Select {
         @Override
         public Join<T> join(Class<?> table) {
             Objects.requireNonNull(table, JOINED_TABLE_CAN_T_BE_NULL);
-            return addJoin(new JoinImpl<>(this, table, JoinType.JOIN));
+            return addJoin(new JoinImpl<>(this, table, JoinType.JOIN, null));
         }
 
         @Override
         public Join<T> leftJoin(Class<?> table) {
             Objects.requireNonNull(table, JOINED_TABLE_CAN_T_BE_NULL);
-            return addJoin(new JoinImpl<>(this, table, JoinType.LEFT_JOIN));
+            return addJoin(new JoinImpl<>(this, table, JoinType.LEFT_JOIN, null));
         }
 
         @Override
         public Join<T> rightJoin(Class<?> table) {
             Objects.requireNonNull(table, JOINED_TABLE_CAN_T_BE_NULL);
-            return addJoin(new JoinImpl<>(this, table, JoinType.RIGHT_JOIN));
+            return addJoin(new JoinImpl<>(this, table, JoinType.RIGHT_JOIN, null));
         }
 
         @Override
         public Join<T> fullJoin(Class<?> table) {
             Objects.requireNonNull(table, JOINED_TABLE_CAN_T_BE_NULL);
-            return addJoin(new JoinImpl<>(this, table, JoinType.FULL_JOIN));
+            return addJoin(new JoinImpl<>(this, table, JoinType.FULL_JOIN, null));
+        }
+
+        @Override
+        public Join<T> join(Class<?> table, String alias) {
+            Objects.requireNonNull(table, JOINED_TABLE_CAN_T_BE_NULL);
+            return addJoin(new JoinImpl<>(this, table, JoinType.JOIN, alias));
+        }
+
+        @Override
+        public Join<T> leftJoin(Class<?> table, String alias) {
+            Objects.requireNonNull(table, JOINED_TABLE_CAN_T_BE_NULL);
+            return addJoin(new JoinImpl<>(this, table, JoinType.LEFT_JOIN, alias));
+        }
+
+        @Override
+        public Join<T> rightJoin(Class<?> table, String alias) {
+            Objects.requireNonNull(table, JOINED_TABLE_CAN_T_BE_NULL);
+            return addJoin(new JoinImpl<>(this, table, JoinType.RIGHT_JOIN, alias));
+        }
+
+        @Override
+        public Join<T> fullJoin(Class<?> table, String alias) {
+            Objects.requireNonNull(table, JOINED_TABLE_CAN_T_BE_NULL);
+            return addJoin(new JoinImpl<>(this, table, JoinType.FULL_JOIN, alias));
         }
 
         private Join<T> addJoin(JoinImpl<T, ?> join) {
@@ -147,16 +178,30 @@ public class SelectImpl implements Select {
         public final Order<T> orderBy(OrderType type, SqlColumn<T, ?> column) {
             Objects.requireNonNull(type, "Order type can't be null !");
             Objects.requireNonNull(column, COLUMN_CAN_T_BE_NULL);
-            appendOrder(type, column);
+            appendOrder(type, column, this.from);
             return this;
         }
 
-        private void appendOrder(OrderType type, SqlColumn<T, ?> column) {
+        @Override
+        public Order<T> orderByJoinColumn(OrderType type, SqlColumn<?, ?> column) {
+            return this.orderByJoinColumn(type, column, null);
+        }
+
+        @Override
+        public Order<T> orderByJoinColumn(OrderType type, SqlColumn<?, ?> column, String alias) {
+            Objects.requireNonNull(type, "Order type can't be null !");
+            Objects.requireNonNull(column, COLUMN_CAN_T_BE_NULL);
+            String table = checkJoin(column, alias);
+            appendOrder(type, column, table);
+            return this;
+        }
+
+        private void appendOrder(OrderType type, SqlColumn<?, ?> column, String table) {
             if (this.order == null) {
-                this.order = new OrderImpl<>(this.from);
+                this.order = new OrderImpl();
             }
 
-            this.order.add(type, column);
+            this.order.add(type, column, table);
         }
 
         @Override

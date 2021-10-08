@@ -7,38 +7,38 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class OrderImpl<T> {
+public class OrderImpl {
 
-    private final String table;
-    private final List<Sortable<T>> sortables;
+    private final List<Sortable> sortables;
 
-    public OrderImpl(String table) {
-        this.table = table;
+    public OrderImpl() {
         this.sortables = new ArrayList<>();
     }
 
-    public void add(OrderType type, SqlColumn<T, ?> column) {
-        this.sortables.add(new Sortable<>(type, column));
+    public void add(OrderType type, SqlColumn<?, ?> column, String table) {
+        this.sortables.add(new Sortable(type, column, table));
     }
 
     public String getSql() {
         return sortables.stream()
-                .map(s -> this.table + "." + s.getSql())
+                .map(Sortable::getSql)
                 .collect(Collectors.joining(", "));
     }
 
-    private static class Sortable<T> {
+    private static class Sortable {
 
+        private final String table;
         private final SqlColumn<?,?> column;
         private final OrderType orderType;
 
-        public Sortable(OrderType type, SqlColumn<T, ?> column) {
+        public Sortable(OrderType type, SqlColumn<?, ?> column, String table) {
             this.orderType = type;
             this.column = column;
+            this.table = table;
         }
 
         private String getSql() {
-            return column.getName() + " " + orderType.name();
+            return this.table + "." + column.getName() + " " + orderType.name();
         }
     }
 }

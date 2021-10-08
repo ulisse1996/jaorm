@@ -14,6 +14,11 @@ public interface IntermediateWhere<T> extends Readable<T> {
     <R, L> Where<T, L> andJoinColumn(SqlColumn<R, L> column);
     <R, L> Where<T, L> orJoinColumn(SqlColumn<R, L> column);
 
+    <R, L> Where<T, L> whereJoinColumn(SqlColumn<R, L> column, String alias);
+    <R, L> Where<T, L> orWhereJoinColumn(SqlColumn<R, L> column, String alias);
+    <R, L> Where<T, L> andJoinColumn(SqlColumn<R, L> column, String alias);
+    <R, L> Where<T, L> orJoinColumn(SqlColumn<R, L> column, String alias);
+
     Order<T> orderBy(OrderType type, SqlColumn<T, ?> column);
     Fetch<T> limit(int row);
     Offset<T> offset(int row);

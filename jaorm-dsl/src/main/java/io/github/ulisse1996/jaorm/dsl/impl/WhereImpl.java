@@ -219,36 +219,58 @@ public class WhereImpl<T, R, M> implements Where<T, R>, IntermediateWhere<T> {
 
     @Override
     public <A, L> Where<T, L> whereJoinColumn(SqlColumn<A, L> column) {
-        String table = checkJoinColumn(column);
-        return getWhere(column, table);
+        return this.whereJoinColumn(column, null);
     }
 
-    private <L, A> String checkJoinColumn(SqlColumn<A,L> column) {
+    private <L, A> String checkJoinColumn(SqlColumn<A,L> column, String alias) {
         Objects.requireNonNull(column, COLUMN_CAN_T_BE_NULL);
         Optional<JoinImpl<?, ?>> found = this.parent.getJoins()
-                .stream().filter(j -> j.getJoinTableColumns().contains(column.getName()))
+                .stream()
+                .filter(j -> j.getJoinTableColumns().contains(column.getName()))
+                .filter(s -> alias == null || s.getJoinTableOrAlias().equalsIgnoreCase(alias))
                 .findFirst();
         if (!found.isPresent()) {
             throw new IllegalArgumentException(String.format("Can't find column %s in joined columns", column));
         }
-        return found.get().getJoinTable();
+        return found.get().getJoinTableOrAlias();
     }
 
     @Override
     public <A, L> Where<T, L> orWhereJoinColumn(SqlColumn<A, L> column) {
-        String table = checkJoinColumn(column);
-        return getOrWhere(column, table);
+        return orWhereJoinColumn(column, null);
     }
 
     @Override
     public <A, L> Where<T, L> andJoinColumn(SqlColumn<A, L> column) {
-        String table = checkJoinColumn(column);
-        return getAndLinkedWhere(column, table);
+        return andJoinColumn(column, null);
     }
 
     @Override
     public <A, L> Where<T, L> orJoinColumn(SqlColumn<A, L> column) {
-        String table = checkJoinColumn(column);
+        return orJoinColumn(column, null);
+    }
+
+    @Override
+    public <A, L> Where<T, L> whereJoinColumn(SqlColumn<A, L> column, String alias) {
+        String table = checkJoinColumn(column, alias);
+        return getWhere(column, table);
+    }
+
+    @Override
+    public <A, L> Where<T, L> orWhereJoinColumn(SqlColumn<A, L> column, String alias) {
+        String table = checkJoinColumn(column, alias);
+        return getOrWhere(column, table);
+    }
+
+    @Override
+    public <A, L> Where<T, L> andJoinColumn(SqlColumn<A, L> column, String alias) {
+        String table = checkJoinColumn(column, alias);
+        return getAndLinkedWhere(column, table);
+    }
+
+    @Override
+    public <A, L> Where<T, L> orJoinColumn(SqlColumn<A, L> column, String alias) {
+        String table = checkJoinColumn(column, alias);
         return getOrLinkedWhere(column, table);
     }
 

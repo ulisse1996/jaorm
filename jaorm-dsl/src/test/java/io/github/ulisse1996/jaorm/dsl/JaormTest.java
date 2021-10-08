@@ -1,5 +1,6 @@
 package io.github.ulisse1996.jaorm.dsl;
 
+import io.github.ulisse1996.jaorm.dsl.common.EndSelect;
 import io.github.ulisse1996.jaorm.dsl.common.LikeType;
 import io.github.ulisse1996.jaorm.dsl.common.OrderType;
 import io.github.ulisse1996.jaorm.entity.EntityDelegate;
@@ -154,6 +155,29 @@ class JaormTest {
                     .readOpt();
             Assertions.assertTrue(result.isPresent());
             Assertions.assertSame(expected, result.get());
+        }
+    }
+
+    @Test
+    void should_return_same_instance() {
+        try (MockedStatic<DelegatesService> mk = Mockito.mockStatic(DelegatesService.class);
+             MockedStatic<QueryRunner> run = Mockito.mockStatic(QueryRunner.class)) {
+            DelegatesService delegatesService = Mockito.mock(DelegatesService.class);
+            EntityDelegate<?> delegate = Mockito.mock(EntityDelegate.class);
+            QueryRunner runner = Mockito.mock(QueryRunner.class);
+            mk.when(DelegatesService::getInstance)
+                    .thenReturn(delegatesService);
+            run.when(() -> QueryRunner.getInstance(Mockito.any()))
+                    .thenReturn(runner);
+            Mockito.when(delegatesService.searchDelegate(Mockito.any()))
+                    .thenReturn(() -> delegate);
+            Mockito.when(delegate.getTable())
+                    .thenReturn("TABLE");
+            Mockito.when(delegate.getSelectables())
+                    .thenReturn(new String[] {"COL1"});
+
+            EndSelect<Object> select = Jaorm.select(Object.class);
+            Assertions.assertSame(select, select.getParent());
         }
     }
 
@@ -508,6 +532,160 @@ class JaormTest {
     }
 
     @Test
+    void should_create_sql_with_alias_join() {
+        try (MockedStatic<DelegatesService> mk = Mockito.mockStatic(DelegatesService.class);
+             MockedStatic<QueryRunner> run = Mockito.mockStatic(QueryRunner.class)) {
+            DelegatesService delegatesService = Mockito.mock(DelegatesService.class);
+            EntityDelegate<?> delegate = Mockito.mock(EntityDelegate.class);
+            EntityDelegate<?> delegateJoin = Mockito.mock(EntityDelegate.class);
+            QueryRunner runner = Mockito.mock(QueryRunner.class);
+            mk.when(DelegatesService::getInstance)
+                    .thenReturn(delegatesService);
+            run.when(() -> QueryRunner.getInstance(Mockito.any()))
+                    .thenReturn(runner);
+            Mockito.when(delegatesService.searchDelegate(Object.class))
+                    .thenReturn(() -> delegate);
+            Mockito.when(delegate.getTable())
+                    .thenReturn("TABLE");
+            Mockito.when(delegate.getSelectables())
+                    .thenReturn(new String[]{"COL1", "COL2"});
+            Mockito.when(delegatesService.searchDelegate(MyObject.class))
+                    .thenReturn(() -> delegateJoin);
+            Mockito.when(delegateJoin.getTable())
+                    .thenReturn("TABLE2");
+            Mockito.when(delegateJoin.getSelectables())
+                    .thenReturn(new String[]{"COL3", "COL4"});
+            Mockito.when(runner.readOpt(Mockito.any(), Mockito.any(), Mockito.any()))
+                    .thenReturn(Result.empty());
+
+            Jaorm.select(Object.class)
+                    .join(MyObject.class, "A").on(COL_1).eq(COL_3)
+                    .join(MyObject.class, "B").on(COL_1).eq(COL_3)
+                    .read();
+
+            String sql = "SELECT TABLE.COL1, TABLE.COL2 FROM TABLE JOIN TABLE2 AS A ON (TABLE.COL1 = A.COL3) JOIN TABLE2 AS B ON (TABLE.COL1 = B.COL3)";
+
+            Mockito.verify(runner, Mockito.times(1))
+                    .read(Mockito.any(), Mockito.eq(sql), Mockito.any());
+        }
+    }
+
+    @Test
+    void should_write_sql_with_limit_offset_and_order_from_join() {
+        try (MockedStatic<DelegatesService> mk = Mockito.mockStatic(DelegatesService.class);
+             MockedStatic<QueryRunner> run = Mockito.mockStatic(QueryRunner.class)) {
+            DelegatesService delegatesService = Mockito.mock(DelegatesService.class);
+            EntityDelegate<?> delegate = Mockito.mock(EntityDelegate.class);
+            EntityDelegate<?> delegateJoin = Mockito.mock(EntityDelegate.class);
+            QueryRunner runner = Mockito.mock(QueryRunner.class);
+            Object expected = new Object();
+            vendorSpecificMockedStatic.when(() -> VendorSpecific.getSpecific(LimitOffsetSpecific.class))
+                    .thenReturn(new LimitOffsetStandard());
+            mk.when(DelegatesService::getInstance)
+                    .thenReturn(delegatesService);
+            run.when(() -> QueryRunner.getInstance(Mockito.any()))
+                    .thenReturn(runner);
+            Mockito.when(delegatesService.searchDelegate(Mockito.any()))
+                    .thenReturn(() -> delegate);
+            Mockito.when(delegate.getTable())
+                    .thenReturn("TABLE");
+            Mockito.when(delegate.getSelectables())
+                    .thenReturn(new String[]{"COL1"});
+            Mockito.when(delegatesService.searchDelegate(MyObject.class))
+                    .thenReturn(() -> delegateJoin);
+            Mockito.when(delegateJoin.getTable())
+                    .thenReturn("TABLE2");
+            Mockito.when(delegateJoin.getSelectables())
+                    .thenReturn(new String[]{"COL3", "COL4"});
+            Mockito.when(runner.readOpt(Mockito.any(), Mockito.any(), Mockito.any()))
+                    .thenReturn(Result.empty());
+
+            Mockito.when(runner.read(Mockito.any(), Mockito.any(), Mockito.any()))
+                    .thenReturn(expected);
+
+            Jaorm.select(Object.class)
+                    .join(MyObject.class).on(COL_1).eq(COL_3)
+                    .orderBy(OrderType.ASC, COL_1)
+                    .offset(10)
+                    .limit(10)
+                    .readOpt();
+
+            Jaorm.select(Object.class)
+                    .join(MyObject.class, "A").on(COL_1).eq(COL_3)
+                    .offset(10)
+                    .limit(10)
+                    .readOpt();
+
+            Jaorm.select(Object.class)
+                    .join(MyObject.class, "A").on(COL_1).eq(COL_3)
+                    .limit(10)
+                    .readOpt();
+
+            String orderByJoin = "SELECT TABLE.COL1 FROM TABLE JOIN TABLE2 ON (TABLE.COL1 = TABLE2.COL3) ORDER BY TABLE.COL1 ASC LIMIT 10 OFFSET 10";
+            String limitOffsetJoin = "SELECT TABLE.COL1 FROM TABLE JOIN TABLE2 AS A ON (TABLE.COL1 = A.COL3) LIMIT 10 OFFSET 10";
+            String limitJoin = "SELECT TABLE.COL1 FROM TABLE JOIN TABLE2 AS A ON (TABLE.COL1 = A.COL3) LIMIT 10";
+
+            Mockito.verify(runner, Mockito.times(1))
+                    .readOpt(Mockito.eq(Object.class), Mockito.eq(orderByJoin), Mockito.any());
+            Mockito.verify(runner, Mockito.times(1))
+                    .readOpt(Mockito.eq(Object.class), Mockito.eq(limitOffsetJoin), Mockito.any());
+            Mockito.verify(runner, Mockito.times(1))
+                    .readOpt(Mockito.eq(Object.class), Mockito.eq(limitJoin), Mockito.any());
+        }
+    }
+
+    @Test
+    void should_write_sql_with_order_by_join_columns() {
+        try (MockedStatic<DelegatesService> mk = Mockito.mockStatic(DelegatesService.class);
+             MockedStatic<QueryRunner> run = Mockito.mockStatic(QueryRunner.class)) {
+            DelegatesService delegatesService = Mockito.mock(DelegatesService.class);
+            EntityDelegate<?> delegate = Mockito.mock(EntityDelegate.class);
+            EntityDelegate<?> delegateJoin = Mockito.mock(EntityDelegate.class);
+            QueryRunner runner = Mockito.mock(QueryRunner.class);
+            Object expected = new Object();
+            mk.when(DelegatesService::getInstance)
+                    .thenReturn(delegatesService);
+            run.when(() -> QueryRunner.getInstance(Mockito.any()))
+                    .thenReturn(runner);
+            Mockito.when(delegatesService.searchDelegate(Mockito.any()))
+                    .thenReturn(() -> delegate);
+            Mockito.when(delegate.getTable())
+                    .thenReturn("TABLE");
+            Mockito.when(delegate.getSelectables())
+                    .thenReturn(new String[] {"COL1"});
+            Mockito.when(delegatesService.searchDelegate(MyObject.class))
+                    .thenReturn(() -> delegateJoin);
+            Mockito.when(delegateJoin.getTable())
+                    .thenReturn("TABLE2");
+            Mockito.when(delegateJoin.getSelectables())
+                    .thenReturn(new String[]{"COL3", "COL4"});
+            Mockito.when(runner.readOpt(Mockito.any(), Mockito.any(), Mockito.any()))
+                    .thenReturn(Result.empty());
+
+            Mockito.when(runner.read(Mockito.any(), Mockito.any(), Mockito.any()))
+                    .thenReturn(expected);
+
+            Jaorm.select(Object.class)
+                    .join(MyObject.class).on(COL_1).eq(COL_3)
+                    .orderByJoinColumn(OrderType.ASC, COL_3)
+                    .readOpt();
+
+            Jaorm.select(Object.class)
+                    .join(MyObject.class, "A").on(COL_1).eq(COL_3)
+                    .orderByJoinColumn(OrderType.ASC, COL_3, "A")
+                    .readOpt();
+
+            String orderByJoin = "SELECT TABLE.COL1 FROM TABLE JOIN TABLE2 ON (TABLE.COL1 = TABLE2.COL3) ORDER BY TABLE2.COL3 ASC";
+            String orderByJoinWithAlias = "SELECT TABLE.COL1 FROM TABLE JOIN TABLE2 AS A ON (TABLE.COL1 = A.COL3) ORDER BY A.COL3 ASC";
+
+            Mockito.verify(runner, Mockito.times(1))
+                    .readOpt(Mockito.eq(Object.class), Mockito.eq(orderByJoin), Mockito.any());
+            Mockito.verify(runner, Mockito.times(1))
+                    .readOpt(Mockito.eq(Object.class), Mockito.eq(orderByJoinWithAlias), Mockito.any());
+        }
+    }
+
+    @Test
     void should_count_record() {
         try (MockedStatic<DelegatesService> mk = Mockito.mockStatic(DelegatesService.class);
              MockedStatic<QueryRunner> run = Mockito.mockStatic(QueryRunner.class)) {
@@ -626,6 +804,96 @@ class JaormTest {
                     .read(Mockito.any(), Mockito.eq(sqlJoinWhereInnerOr), Mockito.any());
             Mockito.verify(runner, Mockito.times(1))
                     .read(Mockito.any(), Mockito.eq(sqlJoinWhereOr), Mockito.any());
+        }
+    }
+
+    @Test
+    void should_create_sql_with_join_wheres_with_alias() {
+        try (MockedStatic<DelegatesService> mk = Mockito.mockStatic(DelegatesService.class);
+             MockedStatic<QueryRunner> run = Mockito.mockStatic(QueryRunner.class)) {
+            DelegatesService delegatesService = Mockito.mock(DelegatesService.class);
+            EntityDelegate<?> delegate = Mockito.mock(EntityDelegate.class);
+            EntityDelegate<?> delegateJoin = Mockito.mock(EntityDelegate.class);
+            QueryRunner runner = Mockito.mock(QueryRunner.class);
+            mk.when(DelegatesService::getInstance)
+                    .thenReturn(delegatesService);
+            run.when(() -> QueryRunner.getInstance(Mockito.any()))
+                    .thenReturn(runner);
+            Mockito.when(delegatesService.searchDelegate(Object.class))
+                    .thenReturn(() -> delegate);
+            Mockito.when(delegate.getTable())
+                    .thenReturn("TABLE");
+            Mockito.when(delegate.getSelectables())
+                    .thenReturn(new String[]{"COL1", "COL2"});
+            Mockito.when(delegatesService.searchDelegate(MyObject.class))
+                    .thenReturn(() -> delegateJoin);
+            Mockito.when(delegateJoin.getTable())
+                    .thenReturn("TABLE2");
+            Mockito.when(delegateJoin.getSelectables())
+                    .thenReturn(new String[]{"COL3", "COL4"});
+            Mockito.when(runner.readOpt(Mockito.any(), Mockito.any(), Mockito.any()))
+                    .thenReturn(Result.empty());
+
+            Jaorm.select(Object.class)
+                    .join(MyObject.class, "A").on(COL_1).eq(COL_3)
+                    .join(MyObject.class, "B").on(COL_1).eq(COL_3)
+                    .whereJoinColumn(COL_3, "B").eq(1)
+                    .read();
+
+            Jaorm.select(Object.class)
+                    .join(MyObject.class, "A").on(COL_1).eq(COL_3)
+                    .leftJoin(MyObject.class, "B").on(COL_1).eq(COL_3)
+                    .where(COL_2).eq("VAL")
+                    .whereJoinColumn(COL_3, "B").eq(1)
+                    .read();
+
+            Jaorm.select(Object.class)
+                    .join(MyObject.class, "A").on(COL_1).eq(COL_3)
+                    .rightJoin(MyObject.class, "B").on(COL_1).eq(COL_3)
+                    .where(COL_2).eq("VAL")
+                    .whereJoinColumn(COL_3, "B").eq(1).andJoinColumn(COL_3, "A").ne(3)
+                    .read();
+
+            Jaorm.select(Object.class)
+                    .join(MyObject.class, "A").on(COL_1).eq(COL_3)
+                    .fullJoin(MyObject.class, "B").on(COL_1).eq(COL_3)
+                    .where(COL_2).eq("VAL")
+                    .whereJoinColumn(COL_3, "B").eq(1).orJoinColumn(COL_3, "A").ne(3)
+                    .read();
+
+            Jaorm.select(Object.class)
+                    .join(MyObject.class, "A").on(COL_1).eq(COL_3)
+                    .join(MyObject.class, "B").on(COL_1).eq(COL_3)
+                    .where(COL_2).eq("VAL")
+                    .whereJoinColumn(COL_3, "B").eq(1)
+                    .orWhereJoinColumn(COL_3, "A").ne(3)
+                    .read();
+
+            Jaorm.select(Object.class)
+                    .join(MyObject.class).on(COL_1).eq(COL_3)
+                    .join(MyObject.class, "B").on(COL_1).eq(COL_3)
+                    .whereJoinColumn(COL_3, "B").eq(1)
+                    .read();
+
+            String directSqlJoin = "SELECT TABLE.COL1, TABLE.COL2 FROM TABLE JOIN TABLE2 AS A ON (TABLE.COL1 = A.COL3) JOIN TABLE2 AS B ON (TABLE.COL1 = B.COL3) WHERE (B.COL3 = ?)";
+            String simpleSqlJoin = "SELECT TABLE.COL1, TABLE.COL2 FROM TABLE JOIN TABLE2 AS A ON (TABLE.COL1 = A.COL3) LEFT JOIN TABLE2 AS B ON (TABLE.COL1 = B.COL3) WHERE (TABLE.COL2 = ?) AND (B.COL3 = ?)";
+            String sqlJoinWhereInnerAnd = "SELECT TABLE.COL1, TABLE.COL2 FROM TABLE JOIN TABLE2 AS A ON (TABLE.COL1 = A.COL3) RIGHT JOIN TABLE2 AS B ON (TABLE.COL1 = B.COL3) WHERE (TABLE.COL2 = ?) AND (B.COL3 = ? AND A.COL3 <> ?)";
+            String sqlJoinWhereInnerOr = "SELECT TABLE.COL1, TABLE.COL2 FROM TABLE JOIN TABLE2 AS A ON (TABLE.COL1 = A.COL3) FULL JOIN TABLE2 AS B ON (TABLE.COL1 = B.COL3) WHERE (TABLE.COL2 = ?) AND (B.COL3 = ? OR A.COL3 <> ?)";
+            String sqlJoinWhereOr = "SELECT TABLE.COL1, TABLE.COL2 FROM TABLE JOIN TABLE2 AS A ON (TABLE.COL1 = A.COL3) JOIN TABLE2 AS B ON (TABLE.COL1 = B.COL3) WHERE (TABLE.COL2 = ?) AND (B.COL3 = ?) OR (A.COL3 <> ?)";
+            String directSqlJoinWithOnly1Alias = "SELECT TABLE.COL1, TABLE.COL2 FROM TABLE JOIN TABLE2 ON (TABLE.COL1 = TABLE2.COL3) JOIN TABLE2 AS B ON (TABLE.COL1 = B.COL3) WHERE (B.COL3 = ?)";
+
+            Mockito.verify(runner, Mockito.times(1))
+                    .read(Mockito.any(), Mockito.eq(directSqlJoin), Mockito.any());
+            Mockito.verify(runner, Mockito.times(1))
+                    .read(Mockito.any(), Mockito.eq(simpleSqlJoin), Mockito.any());
+            Mockito.verify(runner, Mockito.times(1))
+                    .read(Mockito.any(), Mockito.eq(sqlJoinWhereInnerAnd), Mockito.any());
+            Mockito.verify(runner, Mockito.times(1))
+                    .read(Mockito.any(), Mockito.eq(sqlJoinWhereInnerOr), Mockito.any());
+            Mockito.verify(runner, Mockito.times(1))
+                    .read(Mockito.any(), Mockito.eq(sqlJoinWhereOr), Mockito.any());
+            Mockito.verify(runner, Mockito.times(1))
+                    .read(Mockito.any(), Mockito.eq(directSqlJoinWithOnly1Alias), Mockito.any());
         }
     }
 
