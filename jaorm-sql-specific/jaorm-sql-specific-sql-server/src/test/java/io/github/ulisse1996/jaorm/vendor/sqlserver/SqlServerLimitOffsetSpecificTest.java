@@ -16,4 +16,9 @@ class SqlServerLimitOffsetSpecificTest {
     void should_return_fetch_with_offset() {
         Assertions.assertEquals(" OFFSET 10 ROWS FETCH NEXT 10 ROWS ONLY", testSubject.convertOffSetLimitSupport(10, 10));
     }
+
+    @Test
+    void should_return_offset() {
+        Assertions.assertEquals(" OFFSET 10 ROWS ", testSubject.convertOffsetSupport(10));
+    }
 }

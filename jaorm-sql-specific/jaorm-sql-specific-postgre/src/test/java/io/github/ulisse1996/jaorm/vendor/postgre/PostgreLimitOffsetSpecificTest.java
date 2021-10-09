@@ -16,4 +16,9 @@ class PostgreLimitOffsetSpecificTest {
     void should_return_fetch_with_offset() {
         Assertions.assertEquals(" LIMIT 10 OFFSET 10", testSubject.convertOffSetLimitSupport(10, 10));
     }
+
+    @Test
+    void should_return_offset() {
+        Assertions.assertEquals(" OFFSET 10 ", testSubject.convertOffsetSupport(10));
+    }
 }

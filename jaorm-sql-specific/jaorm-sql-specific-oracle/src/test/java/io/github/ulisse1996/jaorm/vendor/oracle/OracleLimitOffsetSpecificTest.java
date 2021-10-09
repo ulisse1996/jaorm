@@ -14,6 +14,11 @@ class OracleLimitOffsetSpecificTest {
 
     @Test
     void should_return_fetch_with_offset() {
-        Assertions.assertEquals(" OFFSET 10 FETCH FIRST 10 ROWS ONLY", testSubject.convertOffSetLimitSupport(10, 10));
+        Assertions.assertEquals(" OFFSET 10 ROWS FETCH FIRST 10 ROWS ONLY", testSubject.convertOffSetLimitSupport(10, 10));
+    }
+
+    @Test
+    void should_return_offset() {
+        Assertions.assertEquals(" OFFSET 10 ROWS ", testSubject.convertOffsetSupport(10));
     }
 }
