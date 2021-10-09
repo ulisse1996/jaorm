@@ -9,6 +9,8 @@ import io.github.ulisse1996.jaorm.dsl.query.enums.Operation;
 import io.github.ulisse1996.jaorm.entity.EntityDelegate;
 import io.github.ulisse1996.jaorm.entity.SqlColumn;
 import io.github.ulisse1996.jaorm.spi.DelegatesService;
+import io.github.ulisse1996.jaorm.vendor.VendorSpecific;
+import io.github.ulisse1996.jaorm.vendor.specific.AliasesSpecific;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -278,7 +280,7 @@ public class JoinImpl<T, R, L> implements On<T, R>, IntermediateJoin<T, R, L> {
     }
 
     private String asAlias() {
-        return alias != null ? String.format(" AS %s", alias) : "";
+        return alias != null ? VendorSpecific.getSpecific(AliasesSpecific.class).convertToAlias(alias) : "";
     }
 
     private static class OnImpl {

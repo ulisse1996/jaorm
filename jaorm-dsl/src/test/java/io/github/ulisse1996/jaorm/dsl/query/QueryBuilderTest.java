@@ -9,9 +9,12 @@ import io.github.ulisse1996.jaorm.entity.SqlColumn;
 import io.github.ulisse1996.jaorm.spi.DelegatesService;
 import io.github.ulisse1996.jaorm.spi.QueryRunner;
 import io.github.ulisse1996.jaorm.vendor.VendorSpecific;
+import io.github.ulisse1996.jaorm.vendor.specific.AliasesSpecific;
 import io.github.ulisse1996.jaorm.vendor.specific.LikeSpecific;
 import io.github.ulisse1996.jaorm.vendor.specific.LimitOffsetSpecific;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.function.Executable;
@@ -43,6 +46,17 @@ class QueryBuilderTest {
 
     @Mock private QueryRunner queryRunner;
     @Mock private QueryRunner simpleRunner;
+    private MockedStatic<VendorSpecific> mkVendor;
+
+    @BeforeEach
+    void beforeEach() {
+        this.mkVendor = Mockito.mockStatic(VendorSpecific.class);
+    }
+
+    @AfterEach
+    void afterEach() {
+        this.mkVendor.close();
+    }
 
     @Test
     void should_throw_exception_for_new_instance() {
@@ -137,35 +151,32 @@ class QueryBuilderTest {
     @Test
     void should_create_select_with_limit_and_offset() throws Throwable {
         withSimpleDelegate(() -> {
+            mkVendor.when(() -> VendorSpecific.getSpecific(LimitOffsetSpecific.class))
+                    .thenReturn(new LimitOffsetStandard());
 
-            try (MockedStatic<VendorSpecific> mk = Mockito.mockStatic(VendorSpecific.class)) {
-                mk.when(() -> VendorSpecific.getSpecific(LimitOffsetSpecific.class))
-                        .thenReturn(new LimitOffsetStandard());
+            QueryBuilder.select(MyEntity.class)
+                    .limit(10)
+                    .read();
 
-                QueryBuilder.select(MyEntity.class)
-                        .limit(10)
-                        .read();
+            QueryBuilder.select(MyEntity.class)
+                    .offset(10)
+                    .read();
 
-                QueryBuilder.select(MyEntity.class)
-                        .offset(10)
-                        .read();
+            QueryBuilder.select(MyEntity.class)
+                    .offset(10)
+                    .limit(10)
+                    .read();
 
-                QueryBuilder.select(MyEntity.class)
-                        .offset(10)
-                        .limit(10)
-                        .read();
+            String limitSql = "SELECT MY_TABLE.COL1, MY_TABLE.COL2 FROM MY_TABLE LIMIT 10";
+            String offsetSql = "SELECT MY_TABLE.COL1, MY_TABLE.COL2 FROM MY_TABLE OFFSET 10";
+            String limitOffsetSql = "SELECT MY_TABLE.COL1, MY_TABLE.COL2 FROM MY_TABLE LIMIT 10 OFFSET 10";
 
-                String limitSql = "SELECT MY_TABLE.COL1, MY_TABLE.COL2 FROM MY_TABLE LIMIT 10";
-                String offsetSql = "SELECT MY_TABLE.COL1, MY_TABLE.COL2 FROM MY_TABLE OFFSET 10";
-                String limitOffsetSql = "SELECT MY_TABLE.COL1, MY_TABLE.COL2 FROM MY_TABLE LIMIT 10 OFFSET 10";
-
-                Mockito.verify(queryRunner, Mockito.times(1))
-                        .read(Mockito.eq(MyEntity.class), Mockito.eq(limitSql), Mockito.any());
-                Mockito.verify(queryRunner, Mockito.times(1))
-                        .read(Mockito.eq(MyEntity.class), Mockito.eq(offsetSql), Mockito.any());
-                Mockito.verify(queryRunner, Mockito.times(1))
-                        .read(Mockito.eq(MyEntity.class), Mockito.eq(limitOffsetSql), Mockito.any());
-            }
+            Mockito.verify(queryRunner, Mockito.times(1))
+                    .read(Mockito.eq(MyEntity.class), Mockito.eq(limitSql), Mockito.any());
+            Mockito.verify(queryRunner, Mockito.times(1))
+                    .read(Mockito.eq(MyEntity.class), Mockito.eq(offsetSql), Mockito.any());
+            Mockito.verify(queryRunner, Mockito.times(1))
+                    .read(Mockito.eq(MyEntity.class), Mockito.eq(limitOffsetSql), Mockito.any());
         });
     }
 
@@ -173,11 +184,9 @@ class QueryBuilderTest {
     @MethodSource("getSql")
     void should_create_matched_sql_where(Supplier<SelectedImpl<?, ?>> selected, String sql) throws Throwable {
         withSimpleDelegate(() -> {
-            try (MockedStatic<VendorSpecific> mk = Mockito.mockStatic(VendorSpecific.class)) {
-                mk.when(() -> VendorSpecific.getSpecific(LikeSpecific.class))
-                    .thenThrow(IllegalArgumentException.class);
-                Assertions.assertEquals(sql, selected.get().asString(false));
-            }
+            mkVendor.when(() -> VendorSpecific.getSpecific(LikeSpecific.class))
+                .thenThrow(IllegalArgumentException.class);
+            Assertions.assertEquals(sql, selected.get().asString(false));
         });
     }
 
@@ -185,11 +194,9 @@ class QueryBuilderTest {
     @MethodSource("getJoinSql")
     void should_create_matched_sql_join(Supplier<SelectedImpl<?, ?>> selected, String sql) throws Throwable {
         withDelegateAndDoubleJoin(() -> {
-            try (MockedStatic<VendorSpecific> mk = Mockito.mockStatic(VendorSpecific.class)) {
-                mk.when(() -> VendorSpecific.getSpecific(LikeSpecific.class))
-                        .thenThrow(IllegalArgumentException.class);
-                Assertions.assertEquals(sql, selected.get().asString(false));
-            }
+            mkVendor.when(() -> VendorSpecific.getSpecific(LikeSpecific.class))
+                    .thenThrow(IllegalArgumentException.class);
+            Assertions.assertEquals(sql, selected.get().asString(false));
         });
     }
 
@@ -378,6 +385,8 @@ class QueryBuilderTest {
                     .thenReturn(delegatesService);
             mkQuery.when(() -> QueryRunner.getInstance(Mockito.any()))
                     .thenReturn(queryRunner);
+            mkVendor.when(() -> VendorSpecific.getSpecific(AliasesSpecific.class))
+                    .thenReturn(new AliasesStandard());
             Mockito.when(delegatesService.searchDelegate(MyEntity.class))
                     .thenReturn(() -> delegate);
             Mockito.when(delegatesService.searchDelegate(MyEntityJoin.class))
@@ -403,6 +412,8 @@ class QueryBuilderTest {
                     .thenReturn(delegatesService);
             mkQuery.when(() -> QueryRunner.getInstance(Mockito.any()))
                     .thenReturn(queryRunner);
+            mkVendor.when(() -> VendorSpecific.getSpecific(AliasesSpecific.class))
+                    .thenReturn(new AliasesStandard());
             Mockito.when(delegatesService.searchDelegate(MyEntity.class))
                     .thenReturn(() -> delegate);
             Mockito.when(delegatesService.searchDelegate(MyEntityJoin.class))
@@ -687,6 +698,14 @@ class QueryBuilderTest {
         @Override
         public String convertOffSetLimitSupport(int limitRow, int offsetRow) {
             return String.format(" LIMIT %d OFFSET %d", limitRow, offsetRow);
+        }
+    }
+
+    private static final class AliasesStandard implements AliasesSpecific {
+
+        @Override
+        public String convertToAlias(String name) {
+            return String.format(" AS %s", name);
         }
     }
 }
