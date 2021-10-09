@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 0.25.1
+- Bugfix: Add missing Aliases for Vendor projects
+
+## 0.25.0
+- Feature: Aliases Vendor specific for DSL
+
 ## 0.24.0
 - Feature: New DSL Builder: QueryBuilder
 
