@@ -10,6 +10,11 @@ public class SqlServerLimitOffsetSpecific implements LimitOffsetSpecific {
     }
 
     @Override
+    public String convertOffsetSupport(int offset) {
+        return String.format(" OFFSET %d ROWS ", offset);
+    }
+
+    @Override
     public String convertOffSetLimitSupport(int limitRow, int offsetRow) {
         return String.format(" OFFSET %d ROWS FETCH NEXT %d ROWS ONLY", offsetRow, limitRow);
     }

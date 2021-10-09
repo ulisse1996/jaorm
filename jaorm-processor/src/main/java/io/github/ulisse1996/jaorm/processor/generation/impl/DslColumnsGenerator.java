@@ -86,9 +86,9 @@ public class DslColumnsGenerator extends Generator {
             );
             FieldSpec.Builder specBuilder = FieldSpec.builder(sqlColumnType, col.name, Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL);
             if (col.converterInstance != null) {
-                specBuilder.initializer("$T.instance($S, $T.class, $L)", SqlColumn.class, col.name, col.resultClass, col.converterInstance);
+                specBuilder.initializer("$T.instance($T.class, $S, $T.class, $L)", SqlColumn.class, entity, col.name, col.resultClass, col.converterInstance);
             } else {
-                specBuilder.initializer("$T.instance($S, $T.class)", SqlColumn.class, col.name, col.resultClass);
+                specBuilder.initializer("$T.instance($T.class, $S, $T.class)", SqlColumn.class, entity, col.name, col.resultClass);
             }
             typeSpecBuilder.addField(specBuilder.build());
         });

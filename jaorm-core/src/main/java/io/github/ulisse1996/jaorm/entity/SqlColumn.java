@@ -2,15 +2,20 @@ package io.github.ulisse1996.jaorm.entity;
 
 import io.github.ulisse1996.jaorm.entity.converter.ValueConverter;
 
-@SuppressWarnings("unused")
-public interface SqlColumn<T, R> { // NOSONAR We need parameter for DSL type safety
+public interface SqlColumn<T, R> {
 
+    Class<T> getEntity();
     String getName();
     Class<R> getType();
     ValueConverter<?, R> getConverter(); //NOSONAR
 
-    static <T,R> SqlColumn<T, R> instance(String name, Class<R> klass, ValueConverter<?, R> valueConverter) {
+    static <T,R> SqlColumn<T, R> instance(Class<T> entityClass, String name, Class<R> klass, ValueConverter<?, R> valueConverter) {
         return new SqlColumn<T, R>() {
+            @Override
+            public Class<T> getEntity() {
+                return entityClass;
+            }
+
             @Override
             public String getName() {
                 return name;
@@ -28,7 +33,7 @@ public interface SqlColumn<T, R> { // NOSONAR We need parameter for DSL type saf
         };
     }
 
-    static <T,R> SqlColumn<T,R> instance(String name, Class<R> klass) {
-        return instance(name, klass, ValueConverter.none());
+    static <T,R> SqlColumn<T,R> instance(Class<T> entity, String name, Class<R> klass) {
+        return instance(entity, name, klass, ValueConverter.none());
     }
 }
