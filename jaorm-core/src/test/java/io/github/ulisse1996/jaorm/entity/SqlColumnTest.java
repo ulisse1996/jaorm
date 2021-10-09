@@ -10,7 +10,8 @@ class SqlColumnTest {
 
     @Test
     void should_create_new_instance() {
-        SqlColumn<BigDecimal, BigDecimal> instance = SqlColumn.instance("COL1", BigDecimal.class);
+        SqlColumn<Object, BigDecimal> instance = SqlColumn.instance(Object.class, "COL1", BigDecimal.class);
+        Assertions.assertEquals(Object.class, instance.getEntity());
         Assertions.assertEquals("COL1", instance.getName());
         Assertions.assertEquals(BigDecimal.class, instance.getType());
         Assertions.assertEquals(ValueConverter.NONE_CONVERTER, instance.getConverter());

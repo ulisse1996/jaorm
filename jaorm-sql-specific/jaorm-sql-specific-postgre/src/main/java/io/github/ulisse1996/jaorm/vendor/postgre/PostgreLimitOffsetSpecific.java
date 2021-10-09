@@ -10,6 +10,11 @@ public class PostgreLimitOffsetSpecific implements LimitOffsetSpecific {
     }
 
     @Override
+    public String convertOffsetSupport(int offset) {
+        return String.format(" OFFSET %d ", offset);
+    }
+
+    @Override
     public String convertOffSetLimitSupport(int limitRow, int offsetRow) {
         return String.format(" LIMIT %d OFFSET %d", limitRow, offsetRow);
     }

@@ -116,7 +116,7 @@ public abstract class AbstractIT {
 
     protected List<String> readFile(String initSql) {
         try {
-            return Files.readAllLines(Paths.get(JaormDSLIT.class.getResource("/inits/" + initSql).toURI()));
+            return Files.readAllLines(Paths.get(QueryBuilderIT.class.getResource("/inits/" + initSql).toURI()));
         } catch (Exception ex) {
             Assertions.fail(ex);
             return Collections.emptyList();

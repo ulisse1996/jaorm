@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 0.24.0
+- Feature: New DSL Builder: QueryBuilder
+
 ## 0.23.0
 - Feature: Order By Join Column with Alias
 - Feature: Where Join with Alias
