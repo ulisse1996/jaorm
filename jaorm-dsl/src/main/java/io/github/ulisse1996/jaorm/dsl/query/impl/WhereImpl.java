@@ -18,18 +18,18 @@ public class WhereImpl<T, R> implements IntermediateWhere<T, R> {
 
     private static final String OBJECT_CANT_BE_NULL = "Object can't be null !";
     private static final String WHERE = " WHERE ";
-    private static final String AND_CLAUSE = " AND ";
-    private static final String OR_CLAUSE = " OR ";
+    protected static final String AND_CLAUSE = " AND ";
+    protected static final String OR_CLAUSE = " OR ";
 
     private final SqlColumn<?, R> column;
     private final SelectedImpl<T, ?> parent;
-    private final boolean or;
-    private final List<WhereImpl<T, ?>> links;
+    protected final boolean or;
+    protected final List<WhereImpl<T, ?>> links;
     private final String alias;
     private R value;
     private Operation operation;
     private Iterable<R> iterable;
-    private LikeType likeType;
+    protected LikeType likeType;
 
     public WhereImpl(SqlColumn<?, R> column, SelectedImpl<T, ?> parent, boolean or, String alias) {
         this.column = column;
@@ -143,7 +143,7 @@ public class WhereImpl<T, R> implements IntermediateWhere<T, R> {
         return operation((R) val, Operation.NOT_LIKE);
     }
 
-    private void assertIsString() {
+    protected void assertIsString() {
         if (!column.getType().equals(String.class)) {
             throw new IllegalArgumentException("Can't use like without a column that match String.class");
         }
@@ -160,8 +160,6 @@ public class WhereImpl<T, R> implements IntermediateWhere<T, R> {
         return this.parent;
     }
 
-
-
     public String asString(boolean first, boolean caseInsensitiveLike) {
         StringBuilder builder = new StringBuilder();
         if (first) {
@@ -177,19 +175,27 @@ public class WhereImpl<T, R> implements IntermediateWhere<T, R> {
         return builder.toString();
     }
 
-    private void buildClause(StringBuilder builder, boolean caseInsensitiveLike) {
+    protected void buildClause(StringBuilder builder, boolean caseInsensitiveLike) {
         String format = caseInsensitiveLike && this.likeType != null ? "UPPER(%s.%s)" : "%s.%s";
         builder.append(String.format(format, getFrom(this), this.column.getName())).append(evaluateOperation(this, caseInsensitiveLike));
+        buildLinked(builder, caseInsensitiveLike);
+    }
+
+    protected void buildLinked(StringBuilder builder, boolean caseInsensitiveLike) {
         if (!this.links.isEmpty()) {
             for (WhereImpl<?, ?> inner : this.links) {
-                String innerFormat = caseInsensitiveLike && inner.likeType != null ? "UPPER(%s.%s)" : "%s.%s";
-                builder.append(inner.or ? OR_CLAUSE : AND_CLAUSE)
-                        .append(String.format(innerFormat, getFrom(inner), inner.column.getName())).append(evaluateOperation(inner, caseInsensitiveLike));
+                buildInner(builder, caseInsensitiveLike, inner);
             }
         }
     }
 
-    private String evaluateOperation(WhereImpl<?, ?> clause, boolean caseInsensitiveLike) {
+    protected void buildInner(StringBuilder builder, boolean caseInsensitiveLike, WhereImpl<?, ?> inner) {
+        String innerFormat = caseInsensitiveLike && inner.likeType != null ? "UPPER(%s.%s)" : "%s.%s";
+        builder.append(inner.or ? OR_CLAUSE : AND_CLAUSE)
+                .append(String.format(innerFormat, getFrom(inner), inner.column.getName())).append(evaluateOperation(inner, caseInsensitiveLike));
+    }
+
+    protected String evaluateOperation(WhereImpl<?, ?> clause, boolean caseInsensitiveLike) {
         switch (clause.operation) {
             case EQUALS:
             case NOT_EQUALS:
@@ -219,7 +225,7 @@ public class WhereImpl<T, R> implements IntermediateWhere<T, R> {
         return (int) iterable.spliterator().estimateSize();
     }
 
-    private String getFrom(WhereImpl<?, ?> where) {
+    protected String getFrom(WhereImpl<?, ?> where) {
         if (where.alias == null || where.alias.isEmpty()) {
             return where.parent.getTable();
         } else {

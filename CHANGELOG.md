@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 0.26.1
+- Feature: Custom Functions for DSL
+
 ## 0.25.1
 - Bugfix: Add missing Aliases for Vendor projects
 

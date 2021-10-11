@@ -12,6 +12,7 @@ import io.github.ulisse1996.jaorm.entity.SqlColumn;
 import io.github.ulisse1996.jaorm.entity.sql.SqlParameter;
 import io.github.ulisse1996.jaorm.spi.DelegatesService;
 import io.github.ulisse1996.jaorm.spi.QueryRunner;
+import io.github.ulisse1996.jaorm.vendor.VendorFunction;
 import io.github.ulisse1996.jaorm.vendor.VendorSpecific;
 import io.github.ulisse1996.jaorm.vendor.specific.LimitOffsetSpecific;
 
@@ -92,6 +93,16 @@ public class SelectedImpl<T, N> implements Selected<T>, SelectedWhere<T>, Select
     }
 
     @Override
+    public <R> IntermediateWhere<T, R> where(VendorFunction<R> column) {
+        return addAndReturnLast(column, false, null);
+    }
+
+    @Override
+    public <R> IntermediateWhere<T, R> where(VendorFunction<R> column, String alias) {
+        return addAndReturnLast(column, false, alias);
+    }
+
+    @Override
     public <R> IntermediateWhere<T, R> andWhere(SqlColumn<?, R> column) {
         return where(column);
     }
@@ -129,6 +140,46 @@ public class SelectedImpl<T, N> implements Selected<T>, SelectedWhere<T>, Select
     @Override
     public <R> IntermediateWhere<T, R> or(SqlColumn<?, R> column, String alias) {
         return addAndReturnLinked(column, true, alias);
+    }
+
+    @Override
+    public <R> IntermediateWhere<T, R> andWhere(VendorFunction<R> function) {
+        return where(function);
+    }
+
+    @Override
+    public <R> IntermediateWhere<T, R> orWhere(VendorFunction<R> function) {
+        return addAndReturnLast(function, true, null);
+    }
+
+    @Override
+    public <R> IntermediateWhere<T, R> and(VendorFunction<R> function) {
+        return addAndReturnLinked(function, false, null);
+    }
+
+    @Override
+    public <R> IntermediateWhere<T, R> or(VendorFunction<R> function) {
+        return addAndReturnLinked(function, true, null);
+    }
+
+    @Override
+    public <R> IntermediateWhere<T, R> andWhere(VendorFunction<R> function, String alias) {
+        return where(function, alias);
+    }
+
+    @Override
+    public <R> IntermediateWhere<T, R> orWhere(VendorFunction<R> function, String alias) {
+        return addAndReturnLast(function, true, alias);
+    }
+
+    @Override
+    public <R> IntermediateWhere<T, R> and(VendorFunction<R> function, String alias) {
+        return addAndReturnLinked(function, false, alias);
+    }
+
+    @Override
+    public <R> IntermediateWhere<T, R> or(VendorFunction<R> function, String alias) {
+        return addAndReturnLinked(function, true, alias);
     }
 
     @Override
@@ -219,6 +270,20 @@ public class SelectedImpl<T, N> implements Selected<T>, SelectedWhere<T>, Select
         this.joins.add(join);
         this.lastJoin = join;
         return (On<T, R>) this.lastJoin;
+    }
+
+    private <R> IntermediateWhere<T,R> addAndReturnLinked(VendorFunction<R> function, boolean or, String alias) {
+        WhereImpl<T, R> where = new WhereFunctionImpl<>(function, this, or, alias);
+        this.lastWhere.addLinked(where);
+        return where;
+    }
+
+    @SuppressWarnings("unchecked")
+    private <R> IntermediateWhere<T, R> addAndReturnLast(VendorFunction<R> function, boolean or, String alias) {
+        WhereImpl<T, R> where = new WhereFunctionImpl<>(function, this, or, alias);
+        this.wheres.add(where);
+        this.lastWhere = where;
+        return (IntermediateWhere<T, R>) this.lastWhere;
     }
 
     private <R> IntermediateWhere<T,R> addAndReturnLinked(SqlColumn<?, R> column, boolean or, String alias) {
