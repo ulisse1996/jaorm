@@ -1,8 +1,7 @@
-package io.github.ulisse1996.jaorm.vendor.oracle;
+package io.github.ulisse1996.jaorm.vendor.oracle.functions;
 
 import io.github.ulisse1996.jaorm.entity.SqlColumn;
 import io.github.ulisse1996.jaorm.vendor.VendorFunction;
-import io.github.ulisse1996.jaorm.vendor.oracle.functions.DbmsLobSubstr;
 
 public class DbmsLobFunctions {
 

@@ -5,7 +5,7 @@ import io.github.ulisse1996.jaorm.vendor.VendorFunction;
 
 import java.util.Objects;
 
-public class DbmsLobSubstr implements VendorFunction<String> {
+class DbmsLobSubstr implements VendorFunction<String> {
 
     private final SqlColumn<?, String> column;
     private final int maxLength;
