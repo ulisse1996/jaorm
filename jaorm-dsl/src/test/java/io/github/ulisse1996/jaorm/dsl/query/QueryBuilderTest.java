@@ -8,6 +8,7 @@ import io.github.ulisse1996.jaorm.entity.Result;
 import io.github.ulisse1996.jaorm.entity.SqlColumn;
 import io.github.ulisse1996.jaorm.spi.DelegatesService;
 import io.github.ulisse1996.jaorm.spi.QueryRunner;
+import io.github.ulisse1996.jaorm.vendor.VendorFunction;
 import io.github.ulisse1996.jaorm.vendor.VendorSpecific;
 import io.github.ulisse1996.jaorm.vendor.specific.AliasesSpecific;
 import io.github.ulisse1996.jaorm.vendor.specific.LikeSpecific;
@@ -75,6 +76,12 @@ class QueryBuilderTest {
     void should_throw_exception_for_wrong_like_type() {
         Assertions.assertThrows(IllegalArgumentException.class, () ->
                 withSimpleDelegate(() -> QueryBuilder.select(MyEntity.class).where(COL_1).like(LikeType.FULL, "2")));
+    }
+
+    @Test
+    void should_throw_exception_for_wrong_like_type_with_function() {
+        Assertions.assertThrows(IllegalArgumentException.class, () ->
+                withSimpleDelegate(() -> QueryBuilder.select(MyEntity.class).where(new CastFunction(COL_1)).like(LikeType.FULL, "2")));
     }
 
     @Test
@@ -235,8 +242,6 @@ class QueryBuilderTest {
                     .where(COL_1).in(Arrays.asList(1, 2, 3))
                     .read();
 
-            // TODO Case Sensitive Like
-
             String sqlWithWhere = "SELECT MY_TABLE.COL1, MY_TABLE.COL2 FROM MY_TABLE WHERE (MY_TABLE.COL1 = ?)";
             String sqlWithWhereOr = "SELECT MY_TABLE.COL1, MY_TABLE.COL2 FROM MY_TABLE WHERE (MY_TABLE.COL1 = ?) OR (MY_TABLE.COL2 = ?)";
             String sqlWithWhereAnd = "SELECT MY_TABLE.COL1, MY_TABLE.COL2 FROM MY_TABLE WHERE (MY_TABLE.COL1 = ?) AND (MY_TABLE.COL2 = ?)";
@@ -260,6 +265,12 @@ class QueryBuilderTest {
             Mockito.verify(queryRunner, Mockito.times(1))
                     .read(Mockito.eq(MyEntity.class), Mockito.eq(sqlWithIterable), Mockito.argThat(matcherList(3)));
         });
+    }
+
+    @ParameterizedTest
+    @MethodSource("getSqlVendorFunctions")
+    void should_create_where_with_vendor_functions(Supplier<SelectedImpl<?, ?>> selected, String sql) throws Throwable {
+        withSimpleDelegate(() -> Assertions.assertEquals(sql, selected.get().asString(false)));
     }
 
     @Test
@@ -679,6 +690,101 @@ class QueryBuilderTest {
         );
     }
 
+    private static Stream<Arguments> getSqlVendorFunctions() {
+        return Stream.of(
+                Arguments.of(
+                        (Supplier<Object>)() -> QueryBuilder.select(MyEntity.class)
+                                .where(new CastFunction(COL_2)).like(LikeType.FULL, "Hello"),
+                        "SELECT MY_TABLE.COL1, MY_TABLE.COL2 FROM MY_TABLE WHERE (CAST(MY_TABLE.COL2 AS VARCHAR(32000)) LIKE CONCAT('%',?,'%'))"
+                ),
+                Arguments.of(
+                        (Supplier<Object>)() -> QueryBuilder.select(MyEntity.class)
+                                .where(new CastFunction(COL_2)).like(LikeType.FULL, "Hello")
+                                .orWhere(COL_1).eq(2),
+                        "SELECT MY_TABLE.COL1, MY_TABLE.COL2 FROM MY_TABLE WHERE (CAST(MY_TABLE.COL2 AS VARCHAR(32000)) LIKE CONCAT('%',?,'%')) OR (MY_TABLE.COL1 = ?)"
+                ),
+                Arguments.of(
+                        (Supplier<Object>)() -> QueryBuilder.select(MyEntity.class)
+                                .where(new CastFunction(COL_2)).like(LikeType.FULL, "Hello").or(COL_1).eq(2),
+                        "SELECT MY_TABLE.COL1, MY_TABLE.COL2 FROM MY_TABLE WHERE (CAST(MY_TABLE.COL2 AS VARCHAR(32000)) LIKE CONCAT('%',?,'%') OR MY_TABLE.COL1 = ?)"
+                ),
+                Arguments.of(
+                        (Supplier<Object>)() -> QueryBuilder.select(MyEntity.class)
+                                .where(new CastFunction(COL_2)).like(LikeType.FULL, "Hello").and(COL_1).eq(2),
+                        "SELECT MY_TABLE.COL1, MY_TABLE.COL2 FROM MY_TABLE WHERE (CAST(MY_TABLE.COL2 AS VARCHAR(32000)) LIKE CONCAT('%',?,'%') AND MY_TABLE.COL1 = ?)"
+                ),
+
+                Arguments.of(
+                        (Supplier<Object>)() -> QueryBuilder.select(MyEntity.class)
+                                .where(new CastFunction(COL_2)).like(LikeType.FULL, "Hello")
+                                .andWhere(new CastFunction(COL_2)).notLike(LikeType.FULL, "NOTMY"),
+                        "SELECT MY_TABLE.COL1, MY_TABLE.COL2 FROM MY_TABLE WHERE (CAST(MY_TABLE.COL2 AS VARCHAR(32000)) LIKE CONCAT('%',?,'%')) AND (CAST(MY_TABLE.COL2 AS VARCHAR(32000)) NOT LIKE CONCAT('%',?,'%'))"
+                ),
+                Arguments.of(
+                        (Supplier<Object>)() -> QueryBuilder.select(MyEntity.class)
+                                .where(new CastFunction(COL_2)).like(LikeType.FULL, "Hello")
+                                .orWhere(new CastFunction(COL_2)).notLike(LikeType.FULL, "NOTMY"),
+                        "SELECT MY_TABLE.COL1, MY_TABLE.COL2 FROM MY_TABLE WHERE (CAST(MY_TABLE.COL2 AS VARCHAR(32000)) LIKE CONCAT('%',?,'%')) OR (CAST(MY_TABLE.COL2 AS VARCHAR(32000)) NOT LIKE CONCAT('%',?,'%'))"
+                ),
+                Arguments.of(
+                        (Supplier<Object>)() -> QueryBuilder.select(MyEntity.class)
+                                .where(new CastFunction(COL_2)).like(LikeType.FULL, "Hello").and(new CastFunction(COL_2)).notLike(LikeType.FULL, "NOTMY"),
+                        "SELECT MY_TABLE.COL1, MY_TABLE.COL2 FROM MY_TABLE WHERE (CAST(MY_TABLE.COL2 AS VARCHAR(32000)) LIKE CONCAT('%',?,'%') AND CAST(MY_TABLE.COL2 AS VARCHAR(32000)) NOT LIKE CONCAT('%',?,'%'))"
+                ),
+                Arguments.of(
+                        (Supplier<Object>)() -> QueryBuilder.select(MyEntity.class)
+                                .where(new CastFunction(COL_2)).like(LikeType.FULL, "Hello").or(new CastFunction(COL_2)).notLike(LikeType.FULL, "NOTMY"),
+                        "SELECT MY_TABLE.COL1, MY_TABLE.COL2 FROM MY_TABLE WHERE (CAST(MY_TABLE.COL2 AS VARCHAR(32000)) LIKE CONCAT('%',?,'%') OR CAST(MY_TABLE.COL2 AS VARCHAR(32000)) NOT LIKE CONCAT('%',?,'%'))"
+                ),
+
+                // With alias
+                Arguments.of(
+                        (Supplier<Object>)() -> QueryBuilder.select(MyEntity.class)
+                                .where(new CastFunction(COL_2), "MY_TABLE").like(LikeType.FULL, "Hello"),
+                        "SELECT MY_TABLE.COL1, MY_TABLE.COL2 FROM MY_TABLE WHERE (CAST(MY_TABLE.COL2 AS VARCHAR(32000)) LIKE CONCAT('%',?,'%'))"
+                ),
+                Arguments.of(
+                        (Supplier<Object>)() -> QueryBuilder.select(MyEntity.class)
+                                .where(new CastFunction(COL_2), "MY_TABLE").like(LikeType.FULL, "Hello")
+                                .orWhere(COL_1, "MY_TABLE").eq(2),
+                        "SELECT MY_TABLE.COL1, MY_TABLE.COL2 FROM MY_TABLE WHERE (CAST(MY_TABLE.COL2 AS VARCHAR(32000)) LIKE CONCAT('%',?,'%')) OR (MY_TABLE.COL1 = ?)"
+                ),
+                Arguments.of(
+                        (Supplier<Object>)() -> QueryBuilder.select(MyEntity.class)
+                                .where(new CastFunction(COL_2), "MY_TABLE").like(LikeType.FULL, "Hello").or(COL_1, "MY_TABLE").eq(2),
+                        "SELECT MY_TABLE.COL1, MY_TABLE.COL2 FROM MY_TABLE WHERE (CAST(MY_TABLE.COL2 AS VARCHAR(32000)) LIKE CONCAT('%',?,'%') OR MY_TABLE.COL1 = ?)"
+                ),
+                Arguments.of(
+                        (Supplier<Object>)() -> QueryBuilder.select(MyEntity.class)
+                                .where(new CastFunction(COL_2), "MY_TABLE").like(LikeType.FULL, "Hello").and(COL_1, "MY_TABLE").eq(2),
+                        "SELECT MY_TABLE.COL1, MY_TABLE.COL2 FROM MY_TABLE WHERE (CAST(MY_TABLE.COL2 AS VARCHAR(32000)) LIKE CONCAT('%',?,'%') AND MY_TABLE.COL1 = ?)"
+                ),
+
+                Arguments.of(
+                        (Supplier<Object>)() -> QueryBuilder.select(MyEntity.class)
+                                .where(new CastFunction(COL_2), "MY_TABLE").like(LikeType.FULL, "Hello")
+                                .andWhere(new CastFunction(COL_2), "MY_TABLE").notLike(LikeType.FULL, "NOTMY"),
+                        "SELECT MY_TABLE.COL1, MY_TABLE.COL2 FROM MY_TABLE WHERE (CAST(MY_TABLE.COL2 AS VARCHAR(32000)) LIKE CONCAT('%',?,'%')) AND (CAST(MY_TABLE.COL2 AS VARCHAR(32000)) NOT LIKE CONCAT('%',?,'%'))"
+                ),
+                Arguments.of(
+                        (Supplier<Object>)() -> QueryBuilder.select(MyEntity.class)
+                                .where(new CastFunction(COL_2), "MY_TABLE").like(LikeType.FULL, "Hello")
+                                .orWhere(new CastFunction(COL_2), "MY_TABLE").notLike(LikeType.FULL, "NOTMY"),
+                        "SELECT MY_TABLE.COL1, MY_TABLE.COL2 FROM MY_TABLE WHERE (CAST(MY_TABLE.COL2 AS VARCHAR(32000)) LIKE CONCAT('%',?,'%')) OR (CAST(MY_TABLE.COL2 AS VARCHAR(32000)) NOT LIKE CONCAT('%',?,'%'))"
+                ),
+                Arguments.of(
+                        (Supplier<Object>)() -> QueryBuilder.select(MyEntity.class)
+                                .where(new CastFunction(COL_2), "MY_TABLE").like(LikeType.FULL, "Hello").and(new CastFunction(COL_2), "MY_TABLE").notLike(LikeType.FULL, "NOTMY"),
+                        "SELECT MY_TABLE.COL1, MY_TABLE.COL2 FROM MY_TABLE WHERE (CAST(MY_TABLE.COL2 AS VARCHAR(32000)) LIKE CONCAT('%',?,'%') AND CAST(MY_TABLE.COL2 AS VARCHAR(32000)) NOT LIKE CONCAT('%',?,'%'))"
+                ),
+                Arguments.of(
+                        (Supplier<Object>)() -> QueryBuilder.select(MyEntity.class)
+                                .where(new CastFunction(COL_2), "MY_TABLE").like(LikeType.FULL, "Hello").or(new CastFunction(COL_2), "MY_TABLE").notLike(LikeType.FULL, "NOTMY"),
+                        "SELECT MY_TABLE.COL1, MY_TABLE.COL2 FROM MY_TABLE WHERE (CAST(MY_TABLE.COL2 AS VARCHAR(32000)) LIKE CONCAT('%',?,'%') OR CAST(MY_TABLE.COL2 AS VARCHAR(32000)) NOT LIKE CONCAT('%',?,'%'))"
+                )
+        );
+    }
+
     private static class MyEntity {}
     private static class MyEntityJoin {}
     private static class MySecondEntityJoin {}
@@ -706,6 +812,25 @@ class QueryBuilderTest {
         @Override
         public String convertToAlias(String name) {
             return String.format(" AS %s", name);
+        }
+    }
+
+    private static final class CastFunction implements VendorFunction<String> {
+
+        private final SqlColumn<?, ?> column;
+
+        private CastFunction(SqlColumn<?, ?> column) {
+            this.column = column;
+        }
+
+        @Override
+        public String apply(String alias) {
+            return String.format("CAST(%s.%s AS VARCHAR(32000))", alias, this.column.getName());
+        }
+
+        @Override
+        public boolean isString() {
+            return this.column.getType().equals(String.class);
         }
     }
 }
