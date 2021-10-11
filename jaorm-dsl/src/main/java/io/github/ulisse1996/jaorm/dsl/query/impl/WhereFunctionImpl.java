@@ -14,7 +14,7 @@ public class WhereFunctionImpl<T, R> extends WhereImpl<T, R> {
     @Override
     protected void buildClause(StringBuilder builder, boolean caseInsensitiveLike) {
         String format = function.apply(getFrom(this));
-        if (caseInsensitiveLike) {
+        if (caseInsensitiveLike && this.likeType != null) {
             format = String.format("UPPER(%s)", format);
         }
         builder.append(format).append(evaluateOperation(this, caseInsensitiveLike));
@@ -27,7 +27,7 @@ public class WhereFunctionImpl<T, R> extends WhereImpl<T, R> {
             for (WhereImpl<?, ?> inner : this.links) {
                 if (inner instanceof WhereFunctionImpl<?, ?>) {
                     String format = function.apply(getFrom(inner));
-                    if (caseInsensitiveLike) {
+                    if (caseInsensitiveLike && inner.likeType != null) {
                         format = String.format("UPPER(%s)", format);
                     }
                     builder.append(inner.or ? OR_CLAUSE : AND_CLAUSE)

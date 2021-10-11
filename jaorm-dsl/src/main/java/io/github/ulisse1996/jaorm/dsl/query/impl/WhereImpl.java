@@ -29,7 +29,7 @@ public class WhereImpl<T, R> implements IntermediateWhere<T, R> {
     private R value;
     private Operation operation;
     private Iterable<R> iterable;
-    private LikeType likeType;
+    protected LikeType likeType;
 
     public WhereImpl(SqlColumn<?, R> column, SelectedImpl<T, ?> parent, boolean or, String alias) {
         this.column = column;
