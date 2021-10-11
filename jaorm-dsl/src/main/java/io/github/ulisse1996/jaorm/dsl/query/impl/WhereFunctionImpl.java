@@ -13,10 +13,7 @@ public class WhereFunctionImpl<T, R> extends WhereImpl<T, R> {
 
     @Override
     protected void buildClause(StringBuilder builder, boolean caseInsensitiveLike) {
-        String format = function.apply(getFrom(this));
-        if (caseInsensitiveLike && this.likeType != null) {
-            format = String.format("UPPER(%s)", format);
-        }
+        String format = getFormat(caseInsensitiveLike, this);
         builder.append(format).append(evaluateOperation(this, caseInsensitiveLike));
         buildLinked(builder, caseInsensitiveLike);
     }
@@ -26,10 +23,7 @@ public class WhereFunctionImpl<T, R> extends WhereImpl<T, R> {
         if (!this.links.isEmpty()) {
             for (WhereImpl<?, ?> inner : this.links) {
                 if (inner instanceof WhereFunctionImpl<?, ?>) {
-                    String format = function.apply(getFrom(inner));
-                    if (caseInsensitiveLike && inner.likeType != null) {
-                        format = String.format("UPPER(%s)", format);
-                    }
+                    String format = getFormat(caseInsensitiveLike, inner);
                     builder.append(inner.or ? OR_CLAUSE : AND_CLAUSE)
                             .append(format).append(evaluateOperation(inner, caseInsensitiveLike));
                 } else {
@@ -37,6 +31,14 @@ public class WhereFunctionImpl<T, R> extends WhereImpl<T, R> {
                 }
             }
         }
+    }
+
+    private String getFormat(boolean caseInsensitiveLike, WhereImpl<?, ?> where) {
+        String format = function.apply(getFrom(where));
+        if (caseInsensitiveLike && where.likeType != null) {
+            format = String.format("UPPER(%s)", format);
+        }
+        return format;
     }
 
     @Override
