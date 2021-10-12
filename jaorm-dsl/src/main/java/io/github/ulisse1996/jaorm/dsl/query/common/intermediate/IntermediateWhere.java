@@ -1,5 +1,6 @@
 package io.github.ulisse1996.jaorm.dsl.query.common.intermediate;
 
+import io.github.ulisse1996.jaorm.dsl.query.common.Selected;
 import io.github.ulisse1996.jaorm.dsl.query.common.SelectedWhere;
 import io.github.ulisse1996.jaorm.dsl.query.enums.LikeType;
 
@@ -24,6 +25,10 @@ public interface IntermediateWhere<T, R> {
     // Other operations
     SelectedWhere<T> in(Iterable<R> iterable);
     SelectedWhere<T> notIn(Iterable<R> iterable);
+    SelectedWhere<T> in(SelectedWhere<?> subQuery);
+    SelectedWhere<T> notIn(SelectedWhere<?> subQuery);
+    SelectedWhere<T> in(Selected<?> subQuery);
+    SelectedWhere<T> notIn(Selected<?> subQuery);
     SelectedWhere<T> isNull();
     SelectedWhere<T> isNotNull();
     SelectedWhere<T> like(LikeType type, String val);
