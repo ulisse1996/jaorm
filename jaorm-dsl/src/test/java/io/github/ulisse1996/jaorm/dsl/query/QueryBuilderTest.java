@@ -33,6 +33,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -241,6 +242,32 @@ class QueryBuilderTest {
             mkVendor.when(() -> VendorSpecific.getSpecific(LikeSpecific.class))
                     .thenThrow(IllegalArgumentException.class);
             Assertions.assertEquals(sql, selected.get().asString(false));
+        });
+    }
+
+    @Test
+    void should_create_select_with_custom_checks() throws Throwable {
+        withDelegateAndJoin(() -> {
+            QueryConfig config = QueryConfig.builder()
+                    .caseInsensitive()
+                    .withWhereChecker((sqlColumn, operation, o) -> {
+                        if (o instanceof String) {
+                            return !((String) o).trim().isEmpty();
+                        } else {
+                            return Objects.nonNull(o);
+                        }
+                    }).build();
+
+            QueryBuilder.select(MyEntity.class, config)
+                    .join(MyEntityJoin.class, "A").on(COL_3).eq(COL_1)
+                    .where(COL_1).eq(null)
+                    .andWhere(COL_2).eq("Hello")
+                    .read();
+
+            String sql = "SELECT MY_TABLE.COL1, MY_TABLE.COL2 FROM MY_TABLE JOIN MY_TABLE_JOIN AS A ON (A.COL3 = MY_TABLE.COL1) WHERE (MY_TABLE.COL2 = ?)";
+
+            Mockito.verify(queryRunner)
+                    .read(Mockito.eq(MyEntity.class), Mockito.eq(sql), Mockito.argThat(matcherList(1)));
         });
     }
 

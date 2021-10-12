@@ -332,8 +332,11 @@ public class SelectedImpl<T, N> implements Selected<T>, SelectedWhere<T>, Select
         boolean first = true;
         for (WhereImpl<?, ?> where : wheres) {
             if (first) {
-                builder.append(where.asString(true, caseInsensitiveLike));
-                first = false;
+                String gen = where.asString(true, caseInsensitiveLike);
+                builder.append(gen);
+                if (!gen.trim().isEmpty()) {
+                    first = false;
+                }
             } else {
                 builder.append(where.asString(false, caseInsensitiveLike));
             }
