@@ -1,7 +1,9 @@
 package io.github.ulisse1996.jaorm.dsl.query.impl;
 
+import io.github.ulisse1996.jaorm.dsl.query.common.Selected;
 import io.github.ulisse1996.jaorm.dsl.query.common.SelectedWhere;
 import io.github.ulisse1996.jaorm.dsl.query.common.intermediate.IntermediateWhere;
+import io.github.ulisse1996.jaorm.dsl.query.common.trait.WithSubQuerySupport;
 import io.github.ulisse1996.jaorm.dsl.query.enums.LikeType;
 import io.github.ulisse1996.jaorm.dsl.query.enums.Operation;
 import io.github.ulisse1996.jaorm.entity.SqlColumn;
@@ -10,13 +12,12 @@ import io.github.ulisse1996.jaorm.entity.sql.SqlParameter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 public class WhereImpl<T, R> implements IntermediateWhere<T, R> {
 
-    private static final String OBJECT_CANT_BE_NULL = "Object can't be null !";
     private static final String WHERE = " WHERE ";
     protected static final String AND_CLAUSE = " AND ";
     protected static final String OR_CLAUSE = " OR ";
@@ -30,6 +31,8 @@ public class WhereImpl<T, R> implements IntermediateWhere<T, R> {
     private Operation operation;
     private Iterable<R> iterable;
     protected LikeType likeType;
+    private WithSubQuerySupport subQuery;
+    private boolean valid;
 
     public WhereImpl(SqlColumn<?, R> column, SelectedImpl<T, ?> parent, boolean or, String alias) {
         this.column = column;
@@ -37,6 +40,7 @@ public class WhereImpl<T, R> implements IntermediateWhere<T, R> {
         this.or = or;
         this.links = new ArrayList<>();
         this.alias = alias;
+        this.valid = true;
     }
 
     @Override
@@ -101,7 +105,7 @@ public class WhereImpl<T, R> implements IntermediateWhere<T, R> {
 
     @Override
     public SelectedWhere<T> in(Iterable<R> iterable) {
-        Objects.requireNonNull(iterable, OBJECT_CANT_BE_NULL);
+        this.valid = this.parent.getChecker().isValidWhere(this.column, operation, iterable);
         this.operation = Operation.IN;
         this.iterable = iterable;
         return this.parent;
@@ -109,9 +113,41 @@ public class WhereImpl<T, R> implements IntermediateWhere<T, R> {
 
     @Override
     public SelectedWhere<T> notIn(Iterable<R> iterable) {
-        Objects.requireNonNull(iterable, OBJECT_CANT_BE_NULL);
+        this.valid = this.parent.getChecker().isValidWhere(this.column, operation, iterable);
         this.operation = Operation.NOT_IN;
         this.iterable = iterable;
+        return this.parent;
+    }
+
+    @Override
+    public SelectedWhere<T> in(Selected<?> subQuery) {
+        this.valid = this.parent.getChecker().isValidWhere(this.column, operation, subQuery);
+        this.operation = Operation.IN;
+        this.subQuery = assertIsSubQuery(subQuery);
+        return this.parent;
+    }
+
+    @Override
+    public SelectedWhere<T> notIn(Selected<?> subQuery) {
+        this.valid = this.parent.getChecker().isValidWhere(this.column, operation, subQuery);
+        this.operation = Operation.NOT_IN;
+        this.subQuery = assertIsSubQuery(subQuery);
+        return this.parent;
+    }
+
+    @Override
+    public SelectedWhere<T> in(SelectedWhere<?> subQuery) {
+        this.valid = this.parent.getChecker().isValidWhere(this.column, operation, subQuery);
+        this.operation = Operation.IN;
+        this.subQuery = assertIsSubQuery(subQuery);
+        return this.parent;
+    }
+
+    @Override
+    public SelectedWhere<T> notIn(SelectedWhere<?> subQuery) {
+        this.valid = this.parent.getChecker().isValidWhere(this.column, operation, subQuery);
+        this.operation = Operation.NOT_IN;
+        this.subQuery = assertIsSubQuery(subQuery);
         return this.parent;
     }
 
@@ -154,13 +190,16 @@ public class WhereImpl<T, R> implements IntermediateWhere<T, R> {
     }
 
     private SelectedWhere<T> operation(R value, Operation operation) {
-        Objects.requireNonNull(value, OBJECT_CANT_BE_NULL);
+        this.valid = this.parent.getChecker().isValidWhere(this.column, operation, value);
         this.operation = operation;
         this.value = value;
         return this.parent;
     }
 
     public String asString(boolean first, boolean caseInsensitiveLike) {
+        if (!valid) {
+            return "";
+        }
         StringBuilder builder = new StringBuilder();
         if (first) {
             builder.append(WHERE);
@@ -210,8 +249,12 @@ public class WhereImpl<T, R> implements IntermediateWhere<T, R> {
                 return " IS NOT NULL";
             case IN:
             case NOT_IN:
-                String wildcards = String.join(",", Collections.nCopies(getSize(clause.iterable), "?"));
-                return String.format(" %s (%s)", Operation.IN.equals(clause.operation) ? "IN" : "NOT IN", wildcards);
+                if (clause.subQuery != null) {
+                    return String.format(" %s (%s)", Operation.IN.equals(clause.operation) ? "IN" : "NOT IN", this.subQuery.getSql());
+                } else {
+                    String wildcards = String.join(",", Collections.nCopies(getSize(clause.iterable), "?"));
+                    return String.format(" %s (%s)", Operation.IN.equals(clause.operation) ? "IN" : "NOT IN", wildcards);
+                }
             case NOT_LIKE:
                 return " NOT LIKE" + clause.likeType.getValue(caseInsensitiveLike);
             case LIKE:
@@ -225,6 +268,14 @@ public class WhereImpl<T, R> implements IntermediateWhere<T, R> {
         return (int) iterable.spliterator().estimateSize();
     }
 
+    private WithSubQuerySupport assertIsSubQuery(Object obj) {
+        if (!(obj instanceof WithSubQuerySupport)) {
+            throw new IllegalArgumentException("Can't use Sub Query that is not instance of WithSubQuerySupport ! Please use QueryBuilder.subQuery Method");
+        }
+
+        return ((WithSubQuerySupport) obj);
+    }
+
     protected String getFrom(WhereImpl<?, ?> where) {
         if (where.alias == null || where.alias.isEmpty()) {
             return where.parent.getTable();
@@ -234,10 +285,19 @@ public class WhereImpl<T, R> implements IntermediateWhere<T, R> {
     }
 
     public Stream<SqlParameter> getParameters() {
+        if (!valid) {
+            return Stream.empty();
+        }
+        List<SqlParameter> parameters = new ArrayList<>();
+        if (value != null) {
+            parameters.add(new SqlParameter(value));
+        } else if (iterable != null) {
+            parameters.addAll(StreamSupport.stream(iterable.spliterator(), false).map(SqlParameter::new).collect(Collectors.toList()));
+        } else {
+            parameters.addAll(this.subQuery.getParameters());
+        }
         return Stream.concat(
-                value != null
-                        ? Stream.of(new SqlParameter(value))
-                        : StreamSupport.stream(iterable.spliterator(), false).map(SqlParameter::new),
+                parameters.stream(),
                 links.stream().flatMap(WhereImpl::getParameters)
         );
     }

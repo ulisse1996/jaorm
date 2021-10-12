@@ -1,5 +1,8 @@
 package io.github.ulisse1996.jaorm.dsl.query.impl;
 
+import io.github.ulisse1996.jaorm.dsl.config.DefaultWhereChecker;
+import io.github.ulisse1996.jaorm.dsl.config.QueryConfig;
+import io.github.ulisse1996.jaorm.dsl.config.WhereChecker;
 import io.github.ulisse1996.jaorm.dsl.query.common.*;
 import io.github.ulisse1996.jaorm.dsl.query.common.intermediate.IntermediateJoin;
 import io.github.ulisse1996.jaorm.dsl.query.common.intermediate.IntermediateWhere;
@@ -26,16 +29,22 @@ public class SelectedImpl<T, N> implements Selected<T>, SelectedWhere<T>, Select
         SelectedLimit<T>, SelectedOffset<T>, SelectedOrder<T> {
 
     private final List<String> columns;
-    private final String table;
+    protected final String table;
     private final Class<T> klass;
     private final List<WhereImpl<T, ?>> wheres;
     private final List<JoinImpl<T, ?, ?>> joins;
     private final List<OrderImpl> orders;
     private final boolean caseInsensitiveLike;
+    private WhereChecker checker;
     private WhereImpl<T, ?> lastWhere;
     private JoinImpl<T, ?, ?> lastJoin;
     private int limit;
     private int offset;
+
+    public SelectedImpl(Class<T> klass, QueryConfig config) {
+        this(klass, config.isCaseInsensitive());
+        this.checker = config.getChecker();
+    }
 
     public SelectedImpl(Class<T> klass, boolean caseInsensitiveLike) {
         EntityDelegate<?> delegate = DelegatesService.getInstance()
@@ -47,8 +56,12 @@ public class SelectedImpl<T, N> implements Selected<T>, SelectedWhere<T>, Select
         this.wheres = new ArrayList<>();
         this.joins = new ArrayList<>();
         this.orders = new ArrayList<>();
+        this.checker = new DefaultWhereChecker();
     }
 
+    public WhereChecker getChecker() {
+        return checker;
+    }
 
     @Override
     public T read() {
@@ -77,7 +90,7 @@ public class SelectedImpl<T, N> implements Selected<T>, SelectedWhere<T>, Select
         return QueryRunner.getSimple().read(long.class, pair.getKey(), pair.getValue());
     }
 
-    private List<SqlParameter> getParameters() {
+    public List<SqlParameter> getParameters() {
         return this.wheres.stream().flatMap(WhereImpl::getParameters)
                 .collect(Collectors.toList());
     }
@@ -309,6 +322,10 @@ public class SelectedImpl<T, N> implements Selected<T>, SelectedWhere<T>, Select
                 .append(count ? "COUNT(*) " : asSelectColumns())
                 .append("FROM ")
                 .append(this.table);
+        return buildExtraSql(builder);
+    }
+
+    protected String buildExtraSql(StringBuilder builder) {
         for (JoinImpl<T, ?, ?> j : this.joins) {
             builder.append(j.asString(caseInsensitiveLike));
         }

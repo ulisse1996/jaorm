@@ -1,5 +1,6 @@
 package io.github.ulisse1996.jaorm.dsl.query;
 
+import io.github.ulisse1996.jaorm.dsl.config.QueryConfig;
 import io.github.ulisse1996.jaorm.dsl.query.enums.LikeType;
 import io.github.ulisse1996.jaorm.dsl.query.enums.OrderType;
 import io.github.ulisse1996.jaorm.dsl.query.impl.SelectedImpl;
@@ -185,6 +186,42 @@ class QueryBuilderTest {
             Mockito.verify(queryRunner, Mockito.times(1))
                     .read(Mockito.eq(MyEntity.class), Mockito.eq(limitOffsetSql), Mockito.any());
         });
+    }
+
+    @Test
+    void should_create_a_custom_dsl_with_config() throws Throwable {
+        withSimpleDelegate(() -> {
+            QueryBuilder.select(MyEntity.class, QueryConfig.builder().withWhereChecker((column, operation, value) -> false).build())
+                    .where(COL_1).eq(2)
+                    .read();
+
+            String sql = "SELECT MY_TABLE.COL1, MY_TABLE.COL2 FROM MY_TABLE";
+
+            Mockito.verify(queryRunner, Mockito.times(1))
+                    .read(Mockito.any(), Mockito.eq(sql), Mockito.argThat(matcherList(0)));
+        });
+    }
+
+    @Test
+    void should_throw_exception_for_bad_sub_query_instance() throws Throwable {
+        withSimpleDelegate(() -> {
+
+            try {
+                QueryBuilder.select(MyEntity.class)
+                        .where(COL_1).in(
+                                QueryBuilder.select(MyEntity.class)
+                        );
+            } catch (IllegalArgumentException ex) {
+                Assertions.assertNotNull(ex.getMessage());
+                Assertions.assertTrue(ex.getMessage().contains("subQuery"));
+            }
+        });
+    }
+
+    @ParameterizedTest
+    @MethodSource("getSubQuerySql")
+    void should_create_matched_sql_with_sub_query(Supplier<SelectedImpl<?, ?>> selected, String sql) throws Throwable {
+        withSimpleDelegate(() -> Assertions.assertEquals(sql, selected.get().asString(false)));
     }
 
     @ParameterizedTest
@@ -793,6 +830,35 @@ class QueryBuilderTest {
                         (Supplier<Object>)() -> QueryBuilder.select(MyEntity.class, true)
                                 .where(new CastFunction(COL_2), "MY_TABLE").like(LikeType.FULL, "Hello").or(new CastFunction(COL_2), "MY_TABLE").notLike(LikeType.FULL, "NOTMY"),
                         "SELECT MY_TABLE.COL1, MY_TABLE.COL2 FROM MY_TABLE WHERE (UPPER(CAST(MY_TABLE.COL2 AS VARCHAR(32000))) LIKE CONCAT('%',UPPER(?),'%') OR UPPER(CAST(MY_TABLE.COL2 AS VARCHAR(32000))) NOT LIKE CONCAT('%',UPPER(?),'%'))"
+                )
+        );
+    }
+
+    private static Stream<Arguments> getSubQuerySql() {
+        return Stream.of(
+                Arguments.of(
+                        (Supplier<Object>)() -> QueryBuilder.select(MyEntity.class).where(COL_1).in(
+                                QueryBuilder.subQuery(COL_1)
+                        ),
+                        "SELECT MY_TABLE.COL1, MY_TABLE.COL2 FROM MY_TABLE WHERE (MY_TABLE.COL1 IN (SELECT MY_TABLE.COL1 FROM MY_TABLE))"
+                ),
+                Arguments.of(
+                        (Supplier<Object>)() -> QueryBuilder.select(MyEntity.class).where(COL_1).in(
+                                QueryBuilder.subQuery(COL_1).where(COL_1).eq(2)
+                        ),
+                        "SELECT MY_TABLE.COL1, MY_TABLE.COL2 FROM MY_TABLE WHERE (MY_TABLE.COL1 IN (SELECT MY_TABLE.COL1 FROM MY_TABLE WHERE (MY_TABLE.COL1 = ?)))"
+                ),
+                Arguments.of(
+                        (Supplier<Object>)() -> QueryBuilder.select(MyEntity.class).where(COL_1).notIn(
+                                QueryBuilder.subQuery(COL_1)
+                        ),
+                        "SELECT MY_TABLE.COL1, MY_TABLE.COL2 FROM MY_TABLE WHERE (MY_TABLE.COL1 NOT IN (SELECT MY_TABLE.COL1 FROM MY_TABLE))"
+                ),
+                Arguments.of(
+                        (Supplier<Object>)() -> QueryBuilder.select(MyEntity.class).where(COL_1).notIn(
+                                QueryBuilder.subQuery(COL_1).where(COL_1).eq(2)
+                        ),
+                        "SELECT MY_TABLE.COL1, MY_TABLE.COL2 FROM MY_TABLE WHERE (MY_TABLE.COL1 NOT IN (SELECT MY_TABLE.COL1 FROM MY_TABLE WHERE (MY_TABLE.COL1 = ?)))"
                 )
         );
     }
