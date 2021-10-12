@@ -2,7 +2,7 @@
 
 ## 0.27.0
 - Feature: SubQuery Support for DSL
-- Feature: QueryConfig for Case Sensitive e Where Checker Conditions for DSL
+- Feature: QueryConfig for Case Sensitive and Where Checker Conditions for DSL
 
 ## 0.26.0
 - Feature: Custom Functions for DSL
