@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.28.0
+- Feature: Jaorm Tools for Maven
+- Bugfix: Fix wrong type on SqlParameter for Relationship
+
 ## 0.27.1
 - Bugfix: Fix Wrong Where SQL building for Custom Checkers
 

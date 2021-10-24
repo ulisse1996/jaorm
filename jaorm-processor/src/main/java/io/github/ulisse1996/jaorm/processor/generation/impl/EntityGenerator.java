@@ -9,6 +9,7 @@ import io.github.ulisse1996.jaorm.entity.EntityMapper;
 import io.github.ulisse1996.jaorm.entity.converter.ParameterConverter;
 import io.github.ulisse1996.jaorm.entity.sql.SqlAccessor;
 import io.github.ulisse1996.jaorm.entity.sql.SqlParameter;
+import io.github.ulisse1996.jaorm.processor.exception.ProcessorException;
 import io.github.ulisse1996.jaorm.processor.generation.Generator;
 import io.github.ulisse1996.jaorm.processor.util.GeneratedFile;
 import io.github.ulisse1996.jaorm.processor.util.ProcessorUtils;
@@ -21,6 +22,7 @@ import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.*;
 import javax.lang.model.type.NoType;
+import javax.lang.model.type.TypeMirror;
 import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -222,13 +224,29 @@ public class EntityGenerator extends Generator {
                                 VariableElement targetColumn,
                                 TypeElement entity) {
         if (!column.sourceColumn().isEmpty()) {
+            VariableElement referenced = getReferencedColumn(column.sourceColumn(), entity);
+            TypeMirror target = targetColumn.asType();
+            if (referenced.getAnnotation(Converter.class) != null) {
+                List<TypeElement> converterTypes = ProcessorUtils.getConverterTypes(processingEnvironment, referenced);
+                target = converterTypes.get(0).asType();
+            }
             builder.addStatement("params.add(new $T($LDelegate.Column.findColumn($S).getGetter().apply(this.entity), $T.find($T.class).getSetter()))",
-                    SqlParameter.class, entity.getSimpleName(), column.sourceColumn(), SqlAccessor.class, targetColumn.asType());
+                    SqlParameter.class, entity.getSimpleName(), column.sourceColumn(), SqlAccessor.class, target);
         } else {
             String defaultValue = column.defaultValue();
             builder.addStatement("params.add(new $T($T.$L.toValue($S), $T.find($T.$L.getKlass()).getSetter()))",
                     SqlParameter.class, ParameterConverter.class, column.converter(), defaultValue, SqlAccessor.class, ParameterConverter.class, column.converter());
         }
+    }
+
+    private VariableElement getReferencedColumn(String sourceColumn, TypeElement entity) {
+        return entity.getEnclosedElements()
+                .stream()
+                .filter(e -> e.getAnnotation(Column.class) != null)
+                .filter(e -> e.getAnnotation(Column.class).name().equalsIgnoreCase(sourceColumn))
+                .findFirst()
+                .map(VariableElement.class::cast)
+                .orElseThrow(() -> new ProcessorException("Can't find referenced column"));
     }
 
     private CodeBlock buildCustomEquals(String paramName, TypeElement entity) {

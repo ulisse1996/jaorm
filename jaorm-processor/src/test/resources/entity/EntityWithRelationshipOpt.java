@@ -1,16 +1,15 @@
 package io.test;
 
-import io.github.ulisse1996.jaorm.annotation.Column;
-import io.github.ulisse1996.jaorm.annotation.Id;
-import io.github.ulisse1996.jaorm.annotation.Relationship;
-import io.github.ulisse1996.jaorm.annotation.Table;
+import io.github.ulisse1996.jaorm.annotation.*;
 import io.github.ulisse1996.jaorm.entity.Result;
+import io.github.ulisse1996.jaorm.entity.converter.ValueConverter;
 
 @Table(name = "TABLE")
 public class EntityWithRelationshipOpt {
 
     @Id
     @Column(name = "COL1")
+    @Converter(EmptyConverter.class)
     private String col1;
 
     @Relationship(
@@ -35,5 +34,18 @@ public class EntityWithRelationshipOpt {
 
     public void setRelEntity(Result<RelEntity> relEntity) {
         this.relEntity = relEntity;
+    }
+
+    public static class EmptyConverter implements ValueConverter<String, String> {
+
+        @Override
+        public String toSql(String val) {
+            return val;
+        }
+
+        @Override
+        public String fromSql(String val) {
+            return val;
+        }
     }
 }

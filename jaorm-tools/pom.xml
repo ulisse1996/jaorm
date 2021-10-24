@@ -10,13 +10,11 @@
     <modelVersion>4.0.0</modelVersion>
     <packaging>pom</packaging>
     <modules>
-        <module>jaorm-sql-specific-oracle</module>
-        <module>jaorm-sql-specific-postgre</module>
-        <module>jaorm-sql-specific-sql-server</module>
+        <module>jaorm-maven-plugin</module>
     </modules>
 
-    <artifactId>jaorm-sql-specific</artifactId>
-    <name>JAORM (Sql Specific Parent)</name>
+    <artifactId>jaorm-tools</artifactId>
+    <name>JAORM (Tools)</name>
 
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
@@ -49,4 +47,5 @@
             </plugins>
         </pluginManagement>
     </build>
+
 </project>
