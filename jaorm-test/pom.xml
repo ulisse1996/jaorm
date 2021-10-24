@@ -91,6 +91,12 @@
             <type>pom</type>
         </dependency>
         <dependency>
+            <groupId>io.github.ulisse1996</groupId>
+            <artifactId>jaorm-maven-plugin</artifactId>
+            <version>0.28.0</version>
+            <type>maven-plugin</type>
+        </dependency>
+        <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <version>1.18.20</version>
