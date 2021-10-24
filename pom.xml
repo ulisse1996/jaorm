@@ -34,7 +34,7 @@
         <jacoco-maven-plugin.version>0.8.6</jacoco-maven-plugin.version>
         <sonar.coverage.jacoco.xmlReportPaths>jaorm-test/target/site/jacoco-aggregate/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
         <aggregate.report.dir>jaorm-test/target/site/jacoco-aggregate/jacoco.xml</aggregate.report.dir>
-        <sonar.exclusions>io/github/ulisse1996/jaorm/validation/**</sonar.exclusions>
+        <sonar.coverage.exclusions>io/github/ulisse1996/jaorm/validation/**/*</sonar.coverage.exclusions>
     </properties>
 
     <name>JAORM (Parent)</name>
