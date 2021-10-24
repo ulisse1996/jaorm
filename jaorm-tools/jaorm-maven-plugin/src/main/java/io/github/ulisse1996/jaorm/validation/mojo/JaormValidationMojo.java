@@ -28,6 +28,7 @@ import org.apache.maven.project.MavenProject;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Paths;
 import java.sql.*;
 import java.util.*;
@@ -147,9 +148,9 @@ public class JaormValidationMojo extends AbstractMojo {
     private synchronized Connection getConnection() throws SQLException {
         if (this.driver == null) {
             try {
-                this.driver = (Driver) Class.forName(this.jdbcDriver).newInstance();
+                this.driver = (Driver) Class.forName(this.jdbcDriver).getConstructor().newInstance();
                 DriverManager.registerDriver(this.driver);
-            } catch (InstantiationException | IllegalAccessException | ClassNotFoundException | SQLException e) {
+            } catch (InstantiationException | IllegalAccessException | ClassNotFoundException | SQLException | NoSuchMethodException | InvocationTargetException e) {
                 throw new SQLException(e);
             }
         }
