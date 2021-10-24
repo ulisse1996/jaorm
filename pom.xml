@@ -31,11 +31,8 @@
         <sonar.moduleKey>${project.groupId}:${project.artifactId}</sonar.moduleKey>
         <sonar.organization>ulisse1996</sonar.organization>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
-        <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
-        <sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
-        <sonar.jacoco.reportPath>${project.basedir}/../target/jacoco.exec</sonar.jacoco.reportPath>
-        <sonar.language>java</sonar.language>
         <jacoco-maven-plugin.version>0.8.6</jacoco-maven-plugin.version>
+        <sonar.coverage.jacoco.xmlReportPaths>jaorm-test/target/site/jacoco-aggregate/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
         <aggregate.report.dir>jaorm-test/target/site/jacoco-aggregate/jacoco.xml</aggregate.report.dir>
     </properties>
 
@@ -140,10 +137,6 @@
                 <plugin>
                     <groupId>org.jacoco</groupId>
                     <artifactId>jacoco-maven-plugin</artifactId>
-                    <configuration>
-                        <destFile>${sonar.jacoco.reportPath}</destFile>
-                        <append>true</append>
-                    </configuration>
                     <executions>
                         <execution>
                             <goals>
