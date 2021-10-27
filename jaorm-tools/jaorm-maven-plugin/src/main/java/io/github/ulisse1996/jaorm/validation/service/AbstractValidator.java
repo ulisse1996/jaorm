@@ -3,7 +3,7 @@ package io.github.ulisse1996.jaorm.validation.service;
 import io.github.ulisse1996.jaorm.logger.JaormLogger;
 import io.github.ulisse1996.jaorm.validation.cache.FileHashCache;
 import io.github.ulisse1996.jaorm.validation.exception.EntityValidationException;
-import io.github.ulisse1996.jaorm.validation.log.LogHolder;
+import io.github.ulisse1996.jaorm.validation.logger.LogHolder;
 import io.github.ulisse1996.jaorm.validation.model.ConnectionInfo;
 import io.github.ulisse1996.jaorm.validation.model.EntityMetadata;
 import io.github.ulisse1996.jaorm.validation.model.TableMetadata;

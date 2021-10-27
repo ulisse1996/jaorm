@@ -1,7 +1,7 @@
 package io.github.ulisse1996.jaorm.validation.mojo;
 
 import io.github.ulisse1996.jaorm.logger.JaormLogger;
-import io.github.ulisse1996.jaorm.validation.log.LogHolder;
+import io.github.ulisse1996.jaorm.validation.logger.LogHolder;
 import io.github.ulisse1996.jaorm.validation.model.ConnectionInfo;
 import io.github.ulisse1996.jaorm.validation.model.enums.ValidationType;
 import io.github.ulisse1996.jaorm.validation.service.impl.ClasspathValidator;
