@@ -68,8 +68,8 @@ class QueriesServiceTest {
             Mockito.when(mock.getQuery(Mockito.any()))
                     .thenCallRealMethod();
 
-            Assertions.assertThrows(IllegalArgumentException.class,
-                    () -> QueriesService.getInstance().getQuery(Object.class)); //NOSONAR
+            Assertions.assertThrows(IllegalArgumentException.class, //NOSONAR
+                    () -> QueriesService.getInstance().getQuery(Object.class));
         }
     }
 
@@ -102,8 +102,8 @@ class QueriesServiceTest {
             Mockito.when(mock.getBaseDao(Mockito.any()))
                     .thenCallRealMethod();
 
-            Assertions.assertThrows(IllegalArgumentException.class,
-                    () -> QueriesService.getInstance().getBaseDao(Object.class)); //NOSONAR
+            Assertions.assertThrows(IllegalArgumentException.class, //NOSONAR
+                    () -> QueriesService.getInstance().getBaseDao(Object.class));
         }
     }
 

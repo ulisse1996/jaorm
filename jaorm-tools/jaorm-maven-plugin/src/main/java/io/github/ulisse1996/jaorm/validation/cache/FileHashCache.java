@@ -10,12 +10,12 @@ import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.*;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -72,16 +72,53 @@ public class FileHashCache {
     }
 
     public String calculateHash(String key) throws IOException, NoSuchAlgorithmException {
+        byte[] bytes = isJar(key) ? this.readJarFile(key) : this.readJavaFile(key);
+        return DatatypeConverter
+                .printHexBinary(bytes);
+    }
+
+    private byte[] readJavaFile(String key) throws NoSuchAlgorithmException, IOException {
         MessageDigest digest = MessageDigest.getInstance("md5");
-        try (BufferedReader reader = Files.newBufferedReader(Paths.get(key))) {
+        try (BufferedReader reader = Files.newBufferedReader(findPath(key))) {
             String currentLine;
             while ((currentLine = reader.readLine()) != null) {
                 digest.update(currentLine.getBytes(StandardCharsets.UTF_8));
             }
         }
-        byte[] bytes = digest.digest();
-        return DatatypeConverter
-                .printHexBinary(bytes);
+        return digest.digest();
+    }
+
+    private byte[] readJarFile(String key) throws NoSuchAlgorithmException, IOException {
+        MessageDigest digest = MessageDigest.getInstance("md5");
+        byte[] bytes = Files.readAllBytes(findPath(key));
+        digest.update(bytes);
+        return digest.digest();
+    }
+
+    private boolean isJar(String key) {
+        return key.startsWith("jar");
+    }
+
+    private Path findPath(String key) throws IOException {
+        if (isJar(key)) {
+            // Handle Jar file
+            try (FileSystem fileSystem = FileSystems.newFileSystem(new URL(key).toURI(), new HashMap<>())) {
+                String filePath = key.substring(key.lastIndexOf(".jar!") + 1);
+                Path path = fileSystem.getPath(filePath);
+                path = path.subpath(1, path.getNameCount());
+                String fileName = path.getFileName().toString();
+                Path tmp = Files.createTempFile(
+                        fileName.substring(0, fileName.lastIndexOf(".")),
+                        ".class"
+                );
+                Files.copy(path, tmp, StandardCopyOption.REPLACE_EXISTING);
+                return tmp;
+            } catch (Exception ex) {
+                throw new IOException(ex);
+            }
+        } else {
+            return Paths.get(key);
+        }
     }
 
     public void updateHash(String key, String hash) {

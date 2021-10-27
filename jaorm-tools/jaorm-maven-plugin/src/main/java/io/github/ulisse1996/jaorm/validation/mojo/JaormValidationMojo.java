@@ -1,6 +1,7 @@
 package io.github.ulisse1996.jaorm.validation.mojo;
 
 import io.github.ulisse1996.jaorm.logger.JaormLogger;
+import io.github.ulisse1996.jaorm.validation.cache.FileHashCache;
 import io.github.ulisse1996.jaorm.validation.logger.LogHolder;
 import io.github.ulisse1996.jaorm.validation.model.ConnectionInfo;
 import io.github.ulisse1996.jaorm.validation.model.enums.ValidationType;
@@ -55,6 +56,7 @@ public class JaormValidationMojo extends AbstractMojo {
                     this.jdbcPassword
             );
             LogHolder.set(createLogger());
+            FileHashCache cache = FileHashCache.getInstance(project.getBasedir().getAbsolutePath());
             switch (this.validationType) {
                 case CLASSPATH:
                     new ClasspathValidator(
@@ -92,11 +94,13 @@ public class JaormValidationMojo extends AbstractMojo {
                     ).validate();
                     break;
             }
+            cache.saveOnFile();
         } catch (Exception ex) {
             getLog().error(ex);
             throw new MojoExecutionException(ex.getMessage(), ex);
         } finally {
             LogHolder.destroy();
+
         }
     }
 
