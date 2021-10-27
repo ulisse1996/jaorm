@@ -1,12 +1,16 @@
 package io.github.ulisse1996.jaorm.spi;
 
-import io.github.ulisse1996.jaorm.ServiceFinder;
 import io.github.ulisse1996.jaorm.Arguments;
+import io.github.ulisse1996.jaorm.ServiceFinder;
 import io.github.ulisse1996.jaorm.entity.EntityDelegate;
+import io.github.ulisse1996.jaorm.spi.combined.CombinedDelegates;
 import io.github.ulisse1996.jaorm.spi.common.Singleton;
 
+import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 public abstract class DelegatesService {
 
@@ -14,7 +18,18 @@ public abstract class DelegatesService {
 
     public static synchronized DelegatesService getInstance() {
         if (!INSTANCE.isPresent()) {
-            INSTANCE.set(ServiceFinder.loadService(DelegatesService.class));
+            Iterable<DelegatesService> delegatesServices = ServiceFinder.loadServices(DelegatesService.class);
+            if (!delegatesServices.iterator().hasNext()) {
+                throw new IllegalArgumentException("Can't find service of " + DelegatesService.class);
+            }
+            List<DelegatesService> delegates = StreamSupport.stream(delegatesServices.spliterator(), false)
+                    .collect(Collectors.toList());
+
+            if (delegates.size() == 1) {
+                INSTANCE.set(delegates.get(0));
+            } else {
+                INSTANCE.set(new CombinedDelegates(delegates));
+            }
         }
 
         return INSTANCE.get();
@@ -101,5 +116,5 @@ public abstract class DelegatesService {
         return delegate.getDeleteSql();
     }
 
-    protected abstract Map<Class<?>, Supplier<? extends EntityDelegate<?>>> getDelegates(); //NOSONAR
+    public abstract Map<Class<?>, Supplier<? extends EntityDelegate<?>>> getDelegates(); //NOSONAR
 }

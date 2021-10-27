@@ -8,7 +8,7 @@ import java.util.Map;
 
 public class ConverterMock extends ConverterService {
     @Override
-    protected Map<Class<?>, ConverterPair<?, ?>> getConverters() {
+    public Map<Class<?>, ConverterPair<?, ?>> getConverters() {
         return Collections.emptyMap();
     }
 }

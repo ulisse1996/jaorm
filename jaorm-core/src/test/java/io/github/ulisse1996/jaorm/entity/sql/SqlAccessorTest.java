@@ -18,7 +18,7 @@ class SqlAccessorTest {
             mk.when(ConverterService::getInstance)
                     .thenReturn(new ConverterService() {
                         @Override
-                        protected Map<Class<?>, ConverterPair<?, ?>> getConverters() {
+                        public Map<Class<?>, ConverterPair<?, ?>> getConverters() {
                             return Collections.singletonMap(Object.class, new ConverterPair<>(Object.class, null));
                         }
                     });

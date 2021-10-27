@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Assertions;
 
 import javax.tools.Diagnostic;
 import javax.tools.JavaFileObject;
+import java.util.List;
 import java.util.stream.Collectors;
 
 public abstract class CompilerTest {
@@ -19,8 +20,9 @@ public abstract class CompilerTest {
         return JavaFileObjects.forResource(CompilerTest.class.getResource(fullName));
     }
 
-    protected void checkCompilation(Compilation compilation) {
+    protected List<JavaFileObject> checkCompilation(Compilation compilation) {
         Assertions.assertEquals(Compilation.Status.SUCCESS, compilation.status(), generateError(compilation.errors()));
+        return compilation.generatedFiles();
     }
 
     protected void checkCompilation(Compilation compilation, String message) {

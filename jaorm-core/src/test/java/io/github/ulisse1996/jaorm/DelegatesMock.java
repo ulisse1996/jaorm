@@ -15,7 +15,7 @@ import java.util.function.Supplier;
 public class DelegatesMock extends DelegatesService {
 
     @Override
-    protected Map<Class<?>, Supplier<? extends EntityDelegate<?>>> getDelegates() {
+    public Map<Class<?>, Supplier<? extends EntityDelegate<?>>> getDelegates() {
         return Collections.singletonMap(MyEntity.class, MyEntityDelegate::new);
     }
 

@@ -2,6 +2,7 @@ package io.github.ulisse1996.jaorm.spi;
 
 import io.github.ulisse1996.jaorm.ServiceFinder;
 import io.github.ulisse1996.jaorm.entity.GenerationInfo;
+import io.github.ulisse1996.jaorm.spi.combined.CombinedGenerators;
 import io.github.ulisse1996.jaorm.spi.common.Singleton;
 
 import java.sql.SQLException;
@@ -16,7 +17,15 @@ public abstract class GeneratorsService {
             try {
                 Iterator<GeneratorsService> iterator = ServiceFinder.loadServices(GeneratorsService.class).iterator();
                 if (iterator.hasNext()) {
-                    INSTANCE.set(iterator.next());
+                    List<GeneratorsService> services = new ArrayList<>();
+                    while (iterator.hasNext()) {
+                        services.add(iterator.next());
+                    }
+                    if (services.size() == 1) {
+                        INSTANCE.set(services.get(0));
+                    } else {
+                        INSTANCE.set(new CombinedGenerators(services));
+                    }
                 } else {
                     INSTANCE.set(NoOp.INSTANCE);
                 }

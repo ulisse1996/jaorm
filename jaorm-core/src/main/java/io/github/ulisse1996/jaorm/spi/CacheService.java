@@ -4,6 +4,7 @@ import io.github.ulisse1996.jaorm.Arguments;
 import io.github.ulisse1996.jaorm.ServiceFinder;
 import io.github.ulisse1996.jaorm.cache.*;
 import io.github.ulisse1996.jaorm.logger.JaormLogger;
+import io.github.ulisse1996.jaorm.spi.combined.CombinedCaches;
 import io.github.ulisse1996.jaorm.spi.common.Singleton;
 
 import java.util.*;
@@ -25,16 +26,18 @@ public abstract class CacheService {
                 if (services.size() == 1) {
                     INSTANCE.set(services.get(0));
                 } else {
-                    INSTANCE.set(
-                            services.stream()
-                                .filter(cacheService -> !cacheService.isDefault())
-                                .findFirst()
-                                .orElseThrow(() -> new IllegalArgumentException("Custom implementation must not override isDefault or must return false for isDefault check"))
-                    );
+                    if (services.stream().allMatch(CacheService::isDefault)) {
+                        INSTANCE.set(new CombinedCaches(services));
+                    } else {
+                        throw new IllegalArgumentException("Custom implementation must not override isDefault or must return false for isDefault check");
+                    }
                 }
             }
-        } catch (IllegalArgumentException | ServiceConfigurationError ex) {
+        } catch (ServiceConfigurationError ex) {
             logger.debug(() -> "Can't find cache service, switching to NoCache instance");
+            INSTANCE.set(NoOpCache.INSTANCE);
+        } catch (IllegalArgumentException ex) {
+            logger.debug(ex::getMessage);
             INSTANCE.set(NoOpCache.INSTANCE);
         }
 
@@ -80,6 +83,6 @@ public abstract class CacheService {
     }
 
     public boolean isDefault() {
-        return getClass().getName().equalsIgnoreCase("io.github.ulisse1996.cache.Caches");
+        return getClass().getName().startsWith("io.github.ulisse1996.cache.Caches");
     }
 }

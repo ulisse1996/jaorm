@@ -3,11 +3,15 @@ package io.github.ulisse1996.jaorm.spi;
 import io.github.ulisse1996.jaorm.ServiceFinder;
 import io.github.ulisse1996.jaorm.entity.converter.ConverterPair;
 import io.github.ulisse1996.jaorm.entity.sql.SqlAccessor;
+import io.github.ulisse1996.jaorm.spi.combined.CombinedConverters;
 import io.github.ulisse1996.jaorm.spi.common.Singleton;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 public abstract class ConverterService {
 
@@ -16,7 +20,14 @@ public abstract class ConverterService {
 
     public static synchronized ConverterService getInstance() {
         if (!INSTANCE.isPresent()) {
-            INSTANCE.set(ServiceFinder.loadService(ConverterService.class));
+            Iterable<ConverterService> converterServices = ServiceFinder.loadServices(ConverterService.class);
+            List<ConverterService> services = StreamSupport.stream(converterServices.spliterator(), false)
+                    .collect(Collectors.toList());
+            if (services.size() == 1) {
+                INSTANCE.set(services.get(0));
+            } else {
+                INSTANCE.set(new CombinedConverters(services));
+            }
         }
 
         return INSTANCE.get();
@@ -57,5 +68,5 @@ public abstract class ConverterService {
         return accessor;
     }
 
-    protected abstract Map<Class<?>, ConverterPair<?,?>> getConverters(); // NOSONAR
+    public abstract Map<Class<?>, ConverterPair<?,?>> getConverters(); // NOSONAR
 }

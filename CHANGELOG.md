@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 0.29.0
+- Feature: Support for Multiple Jaorm SPI Configurations
+- Feature: Hash Cache for Jaorm Validation
+- Feature: Jaorm Validation for Classpath Entities
+
 ## 0.28.0
 - Feature: Jaorm Tools for Maven
 - Bugfix: Fix wrong type on SqlParameter for Relationship

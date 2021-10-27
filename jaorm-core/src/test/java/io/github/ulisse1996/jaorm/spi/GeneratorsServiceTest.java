@@ -1,6 +1,7 @@
 package io.github.ulisse1996.jaorm.spi;
 
 import io.github.ulisse1996.jaorm.ServiceFinder;
+import io.github.ulisse1996.jaorm.spi.combined.CombinedGenerators;
 import io.github.ulisse1996.jaorm.spi.common.Singleton;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -110,6 +111,16 @@ class GeneratorsServiceTest {
                     .thenReturn("NAME");
             GeneratorsService instance = GeneratorsService.getInstance();
             Assertions.assertThrows(IllegalArgumentException.class, () -> instance.generate(Object.class, "NAME2", BigDecimal.class));
+        }
+    }
+
+    @Test
+    void should_return_combined_generators() {
+        GeneratorsService mock = Mockito.mock(GeneratorsService.class);
+        try (MockedStatic<ServiceFinder> mk = Mockito.mockStatic(ServiceFinder.class)) {
+            mk.when(() -> ServiceFinder.loadServices(GeneratorsService.class))
+                    .thenReturn(Collections.nCopies(3, mock));
+            Assertions.assertTrue(GeneratorsService.getInstance() instanceof CombinedGenerators);
         }
     }
 }

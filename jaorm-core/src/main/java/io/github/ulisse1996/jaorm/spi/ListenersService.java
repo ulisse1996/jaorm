@@ -3,11 +3,12 @@ package io.github.ulisse1996.jaorm.spi;
 import io.github.ulisse1996.jaorm.ServiceFinder;
 import io.github.ulisse1996.jaorm.entity.EntityDelegate;
 import io.github.ulisse1996.jaorm.entity.event.GlobalEventType;
+import io.github.ulisse1996.jaorm.spi.combined.CombinedListeners;
 import io.github.ulisse1996.jaorm.spi.common.Singleton;
 
-import java.util.Collections;
-import java.util.ServiceConfigurationError;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 public abstract class ListenersService {
 
@@ -16,7 +17,16 @@ public abstract class ListenersService {
     public static synchronized ListenersService getInstance() {
         if (!INSTANCE.isPresent()) {
             try {
-                INSTANCE.set(ServiceFinder.loadService(ListenersService.class));
+                Iterable<ListenersService> iterable = ServiceFinder.loadServices(ListenersService.class);
+                if (iterable.iterator().hasNext()) {
+                    List<ListenersService> services = StreamSupport.stream(iterable.spliterator(), false)
+                            .collect(Collectors.toList());
+                    if (services.size() == 1) {
+                        INSTANCE.set(services.get(0));
+                    } else {
+                        INSTANCE.set(new CombinedListeners(services));
+                    }
+                }
             } catch (Exception | ServiceConfigurationError ex) {
                 INSTANCE.set(NoOp.INSTANCE);
             }
@@ -41,14 +51,14 @@ public abstract class ListenersService {
         return klass;
     }
 
-    protected abstract Set<Class<?>> getEventClasses();
+    public abstract Set<Class<?>> getEventClasses();
 
     private static class NoOp extends ListenersService {
 
         private static final NoOp INSTANCE = new NoOp();
 
         @Override
-        protected Set<Class<?>> getEventClasses() {
+        public Set<Class<?>> getEventClasses() {
             return Collections.emptySet();
         }
     }
