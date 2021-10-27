@@ -74,15 +74,20 @@ public class RelationshipGenerator extends Generator {
     }
 
     private void generateRelationships(List<RelationshipInfo> relationshipInfos) {
-        TypeSpec relationshipEvents = TypeSpec.classBuilder("RelationshipEvents")
+        TypeSpec relationshipEvents = TypeSpec.classBuilder("RelationshipEvents" + ProcessorUtils.randomIdentifier())
                 .addModifiers(Modifier.PUBLIC)
-                .addSuperinterface(RelationshipService.class)
+                .superclass(RelationshipService.class)
                 .addField(relationshipMap(), "relationships", Modifier.PRIVATE, Modifier.FINAL)
                 .addMethod(relationshipEventsConstructor(relationshipInfos))
                 .addMethod(buildGetRelationships())
                 .build();
         ProcessorUtils.generate(processingEnvironment,
                 new GeneratedFile(JAORM_PACKAGE, relationshipEvents, ""));
+        ProcessorUtils.generateSpi(
+                processingEnvironment,
+                new GeneratedFile(JAORM_PACKAGE, relationshipEvents, ""),
+                RelationshipService.class
+        );
     }
 
     private MethodSpec buildGetRelationships() {

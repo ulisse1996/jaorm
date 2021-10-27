@@ -368,7 +368,7 @@ class BaseDaoTest {
         }
     }
 
-    private static class RelationshipMock implements RelationshipService{
+    private static class RelationshipMock extends RelationshipService{
 
         @Override
         public <T> boolean isEventActive(Class<T> entityClass, EntityEventType eventType) {

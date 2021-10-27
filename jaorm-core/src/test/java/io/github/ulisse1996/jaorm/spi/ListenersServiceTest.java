@@ -2,6 +2,7 @@ package io.github.ulisse1996.jaorm.spi;
 
 import io.github.ulisse1996.jaorm.ServiceFinder;
 import io.github.ulisse1996.jaorm.entity.event.GlobalEventType;
+import io.github.ulisse1996.jaorm.spi.combined.CombinedListeners;
 import io.github.ulisse1996.jaorm.spi.common.Singleton;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -43,7 +44,7 @@ class ListenersServiceTest {
     @Test
     void should_return_no_op_instance() {
         try (MockedStatic<ServiceFinder> mk = Mockito.mockStatic(ServiceFinder.class)) {
-            mk.when(() -> ServiceFinder.loadService(ListenersService.class))
+            mk.when(() -> ServiceFinder.loadServices(ListenersService.class))
                     .thenThrow(IllegalArgumentException.class);
             ListenersService instance = ListenersService.getInstance();
             Assertions.assertTrue(instance.getClass().getName().contains("NoOp"));
@@ -55,7 +56,7 @@ class ListenersServiceTest {
     void should_handle_event() {
         ListenersService service = new ListenersService() {
             @Override
-            protected Set<Class<?>> getEventClasses() {
+            public Set<Class<?>> getEventClasses() {
                 return Collections.singleton(Object.class);
             }
         };
@@ -72,13 +73,24 @@ class ListenersServiceTest {
     @Test
     void should_return_saved_instance() {
         try (MockedStatic<ServiceFinder> mk = Mockito.mockStatic(ServiceFinder.class)) {
-            mk.when(() -> ServiceFinder.loadService(ListenersService.class))
-                    .thenReturn(mock);
-            mk.when(() -> ServiceFinder.loadService(GlobalEventListener.class))
-                    .thenReturn(listener);
-            Assertions.assertEquals(mock, ListenersService.getInstance()); // Loaded
-            Assertions.assertEquals(mock, ListenersService.getInstance());
-            mk.verify(() -> ServiceFinder.loadService(ListenersService.class));
+            mk.when(() -> ServiceFinder.loadServices(ListenersService.class))
+                    .thenReturn(Collections.singletonList(mock));
+            mk.when(() -> ServiceFinder.loadServices(GlobalEventListener.class))
+                    .thenReturn(Collections.singletonList(listener));
+            ListenersService instance = ListenersService.getInstance();
+            Assertions.assertEquals(mock, instance); // Loaded
+            Assertions.assertEquals(instance, ListenersService.getInstance());
+            mk.verify(() -> ServiceFinder.loadServices(ListenersService.class)); // We check only 1 call
+        }
+    }
+
+    @Test
+    void should_return_combined_listeners() {
+        ListenersService mock = Mockito.mock(ListenersService.class);
+        try (MockedStatic<ServiceFinder> mk = Mockito.mockStatic(ServiceFinder.class)) {
+            mk.when(() -> ServiceFinder.loadServices(ListenersService.class))
+                    .thenReturn(Collections.nCopies(3, mock));
+            Assertions.assertTrue(ListenersService.getInstance() instanceof CombinedListeners);
         }
     }
 }

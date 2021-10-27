@@ -77,12 +77,7 @@ class GenerationInfoTest {
                 "VALUE", "1", "TABLE", ParameterConverter.BIG_DECIMAL,
                 null
         );
-        LockSpecific oracleSpecific = new LockSpecific() {
-            @Override
-            public String selectWithLock(String table, String wheres, String... columns) {
-                return String.format("SELECT %s FROM %s %s FOR UPDATE", String.join(",", columns), table, wheres);
-            }
-        };
+        LockSpecific oracleSpecific = (table, wheres, columns) -> String.format("SELECT %s FROM %s %s FOR UPDATE", String.join(",", columns), table, wheres);
         try (MockedStatic<DataSourceProvider> mk = Mockito.mockStatic(DataSourceProvider.class);
              MockedStatic<VendorSpecific> vMk = Mockito.mockStatic(VendorSpecific.class)) {
             vMk.when(VendorSpecific.getSpecific(Mockito.any()))
@@ -141,6 +136,19 @@ class GenerationInfoTest {
     void should_return_column_name() {
         GenerationInfo info = new GenerationInfo("COL", generator);
         Assertions.assertEquals("COL", info.getColumnName());
+    }
+
+    @Test
+    void should_not_find_lock_and_return_fallback() {
+        GenerationInfo info = new GenerationInfo("COL", "KEY", "VALUE", "MATCH",
+                "TABLE", ParameterConverter.NONE, generator);
+        try (MockedStatic<VendorSpecific> mk = Mockito.mockStatic(VendorSpecific.class)) {
+            mk.when(() -> VendorSpecific.getSpecific(LockSpecific.class))
+                    .thenThrow(IllegalArgumentException.class);
+
+            String result = info.getSqlLock("WHERE 1 = 1");
+            Assertions.assertEquals("SELECT VALUE FROM TABLE WHERE 1 = 1 FOR UPDATE", result);
+        }
     }
 
     @SuppressWarnings("UnnecessaryBoxing")

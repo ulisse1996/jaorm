@@ -55,7 +55,7 @@ public class EntityGenerator extends Generator {
     }
 
     private void generateDelegates(List<GeneratedFile> types) {
-        TypeSpec delegates = TypeSpec.classBuilder("Delegates")
+        TypeSpec delegates = TypeSpec.classBuilder("Delegates" + ProcessorUtils.randomIdentifier())
                 .addModifiers(Modifier.PUBLIC)
                 .superclass(DelegatesService.class)
                 .addField(delegatesMap(), "delegates", Modifier.PRIVATE, Modifier.FINAL)
@@ -64,6 +64,11 @@ public class EntityGenerator extends Generator {
                 .build();
         ProcessorUtils.generate(processingEnvironment,
                 new GeneratedFile(JAORM_PACKAGE, delegates, ""));
+        ProcessorUtils.generateSpi(
+                processingEnvironment,
+                new GeneratedFile(JAORM_PACKAGE, delegates, ""),
+                DelegatesService.class
+        );
     }
 
     private MethodSpec buildGetDelegates() {

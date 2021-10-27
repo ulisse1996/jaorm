@@ -45,7 +45,7 @@ public class ConverterGenerator extends Generator {
 
     private void generateConverters(List<ConverterInfo> conversions) {
         debugMessage("Generating Converters");
-        TypeSpec converters = TypeSpec.classBuilder("Converters")
+        TypeSpec converters = TypeSpec.classBuilder("Converters" + ProcessorUtils.randomIdentifier())
                 .addModifiers(Modifier.PUBLIC)
                 .superclass(ConverterService.class)
                 .addField(converterMap(), "convertersMap", Modifier.PRIVATE, Modifier.FINAL)
@@ -54,6 +54,11 @@ public class ConverterGenerator extends Generator {
                 .build();
         ProcessorUtils.generate(processingEnvironment,
                 new GeneratedFile(JAORM_PACKAGE, converters, ""));
+        ProcessorUtils.generateSpi(
+                processingEnvironment,
+                new GeneratedFile(JAORM_PACKAGE, converters, ""),
+                ConverterService.class
+        );
     }
 
     private MethodSpec buildGetConverters() {

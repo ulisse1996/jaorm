@@ -36,7 +36,12 @@ class JaormProcessorTest {
                     .thenReturn(EMPTY_GENERATOR);
             valMock.when(() -> Validator.forType(Mockito.any(), Mockito.any()))
                     .thenReturn(EMPTY_VALIDATOR);
-            boolean result = new JaormProcessor().process(Collections.emptySet(), Mockito.mock(RoundEnvironment.class));
+            JaormProcessor processor = new JaormProcessor() {{
+                processingEnv = Mockito.mock(ProcessingEnvironment.class);
+                Mockito.when(processingEnv.getOptions())
+                        .thenReturn(Collections.emptyMap());
+            }};
+            boolean result = processor.process(Collections.emptySet(), Mockito.mock(RoundEnvironment.class));
             Assertions.assertTrue(result);
         }
     }

@@ -1,5 +1,6 @@
 package io.github.ulisse1996.jaorm;
 
+import io.github.ulisse1996.jaorm.entity.EntityDelegate;
 import io.github.ulisse1996.jaorm.entity.sql.DataSourceProvider;
 import io.github.ulisse1996.jaorm.entity.sql.SqlParameter;
 import io.github.ulisse1996.jaorm.exception.JaormSqlException;
@@ -91,8 +92,8 @@ class QueryRunnerTest {
         try (MockedStatic<ServiceFinder> mk = Mockito.mockStatic(ServiceFinder.class)) {
             mk.when(() -> ServiceFinder.loadServices(QueryRunner.class))
                     .thenReturn(Arrays.asList(new SimpleMockedRunner(), expected));
-            mk.when(() -> ServiceFinder.loadService(DelegatesService.class))
-                    .thenReturn(new DelegatesMock());
+            mk.when(() -> ServiceFinder.loadServices(DelegatesService.class))
+                    .thenReturn(Collections.singletonList(new DelegatesMock()));
             QueryRunner runner = QueryRunner.getInstance(DelegatesMock.MyEntity.class);
             Assertions.assertEquals(expected, runner);
         }
@@ -104,8 +105,8 @@ class QueryRunnerTest {
         try (MockedStatic<ServiceFinder> mk = Mockito.mockStatic(ServiceFinder.class)) {
             mk.when(() -> ServiceFinder.loadServices(QueryRunner.class))
                     .thenReturn(Arrays.asList(new SimpleMockedRunner(), expected));
-            mk.when(() -> ServiceFinder.loadService(DelegatesService.class))
-                    .thenReturn(new DelegatesMock());
+            mk.when(() -> ServiceFinder.loadServices(DelegatesService.class))
+                    .thenReturn(Collections.singletonList(new DelegatesMock()));
             QueryRunner runner = QueryRunner.getInstance(DelegatesMock.MyEntity.class);
             Assertions.assertEquals(expected, runner);
             QueryRunner runner1 = QueryRunner.getInstance(DelegatesMock.MyEntity.class);
@@ -219,6 +220,29 @@ class QueryRunnerTest {
             Mockito.when(source.getConnection())
                     .thenReturn(connection);
             Assertions.assertDoesNotThrow(() -> runner.update("UPDATE", Collections.emptyList()));
+        }
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void should_return_simple_runner() {
+        QueryRunner mock = Mockito.mock(QueryRunner.class);
+        DelegatesService mockDelegates = Mockito.mock(DelegatesService.class);
+        try (MockedStatic<DelegatesService> mk = Mockito.mockStatic(DelegatesService.class)) {
+            mk.when(DelegatesService::getInstance)
+                    .thenReturn(mockDelegates);
+            Field field = QueryRunner.class.getDeclaredField("SIMPLE_RUNNER");
+            field.setAccessible(true);
+            Singleton<QueryRunner> instance = (Singleton<QueryRunner>) field.get(null);
+            instance.set(mock);
+
+            Mockito.when(mockDelegates.getDelegates())
+                    .thenReturn(Collections.emptyMap());
+
+            QueryRunner res = QueryRunner.getInstance(Object.class);
+            Assertions.assertEquals(mock, res);
+        } catch (Exception ex) {
+            Assertions.fail(ex);
         }
     }
 

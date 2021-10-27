@@ -18,8 +18,14 @@ import javax.lang.model.element.*;
 import javax.lang.model.type.MirroredTypeException;
 import javax.lang.model.type.PrimitiveType;
 import javax.lang.model.type.TypeMirror;
+import javax.tools.FileObject;
+import javax.tools.StandardLocation;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.lang.annotation.Annotation;
+import java.nio.charset.StandardCharsets;
+import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -30,6 +36,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class ProcessorUtils {
+
+    private static final SecureRandom RANDOM = new SecureRandom();
 
     private ProcessorUtils() {}
 
@@ -408,12 +416,37 @@ public class ProcessorUtils {
                 .collect(Collectors.toList());
     }
 
-    static boolean isLombokMock(ProcessingEnvironment processingEnvironment, TypeElement entity, Element e) {
+    public static boolean isLombokMock(ProcessingEnvironment processingEnvironment, TypeElement entity, Element e) {
         return findGetterOpt(processingEnvironment, entity, e.getSimpleName())
                 .map(LombokMock.class::isInstance)
                 .orElse(false)
                 || findSetterOpt(processingEnvironment, entity, e.getSimpleName())
                 .map(LombokMock.class::isInstance)
                 .orElse(false);
+    }
+
+    public static void generateSpi(ProcessingEnvironment processingEnvironment, GeneratedFile generatedFile, Class<?> serviceClass) {
+        try {
+            String name = serviceClass.getName();
+            FileObject resource = processingEnvironment.getFiler().createResource(
+                    StandardLocation.CLASS_OUTPUT, "", String.format("META-INF/services/%s", name));
+            try (Writer w = new OutputStreamWriter(resource.openOutputStream(), StandardCharsets.UTF_8)) {
+                w.write(String.format("%s.%s", generatedFile.getPackageName(), generatedFile.getSpec().name));
+            }
+        } catch (IOException ex) {
+            throw new ProcessorException("Error during Resource creation : " + ex.getMessage());
+        }
+    }
+
+    public static String randomIdentifier() {
+        int leftLimit = 48;
+        int rightLimit = 122;
+        int targetStringLength = 10;
+
+        return "$$Generated$$" + RANDOM.ints(leftLimit, rightLimit + 1)
+                .filter(i -> (i <= 57 || i >= 65) && (i <= 90 || i >= 97))
+                .limit(targetStringLength)
+                .collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append)
+                .toString();
     }
 }

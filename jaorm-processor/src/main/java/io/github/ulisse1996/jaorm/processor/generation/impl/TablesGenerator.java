@@ -4,6 +4,7 @@ import com.squareup.javapoet.*;
 import io.github.ulisse1996.jaorm.annotation.Id;
 import io.github.ulisse1996.jaorm.annotation.Table;
 import io.github.ulisse1996.jaorm.entity.TableSelectEnd;
+import io.github.ulisse1996.jaorm.processor.config.ConfigHolder;
 import io.github.ulisse1996.jaorm.processor.generation.Generator;
 import io.github.ulisse1996.jaorm.processor.util.GeneratedFile;
 import io.github.ulisse1996.jaorm.processor.util.ProcessorUtils;
@@ -45,13 +46,24 @@ public class TablesGenerator extends Generator {
     }
 
     private void generateTables(List<TypeSpec> specs) {
-        TypeSpec spec = TypeSpec.classBuilder("Tables")
+        String suffix = ConfigHolder.getInstance().getConfig("jaorm.tables.suffix");
+        suffix = toClassSuffix(suffix);
+        TypeSpec spec = TypeSpec.classBuilder("Tables" + suffix)
                 .addModifiers(Modifier.PUBLIC)
                 .addFields(generateFields(specs))
                 .addTypes(specs)
                 .build();
         ProcessorUtils.generate(processingEnvironment,
                 new GeneratedFile(JAORM_PACKAGE, spec, ""));
+    }
+
+    private String toClassSuffix(String suffix) {
+        if (suffix == null || suffix.isEmpty()) {
+            return "";
+        }
+
+        suffix = suffix.toLowerCase();
+        return Character.toUpperCase(suffix.charAt(0)) + suffix.substring(1);
     }
 
     private Iterable<FieldSpec> generateFields(List<TypeSpec> specs) {

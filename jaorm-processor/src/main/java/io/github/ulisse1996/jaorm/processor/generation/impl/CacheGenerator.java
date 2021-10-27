@@ -40,7 +40,7 @@ public class CacheGenerator extends Generator {
     }
 
     private void generateCaches(Set<TypeElement> cacheables) {
-        TypeSpec caches = TypeSpec.classBuilder("Caches")
+        TypeSpec caches = TypeSpec.classBuilder("Caches" + ProcessorUtils.randomIdentifier())
                 .addModifiers(Modifier.PUBLIC)
                 .superclass(CacheService.class)
                 .addField(cachesMap(), "caches", Modifier.PRIVATE, Modifier.FINAL)
@@ -50,6 +50,11 @@ public class CacheGenerator extends Generator {
                 .build();
         ProcessorUtils.generate(processingEnvironment,
                 new GeneratedFile(JAORM_PACKAGE, caches, ""));
+        ProcessorUtils.generateSpi(
+                processingEnvironment,
+                new GeneratedFile(JAORM_PACKAGE, caches, ""),
+                CacheService.class
+        );
     }
 
     private Iterable<MethodSpec> buildCacheService() {

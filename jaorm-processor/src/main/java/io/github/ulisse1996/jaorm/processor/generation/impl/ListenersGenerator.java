@@ -34,7 +34,7 @@ public class ListenersGenerator extends Generator {
     }
 
     private void generateEntityListener(List<TypeElement> listeners) {
-        TypeSpec entityListeners = TypeSpec.classBuilder("EntityListeners")
+        TypeSpec entityListeners = TypeSpec.classBuilder("EntityListeners" + ProcessorUtils.randomIdentifier())
                 .addModifiers(Modifier.PUBLIC)
                 .superclass(ListenersService.class)
                 .addField(classSet(), "classes", Modifier.PRIVATE, Modifier.FINAL)
@@ -43,6 +43,11 @@ public class ListenersGenerator extends Generator {
                 .build();
         ProcessorUtils.generate(processingEnvironment,
                 new GeneratedFile(JAORM_PACKAGE, entityListeners, ""));
+        ProcessorUtils.generateSpi(
+                processingEnvironment,
+                new GeneratedFile(JAORM_PACKAGE, entityListeners, ""),
+                ListenersService.class
+        );
     }
 
     private MethodSpec buildGetClasses() {

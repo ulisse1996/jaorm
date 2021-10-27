@@ -104,7 +104,7 @@ public class GenerationInfo {
         }
     }
 
-    private String getSqlLock(String where) {
+    protected String getSqlLock(String where) {
         try {
             return VendorSpecific.getSpecific(LockSpecific.class)
                     .selectWithLock(tableName, where, valueColumn);

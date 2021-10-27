@@ -79,7 +79,7 @@ public class QueryGenerator extends Generator {
     }
 
     private void buildQueries(List<TypeElement> types) {
-        TypeSpec queries = TypeSpec.classBuilder("Queries")
+        TypeSpec queries = TypeSpec.classBuilder("Queries" + ProcessorUtils.randomIdentifier())
                 .addModifiers(Modifier.PUBLIC)
                 .superclass(QueriesService.class)
                 .addField(queriesMap(), "queries", Modifier.PRIVATE, Modifier.FINAL)
@@ -88,6 +88,11 @@ public class QueryGenerator extends Generator {
                 .build();
         ProcessorUtils.generate(processingEnvironment,
                 new GeneratedFile(JAORM_PACKAGE, queries, ""));
+        ProcessorUtils.generateSpi(
+                processingEnvironment,
+                new GeneratedFile(JAORM_PACKAGE, queries, ""),
+                QueriesService.class
+        );
     }
 
     private MethodSpec buildGetQueries() {
