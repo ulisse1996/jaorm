@@ -56,6 +56,7 @@ public abstract class QueriesService {
                 .findFirst()
                 .map(DaoImplementation::getDaoSupplier)
                 .map(Supplier::get)
+                .filter(c -> c instanceof BaseDao<?>)
                 .orElseThrow(() -> new IllegalArgumentException("Can't find BaseDao for " + found));
     }
 

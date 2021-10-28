@@ -6,6 +6,8 @@ import io.github.ulisse1996.jaorm.entity.Result;
 import io.github.ulisse1996.jaorm.exception.JaormSqlException;
 import io.github.ulisse1996.jaorm.generated.Tables;
 import io.github.ulisse1996.jaorm.integration.test.entity.*;
+import io.github.ulisse1996.jaorm.integration.test.projection.MyProjection;
+import io.github.ulisse1996.jaorm.integration.test.projection.ProjectionDao;
 import io.github.ulisse1996.jaorm.integration.test.query.*;
 import io.github.ulisse1996.jaorm.spi.QueriesService;
 import io.github.ulisse1996.jaorm.spi.QueryRunner;
@@ -199,5 +201,35 @@ class CoreIT extends AbstractIT {
 
         Assertions.assertTrue(cityOpt.isPresent());
         Assertions.assertTrue(EntityComparator.getInstance(City.class).equals(city, cityOpt.get()));
+    }
+
+    @ParameterizedTest
+    @MethodSource("getSqlTests")
+    void should_read_projections(HSQLDBProvider.DatabaseType type, String initSql) {
+        setDataSource(type, initSql);
+
+        ProjectionDao projectionDao = QueriesService.getInstance().getQuery(ProjectionDao.class);
+
+        MyProjection projection = projectionDao.getMyProjection();
+        Optional<MyProjection> optionalMyProjection = projectionDao.getOptMyProjection();
+        List<MyProjection> myProjections = projectionDao.getAllMyProjection();
+
+        Assertions.assertNotNull(projection);
+        Assertions.assertEquals("SUB_NAME", projection.getSubName());
+        Assertions.assertEquals(BigDecimal.ONE, projection.getId());
+        Assertions.assertTrue(projection.isValid());
+        Assertions.assertNull(projection.getOther());
+
+        Assertions.assertTrue(optionalMyProjection.isPresent());
+        Assertions.assertEquals("SUB_NAME", optionalMyProjection.get().getSubName());
+        Assertions.assertEquals(BigDecimal.ONE, optionalMyProjection.get().getId());
+        Assertions.assertTrue(optionalMyProjection.get().isValid());
+        Assertions.assertNull(optionalMyProjection.get().getOther());
+
+        Assertions.assertEquals(1, myProjections.size());
+        Assertions.assertEquals("SUB_NAME", myProjections.get(0).getSubName());
+        Assertions.assertEquals(BigDecimal.ONE, myProjections.get(0).getId());
+        Assertions.assertTrue(myProjections.get(0).isValid());
+        Assertions.assertNull(myProjections.get(0).getOther());
     }
 }

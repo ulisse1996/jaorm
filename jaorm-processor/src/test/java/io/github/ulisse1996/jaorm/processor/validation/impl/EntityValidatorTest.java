@@ -279,6 +279,8 @@ class EntityValidatorTest {
                     .thenReturn(Arrays.asList(gen1, gen2));
             mk.when(() -> ProcessorUtils.getUnboxed(Mockito.any(), Mockito.any()))
                     .thenReturn(null);
+            mk.when(() -> ProcessorUtils.getBeforeConversionTypes(Mockito.any(), Mockito.any()))
+                    .thenCallRealMethod();
             Mockito.when(gen2.asType())
                     .thenReturn(mirror2);
             Mockito.when(field.asType())
@@ -318,6 +320,8 @@ class EntityValidatorTest {
                     .thenReturn(Arrays.asList(gen1, gen2));
             mk.when(() -> ProcessorUtils.getUnboxed(Mockito.any(), Mockito.any()))
                     .thenReturn(null);
+            mk.when(() -> ProcessorUtils.getBeforeConversionTypes(Mockito.any(), Mockito.any()))
+                    .thenCallRealMethod();
             Mockito.when(gen2.asType())
                     .thenReturn(mirror2);
             Mockito.when(field.asType())
