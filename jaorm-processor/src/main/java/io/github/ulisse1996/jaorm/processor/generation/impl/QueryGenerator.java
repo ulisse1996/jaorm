@@ -246,7 +246,7 @@ public class QueryGenerator extends Generator {
                     "return $T.getSimple().read($S, params)",
                     new Object[] {QueryRunner.class, sql}
             );
-        } else if (entities.contains(definition.getRealClass()) || definition.getRealClass().getAnnotation(Projection.class) != null) {
+        } else if (entities.contains(definition.getRealClass()) || (definition.getRealClass() != null && definition.getRealClass().getAnnotation(Projection.class) != null)) {
             return new AbstractMap.SimpleImmutableEntry<>(
                     "return $T.getInstance($T.class).read($T.class, $S, params)",
                     stmParams

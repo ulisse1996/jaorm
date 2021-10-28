@@ -43,7 +43,7 @@ class ProjectionsValidatorTest {
     void should_throw_exception_for_projections_without_columns() {
         Mockito.when(projection.getEnclosedElements())
                         .thenReturn(Collections.emptyList());
-        Assertions.assertThrows(ProcessorException.class, () ->
+        Assertions.assertThrows(ProcessorException.class, () -> //NOSONAR
                 testSubject.validate(Collections.singletonList(projection)));
     }
 
@@ -56,7 +56,7 @@ class ProjectionsValidatorTest {
         try (MockedStatic<ProcessorUtils> mk = Mockito.mockStatic(ProcessorUtils.class)) {
             mk.when(() -> ProcessorUtils.getConstructors(Mockito.any(), Mockito.any()))
                     .thenReturn(Collections.emptyList());
-            Assertions.assertThrows(ProcessorException.class, () ->
+            Assertions.assertThrows(ProcessorException.class, () -> //NOSONAR
                     testSubject.validate(Collections.singletonList(projection)));
         }
     }
@@ -78,7 +78,7 @@ class ProjectionsValidatorTest {
                     .thenReturn(Optional.empty());
             mk.when(() -> ProcessorUtils.findSetterOpt(Mockito.any(), Mockito.any(), Mockito.any()))
                     .thenReturn(Optional.empty());
-            Assertions.assertThrows(ProcessorException.class, () ->
+            Assertions.assertThrows(ProcessorException.class, () -> //NOSONAR
                     testSubject.validate(Collections.singletonList(projection)));
         }
     }
@@ -100,7 +100,7 @@ class ProjectionsValidatorTest {
                     .thenReturn(Optional.of(method));
             mk.when(() -> ProcessorUtils.findSetterOpt(Mockito.any(), Mockito.any(), Mockito.any()))
                     .thenReturn(Optional.empty());
-            Assertions.assertThrows(ProcessorException.class, () ->
+            Assertions.assertThrows(ProcessorException.class, () -> //NOSONAR
                     testSubject.validate(Collections.singletonList(projection)));
         }
     }
@@ -128,7 +128,7 @@ class ProjectionsValidatorTest {
                     .thenReturn(Optional.of(method));
             mk.when(() -> ProcessorUtils.getBeforeConversionTypes(Mockito.any(), Mockito.any()))
                     .thenReturn(Collections.emptyList());
-            Assertions.assertThrows(ProcessorException.class, () ->
+            Assertions.assertThrows(ProcessorException.class, () -> //NOSONAR
                     testSubject.validate(Collections.singletonList(projection)));
         }
     }
