@@ -1,9 +1,6 @@
 package io.github.ulisse1996.jaorm.processor.validation;
 
-import io.github.ulisse1996.jaorm.processor.validation.impl.EntityValidator;
-import io.github.ulisse1996.jaorm.processor.validation.impl.GeneratedValidator;
-import io.github.ulisse1996.jaorm.processor.validation.impl.QueryValidator;
-import io.github.ulisse1996.jaorm.processor.validation.impl.RelationshipValidator;
+import io.github.ulisse1996.jaorm.processor.validation.impl.*;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Element;
@@ -28,6 +25,8 @@ public abstract class Validator {
                 return new RelationshipValidator(processingEnvironment);
             case GENERATORS:
                 return new GeneratedValidator(processingEnvironment);
+            case PROJECTIONS:
+                return new ProjectionsValidator(processingEnvironment);
             default:
                 throw new IllegalArgumentException("Can't find validator");
         }

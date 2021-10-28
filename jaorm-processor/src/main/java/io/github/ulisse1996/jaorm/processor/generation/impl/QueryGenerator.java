@@ -5,6 +5,7 @@ import io.github.ulisse1996.jaorm.Arguments;
 import io.github.ulisse1996.jaorm.BaseDao;
 import io.github.ulisse1996.jaorm.DaoImplementation;
 import io.github.ulisse1996.jaorm.annotation.Dao;
+import io.github.ulisse1996.jaorm.annotation.Projection;
 import io.github.ulisse1996.jaorm.annotation.Query;
 import io.github.ulisse1996.jaorm.annotation.Table;
 import io.github.ulisse1996.jaorm.cache.Cacheable;
@@ -245,7 +246,7 @@ public class QueryGenerator extends Generator {
                     "return $T.getSimple().read($S, params)",
                     new Object[] {QueryRunner.class, sql}
             );
-        } else if (entities.contains(definition.getRealClass())) {
+        } else if (entities.contains(definition.getRealClass()) || (definition.getRealClass() != null && definition.getRealClass().getAnnotation(Projection.class) != null)) {
             return new AbstractMap.SimpleImmutableEntry<>(
                     "return $T.getInstance($T.class).read($T.class, $S, params)",
                     stmParams

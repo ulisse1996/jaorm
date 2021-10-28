@@ -10,14 +10,11 @@ import io.github.ulisse1996.jaorm.processor.validation.Validator;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.*;
-import javax.lang.model.type.PrimitiveType;
 import javax.lang.model.type.TypeMirror;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class EntityValidator extends Validator {
 
@@ -77,11 +74,7 @@ public class EntityValidator extends Validator {
     }
 
     private void checkConverter(TypeElement entity, VariableElement variableElement) {
-        List<TypeElement> typeGenerics = ProcessorUtils.getConverterTypes(processingEnvironment, variableElement);
-        TypeMirror toConversion = typeGenerics.get(1).asType();
-        PrimitiveType unboxed = ProcessorUtils.getUnboxed(processingEnvironment, typeGenerics.get(1));
-        List<TypeMirror> values = Stream.of(toConversion, unboxed).filter(Objects::nonNull)
-                .collect(Collectors.toList());
+        List<TypeMirror> values = ProcessorUtils.getBeforeConversionTypes(processingEnvironment, variableElement);
         if (!values.contains(variableElement.asType())) {
             throw new ProcessorException(String.format("Mismatch between converter and field %s for Entity %s",
                     variableElement.getSimpleName(), entity.getQualifiedName()));

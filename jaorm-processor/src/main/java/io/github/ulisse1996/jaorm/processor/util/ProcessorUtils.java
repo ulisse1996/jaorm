@@ -1,6 +1,8 @@
 package io.github.ulisse1996.jaorm.processor.util;
 
+import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.JavaFile;
+import com.squareup.javapoet.MethodSpec;
 import io.github.ulisse1996.jaorm.BaseDao;
 import io.github.ulisse1996.jaorm.annotation.Column;
 import io.github.ulisse1996.jaorm.annotation.Converter;
@@ -16,6 +18,7 @@ import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.*;
 import javax.lang.model.type.MirroredTypeException;
+import javax.lang.model.type.NoType;
 import javax.lang.model.type.PrimitiveType;
 import javax.lang.model.type.TypeMirror;
 import javax.tools.FileObject;
@@ -38,6 +41,7 @@ import java.util.stream.Stream;
 public class ProcessorUtils {
 
     private static final SecureRandom RANDOM = new SecureRandom();
+    private static final String REQUIRE_NON_NULL = "$T.requireNonNull(this.entity)";
 
     private ProcessorUtils() {}
 
@@ -448,5 +452,61 @@ public class ProcessorUtils {
                 .limit(targetStringLength)
                 .collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append)
                 .toString();
+    }
+
+    public static List<ExecutableElement> getAllMethods(ProcessingEnvironment processingEnvironment, TypeElement element) {
+        List<? extends Element> elements = getAllValidElements(processingEnvironment, element);
+        List<ExecutableElement> methods = elements.stream()
+                .filter(ExecutableElement.class::isInstance)
+                .map(ExecutableElement.class::cast)
+                .filter(e -> !e.getKind().equals(ElementKind.CONSTRUCTOR))
+                .collect(Collectors.toList());
+        methods.addAll(ProcessorUtils.appendExternalGeneratedMethods(processingEnvironment, element, elements));
+        return methods;
+    }
+
+    public static String extractParameterNames(ExecutableElement m) {
+        if (!m.getParameters().isEmpty()) {
+            return m.getParameters().stream()
+                    .map(VariableElement::getSimpleName)
+                    .collect(Collectors.joining(","));
+        }
+
+        return "";
+    }
+
+    public static MethodSpec buildDelegateMethod(ExecutableElement m, TypeElement entity, boolean forEntity) {
+        MethodSpec.Builder builder = MethodSpec.overriding(m)
+                .addStatement(REQUIRE_NON_NULL, Objects.class);
+        String variables = ProcessorUtils.extractParameterNames(m);
+
+        if (m.getSimpleName().contentEquals("equals")) {
+            builder.addCode(buildCustomEquals(m.getParameters().get(0).getSimpleName().toString(), entity));
+        } else if (m.getReturnType() instanceof NoType) {
+            if (forEntity) {
+                builder.addStatement("this.modified = true");
+            }
+            builder.addStatement("this.entity.$L($L)", m.getSimpleName(), variables);
+        } else {
+            builder.addStatement("return this.entity.$L($L)", m.getSimpleName(), variables);
+        }
+        return builder.build();
+    }
+
+    private static CodeBlock buildCustomEquals(String paramName, TypeElement entity) {
+        return CodeBlock.builder()
+                .beginControlFlow("if (getClass().isInstance($L))", paramName)
+                .addStatement("return this.entity.equals((($TDelegate) $L).entity)", entity, paramName)
+                .endControlFlow()
+                .addStatement("return this.entity.equals($L)", paramName)
+                .build();
+    }
+
+    public static List<TypeMirror> getBeforeConversionTypes(ProcessingEnvironment processingEnvironment, VariableElement field) {
+        List<TypeElement> typeGenerics = ProcessorUtils.getConverterTypes(processingEnvironment, field);
+        TypeMirror toConversion = typeGenerics.get(1).asType();
+        PrimitiveType unboxed = ProcessorUtils.getUnboxed(processingEnvironment, typeGenerics.get(1));
+        return Stream.of(toConversion, unboxed).filter(Objects::nonNull)
+                .collect(Collectors.toList());
     }
 }

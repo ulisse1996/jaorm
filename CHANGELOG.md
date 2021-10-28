@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 0.30.0
+- Feature: Projections Support
+
 ## 0.29.0
 - Feature: Support for Multiple Jaorm SPI Configurations
 - Feature: Hash Cache for Jaorm Validation

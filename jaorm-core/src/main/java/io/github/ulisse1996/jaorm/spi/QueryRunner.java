@@ -49,7 +49,8 @@ public abstract class QueryRunner {
 
     private static boolean isDelegate(Class<?> klass) {
         return DelegatesService.getInstance().getDelegates().containsKey(klass) ||
-                EntityDelegate.class.isAssignableFrom(klass);
+                EntityDelegate.class.isAssignableFrom(klass) ||
+                ProjectionsService.getInstance().getProjections().containsKey(klass);
     }
 
     public static QueryRunner getSimple() {

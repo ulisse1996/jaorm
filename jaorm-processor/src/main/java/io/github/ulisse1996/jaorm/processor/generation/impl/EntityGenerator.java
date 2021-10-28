@@ -21,7 +21,6 @@ import io.github.ulisse1996.jaorm.spi.QueryRunner;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.*;
-import javax.lang.model.type.NoType;
 import javax.lang.model.type.TypeMirror;
 import java.util.*;
 import java.util.function.Supplier;
@@ -121,12 +120,7 @@ public class EntityGenerator extends Generator {
 
     private Iterable<MethodSpec> buildDelegation(TypeElement entity) {
         List<? extends Element> elements = ProcessorUtils.getAllValidElements(processingEnvironment, entity);
-        List<ExecutableElement> methods = elements.stream()
-                .filter(ExecutableElement.class::isInstance)
-                .map(ExecutableElement.class::cast)
-                .filter(e -> !e.getKind().equals(ElementKind.CONSTRUCTOR))
-                .collect(Collectors.toList());
-        methods.addAll(ProcessorUtils.appendExternalGeneratedMethods(processingEnvironment, entity, elements));
+        List<ExecutableElement> methods = ProcessorUtils.getAllMethods(processingEnvironment, entity);
         List<Map.Entry<Element, ExecutableElement>> joins = new ArrayList<>();
         for (Element element : elements) {
             if (hasJoinAnnotation(element)) {
@@ -144,7 +138,7 @@ public class EntityGenerator extends Generator {
             if (join.isPresent()) {
                 specs.add(buildJoinMethod(entity, join.get()));
             } else {
-                specs.add(buildDelegateMethod(m, entity));
+                specs.add(ProcessorUtils.buildDelegateMethod(m, entity, true));
             }
         }
         return specs;
@@ -152,23 +146,6 @@ public class EntityGenerator extends Generator {
 
     private boolean hasJoinAnnotation(Element ele) {
         return ele.getAnnotation(Relationship.class) != null;
-    }
-
-    private MethodSpec buildDelegateMethod(ExecutableElement m, TypeElement entity) {
-        MethodSpec.Builder builder = MethodSpec.overriding(m)
-                .addStatement(REQUIRE_NON_NULL, Objects.class);
-        String variables;
-        variables = extractParameterNames(m);
-
-        if (m.getSimpleName().contentEquals("equals")) {
-            builder.addCode(buildCustomEquals(m.getParameters().get(0).getSimpleName().toString(), entity));
-        } else if (m.getReturnType() instanceof NoType) {
-            builder.addStatement("this.modified = true");
-            builder.addStatement("this.entity.$L($L)", m.getSimpleName(), variables);
-        } else {
-            builder.addStatement("return this.entity.$L($L)", m.getSimpleName(), variables);
-        }
-        return builder.build();
     }
 
     private MethodSpec buildJoinMethod(TypeElement entity, Map.Entry<Element, ExecutableElement> join) {
@@ -254,15 +231,6 @@ public class EntityGenerator extends Generator {
                 .orElseThrow(() -> new ProcessorException("Can't find referenced column"));
     }
 
-    private CodeBlock buildCustomEquals(String paramName, TypeElement entity) {
-        return CodeBlock.builder()
-                .beginControlFlow("if (getClass().isInstance($L))", paramName)
-                .addStatement("return this.entity.equals((($TDelegate) $L).entity)", entity, paramName)
-                .endControlFlow()
-                .addStatement("return this.entity.equals($L)", paramName)
-                .build();
-    }
-
 
     private FieldSpec addDeleteSql() {
         return FieldSpec.builder(String.class, "DELETE_SQL", Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
@@ -313,7 +281,7 @@ public class EntityGenerator extends Generator {
                 .build();
         MethodSpec setEntity = MethodSpec.overriding(ProcessorUtils.getMethod(processingEnvironment, "setEntity", EntityDelegate.class))
                 .addStatement("this.modified = false")
-                .addStatement("this.entity = toEntity($L)", extractParameterNames(ProcessorUtils.getMethod(processingEnvironment, "setEntity", EntityDelegate.class)))
+                .addStatement("this.entity = toEntity($L)", ProcessorUtils.extractParameterNames(ProcessorUtils.getMethod(processingEnvironment, "setEntity", EntityDelegate.class)))
                 .build();
         MethodSpec setEntityObj = MethodSpec.methodBuilder("setFullEntity")
                 .addAnnotation(Override.class)
@@ -356,16 +324,6 @@ public class EntityGenerator extends Generator {
                 insertSql, selectables, table, updateSql,
                 getEntity, deleteSql, modified)
                 .collect(Collectors.toList());
-    }
-
-    private String extractParameterNames(ExecutableElement m) {
-        if (!m.getParameters().isEmpty()) {
-            return m.getParameters().stream()
-                    .map(VariableElement::getSimpleName)
-                    .collect(Collectors.joining(","));
-        }
-
-        return "";
     }
 
     private TypeSpec generateColumns(ProcessingEnvironment processingEnvironment, TypeElement entity) {

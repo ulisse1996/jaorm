@@ -10,7 +10,8 @@ public enum ValidatorType {
     QUERY(Query.class, Dao.class),
     ENTITY(Table.class),
     RELATIONSHIP(Relationship.class),
-    GENERATORS(CustomGenerated.class, TableGenerated.class);
+    GENERATORS(CustomGenerated.class, TableGenerated.class),
+    PROJECTIONS(Projection.class);
 
     private final List<Class<? extends Annotation>> supported;
 

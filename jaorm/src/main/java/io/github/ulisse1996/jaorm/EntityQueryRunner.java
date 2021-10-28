@@ -5,10 +5,12 @@ import io.github.ulisse1996.jaorm.entity.Result;
 import io.github.ulisse1996.jaorm.entity.sql.SqlParameter;
 import io.github.ulisse1996.jaorm.exception.JaormSqlException;
 import io.github.ulisse1996.jaorm.mapping.EmptyClosable;
+import io.github.ulisse1996.jaorm.mapping.ProjectionDelegate;
 import io.github.ulisse1996.jaorm.mapping.ResultSetStream;
 import io.github.ulisse1996.jaorm.mapping.TableRow;
 import io.github.ulisse1996.jaorm.spi.DelegatesService;
 import io.github.ulisse1996.jaorm.spi.GeneratorsService;
+import io.github.ulisse1996.jaorm.spi.ProjectionsService;
 import io.github.ulisse1996.jaorm.spi.QueryRunner;
 
 import java.sql.Connection;
@@ -39,32 +41,54 @@ public class EntityQueryRunner extends QueryRunner {
     @SuppressWarnings("unchecked")
     public <R> R read(Class<R> entity, String query, List<SqlParameter> params) {
         logger.logSql(query, params);
-        Supplier<EntityDelegate<?>> delegateSupplier = DelegatesService.getInstance().searchDelegate(entity);
+        SupplierPair supplierPair = getSupplierPair(entity);
         try (Connection connection = getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(query);
              ResultSetExecutor executor = new ResultSetExecutor(preparedStatement, params)) {
             executor.getResultSet().next();
-            EntityDelegate<?> entityDelegate = delegateSupplier.get();
-            entityDelegate.setEntity(executor.getResultSet());
-            return (R) entityDelegate;
+            if (supplierPair.projectionSupplier == null) {
+                EntityDelegate<?> entityDelegate = supplierPair.delegateSupplier.get();
+                entityDelegate.setEntity(executor.getResultSet());
+                return (R) entityDelegate;
+            } else {
+                ProjectionDelegate delegate = supplierPair.projectionSupplier.get();
+                delegate.setEntity(executor.getResultSet());
+                return (R) delegate;
+            }
         } catch (SQLException ex) {
             logger.error(String.format("Error during read for entity %s", entity)::toString, ex);
             throw new JaormSqlException(ex);
         }
     }
 
+    private SupplierPair getSupplierPair(Class<?> klass) {
+        Supplier<EntityDelegate<?>> delegateSupplier = null;
+        Supplier<ProjectionDelegate> projectionSupplier = ProjectionsService.getInstance()
+                .getProjections().get(klass);
+        if (projectionSupplier == null) {
+            delegateSupplier = DelegatesService.getInstance().searchDelegate(klass);
+        }
+        return new SupplierPair(delegateSupplier, projectionSupplier);
+    }
+
     @Override
     @SuppressWarnings("unchecked")
     public <R> Result<R> readOpt(Class<R> entity, String query, List<SqlParameter> params) {
         logger.logSql(query, params);
-        Supplier<EntityDelegate<?>> delegateSupplier = DelegatesService.getInstance().searchDelegate(entity);
+        SupplierPair supplierPair = getSupplierPair(entity);
         try (Connection connection = getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(query);
              ResultSetExecutor executor = new ResultSetExecutor(preparedStatement, params)) {
             if (executor.getResultSet().next()) {
-                EntityDelegate<?> entityDelegate = delegateSupplier.get();
-                entityDelegate.setEntity(executor.getResultSet());
-                return (Result<R>) Result.of(entityDelegate);
+                if (supplierPair.projectionSupplier == null) {
+                    EntityDelegate<?> entityDelegate = supplierPair.delegateSupplier.get();
+                    entityDelegate.setEntity(executor.getResultSet());
+                    return (Result<R>) Result.of(entityDelegate);
+                } else {
+                    ProjectionDelegate delegate = supplierPair.projectionSupplier.get();
+                    delegate.setEntity(executor.getResultSet());
+                    return (Result<R>) Result.of(delegate);
+                }
             } else {
                 return Result.empty();
             }
@@ -79,14 +103,20 @@ public class EntityQueryRunner extends QueryRunner {
     public <R> List<R> readAll(Class<R> entity, String query, List<SqlParameter> params) {
         logger.logSql(query, params);
         List<R> values = new ArrayList<>();
-        Supplier<EntityDelegate<?>> delegateSupplier = DelegatesService.getInstance().searchDelegate(entity);
+        SupplierPair supplierPair = getSupplierPair(entity);
         try (Connection connection = getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(query);
              ResultSetExecutor executor = new ResultSetExecutor(preparedStatement, params)) {
             while (executor.getResultSet().next()) {
-                EntityDelegate<?> entityDelegate = delegateSupplier.get();
-                entityDelegate.setEntity(executor.getResultSet());
-                values.add((R) entityDelegate);
+                if (supplierPair.projectionSupplier == null) {
+                    EntityDelegate<?> entityDelegate = supplierPair.delegateSupplier.get();
+                    entityDelegate.setEntity(executor.getResultSet());
+                    values.add((R) entityDelegate);
+                } else {
+                    ProjectionDelegate delegate = supplierPair.projectionSupplier.get();
+                    delegate.setEntity(executor.getResultSet());
+                    values.add((R) delegate);
+                }
             }
 
             return values;
@@ -180,5 +210,16 @@ public class EntityQueryRunner extends QueryRunner {
     @Override
     public int delete(String query, List<SqlParameter> params) {
         return doSimpleUpdate(query, params);
+    }
+
+    private static class SupplierPair {
+
+        private final Supplier<EntityDelegate<?>> delegateSupplier;
+        private final Supplier<ProjectionDelegate> projectionSupplier;
+
+        public SupplierPair(Supplier<EntityDelegate<?>> delegateSupplier, Supplier<ProjectionDelegate> projectionSupplier) {
+            this.delegateSupplier = delegateSupplier;
+            this.projectionSupplier = projectionSupplier;
+        }
     }
 }
