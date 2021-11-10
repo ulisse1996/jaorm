@@ -171,6 +171,16 @@ public class SimpleQueryRunner extends QueryRunner {
     }
 
     @Override
+    public <R> List<R> insertWithBatch(Class<?> entityClass, String query, List<R> entities) {
+        throw new UnsupportedOperationException("Insert on Simple Runner not supported");
+    }
+
+    @Override
+    public <R> List<R> updateWithBatch(Class<?> entityClass, String updateSql, List<R> entities) {
+        throw new UnsupportedOperationException("Update Batch on Simple Runner not supported");
+    }
+
+    @Override
     public int update(String query, List<SqlParameter> params) {
         return doSimpleUpdate(query, params);
     }

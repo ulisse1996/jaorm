@@ -11,6 +11,7 @@ public interface JaormLoggerHandler {
     void handleLog(Class<?> klass, Supplier<String> message, Level level);
     void handleError(Class<?> klass, Supplier<String> message, Throwable ex);
     void handleSqlLog(Class<?> klass, String sql, List<SqlParameter> sqlParameters);
+    void handleSqlBatchLog(Class<?> klass, String sql, List<List<SqlParameter>> sqlParameters);
 
     class NoOp implements JaormLoggerHandler {
 
@@ -30,6 +31,11 @@ public interface JaormLoggerHandler {
 
         @Override
         public void handleSqlLog(Class<?> klass, String sql, List<SqlParameter> sqlParameters) {
+            // nothing here
+        }
+
+        @Override
+        public void handleSqlBatchLog(Class<?> klass, String sql, List<List<SqlParameter>> sqlParameters) {
             // nothing here
         }
     }

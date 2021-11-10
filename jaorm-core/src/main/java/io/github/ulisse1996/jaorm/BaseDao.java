@@ -143,6 +143,67 @@ public interface BaseDao<R> {
                 .collect(Collectors.toList());
     }
 
+    default List<R> updateWithBatch(List<R> entities) {
+        Objects.requireNonNull(entities);
+        if (entities.isEmpty()) {
+            return entities;
+        }
+        Class<?> entityClass = entities.get(0).getClass();
+        RelationshipService relationshipService = RelationshipService.getInstance();
+        if (relationshipService.isEventActive(entityClass, EntityEventType.UPDATE)) {
+            throw new IllegalArgumentException("Can't use updateWithBatch with a cascading persist !");
+        }
+        for (R entity : entities) {
+            if (entity instanceof PreUpdate) {
+                try {
+                    ((PreUpdate<?>) entity).preUpdate();
+                } catch (Exception ex) {
+                    throw new PersistEventException(ex);
+                }
+            }
+            if (entity instanceof PostUpdate) {
+                try {
+                    ((PostUpdate<?>) entity).postUpdate();
+                } catch (Exception ex) {
+                    throw new PersistEventException(ex);
+                }
+            }
+        }
+        String updateSql = DelegatesService.getInstance().getUpdateSql(entityClass);
+        return QueryRunner.getInstance(entityClass)
+                .updateWithBatch(entityClass, updateSql, entities);
+    }
+
+    default List<R> insertWithBatch(List<R> entities) {
+        Objects.requireNonNull(entities);
+        if (entities.isEmpty()) {
+            return entities;
+        }
+        Class<?> entityClass = entities.get(0).getClass();
+        RelationshipService relationshipService = RelationshipService.getInstance();
+        if (relationshipService.isEventActive(entityClass, EntityEventType.PERSIST)) {
+            throw new IllegalArgumentException("Can't use insertWithBatch with a cascading update!");
+        }
+        for (R entity : entities) {
+            if (entity instanceof PrePersist) {
+                try {
+                    ((PrePersist<?>) entity).prePersist();
+                } catch (Exception ex) {
+                    throw new PersistEventException(ex);
+                }
+            }
+            if (entity instanceof PostPersist) {
+                try {
+                    ((PostPersist<?>) entity).postPersist();
+                } catch (Exception ex) {
+                    throw new PersistEventException(ex);
+                }
+            }
+        }
+        String insertSql = DelegatesService.getInstance().getInsertSql(entities.get(0));
+        return QueryRunner.getInstance(entityClass).insertWithBatch(entityClass, insertSql, entities);
+    }
+
     default List<SqlParameter> argumentsAsParameters(Object[] arguments) {
         Objects.requireNonNull(arguments);
         return Stream.of(arguments)

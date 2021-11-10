@@ -62,6 +62,11 @@ public class MockedRunner extends QueryRunner {
     }
 
     @Override
+    public <R> List<R> insertWithBatch(Class<?> entityClass, String query, List<R> entities) {
+        return null;
+    }
+
+    @Override
     public int update(String query, List<SqlParameter> params) {
         return 0;
     }
@@ -69,5 +74,10 @@ public class MockedRunner extends QueryRunner {
     @Override
     public int delete(String query, List<SqlParameter> params) {
         return 0;
+    }
+
+    @Override
+    public <R> List<R> updateWithBatch(Class<?> entityClass, String updateSql, List<R> entities) {
+        return null;
     }
 }

@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 0.31.0
+- Feature: Batch Insert/Update for Entity
+- Feature: Dsl Support for Insert/Update
+- Feature: Lombok Support for NoArgsConstructor
+- Feature: Log Sql for Batch Insert/Update
+
 ## 0.30.0
 - Feature: Projections Support
 

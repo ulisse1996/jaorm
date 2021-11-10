@@ -13,4 +13,8 @@ public class SqlJaormLogger extends SimpleJaormLogger {
     public void logSql(String sql, List<SqlParameter> sqlParameters) {
         handler.handleSqlLog(this.klass, sql, sqlParameters);
     }
+
+    public void logSqlBatch(String sql, List<List<SqlParameter>> sqlParameters) {
+        handler.handleSqlBatchLog(this.klass, sql, sqlParameters);
+    }
 }

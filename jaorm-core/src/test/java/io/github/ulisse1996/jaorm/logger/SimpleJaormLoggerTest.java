@@ -38,6 +38,9 @@ class SimpleJaormLoggerTest {
 
             @Override
             public void handleSqlLog(Class<?> klass, String sql, List<SqlParameter> sqlParameters) {}
+
+            @Override
+            public void handleSqlBatchLog(Class<?> klass, String sql, List<List<SqlParameter>> sqlParameters) {}
         });
         try (MockedStatic<ServiceFinder> mk = Mockito.mockStatic(ServiceFinder.class)) {
             mk.when(() -> ServiceFinder.loadService(JaormLoggerHandler.class))
