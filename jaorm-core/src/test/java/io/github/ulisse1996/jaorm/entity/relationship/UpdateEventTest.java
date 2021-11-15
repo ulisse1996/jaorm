@@ -167,9 +167,9 @@ class UpdateEventTest extends EventTest {
     @Test
     void should_do_insert_for_update_with_0_rows() {
         Relationship<Entity> relationship = new Relationship<>(Entity.class);
-        relationship.add(new Relationship.Node<>(Entity::getRelEntity, false, false, EntityEventType.values()));
-        relationship.add(new Relationship.Node<>(Entity::getRelEntityOpt, true, false, EntityEventType.values()));
-        relationship.add(new Relationship.Node<>(Entity::getRelEntityColl, false, true, EntityEventType.values()));
+        relationship.add(new Relationship.Node<>(RelEntity.class, Entity::getRelEntity, false, false, EntityEventType.values()));
+        relationship.add(new Relationship.Node<>(RelEntity.class, Entity::getRelEntityOpt, true, false, EntityEventType.values()));
+        relationship.add(new Relationship.Node<>(RelEntity.class, Entity::getRelEntityColl, false, true, EntityEventType.values()));
         MyEntityDelegate delegate = new MyEntityDelegate();
         DelegatesService delegatedMock = Mockito.mock(DelegatesService.class);
         QueryRunner mockRunner = Mockito.mock(QueryRunner.class);
@@ -213,9 +213,9 @@ class UpdateEventTest extends EventTest {
     @Test
     void should_not_insert_for_update_with_0_rows() {
         Relationship<Entity> relationship = new Relationship<>(Entity.class);
-        relationship.add(new Relationship.Node<>(Entity::getRelEntity, false, false, EntityEventType.UPDATE));
-        relationship.add(new Relationship.Node<>(Entity::getRelEntityOpt, true, false, EntityEventType.UPDATE));
-        relationship.add(new Relationship.Node<>(Entity::getRelEntityColl, false, true, EntityEventType.UPDATE));
+        relationship.add(new Relationship.Node<>(RelEntity.class, Entity::getRelEntity, false, false, EntityEventType.UPDATE));
+        relationship.add(new Relationship.Node<>(RelEntity.class, Entity::getRelEntityOpt, true, false, EntityEventType.UPDATE));
+        relationship.add(new Relationship.Node<>(RelEntity.class, Entity::getRelEntityColl, false, true, EntityEventType.UPDATE));
         MyEntityDelegate delegate = new MyEntityDelegate();
         DelegatesService delegatedMock = Mockito.mock(DelegatesService.class);
         QueryRunner mockRunner = Mockito.mock(QueryRunner.class);

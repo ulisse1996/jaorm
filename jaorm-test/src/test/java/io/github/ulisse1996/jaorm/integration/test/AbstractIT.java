@@ -4,11 +4,13 @@ import io.github.ulisse1996.jaorm.cache.EntityCache;
 import io.github.ulisse1996.jaorm.cache.StandardConfiguration;
 import io.github.ulisse1996.jaorm.entity.sql.DataSourceProvider;
 import io.github.ulisse1996.jaorm.integration.test.entity.Role;
+import io.github.ulisse1996.jaorm.integration.test.util.ExceptionLogger;
 import io.github.ulisse1996.jaorm.spi.CacheService;
 import io.github.ulisse1996.jaorm.spi.TransactionManager;
 import io.github.ulisse1996.jaorm.spi.common.Singleton;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.provider.Arguments;
 
 import java.lang.reflect.Field;
@@ -22,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
+@ExtendWith(ExceptionLogger.class)
 public abstract class AbstractIT {
 
     private final boolean skipSetup;

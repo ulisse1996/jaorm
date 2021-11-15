@@ -5,19 +5,26 @@ import io.github.ulisse1996.jaorm.external.support.mock.MockGetter;
 import io.github.ulisse1996.jaorm.external.support.mock.MockSetter;
 import lombok.Data;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.lang.model.element.Element;
+import javax.lang.model.element.TypeElement;
 
 public class LombokGenerator extends LombokSupport {
 
     @Override
     public boolean isLombokGenerated(Element element) {
-        if (!element.getKind().isField()) { // For now we only support check from field
+        if (!element.getKind().isField()) {
             return false;
         }
 
         return isGetterSetterAnnotated(element) || isDataClass(element);
+    }
+
+    @Override
+    public boolean hasLombokNoArgs(TypeElement entity) {
+        return entity.getAnnotation(NoArgsConstructor.class) != null;
     }
 
     @Override

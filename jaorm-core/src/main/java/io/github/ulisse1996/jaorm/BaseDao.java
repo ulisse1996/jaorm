@@ -1,19 +1,20 @@
 package io.github.ulisse1996.jaorm;
 
+import io.github.ulisse1996.jaorm.entity.EntityDelegate;
+import io.github.ulisse1996.jaorm.entity.Result;
 import io.github.ulisse1996.jaorm.entity.event.*;
 import io.github.ulisse1996.jaorm.entity.relationship.EntityEvent;
 import io.github.ulisse1996.jaorm.entity.relationship.EntityEventType;
+import io.github.ulisse1996.jaorm.entity.relationship.Relationship;
 import io.github.ulisse1996.jaorm.entity.relationship.UpdateEvent;
 import io.github.ulisse1996.jaorm.entity.sql.SqlAccessor;
 import io.github.ulisse1996.jaorm.entity.sql.SqlParameter;
 import io.github.ulisse1996.jaorm.exception.PersistEventException;
 import io.github.ulisse1996.jaorm.exception.RemoveEventException;
 import io.github.ulisse1996.jaorm.exception.UpdateEventException;
-import io.github.ulisse1996.jaorm.spi.DelegatesService;
-import io.github.ulisse1996.jaorm.spi.ListenersService;
-import io.github.ulisse1996.jaorm.spi.QueryRunner;
-import io.github.ulisse1996.jaorm.spi.RelationshipService;
+import io.github.ulisse1996.jaorm.spi.*;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -34,9 +35,7 @@ public interface BaseDao<R> {
             ListenersService.getInstance().fireEvent(entity, GlobalEventType.PRE_REMOVE);
             EntityEvent.forType(EntityEventType.REMOVE)
                     .apply(entity);
-            ListenersService.getInstance().fireEvent(entity, GlobalEventType.POST_REMOVE);
         } else {
-            ListenersService.getInstance().fireEvent(entity, GlobalEventType.PRE_REMOVE);
             if (entity instanceof PreRemove) {
                 try {
                     ((PreRemove<?>) entity).preRemove();
@@ -44,10 +43,10 @@ public interface BaseDao<R> {
                     throw new RemoveEventException(ex);
                 }
             }
+            ListenersService.getInstance().fireEvent(entity, GlobalEventType.PRE_REMOVE);
             res = QueryRunner.getInstance(entity.getClass())
                     .delete(DelegatesService.getInstance().getDeleteSql(entity.getClass()),
                             DelegatesService.getInstance().asWhere(entity).asSqlParameters());
-            ListenersService.getInstance().fireEvent(entity, GlobalEventType.POST_REMOVE);
             if (entity instanceof PostRemove) {
                 try {
                     ((PostRemove<?>) entity).postRemove();
@@ -56,6 +55,7 @@ public interface BaseDao<R> {
                 }
             }
         }
+        ListenersService.getInstance().fireEvent(entity, GlobalEventType.POST_REMOVE);
 
         return res;
     }
@@ -67,9 +67,7 @@ public interface BaseDao<R> {
             ListenersService.getInstance().fireEvent(entity, GlobalEventType.PRE_UPDATE);
             EntityEvent.forType(EntityEventType.UPDATE)
                     .apply(entity);
-            ListenersService.getInstance().fireEvent(entity, GlobalEventType.POST_UPDATE);
         } else {
-            ListenersService.getInstance().fireEvent(entity, GlobalEventType.PRE_UPDATE);
             if (entity instanceof PreUpdate) {
                 try {
                     ((PreUpdate<?>) entity).preUpdate();
@@ -77,8 +75,8 @@ public interface BaseDao<R> {
                     throw new UpdateEventException(ex);
                 }
             }
+            ListenersService.getInstance().fireEvent(entity, GlobalEventType.PRE_UPDATE);
             UpdateEvent.updateEntity(entity);
-            ListenersService.getInstance().fireEvent(entity, GlobalEventType.POST_UPDATE);
             if (entity instanceof PostUpdate) {
                 try {
                     ((PostUpdate<?>) entity).postUpdate();
@@ -87,7 +85,7 @@ public interface BaseDao<R> {
                 }
             }
         }
-
+        ListenersService.getInstance().fireEvent(entity, GlobalEventType.POST_UPDATE);
         return entity;
     }
 
@@ -95,12 +93,9 @@ public interface BaseDao<R> {
         Objects.requireNonNull(entity);
         RelationshipService relationshipService = RelationshipService.getInstance();
         if (relationshipService.isEventActive(entity.getClass(), EntityEventType.PERSIST)) {
-            ListenersService.getInstance().fireEvent(entity, GlobalEventType.PRE_PERSIST);
             entity = EntityEvent.forType(EntityEventType.PERSIST)
                     .applyAndReturn(entity);
-            ListenersService.getInstance().fireEvent(entity, GlobalEventType.POST_PERSIST);
         } else {
-            ListenersService.getInstance().fireEvent(entity, GlobalEventType.PRE_PERSIST);
             if (entity instanceof PrePersist) {
                 try {
                     ((PrePersist<?>) entity).prePersist();
@@ -108,12 +103,12 @@ public interface BaseDao<R> {
                     throw new PersistEventException(ex);
                 }
             }
+            ListenersService.getInstance().fireEvent(entity, GlobalEventType.PRE_PERSIST);
             entity = QueryRunner.getInstance(entity.getClass()).insert(
                     entity,
                     DelegatesService.getInstance().getInsertSql(entity),
                     argumentsAsParameters(DelegatesService.getInstance().asInsert(entity).getValues())
             );
-            ListenersService.getInstance().fireEvent(entity, GlobalEventType.POST_PERSIST);
             if (entity instanceof PostPersist) {
                 try {
                     ((PostPersist<?>) entity).postPersist();
@@ -122,6 +117,7 @@ public interface BaseDao<R> {
                 }
             }
         }
+        ListenersService.getInstance().fireEvent(entity, GlobalEventType.POST_PERSIST);
 
         return entity;
     }
@@ -150,9 +146,6 @@ public interface BaseDao<R> {
         }
         Class<?> entityClass = entities.get(0).getClass();
         RelationshipService relationshipService = RelationshipService.getInstance();
-        if (relationshipService.isEventActive(entityClass, EntityEventType.UPDATE)) {
-            throw new IllegalArgumentException("Can't use updateWithBatch with a cascading persist !");
-        }
         for (R entity : entities) {
             if (entity instanceof PreUpdate) {
                 try {
@@ -161,6 +154,12 @@ public interface BaseDao<R> {
                     throw new PersistEventException(ex);
                 }
             }
+            ListenersService.getInstance().fireEvent(entity, GlobalEventType.PRE_UPDATE);
+        }
+        String updateSql = DelegatesService.getInstance().getUpdateSql(entityClass);
+        entities = QueryRunner.getInstance(entityClass)
+                .updateWithBatch(entityClass, updateSql, entities);
+        for (R entity : entities) {
             if (entity instanceof PostUpdate) {
                 try {
                     ((PostUpdate<?>) entity).postUpdate();
@@ -168,10 +167,52 @@ public interface BaseDao<R> {
                     throw new PersistEventException(ex);
                 }
             }
+            ListenersService.getInstance().fireEvent(entity, GlobalEventType.POST_UPDATE);
         }
-        String updateSql = DelegatesService.getInstance().getUpdateSql(entityClass);
-        return QueryRunner.getInstance(entityClass)
-                .updateWithBatch(entityClass, updateSql, entities);
+        if (relationshipService.isEventActive(entityClass, EntityEventType.UPDATE)) {
+            applyRelationshipBatch(entities, entityClass, EntityEventType.UPDATE);
+        }
+        return entities;
+    }
+
+    @SuppressWarnings("unchecked")
+    default void applyRelationshipBatch(List<R> entities, Class<?> entityClass, EntityEventType eventType) {
+        Relationship<R> relationships = (Relationship<R>) RelationshipService.getInstance().getRelationships(entityClass);
+        if (relationships != null) {
+            List<Relationship.Node<R>> nodes = relationships.getNodeSet()
+                    .stream()
+                    .filter(n -> n.matchEvent(eventType))
+                    .collect(Collectors.toList());
+            for (Relationship.Node<R> node : nodes) {
+                BaseDao<Object> baseDao = QueriesService.getInstance().getBaseDao((Class<Object>) node.getLinkedClass());
+                List<Object> results;
+                // We unbox Entity for retrieve relationship saved on entity instance
+                if (node.isOpt()) {
+                    results = entities.stream()
+                            .map(EntityDelegate::unboxEntity)
+                            .map(node::getAsOpt)
+                            .filter(Result::isPresent)
+                            .map(Result::get)
+                            .collect(Collectors.toList());
+                } else if (node.isCollection()) {
+                    results = entities.stream()
+                            .map(EntityDelegate::unboxEntity)
+                            .flatMap(e -> Optional.ofNullable(node.getAsCollection(e)).orElse(Collections.emptyList()).stream())
+                            .collect(Collectors.toList());
+                } else {
+                    results = entities.stream()
+                            .map(EntityDelegate::unboxEntity)
+                            .map(node::get)
+                            .filter(Objects::nonNull)
+                            .collect(Collectors.toList());
+                }
+                if (EntityEventType.UPDATE.equals(eventType)) {
+                    baseDao.updateWithBatch(results);
+                } else {
+                    baseDao.insertWithBatch(results);
+                }
+            }
+        }
     }
 
     default List<R> insertWithBatch(List<R> entities) {
@@ -181,9 +222,6 @@ public interface BaseDao<R> {
         }
         Class<?> entityClass = entities.get(0).getClass();
         RelationshipService relationshipService = RelationshipService.getInstance();
-        if (relationshipService.isEventActive(entityClass, EntityEventType.PERSIST)) {
-            throw new IllegalArgumentException("Can't use insertWithBatch with a cascading update!");
-        }
         for (R entity : entities) {
             if (entity instanceof PrePersist) {
                 try {
@@ -192,6 +230,11 @@ public interface BaseDao<R> {
                     throw new PersistEventException(ex);
                 }
             }
+            ListenersService.getInstance().fireEvent(entity, GlobalEventType.PRE_PERSIST);
+        }
+        String insertSql = DelegatesService.getInstance().getInsertSql(entities.get(0));
+        entities = QueryRunner.getInstance(entityClass).insertWithBatch(entityClass, insertSql, entities);
+        for (R entity : entities) {
             if (entity instanceof PostPersist) {
                 try {
                     ((PostPersist<?>) entity).postPersist();
@@ -199,9 +242,12 @@ public interface BaseDao<R> {
                     throw new PersistEventException(ex);
                 }
             }
+            ListenersService.getInstance().fireEvent(entity, GlobalEventType.POST_PERSIST);
         }
-        String insertSql = DelegatesService.getInstance().getInsertSql(entities.get(0));
-        return QueryRunner.getInstance(entityClass).insertWithBatch(entityClass, insertSql, entities);
+        if (relationshipService.isEventActive(entityClass, EntityEventType.PERSIST)) {
+            applyRelationshipBatch(entities, entityClass, EntityEventType.PERSIST);
+        }
+        return entities;
     }
 
     default List<SqlParameter> argumentsAsParameters(Object[] arguments) {

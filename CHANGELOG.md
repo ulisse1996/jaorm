@@ -12,6 +12,7 @@
 ## 0.29.0
 - Feature: Support for Multiple Jaorm SPI Configurations
 - Feature: Hash Cache for Jaorm Validation
+- Feature: Tables with Suffix
 - Feature: Jaorm Validation for Classpath Entities
 
 ## 0.28.0

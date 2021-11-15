@@ -21,6 +21,7 @@ import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @ExtendWith(ExceptionLogger.class)
 class CoreIT extends AbstractIT {
@@ -311,5 +312,66 @@ class CoreIT extends AbstractIT {
         List<Store> updated = storeDAO.updateWithBatch(insert);
         updated.sort(Comparator.comparing(Store::getStoreId));
         Assertions.assertEquals(insert, updated);
+    }
+
+    @ParameterizedTest
+    @MethodSource("getSqlTests")
+    void should_insert_with_batch_and_nested_relationships(HSQLDBProvider.DatabaseType type, String initSql) {
+        setDataSource(type, initSql);
+
+        City city = new City();
+        city.setCityId(10);
+        city.setName("CITY");
+        city.setStores(Collections.singletonList(new Store()));
+        city.getStores().get(0).setName("STORE");
+        city.getStores().get(0).setCityId(10);
+        city.getStores().get(0).setStoreId(30);
+        city.getStores().get(0).setSellers(
+                IntStream.range(0, 5)
+                        .mapToObj(i -> {
+                            Seller seller = new Seller();
+                            seller.setName("SELLER_" + i);
+                            seller.setId(i);
+                            seller.setStoreId(30);
+                            return seller;
+                        }).collect(Collectors.toList())
+        );
+
+        City city2 = new City();
+        city2.setCityId(11);
+        city2.setName("CITY");
+        city2.setStores(Collections.singletonList(new Store()));
+        city2.getStores().get(0).setName("STORE");
+        city2.getStores().get(0).setCityId(11);
+        city2.getStores().get(0).setStoreId(31);
+        city2.getStores().get(0).setSellers(
+                IntStream.range(0, 5)
+                        .mapToObj(i -> {
+                            Seller seller = new Seller();
+                            seller.setName("SELLER_" + (i * 2));
+                            seller.setId(i * 2);
+                            seller.setStoreId(31);
+                            return seller;
+                        }).collect(Collectors.toList())
+        );
+
+        CityDAO cityDAO = QueriesService.getInstance().getQuery(CityDAO.class);
+        cityDAO.insertWithBatch(Arrays.asList(city, city2));
+
+        City result = new City();
+        result.setCityId(10);
+        result = cityDAO.read(result);
+
+        Assertions.assertNotNull(result);
+        Assertions.assertFalse(result.getStores().isEmpty());
+        Assertions.assertFalse(result.getStores().get(0).getSellers().isEmpty());
+
+        City result2 = new City();
+        result2.setCityId(10);
+        result2 = cityDAO.read(result2);
+
+        Assertions.assertNotNull(result2);
+        Assertions.assertFalse(result2.getStores().isEmpty());
+        Assertions.assertFalse(result2.getStores().get(0).getSellers().isEmpty());
     }
 }

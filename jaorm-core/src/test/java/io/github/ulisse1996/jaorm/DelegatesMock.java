@@ -2,6 +2,7 @@ package io.github.ulisse1996.jaorm;
 
 import io.github.ulisse1996.jaorm.entity.EntityDelegate;
 import io.github.ulisse1996.jaorm.entity.EntityMapper;
+import io.github.ulisse1996.jaorm.entity.SqlColumn;
 import io.github.ulisse1996.jaorm.entity.event.*;
 import io.github.ulisse1996.jaorm.spi.DelegatesService;
 
@@ -111,6 +112,11 @@ public class DelegatesMock extends DelegatesService {
         @Override
         public void setFullEntity(MyEntity entity) {
             this.entity = entity;
+        }
+
+        @Override
+        public void setFullEntityFullColumns(Map<SqlColumn<MyEntity, ?>, ?> columns) {
+
         }
 
         @Override

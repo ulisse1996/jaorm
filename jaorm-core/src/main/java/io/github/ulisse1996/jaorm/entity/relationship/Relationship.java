@@ -33,12 +33,18 @@ public class Relationship<T> {
         private final boolean opt;
         private final boolean collection;
         private final List<EntityEventType> events;
+        private final Class<?> linkedClass;
 
-        public Node(Function<T, ?> function, boolean opt, boolean collection, EntityEventType... events) {
+        public Node(Class<?> linkedClass, Function<T, ?> function, boolean opt, boolean collection, EntityEventType... events) {
             this.function = function;
             this.opt = opt;
             this.collection = collection;
             this.events = Arrays.asList(events);
+            this.linkedClass = linkedClass;
+        }
+
+        public Class<?> getLinkedClass() {
+            return linkedClass;
         }
 
         public boolean matchEvent(EntityEventType eventType) {
@@ -60,7 +66,8 @@ public class Relationship<T> {
 
         @SuppressWarnings("unchecked")
         public Collection<Object> getAsCollection(T entity) {
-            return (Collection<Object>) function.apply(entity);
+            Collection<Object> res = (Collection<Object>) function.apply(entity);
+            return Optional.ofNullable(res).orElse(Collections.emptyList());
         }
 
         public Object get(T entity) {

@@ -2,13 +2,11 @@ package io.github.ulisse1996.jaorm.entity.relationship;
 
 import io.github.ulisse1996.jaorm.BaseDao;
 import io.github.ulisse1996.jaorm.entity.Result;
+import io.github.ulisse1996.jaorm.entity.event.GlobalEventType;
 import io.github.ulisse1996.jaorm.entity.event.PostPersist;
 import io.github.ulisse1996.jaorm.entity.event.PrePersist;
 import io.github.ulisse1996.jaorm.exception.PersistEventException;
-import io.github.ulisse1996.jaorm.spi.DelegatesService;
-import io.github.ulisse1996.jaorm.spi.QueriesService;
-import io.github.ulisse1996.jaorm.spi.QueryRunner;
-import io.github.ulisse1996.jaorm.spi.RelationshipService;
+import io.github.ulisse1996.jaorm.spi.*;
 
 import java.util.Objects;
 
@@ -74,5 +72,6 @@ public class PersistEvent implements EntityEvent {
                 throw new PersistEventException(ex);
             }
         }
+        ListenersService.getInstance().fireEvent(entity, GlobalEventType.PRE_PERSIST);
     }
 }

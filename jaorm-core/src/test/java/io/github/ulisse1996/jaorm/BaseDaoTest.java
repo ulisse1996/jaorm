@@ -1,5 +1,6 @@
 package io.github.ulisse1996.jaorm;
 
+import io.github.ulisse1996.jaorm.entity.Result;
 import io.github.ulisse1996.jaorm.entity.relationship.EntityEvent;
 import io.github.ulisse1996.jaorm.entity.relationship.EntityEventType;
 import io.github.ulisse1996.jaorm.entity.relationship.Relationship;
@@ -8,6 +9,7 @@ import io.github.ulisse1996.jaorm.exception.PersistEventException;
 import io.github.ulisse1996.jaorm.exception.RemoveEventException;
 import io.github.ulisse1996.jaorm.exception.UpdateEventException;
 import io.github.ulisse1996.jaorm.spi.DelegatesService;
+import io.github.ulisse1996.jaorm.spi.QueriesService;
 import io.github.ulisse1996.jaorm.spi.QueryRunner;
 import io.github.ulisse1996.jaorm.spi.RelationshipService;
 import org.junit.jupiter.api.Assertions;
@@ -16,6 +18,7 @@ import org.junit.jupiter.api.function.Executable;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
@@ -299,6 +302,228 @@ class BaseDaoTest {
                     .thenReturn(Arguments.empty());
             dao.delete(Collections.singletonList(entity));
             Mockito.verify(dao).delete(Mockito.any(DelegatesMock.MyEntity.class));
+        }
+    }
+
+    @Test
+    void should_return_same_entities_for_empty_update_batch() {
+        List<DelegatesMock.MyEntity> entities = Collections.emptyList();
+        Assertions.assertSame(entities, new MyDao().updateWithBatch(entities));
+    }
+
+    @Test
+    void should_return_same_entities_for_empty_insert_batch() {
+        List<DelegatesMock.MyEntity> entities = Collections.emptyList();
+        Assertions.assertSame(entities, new MyDao().insertWithBatch(entities));
+    }
+
+    @Test
+    void should_throw_exception_for_pre_persist_event_during_batch() {
+        List<DelegatesMock.MyEntity> entities = Collections.singletonList(Mockito.mock(DelegatesMock.MyEntity.class));
+        Mockito.doThrow(IllegalArgumentException.class)
+                .when(entities.get(0)).prePersist();
+        Assertions.assertThrows(PersistEventException.class, () -> new MyDao().insertWithBatch(entities));
+    }
+
+    @Test
+    void should_throw_exception_for_pre_update_event_during_batch() {
+        List<DelegatesMock.MyEntity> entities = Collections.singletonList(Mockito.mock(DelegatesMock.MyEntity.class));
+        Mockito.doThrow(IllegalArgumentException.class)
+                .when(entities.get(0)).preUpdate();
+        Assertions.assertThrows(PersistEventException.class, () -> new MyDao().updateWithBatch(entities));
+    }
+
+    @Test
+    void should_throw_exception_for_post_persist_event_during_batch() {
+        DelegatesService delegatesService = Mockito.mock(DelegatesService.class);
+        QueryRunner queryRunner = Mockito.mock(QueryRunner.class);
+        List<DelegatesMock.MyEntity> entities = Collections.singletonList(Mockito.mock(DelegatesMock.MyEntity.class));
+        try (MockedStatic<DelegatesService> mkDel = Mockito.mockStatic(DelegatesService.class);
+            MockedStatic<QueryRunner> mkQuery = Mockito.mockStatic(QueryRunner.class)) {
+            mkDel.when(DelegatesService::getInstance)
+                    .thenReturn(delegatesService);
+            mkQuery.when(() -> QueryRunner.getInstance(Mockito.any()))
+                    .thenReturn(queryRunner);
+            Mockito.when(delegatesService.getInsertSql(Mockito.any()))
+                    .thenReturn("SQL");
+            Mockito.doThrow(IllegalArgumentException.class)
+                    .when(entities.get(0)).postPersist();
+            Mockito.when(queryRunner.insertWithBatch(Mockito.any(), Mockito.any(), Mockito.any()))
+                    .then(invocation -> entities);
+            Assertions.assertThrows(PersistEventException.class, () -> new MyDao().insertWithBatch(entities));
+        }
+    }
+
+    @Test
+    void should_throw_exception_for_post_update_event_during_batch() {
+        DelegatesService delegatesService = Mockito.mock(DelegatesService.class);
+        QueryRunner queryRunner = Mockito.mock(QueryRunner.class);
+        List<DelegatesMock.MyEntity> entities = Collections.singletonList(Mockito.mock(DelegatesMock.MyEntity.class));
+        try (MockedStatic<DelegatesService> mkDel = Mockito.mockStatic(DelegatesService.class);
+             MockedStatic<QueryRunner> mkQuery = Mockito.mockStatic(QueryRunner.class)) {
+            mkDel.when(DelegatesService::getInstance)
+                    .thenReturn(delegatesService);
+            mkQuery.when(() -> QueryRunner.getInstance(Mockito.any()))
+                    .thenReturn(queryRunner);
+            Mockito.when(delegatesService.getUpdateSql(Mockito.any()))
+                    .thenReturn("SQL");
+            Mockito.doThrow(IllegalArgumentException.class)
+                    .when(entities.get(0)).postUpdate();
+            Mockito.when(queryRunner.updateWithBatch(Mockito.any(), Mockito.any(), Mockito.any()))
+                    .then(invocation -> entities);
+            Assertions.assertThrows(PersistEventException.class, () -> new MyDao().updateWithBatch(entities));
+        }
+    }
+
+    @Test
+    void should_execute_a_batch_update_without_relationships() {
+        DelegatesService delegatesService = Mockito.mock(DelegatesService.class);
+        QueryRunner queryRunner = Mockito.mock(QueryRunner.class);
+        RelationshipService relationshipService = Mockito.mock(RelationshipService.class);
+        List<DelegatesMock.MyEntity> entities = Collections.singletonList(Mockito.mock(DelegatesMock.MyEntity.class));
+        try (MockedStatic<DelegatesService> mkDel = Mockito.mockStatic(DelegatesService.class);
+             MockedStatic<QueryRunner> mkQuery = Mockito.mockStatic(QueryRunner.class);
+             MockedStatic<RelationshipService> mkRel = Mockito.mockStatic(RelationshipService.class)) {
+            mkDel.when(DelegatesService::getInstance)
+                    .thenReturn(delegatesService);
+            mkRel.when(RelationshipService::getInstance)
+                    .thenReturn(relationshipService);
+            mkQuery.when(() -> QueryRunner.getInstance(Mockito.any()))
+                    .thenReturn(queryRunner);
+            Mockito.when(delegatesService.getUpdateSql(Mockito.any()))
+                    .thenReturn("SQL");
+            Mockito.when(queryRunner.updateWithBatch(Mockito.any(), Mockito.any(), Mockito.any()))
+                    .then(invocation -> entities);
+            Mockito.when(relationshipService.isEventActive(Mockito.any(), Mockito.eq(EntityEventType.UPDATE)))
+                    .thenReturn(false);
+            List<DelegatesMock.MyEntity> results = new MyDao().updateWithBatch(entities);
+            Assertions.assertSame(results, entities);
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {0,1,2})
+    void should_insert_with_batch_and_relationships(int type) {
+        DelegatesService delegatesService = Mockito.mock(DelegatesService.class);
+        QueryRunner queryRunner = Mockito.mock(QueryRunner.class);
+        RelationshipService relationshipService = Mockito.mock(RelationshipService.class);
+        List<DelegatesMock.MyEntity> entities = Collections.singletonList(Mockito.mock(DelegatesMock.MyEntity.class));
+        Relationship<DelegatesMock.MyEntity> relationship = new Relationship<>(DelegatesMock.MyEntity.class);
+        QueriesService queriesService = Mockito.mock(QueriesService.class);
+        BaseDao<?> mockDao = Mockito.mock(BaseDao.class);
+        try (MockedStatic<DelegatesService> mkDel = Mockito.mockStatic(DelegatesService.class);
+             MockedStatic<QueryRunner> mkQuery = Mockito.mockStatic(QueryRunner.class);
+             MockedStatic<RelationshipService> mkRel = Mockito.mockStatic(RelationshipService.class);
+             MockedStatic<QueriesService> mkQueries = Mockito.mockStatic(QueriesService.class)) {
+            mkDel.when(DelegatesService::getInstance)
+                    .thenReturn(delegatesService);
+            mkRel.when(RelationshipService::getInstance)
+                    .thenReturn(relationshipService);
+            mkQuery.when(() -> QueryRunner.getInstance(Mockito.any()))
+                    .thenReturn(queryRunner);
+            mkQueries.when(QueriesService::getInstance)
+                    .thenReturn(queriesService);
+            Mockito.when(delegatesService.getInsertSql(Mockito.any()))
+                    .thenReturn("SQL");
+            Mockito.when(queryRunner.insertWithBatch(Mockito.any(), Mockito.any(), Mockito.any()))
+                    .then(invocation -> entities);
+            Mockito.when(relationshipService.isEventActive(Mockito.any(), Mockito.eq(EntityEventType.PERSIST)))
+                    .thenReturn(true);
+            Mockito.when(relationshipService.getRelationships(DelegatesMock.MyEntity.class))
+                    .thenReturn(relationship);
+            Mockito.when(queriesService.getBaseDao(Mockito.any()))
+                    .then(i -> mockDao);
+            switch (type) {
+                case 1:
+                    relationship.add(new Relationship.Node<>(Object.class, e -> Result.empty(), true, false, EntityEventType.values()));
+                    break;
+                case 2:
+                    relationship.add(new Relationship.Node<>(Object.class, e -> Collections.emptyList(), false, true, EntityEventType.values()));
+                    break;
+                default:
+                    relationship.add(new Relationship.Node<>(Object.class, e -> null, false, false, EntityEventType.values()));
+                    break;
+            }
+            List<DelegatesMock.MyEntity> results = new MyDao().insertWithBatch(entities);
+            Assertions.assertSame(results, entities);
+            Mockito.verify(mockDao)
+                    .insertWithBatch(Mockito.any());
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {0,1,2})
+    void should_update_with_batch_and_relationships(int type) {
+        DelegatesService delegatesService = Mockito.mock(DelegatesService.class);
+        QueryRunner queryRunner = Mockito.mock(QueryRunner.class);
+        RelationshipService relationshipService = Mockito.mock(RelationshipService.class);
+        List<DelegatesMock.MyEntity> entities = Collections.singletonList(Mockito.mock(DelegatesMock.MyEntity.class));
+        Relationship<DelegatesMock.MyEntity> relationship = new Relationship<>(DelegatesMock.MyEntity.class);
+        QueriesService queriesService = Mockito.mock(QueriesService.class);
+        BaseDao<?> mockDao = Mockito.mock(BaseDao.class);
+        try (MockedStatic<DelegatesService> mkDel = Mockito.mockStatic(DelegatesService.class);
+             MockedStatic<QueryRunner> mkQuery = Mockito.mockStatic(QueryRunner.class);
+             MockedStatic<RelationshipService> mkRel = Mockito.mockStatic(RelationshipService.class);
+             MockedStatic<QueriesService> mkQueries = Mockito.mockStatic(QueriesService.class)) {
+            mkDel.when(DelegatesService::getInstance)
+                    .thenReturn(delegatesService);
+            mkRel.when(RelationshipService::getInstance)
+                    .thenReturn(relationshipService);
+            mkQuery.when(() -> QueryRunner.getInstance(Mockito.any()))
+                    .thenReturn(queryRunner);
+            mkQueries.when(QueriesService::getInstance)
+                    .thenReturn(queriesService);
+            Mockito.when(delegatesService.getUpdateSql(Mockito.any()))
+                    .thenReturn("SQL");
+            Mockito.when(queryRunner.updateWithBatch(Mockito.any(), Mockito.any(), Mockito.any()))
+                    .then(invocation -> entities);
+            Mockito.when(relationshipService.isEventActive(Mockito.any(), Mockito.eq(EntityEventType.UPDATE)))
+                    .thenReturn(true);
+            Mockito.when(relationshipService.getRelationships(DelegatesMock.MyEntity.class))
+                    .thenReturn(relationship);
+            Mockito.when(queriesService.getBaseDao(Mockito.any()))
+                    .then(i -> mockDao);
+            switch (type) {
+                case 1:
+                    relationship.add(new Relationship.Node<>(Object.class, e -> Result.empty(), true, false, EntityEventType.values()));
+                    break;
+                case 2:
+                    relationship.add(new Relationship.Node<>(Object.class, e -> Collections.emptyList(), false, true, EntityEventType.values()));
+                    break;
+                default:
+                    relationship.add(new Relationship.Node<>(Object.class, e -> null, false, false, EntityEventType.values()));
+                    break;
+            }
+            List<DelegatesMock.MyEntity> results = new MyDao().updateWithBatch(entities);
+            Assertions.assertSame(results, entities);
+            Mockito.verify(mockDao)
+                    .updateWithBatch(Mockito.any());
+        }
+    }
+
+    @Test
+    void should_execute_a_batch_insert_without_relationships() {
+        DelegatesService delegatesService = Mockito.mock(DelegatesService.class);
+        QueryRunner queryRunner = Mockito.mock(QueryRunner.class);
+        RelationshipService relationshipService = Mockito.mock(RelationshipService.class);
+        List<DelegatesMock.MyEntity> entities = Collections.singletonList(Mockito.mock(DelegatesMock.MyEntity.class));
+        try (MockedStatic<DelegatesService> mkDel = Mockito.mockStatic(DelegatesService.class);
+             MockedStatic<QueryRunner> mkQuery = Mockito.mockStatic(QueryRunner.class);
+             MockedStatic<RelationshipService> mkRel = Mockito.mockStatic(RelationshipService.class)) {
+            mkDel.when(DelegatesService::getInstance)
+                    .thenReturn(delegatesService);
+            mkRel.when(RelationshipService::getInstance)
+                    .thenReturn(relationshipService);
+            mkQuery.when(() -> QueryRunner.getInstance(Mockito.any()))
+                    .thenReturn(queryRunner);
+            Mockito.when(delegatesService.getInsertSql(Mockito.any()))
+                    .thenReturn("SQL");
+            Mockito.when(queryRunner.insertWithBatch(Mockito.any(), Mockito.any(), Mockito.any()))
+                    .then(invocation -> entities);
+            Mockito.when(relationshipService.isEventActive(Mockito.any(), Mockito.eq(EntityEventType.PERSIST)))
+                    .thenReturn(false);
+            List<DelegatesMock.MyEntity> results = new MyDao().insertWithBatch(entities);
+            Assertions.assertSame(results, entities);
         }
     }
 

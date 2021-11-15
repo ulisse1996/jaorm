@@ -1,9 +1,8 @@
 package io.github.ulisse1996.jaorm.integration.test.entity;
 
-import io.github.ulisse1996.jaorm.annotation.Column;
-import io.github.ulisse1996.jaorm.annotation.Id;
-import io.github.ulisse1996.jaorm.annotation.Table;
+import io.github.ulisse1996.jaorm.annotation.*;
 
+import java.util.List;
 import java.util.Objects;
 
 @Table(name = "STORE")
@@ -18,6 +17,18 @@ public class Store {
 
     @Column(name = "CITY_ID")
     private int cityId;
+
+    @Cascade(CascadeType.ALL)
+    @Relationship(columns = @Relationship.RelationshipColumn(targetColumn = "STORE_ID", sourceColumn = "STORE_ID"))
+    private List<Seller> sellers;
+
+    public List<Seller> getSellers() {
+        return sellers;
+    }
+
+    public void setSellers(List<Seller> sellers) {
+        this.sellers = sellers;
+    }
 
     public int getStoreId() {
         return storeId;

@@ -286,6 +286,16 @@ class SimpleQueryRunnerTest {
     }
 
     @Test
+    void should_throw_unsupported_exception_for_insert_batch() {
+        Assertions.assertThrows(UnsupportedOperationException.class, () -> testSubject.insertWithBatch(Integer.class, "", EMPTY_LIST));
+    }
+
+    @Test
+    void should_throw_unsupported_exception_for_update_batch() {
+        Assertions.assertThrows(UnsupportedOperationException.class, () -> testSubject.updateWithBatch(Integer.class, "", EMPTY_LIST));
+    }
+
+    @Test
     void should_throw_sql_exception_for_update() {
         try {
             DataSource dataSource = DataSourceProvider.getCurrent().getDataSource();

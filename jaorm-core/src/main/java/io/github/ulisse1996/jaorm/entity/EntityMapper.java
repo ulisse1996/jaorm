@@ -63,6 +63,10 @@ public class EntityMapper<T> {
         public Class<?> getType() {
             return type;
         }
+
+        public boolean isKey() {
+            return key;
+        }
     }
 
     public void setGenerated(T entity, String key, Object value) {

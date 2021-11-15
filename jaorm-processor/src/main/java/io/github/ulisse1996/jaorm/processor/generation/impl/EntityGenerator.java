@@ -2,10 +2,7 @@ package io.github.ulisse1996.jaorm.processor.generation.impl;
 
 import com.squareup.javapoet.*;
 import io.github.ulisse1996.jaorm.annotation.*;
-import io.github.ulisse1996.jaorm.entity.ColumnGetter;
-import io.github.ulisse1996.jaorm.entity.ColumnSetter;
-import io.github.ulisse1996.jaorm.entity.EntityDelegate;
-import io.github.ulisse1996.jaorm.entity.EntityMapper;
+import io.github.ulisse1996.jaorm.entity.*;
 import io.github.ulisse1996.jaorm.entity.converter.ParameterConverter;
 import io.github.ulisse1996.jaorm.entity.sql.SqlAccessor;
 import io.github.ulisse1996.jaorm.entity.sql.SqlParameter;
@@ -319,11 +316,37 @@ public class EntityGenerator extends Generator {
         MethodSpec modified = MethodSpec.overriding(ProcessorUtils.getMethod(processingEnvironment, "isModified", EntityDelegate.class))
                 .addStatement("return this.modified")
                 .build();
+        MethodSpec setFullEntityFullColumns = MethodSpec.methodBuilder("setFullEntityFullColumns")
+                .addModifiers(Modifier.PUBLIC)
+                .addAnnotation(Override.class)
+                .addParameter(
+                        ParameterizedTypeName.get(
+                                ClassName.get(Map.class),
+                                ParameterizedTypeName.get(ClassName.get(SqlColumn.class), TypeName.get(entity.asType()), WildcardTypeName.subtypeOf(Object.class)),
+                                WildcardTypeName.subtypeOf(Object.class)
+                        ),
+                        "map"
+                )
+                .addCode(buildFullEntityColumnsCode(entity))
+                .build();
         return Stream.of(supplierEntity, entityMapper,
                 setEntity, setEntityObj, baseSql, keysWhere,
                 insertSql, selectables, table, updateSql,
-                getEntity, deleteSql, modified)
+                getEntity, deleteSql, modified, setFullEntityFullColumns)
                 .collect(Collectors.toList());
+    }
+
+    private CodeBlock buildFullEntityColumnsCode(TypeElement entity) {
+        return CodeBlock.builder()
+                .addStatement("this.entity = this.getEntityInstance().get()")
+                .beginControlFlow("for ($T entry : map.entrySet())",
+                        ParameterizedTypeName.get(ClassName.get(Map.Entry.class),
+                                ParameterizedTypeName.get(ClassName.get(SqlColumn.class), TypeName.get(entity.asType()), WildcardTypeName.subtypeOf(Object.class)),
+                                WildcardTypeName.subtypeOf(Object.class)))
+                .addStatement("Column col = Column.findColumn(entry.getKey().getName())")
+                .addStatement("col.setter.accept(this, entry.getValue())")
+                .endControlFlow()
+                .build();
     }
 
     private TypeSpec generateColumns(ProcessingEnvironment processingEnvironment, TypeElement entity) {

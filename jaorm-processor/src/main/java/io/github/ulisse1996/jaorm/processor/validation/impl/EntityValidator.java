@@ -109,7 +109,7 @@ public class EntityValidator extends Validator {
                 .filter(ele -> ele.getParameters().isEmpty())
                 .filter(ele -> ele.getModifiers().contains(Modifier.PUBLIC))
                 .findFirst();
-        if (!emptyConstructor.isPresent()) {
+        if (!emptyConstructor.isPresent() && !ProcessorUtils.hasExternalConstructor(entity)) {
             throw new ProcessorException(String.format("Missing public no args Constructor for Entity %s", entity.getQualifiedName()));
         }
     }

@@ -2,12 +2,12 @@ package io.github.ulisse1996.jaorm.dsl.query.impl;
 
 import io.github.ulisse1996.jaorm.vendor.VendorFunction;
 
-public class WhereFunctionImpl<T, R> extends WhereImpl<T, R> {
+public class UpdatedWhereFunctionImpl<T, R> extends UpdatedWhereImpl<T, R> {
 
     private final VendorFunction<R> function;
 
-    public WhereFunctionImpl(VendorFunction<R> function, SelectedImpl<T, ?> parent, boolean or, String alias) {
-        super(null, parent, or, alias);
+    public UpdatedWhereFunctionImpl(VendorFunction<R> function, UpdatedImpl<T> parent, boolean or) {
+        super(null, parent, or);
         this.function = function;
     }
 
@@ -22,7 +22,7 @@ public class WhereFunctionImpl<T, R> extends WhereImpl<T, R> {
     protected void buildLinked(StringBuilder builder, boolean caseInsensitiveLike) {
         if (!this.links.isEmpty()) {
             for (AbstractWhereImpl<?, ?> inner : this.links) {
-                if (inner instanceof WhereFunctionImpl<?, ?>) {
+                if (inner instanceof UpdatedWhereFunctionImpl<?, ?>) {
                     String format = getFormat(caseInsensitiveLike, inner);
                     builder.append(inner.or ? OR_CLAUSE : AND_CLAUSE)
                             .append(format).append(evaluateOperation(inner, caseInsensitiveLike));

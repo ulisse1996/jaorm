@@ -3,6 +3,7 @@ package io.github.ulisse1996.jaorm.spi;
 import io.github.ulisse1996.jaorm.ServiceFinder;
 import io.github.ulisse1996.jaorm.entity.EntityDelegate;
 import io.github.ulisse1996.jaorm.entity.EntityMapper;
+import io.github.ulisse1996.jaorm.entity.SqlColumn;
 import io.github.ulisse1996.jaorm.entity.relationship.EntityEventType;
 import io.github.ulisse1996.jaorm.entity.relationship.Relationship;
 import io.github.ulisse1996.jaorm.spi.combined.CombinedRelationships;
@@ -111,6 +112,11 @@ class RelationshipServiceTest {
         }
 
         @Override
+        public void setFullEntityFullColumns(Map<SqlColumn<String, ?>, ?> columns) {
+
+        }
+
+        @Override
         public String getEntity() {
             return null;
         }
@@ -163,7 +169,7 @@ class RelationshipServiceTest {
         public RelationshipMock() {
             this.map = new HashMap<>();
             Relationship<String> stringRelationshipTree = new Relationship<>(String.class);
-            stringRelationshipTree.add(new Relationship.Node<>(e -> "", false, false, EntityEventType.PERSIST));
+            stringRelationshipTree.add(new Relationship.Node<>(String.class, e -> "", false, false, EntityEventType.PERSIST));
             Relationship<BigDecimal> bigDecimalRelationshipTree = new Relationship<>(BigDecimal.class);
             this.map.put(stringRelationshipTree.getEntityClass(), stringRelationshipTree);
             this.map.put(bigDecimalRelationshipTree.getEntityClass(), bigDecimalRelationshipTree);

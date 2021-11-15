@@ -18,7 +18,9 @@ class EntityMapperTest {
                 () -> Assertions.assertEquals("NAME1", mapper.getMappers().get(0).getName()),
                 () -> Assertions.assertEquals("NAME2", mapper.getMappers().get(1).getName()),
                 () -> Assertions.assertEquals(String.class, mapper.getMappers().get(0).getType()),
-                () -> Assertions.assertEquals(BigDecimal.class, mapper.getMappers().get(1).getType())
+                () -> Assertions.assertEquals(BigDecimal.class, mapper.getMappers().get(1).getType()),
+                () -> Assertions.assertTrue(mapper.getMappers().get(0).isKey()),
+                () -> Assertions.assertTrue(mapper.getMappers().get(1).isKey())
         );
     }
 
