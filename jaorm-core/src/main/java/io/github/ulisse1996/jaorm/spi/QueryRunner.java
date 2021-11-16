@@ -103,7 +103,7 @@ public abstract class QueryRunner {
                     }
                     return generated;
                 } else {
-                    return Collections.emptyList();
+                    return new ArrayList<>();
                 }
         } catch (SQLException ex) {
             logger.error("Error during update/insert/delete batch"::toString, ex);

@@ -286,14 +286,14 @@ public class SelectedImpl<T, N> implements Selected<T>, SelectedWhere<T>, Select
     }
 
     private <R> IntermediateWhere<T,R> addAndReturnLinked(VendorFunction<R> function, boolean or, String alias) {
-        WhereImpl<T, R> where = new WhereFunctionImpl<>(function, this, or, alias);
+        WhereImpl<T, R> where = new SelectedWhereFunctionImpl<>(function, this, or, alias);
         this.lastWhere.addLinked(where);
         return where;
     }
 
     @SuppressWarnings("unchecked")
     private <R> IntermediateWhere<T, R> addAndReturnLast(VendorFunction<R> function, boolean or, String alias) {
-        WhereImpl<T, R> where = new WhereFunctionImpl<>(function, this, or, alias);
+        WhereImpl<T, R> where = new SelectedWhereFunctionImpl<>(function, this, or, alias);
         this.wheres.add(where);
         this.lastWhere = where;
         return (IntermediateWhere<T, R>) this.lastWhere;
