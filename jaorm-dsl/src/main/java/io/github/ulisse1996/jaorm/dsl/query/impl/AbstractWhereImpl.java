@@ -40,8 +40,13 @@ public abstract class AbstractWhereImpl<T, R> {
     }
 
     protected void assertIsString() {
-        if (!column.getType().equals(String.class)) {
-            throw new IllegalArgumentException("Can't use like without a column that match String.class");
+        if (column == null) {
+            WhereFunctionImpl<?, ?> functionWhere = (WhereFunctionImpl<?, ?>) this;
+            functionWhere.assertIsString(functionWhere.getFunction());
+        } else {
+            if (!column.getType().equals(String.class)) {
+                throw new IllegalArgumentException("Can't use like without a column that match String.class");
+            }
         }
     }
 
@@ -76,8 +81,19 @@ public abstract class AbstractWhereImpl<T, R> {
 
     protected void buildClause(StringBuilder builder, boolean caseInsensitiveLike) {
         String format = caseInsensitiveLike && this.likeType != null ? "UPPER(%s.%s)" : "%s.%s";
-        builder.append(String.format(format, getFrom(this), this.column.getName())).append(evaluateOperation(this, caseInsensitiveLike));
+        String val;
+        if (this.column != null) {
+            val = String.format(format, getFrom(this), this.column.getName());
+        } else {
+            val = getFunctionFormat(caseInsensitiveLike);
+        }
+        builder.append(val).append(evaluateOperation(this, caseInsensitiveLike));
         buildLinked(builder, caseInsensitiveLike);
+    }
+
+    private String getFunctionFormat(boolean caseInsensitiveLike) {
+        WhereFunctionImpl<?, ?> func = (WhereFunctionImpl<?, ?>) this;
+        return func.getFormat(func.getFunction(), caseInsensitiveLike, this);
     }
 
     protected void buildLinked(StringBuilder builder, boolean caseInsensitiveLike) {
