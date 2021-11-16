@@ -322,7 +322,7 @@ class BaseDaoTest {
         List<DelegatesMock.MyEntity> entities = Collections.singletonList(Mockito.mock(DelegatesMock.MyEntity.class));
         Mockito.doThrow(IllegalArgumentException.class)
                 .when(entities.get(0)).prePersist();
-        Assertions.assertThrows(PersistEventException.class, () -> new MyDao().insertWithBatch(entities));
+        Assertions.assertThrows(PersistEventException.class, () -> new MyDao().insertWithBatch(entities)); //NOSONAR
     }
 
     @Test
@@ -330,7 +330,7 @@ class BaseDaoTest {
         List<DelegatesMock.MyEntity> entities = Collections.singletonList(Mockito.mock(DelegatesMock.MyEntity.class));
         Mockito.doThrow(IllegalArgumentException.class)
                 .when(entities.get(0)).preUpdate();
-        Assertions.assertThrows(PersistEventException.class, () -> new MyDao().updateWithBatch(entities));
+        Assertions.assertThrows(PersistEventException.class, () -> new MyDao().updateWithBatch(entities)); //NOSONAR
     }
 
     @Test
@@ -350,7 +350,7 @@ class BaseDaoTest {
                     .when(entities.get(0)).postPersist();
             Mockito.when(queryRunner.insertWithBatch(Mockito.any(), Mockito.any(), Mockito.any()))
                     .then(invocation -> entities);
-            Assertions.assertThrows(PersistEventException.class, () -> new MyDao().insertWithBatch(entities));
+            Assertions.assertThrows(PersistEventException.class, () -> new MyDao().insertWithBatch(entities)); //NOSONAR
         }
     }
 
@@ -371,7 +371,7 @@ class BaseDaoTest {
                     .when(entities.get(0)).postUpdate();
             Mockito.when(queryRunner.updateWithBatch(Mockito.any(), Mockito.any(), Mockito.any()))
                     .then(invocation -> entities);
-            Assertions.assertThrows(PersistEventException.class, () -> new MyDao().updateWithBatch(entities));
+            Assertions.assertThrows(PersistEventException.class, () -> new MyDao().updateWithBatch(entities)); //NOSONAR
         }
     }
 

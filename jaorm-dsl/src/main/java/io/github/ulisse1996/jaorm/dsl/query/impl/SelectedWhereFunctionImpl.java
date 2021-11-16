@@ -17,27 +17,12 @@ public class SelectedWhereFunctionImpl<T, R> extends WhereImpl<T, R> implements 
     }
 
     @Override
-    protected void buildClause(StringBuilder builder, boolean caseInsensitiveLike) {
-        this.buildClause(links, function, builder, caseInsensitiveLike, this);
-    }
-
-    @Override
-    public String evaluateOperation(AbstractWhereImpl<?, ?> inner, boolean caseInsensitiveLike) {
-        return super.evaluateOperation(inner, caseInsensitiveLike);
-    }
-
-    @Override
-    public String getFrom(AbstractWhereImpl<?, ?> where) {
-        return super.getFrom(where);
-    }
-
-    @Override
     public void assertIsString() {
         WhereFunctionImpl.super.assertIsString(function);
     }
 
     @Override
-    public void buildInner(StringBuilder builder, boolean caseInsensitiveLike, AbstractWhereImpl<?, ?> inner) {
-        super.buildInner(builder, caseInsensitiveLike, inner);
+    public void buildClause(StringBuilder builder, boolean caseInsensitiveLike) {
+        WhereFunctionImpl.super.buildClause(builder, caseInsensitiveLike, this);
     }
 }

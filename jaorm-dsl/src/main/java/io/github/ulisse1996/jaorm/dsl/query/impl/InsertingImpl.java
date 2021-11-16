@@ -1,6 +1,5 @@
 package io.github.ulisse1996.jaorm.dsl.query.impl;
 
-import io.github.ulisse1996.jaorm.dsl.query.common.Inserted;
 import io.github.ulisse1996.jaorm.dsl.query.common.InsertedExecutable;
 import io.github.ulisse1996.jaorm.dsl.query.common.intermediate.IntermediateInsert;
 import io.github.ulisse1996.jaorm.entity.SqlColumn;
