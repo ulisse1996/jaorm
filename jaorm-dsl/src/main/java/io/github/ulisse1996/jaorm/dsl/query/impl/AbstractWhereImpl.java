@@ -41,7 +41,7 @@ public abstract class AbstractWhereImpl<T, R> {
 
     protected void assertIsString() {
         if (column == null) {
-            WhereFunctionImpl<?, ?> functionWhere = (WhereFunctionImpl<?, ?>) this;
+            WhereFunctionImpl<?> functionWhere = (WhereFunctionImpl<?>) this;
             functionWhere.assertIsString(functionWhere.getFunction());
         } else {
             if (!column.getType().equals(String.class)) {
@@ -92,7 +92,7 @@ public abstract class AbstractWhereImpl<T, R> {
     }
 
     private String getFunctionFormat(boolean caseInsensitiveLike) {
-        WhereFunctionImpl<?, ?> func = (WhereFunctionImpl<?, ?>) this;
+        WhereFunctionImpl<?> func = (WhereFunctionImpl<?>) this;
         return func.getFormat(func.getFunction(), caseInsensitiveLike, this);
     }
 
@@ -110,7 +110,7 @@ public abstract class AbstractWhereImpl<T, R> {
         if (inner.column != null) {
             format = String.format(innerFormat, getFrom(inner), inner.column.getName());
         } else {
-            WhereFunctionImpl<?, ?> func = (WhereFunctionImpl<?, ?>) inner;
+            WhereFunctionImpl<?> func = (WhereFunctionImpl<?>) inner;
             format = func.getFormat(func.getFunction(), caseInsensitiveLike, inner);
         }
         builder.append(inner.or ? OR_CLAUSE : AND_CLAUSE)
