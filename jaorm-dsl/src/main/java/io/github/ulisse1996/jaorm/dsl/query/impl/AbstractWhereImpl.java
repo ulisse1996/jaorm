@@ -90,8 +90,15 @@ public abstract class AbstractWhereImpl<T, R> {
 
     protected void buildInner(StringBuilder builder, boolean caseInsensitiveLike, AbstractWhereImpl<?, ?> inner) {
         String innerFormat = caseInsensitiveLike && inner.likeType != null ? "UPPER(%s.%s)" : "%s.%s";
+        String format;
+        if (inner.column != null) {
+            format = String.format(innerFormat, getFrom(inner), inner.column.getName());
+        } else {
+            WhereFunctionImpl<?, ?> func = (WhereFunctionImpl<?, ?>) inner;
+            format = func.getFormat(func.getFunction(), caseInsensitiveLike, inner);
+        }
         builder.append(inner.or ? OR_CLAUSE : AND_CLAUSE)
-                .append(String.format(innerFormat, getFrom(inner), inner.column.getName())).append(evaluateOperation(inner, caseInsensitiveLike));
+                .append(format).append(evaluateOperation(inner, caseInsensitiveLike));
     }
 
     protected String evaluateOperation(AbstractWhereImpl<?, ?> clause, boolean caseInsensitiveLike) {

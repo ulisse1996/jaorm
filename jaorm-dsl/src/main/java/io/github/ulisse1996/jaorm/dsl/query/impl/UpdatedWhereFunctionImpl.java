@@ -12,6 +12,11 @@ public class UpdatedWhereFunctionImpl<T, R> extends UpdatedWhereImpl<T, R> imple
     }
 
     @Override
+    public VendorFunction<R> getFunction() {
+        return function;
+    }
+
+    @Override
     protected void buildClause(StringBuilder builder, boolean caseInsensitiveLike) {
         this.buildClause(links, function, builder, caseInsensitiveLike, this);
     }

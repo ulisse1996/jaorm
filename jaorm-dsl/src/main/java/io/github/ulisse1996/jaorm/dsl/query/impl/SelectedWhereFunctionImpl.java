@@ -12,6 +12,11 @@ public class SelectedWhereFunctionImpl<T, R> extends WhereImpl<T, R> implements 
     }
 
     @Override
+    public VendorFunction<R> getFunction() {
+        return function;
+    }
+
+    @Override
     protected void buildClause(StringBuilder builder, boolean caseInsensitiveLike) {
         this.buildClause(links, function, builder, caseInsensitiveLike, this);
     }

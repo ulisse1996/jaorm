@@ -305,6 +305,7 @@ class QueryBuilderIT extends AbstractIT {
 
         QueryBuilder.update(User.class)
                 .setting(UserColumns.USER_NAME).toValue("CHANGE_USERNAME")
+                .setting(UserColumns.DEPARTMENT_ID).toValue(25)
                 .where(UserColumns.USER_NAME).eq("NAME")
                 .andWhere(UserColumns.USER_ID).eq(15)
                 .execute();
@@ -312,6 +313,7 @@ class QueryBuilderIT extends AbstractIT {
         Optional<User> optUser = userDAO.readOpt(user);
         Assertions.assertTrue(optUser.isPresent());
         Assertions.assertEquals("CHANGE_USERNAME", optUser.get().getName());
+        Assertions.assertEquals(25, optUser.get().getDepartmentId());
     }
 
     private User createUser(int i) {

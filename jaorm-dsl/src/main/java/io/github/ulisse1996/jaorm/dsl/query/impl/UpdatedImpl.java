@@ -21,14 +21,14 @@ import java.util.stream.Stream;
 public class UpdatedImpl<T> implements Updated<T>, UpdatedExecutable<T>, UpdatedWhere<T> {
 
     private final QueryConfig config;
-    private final List<SettingImpl<T, ?>> settings;
+    private final List<SetterImpl<T, ?>> setters;
     private final List<UpdatedWhereImpl<T, ?>> wheres;
     private final String table;
     private UpdatedWhereImpl<T, ?> lastWhere;
 
     public UpdatedImpl(Class<T> klass, QueryConfig queryConfig) {
         this.config = queryConfig;
-        this.settings = new ArrayList<>();
+        this.setters = new ArrayList<>();
         this.wheres = new ArrayList<>();
         this.table = DelegatesService.getInstance().searchDelegate(klass)
                 .get()
@@ -37,9 +37,9 @@ public class UpdatedImpl<T> implements Updated<T>, UpdatedExecutable<T>, Updated
 
     @Override
     public <R> IntermediateUpdate<T, R> setting(SqlColumn<T, R> column) {
-        SettingImpl<T, R> update = new SettingImpl<>(this,
+        SetterImpl<T, R> update = new SetterImpl<>(this,
                 Objects.requireNonNull(column, "Column can't be null !"));
-        this.settings.add(update);
+        this.setters.add(update);
         return update;
     }
 
@@ -55,20 +55,24 @@ public class UpdatedImpl<T> implements Updated<T>, UpdatedExecutable<T>, Updated
 
     @Override
     public void execute() {
-        StringBuilder builder = new StringBuilder("UPDATE ")
-                .append(this.table)
-                .append(" SET ")
-                .append(formatSettings());
-        String sql = buildWheres(builder);
+        String sql = asString();
         List<SqlParameter> params = Stream.concat(
-                this.settings.stream().map(SettingImpl::getValue).map(SqlParameter::new),
+                this.setters.stream().map(SetterImpl::getValue).map(SqlParameter::new),
                 this.wheres.stream().flatMap(AbstractWhereImpl::getParameters)
         ).collect(Collectors.toList());
         QueryRunner.getSimple().update(sql, params);
     }
 
+    String asString() {
+        StringBuilder builder = new StringBuilder("UPDATE ")
+                .append(this.table)
+                .append(" SET ")
+                .append(formatSettings());
+        return buildWheres(builder);
+    }
+
     private String formatSettings() {
-        return this.settings
+        return this.setters
                 .stream()
                 .map(s -> String.format("%s.%s = ?", this.table, s.getColumn().getName()))
                 .collect(Collectors.joining(", "));

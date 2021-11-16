@@ -6,13 +6,13 @@ import io.github.ulisse1996.jaorm.entity.SqlColumn;
 
 import java.util.Objects;
 
-public class SettingImpl<T, R> implements IntermediateUpdate<T, R> {
+public class SetterImpl<T, R> implements IntermediateUpdate<T, R> {
 
     private final UpdatedImpl<T> parent;
     private final SqlColumn<T, R> column;
     private R value;
 
-    SettingImpl(UpdatedImpl<T> parent, SqlColumn<T, R> column) {
+    SetterImpl(UpdatedImpl<T> parent, SqlColumn<T, R> column) {
         this.parent = parent;
         this.column = column;
     }

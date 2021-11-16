@@ -45,4 +45,5 @@ public interface WhereFunctionImpl<T, R> {
     String evaluateOperation(AbstractWhereImpl<?,?> inner, boolean caseInsensitiveLike);
     String getFrom(AbstractWhereImpl<?,?> where);
     void buildInner(StringBuilder builder, boolean caseInsensitiveLike, AbstractWhereImpl<?,?> inner);
+    VendorFunction<R> getFunction();
 }
