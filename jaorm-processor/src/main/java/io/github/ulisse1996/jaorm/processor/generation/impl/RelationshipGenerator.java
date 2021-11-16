@@ -117,8 +117,9 @@ public class RelationshipGenerator extends Generator {
                 String events;
                 EntityEventType[] values = getEvents(relationship);
                 events = asVarArgs(values);
-                builder.addStatement("map.get($T.class).add(new $T<>(e -> (($T)e).$L(), $L, $L, $L))",
+                builder.addStatement("map.get($T.class).add(new $T<>($T.class, e -> (($T)e).$L(), $L, $L, $L))",
                         info.entity, Relationship.Node.class,
+                        relationship.returnTypeDefinition.getRealClass(),
                         info.entity,
                         relationship.getter.getSimpleName(),
                         relationship.returnTypeDefinition.isOptional() ? "true" : "false",

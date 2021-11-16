@@ -509,4 +509,9 @@ public class ProcessorUtils {
         return Stream.of(toConversion, unboxed).filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
+
+    public static boolean hasExternalConstructor(TypeElement entity) {
+        LombokSupport lombokSupport = LombokSupport.getInstance();
+        return lombokSupport.hasLombokNoArgs(entity);
+    }
 }

@@ -5,6 +5,7 @@ import io.github.ulisse1996.jaorm.external.support.mock.MockGetter;
 import io.github.ulisse1996.jaorm.external.support.mock.MockSetter;
 import lombok.Data;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -25,6 +26,14 @@ class LombokGeneratorTest {
         Mockito.when(mock.getKind())
                 .thenReturn(ElementKind.CONSTRUCTOR);
         Assertions.assertFalse(testSubject.isLombokGenerated(mock));
+    }
+
+    @Test
+    void should_return_true_for_no_args_constructor() {
+        TypeElement element = Mockito.mock(TypeElement.class);
+        Mockito.when(element.getAnnotation(NoArgsConstructor.class))
+                .thenReturn(Mockito.mock(NoArgsConstructor.class));
+        Assertions.assertTrue(testSubject.hasLombokNoArgs(element));
     }
 
     @Test

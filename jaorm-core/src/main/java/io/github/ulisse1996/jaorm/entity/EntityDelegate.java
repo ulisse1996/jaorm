@@ -7,10 +7,19 @@ import java.util.function.Supplier;
 
 public interface EntityDelegate<T> {
 
+    @SuppressWarnings("unchecked")
+    static <R> R unboxEntity(R e) {
+        if (e instanceof EntityDelegate<?>) {
+            return (R) ((EntityDelegate<?>) e).getEntity();
+        }
+        return e;
+    }
+
     Supplier<T> getEntityInstance();
     EntityMapper<T> getEntityMapper();
     void setEntity(ResultSet rs) throws SQLException;
     void setFullEntity(T entity);
+    void setFullEntityFullColumns(Map<SqlColumn<T, ?>, ?> columns);
     T getEntity();
     String getBaseSql();
     String getKeysWhere();

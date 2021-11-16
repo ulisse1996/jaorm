@@ -5,10 +5,7 @@ import io.github.ulisse1996.jaorm.BaseDao;
 import io.github.ulisse1996.jaorm.entity.event.PostPersist;
 import io.github.ulisse1996.jaorm.entity.event.PrePersist;
 import io.github.ulisse1996.jaorm.exception.PersistEventException;
-import io.github.ulisse1996.jaorm.spi.DelegatesService;
-import io.github.ulisse1996.jaorm.spi.QueriesService;
-import io.github.ulisse1996.jaorm.spi.QueryRunner;
-import io.github.ulisse1996.jaorm.spi.RelationshipService;
+import io.github.ulisse1996.jaorm.spi.*;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -33,11 +30,13 @@ class PersistEventTest extends EventTest {
         QueryRunner queryRunner = Mockito.mock(QueryRunner.class);
         DelegatesService delegatesService = Mockito.mock(DelegatesService.class);
         QueriesService queriesService = Mockito.mock(QueriesService.class);
+        ListenersService listenersService = Mockito.mock(ListenersService.class);
         BaseDao<RelEntity> baseDao = Mockito.mock(BaseDao.class);
         try (MockedStatic<RelationshipService> mkRel = Mockito.mockStatic(RelationshipService.class);
              MockedStatic<QueryRunner> mkRunner = Mockito.mockStatic(QueryRunner.class);
              MockedStatic<DelegatesService> mkDelegates = Mockito.mockStatic(DelegatesService.class);
-             MockedStatic<QueriesService> mkQueries = Mockito.mockStatic(QueriesService.class)) {
+             MockedStatic<QueriesService> mkQueries = Mockito.mockStatic(QueriesService.class);
+             MockedStatic<ListenersService> mkList = Mockito.mockStatic(ListenersService.class)) {
             mkRel.when(RelationshipService::getInstance)
                     .thenReturn(relationshipService);
             mkRunner.when(() -> QueryRunner.getInstance(Entity.class))
@@ -46,6 +45,8 @@ class PersistEventTest extends EventTest {
                     .thenReturn(delegatesService);
             mkQueries.when(QueriesService::getInstance)
                     .thenReturn(queriesService);
+            mkList.when(ListenersService::getInstance)
+                    .thenReturn(listenersService);
 
             Mockito.when(relationshipService.getRelationships(Entity.class))
                     .thenReturn(tree);
@@ -76,10 +77,12 @@ class PersistEventTest extends EventTest {
         DelegatesService delegatesService = Mockito.mock(DelegatesService.class);
         QueriesService queriesService = Mockito.mock(QueriesService.class);
         BaseDao<RelEntity> baseDao = Mockito.mock(BaseDao.class);
+        ListenersService listenersService = Mockito.mock(ListenersService.class);
         try (MockedStatic<RelationshipService> mkRel = Mockito.mockStatic(RelationshipService.class);
              MockedStatic<QueryRunner> mkRunner = Mockito.mockStatic(QueryRunner.class);
              MockedStatic<DelegatesService> mkDelegates = Mockito.mockStatic(DelegatesService.class);
-             MockedStatic<QueriesService> mkQueries = Mockito.mockStatic(QueriesService.class)) {
+             MockedStatic<QueriesService> mkQueries = Mockito.mockStatic(QueriesService.class);
+            MockedStatic<ListenersService> mkListeners = Mockito.mockStatic(ListenersService.class)) {
             mkRel.when(RelationshipService::getInstance)
                     .thenReturn(relationshipService);
             mkRunner.when(() -> QueryRunner.getInstance(Entity.class))
@@ -88,6 +91,8 @@ class PersistEventTest extends EventTest {
                     .thenReturn(delegatesService);
             mkQueries.when(QueriesService::getInstance)
                     .thenReturn(queriesService);
+            mkListeners.when(ListenersService::getInstance)
+                    .thenReturn(listenersService);
 
             Mockito.when(delegatesService.getEntityClass(MyEntityDelegate.class))
                     .then(invocation -> Entity.class);
@@ -117,12 +122,15 @@ class PersistEventTest extends EventTest {
         Relationship<?> fakeRel = new Relationship<>(Object.class);
         RelationshipService relationshipService = Mockito.mock(RelationshipService.class);
         QueryRunner runner = Mockito.mock(QueryRunner.class);
+        ListenersService listenersService = Mockito.mock(ListenersService.class);
         DelegatesService delegatesService = Mockito.mock(DelegatesService.class);
         try (MockedStatic<QueryRunner> runnerMk = Mockito.mockStatic(QueryRunner.class);
             MockedStatic<RelationshipService> relMk = Mockito.mockStatic(RelationshipService.class);
-            MockedStatic<DelegatesService> delegateMk = Mockito.mockStatic(DelegatesService.class)) {
+            MockedStatic<DelegatesService> delegateMk = Mockito.mockStatic(DelegatesService.class);
+            MockedStatic<ListenersService> listMk = Mockito.mockStatic(ListenersService.class)) {
             runnerMk.when(() -> QueryRunner.getInstance(Mockito.any()))
                     .thenReturn(runner);
+            listMk.when(ListenersService::getInstance).thenReturn(listenersService);
             relMk.when(RelationshipService::getInstance)
                     .thenReturn(relationshipService);
             delegateMk.when(DelegatesService::getInstance)
@@ -143,11 +151,15 @@ class PersistEventTest extends EventTest {
         RelationshipService relationshipService = Mockito.mock(RelationshipService.class);
         QueryRunner runner = Mockito.mock(QueryRunner.class);
         DelegatesService delegatesService = Mockito.mock(DelegatesService.class);
+        ListenersService listenersService = Mockito.mock(ListenersService.class);
         try (MockedStatic<QueryRunner> runnerMk = Mockito.mockStatic(QueryRunner.class);
              MockedStatic<RelationshipService> relMk = Mockito.mockStatic(RelationshipService.class);
-             MockedStatic<DelegatesService> delegateMk = Mockito.mockStatic(DelegatesService.class)) {
+             MockedStatic<DelegatesService> delegateMk = Mockito.mockStatic(DelegatesService.class);
+             MockedStatic<ListenersService> listMk = Mockito.mockStatic(ListenersService.class)) {
             runnerMk.when(() -> QueryRunner.getInstance(Mockito.any()))
                     .thenReturn(runner);
+            listMk.when(ListenersService::getInstance)
+                    .thenReturn(listenersService);
             relMk.when(RelationshipService::getInstance)
                     .thenReturn(relationshipService);
             delegateMk.when(DelegatesService::getInstance)
@@ -193,16 +205,20 @@ class PersistEventTest extends EventTest {
         Relationship<?> fakeRel = new Relationship<>(Object.class);
         RelationshipService relationshipService = Mockito.mock(RelationshipService.class);
         QueryRunner runner = Mockito.mock(QueryRunner.class);
+        ListenersService listenersService = Mockito.mock(ListenersService.class);
         DelegatesService delegatesService = Mockito.mock(DelegatesService.class);
         try (MockedStatic<QueryRunner> runnerMk = Mockito.mockStatic(QueryRunner.class);
              MockedStatic<RelationshipService> relMk = Mockito.mockStatic(RelationshipService.class);
-             MockedStatic<DelegatesService> delegateMk = Mockito.mockStatic(DelegatesService.class)) {
+             MockedStatic<DelegatesService> delegateMk = Mockito.mockStatic(DelegatesService.class);
+             MockedStatic<ListenersService> mkListeners = Mockito.mockStatic(ListenersService.class)) {
             runnerMk.when(() -> QueryRunner.getInstance(Mockito.any()))
                     .thenReturn(runner);
             relMk.when(RelationshipService::getInstance)
                     .thenReturn(relationshipService);
             delegateMk.when(DelegatesService::getInstance)
                     .thenReturn(delegatesService);
+            mkListeners.when(ListenersService::getInstance)
+                    .thenReturn(listenersService);
             Mockito.when(delegatesService.asInsert(Mockito.any()))
                     .thenReturn(Arguments.empty());
             Mockito.when(relationshipService.getRelationships(Mockito.any()))

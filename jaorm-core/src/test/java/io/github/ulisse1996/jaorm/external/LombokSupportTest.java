@@ -43,6 +43,7 @@ class LombokSupportTest {
             LombokSupport instance = LombokSupport.getInstance();
             Assertions.assertFalse(instance.isSupported());
             Assertions.assertFalse(instance.isLombokGenerated(null));
+            Assertions.assertFalse(instance.hasLombokNoArgs(null));
             Assertions.assertThrows(UnsupportedOperationException.class, () -> instance.generateFakeElement(null, null)); //NOSONAR
         }
     }

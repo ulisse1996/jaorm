@@ -3,12 +3,14 @@ package io.github.ulisse1996.jaorm.entity.relationship;
 import io.github.ulisse1996.jaorm.entity.EntityDelegate;
 import io.github.ulisse1996.jaorm.entity.EntityMapper;
 import io.github.ulisse1996.jaorm.entity.Result;
+import io.github.ulisse1996.jaorm.entity.SqlColumn;
 import org.junit.jupiter.params.provider.Arguments;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -51,6 +53,11 @@ public abstract class EventTest {
         @Override
         public void setFullEntity(Entity entity) {
             this.entity = entity;
+        }
+
+        @Override
+        public void setFullEntityFullColumns(Map<SqlColumn<Entity, ?>, ?> columns) {
+
         }
 
         @Override
@@ -103,11 +110,11 @@ public abstract class EventTest {
 
     protected static Stream<Arguments> getRelationship() {
         Relationship<Entity> tree1 = new Relationship<>(Entity.class);
-        tree1.add(new Relationship.Node<>(Entity::getRelEntity, false, false, EntityEventType.values()));
+        tree1.add(new Relationship.Node<>(RelEntity.class, Entity::getRelEntity, false, false, EntityEventType.values()));
         Relationship<Entity> tree2 = new Relationship<>(Entity.class);
-        tree2.add(new Relationship.Node<>(Entity::getRelEntityOpt, true, false, EntityEventType.values()));
+        tree2.add(new Relationship.Node<>(RelEntity.class, Entity::getRelEntityOpt, true, false, EntityEventType.values()));
         Relationship<Entity> tree3 = new Relationship<>(Entity.class);
-        tree3.add(new Relationship.Node<>(Entity::getRelEntityColl, false, true, EntityEventType.values()));
+        tree3.add(new Relationship.Node<>(RelEntity.class, Entity::getRelEntityColl, false, true, EntityEventType.values()));
         return Stream.of(
                 Arguments.arguments(tree1),
                 Arguments.arguments(tree2),

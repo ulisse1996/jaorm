@@ -4,6 +4,7 @@ import io.github.ulisse1996.jaorm.ServiceFinder;
 import io.github.ulisse1996.jaorm.spi.common.Singleton;
 
 import javax.lang.model.element.Element;
+import javax.lang.model.element.TypeElement;
 
 public abstract class LombokSupport {
 
@@ -23,6 +24,7 @@ public abstract class LombokSupport {
 
     public abstract boolean isSupported();
     public abstract boolean isLombokGenerated(Element element);
+    public abstract boolean hasLombokNoArgs(TypeElement entity);
     public abstract Element generateFakeElement(Element element, GenerationType generationType);
 
     public enum GenerationType {
@@ -41,6 +43,11 @@ public abstract class LombokSupport {
 
         @Override
         public boolean isLombokGenerated(Element element) {
+            return false;
+        }
+
+        @Override
+        public boolean hasLombokNoArgs(TypeElement entity) {
             return false;
         }
 

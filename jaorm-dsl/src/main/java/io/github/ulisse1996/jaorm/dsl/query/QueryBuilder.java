@@ -1,14 +1,20 @@
 package io.github.ulisse1996.jaorm.dsl.query;
 
 import io.github.ulisse1996.jaorm.dsl.config.QueryConfig;
+import io.github.ulisse1996.jaorm.dsl.query.common.Inserted;
 import io.github.ulisse1996.jaorm.dsl.query.common.Selected;
+import io.github.ulisse1996.jaorm.dsl.query.common.Updated;
+import io.github.ulisse1996.jaorm.dsl.query.impl.InsertedImpl;
 import io.github.ulisse1996.jaorm.dsl.query.impl.SelectedImpl;
 import io.github.ulisse1996.jaorm.dsl.query.impl.SubQueryImpl;
+import io.github.ulisse1996.jaorm.dsl.query.impl.UpdatedImpl;
 import io.github.ulisse1996.jaorm.entity.SqlColumn;
 
 import java.util.Objects;
 
 public class QueryBuilder {
+
+    protected static final String ENTITY_CLASS_CAN_T_BE_NULL = "Entity class can't be null !";
 
     private QueryBuilder() {
         throw new UnsupportedOperationException("No access for QueryBuilder");
@@ -27,11 +33,25 @@ public class QueryBuilder {
     }
 
     public static <T> Selected<T> select(Class<T> klass, QueryConfig config) {
-        Objects.requireNonNull(klass, "Entity class can't be null !");
+        Objects.requireNonNull(klass, ENTITY_CLASS_CAN_T_BE_NULL);
         return new SelectedImpl<>(klass, config);
     }
 
     public static <T, R> Selected<T> subQuery(SqlColumn<T, R> column) {
         return new SubQueryImpl<>(column);
+    }
+
+    public static <T> Inserted<T> insertInto(Class<T> klass) {
+        Objects.requireNonNull(klass, ENTITY_CLASS_CAN_T_BE_NULL);
+        return new InsertedImpl<>(klass);
+    }
+
+    public static <T> Updated<T> update(Class<T> klass) {
+        return update(klass, QueryConfig.builder().build());
+    }
+
+    public static <T> Updated<T> update(Class<T> klass, QueryConfig queryConfig) {
+        Objects.requireNonNull(klass, ENTITY_CLASS_CAN_T_BE_NULL);
+        return new UpdatedImpl<>(klass, queryConfig);
     }
 }

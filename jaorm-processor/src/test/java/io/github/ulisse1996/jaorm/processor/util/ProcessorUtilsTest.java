@@ -568,6 +568,11 @@ class ProcessorUtilsTest {
                 }
 
                 @Override
+                public boolean hasLombokNoArgs(TypeElement entity) {
+                    return false;
+                }
+
+                @Override
                 public Element generateFakeElement(Element element, GenerationType generationType) {
                     return null;
                 }
@@ -601,6 +606,11 @@ class ProcessorUtilsTest {
                 @Override
                 public boolean isLombokGenerated(Element element) {
                     return true;
+                }
+
+                @Override
+                public boolean hasLombokNoArgs(TypeElement entity) {
+                    return false;
                 }
 
                 @Override
@@ -639,6 +649,11 @@ class ProcessorUtilsTest {
 
                 @Override
                 public boolean isLombokGenerated(Element element) {
+                    return false;
+                }
+
+                @Override
+                public boolean hasLombokNoArgs(TypeElement entity) {
                     return false;
                 }
 
@@ -816,6 +831,18 @@ class ProcessorUtilsTest {
                 .then(invocation -> Mockito.mock(invocation.getArgument(0)));
         List<Element> found = ProcessorUtils.getAnnotated(environment, element, Column.class);
         Assertions.assertEquals(Collections.singletonList(variableElement), found);
+    }
+
+    @Test
+    void should_return_true_for_external_generated_constructor() {
+        LombokSupport instance = Mockito.mock(LombokSupport.class);
+        Mockito.when(instance.hasLombokNoArgs(Mockito.any()))
+                .thenReturn(true);
+        try (MockedStatic<LombokSupport> mk = Mockito.mockStatic(LombokSupport.class)) {
+            mk.when(LombokSupport::getInstance)
+                    .thenReturn(instance);
+            Assertions.assertTrue(ProcessorUtils.hasExternalConstructor(Mockito.mock(TypeElement.class)));
+        }
     }
 
     private ExecutableElement fakeAccessor() {

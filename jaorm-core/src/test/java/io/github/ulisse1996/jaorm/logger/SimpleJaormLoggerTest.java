@@ -7,13 +7,27 @@ import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
+import java.lang.reflect.Field;
 import java.util.List;
+import java.util.ServiceConfigurationError;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 
 class SimpleJaormLoggerTest {
 
     private static final JaormLogger logger = JaormLogger.getLogger(SimpleJaormLoggerTest.class);
+
+    @Test
+    void should_return_no_op_handler() throws NoSuchFieldException, IllegalAccessException {
+        try (MockedStatic<ServiceFinder> mk = Mockito.mockStatic(ServiceFinder.class)) {
+            mk.when(() -> ServiceFinder.loadService(Mockito.any()))
+                    .thenThrow(ServiceConfigurationError.class);
+            SimpleJaormLogger simpleJaormLogger = new SimpleJaormLogger(Object.class);
+            Field handler = SimpleJaormLogger.class.getDeclaredField("handler");
+            handler.setAccessible(true);
+            Assertions.assertTrue(handler.get(simpleJaormLogger) instanceof JaormLoggerHandler.NoOp);
+        }
+    }
 
     @Test
     void should_not_throw_exception_for_warning_message() {
@@ -38,6 +52,9 @@ class SimpleJaormLoggerTest {
 
             @Override
             public void handleSqlLog(Class<?> klass, String sql, List<SqlParameter> sqlParameters) {}
+
+            @Override
+            public void handleSqlBatchLog(Class<?> klass, String sql, List<List<SqlParameter>> sqlParameters) {}
         });
         try (MockedStatic<ServiceFinder> mk = Mockito.mockStatic(ServiceFinder.class)) {
             mk.when(() -> ServiceFinder.loadService(JaormLoggerHandler.class))

@@ -1,5 +1,7 @@
 package io.github.ulisse1996.jaorm.entity;
 
+import io.github.ulisse1996.jaorm.DelegatesMock;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -30,6 +32,22 @@ class EntityDelegateTest {
         Mockito.verifyNoInteractions(notKey);
         Mockito.verify(key)
                 .accept(Mockito.any(), Mockito.eq("FAKE"));
+    }
+
+    @Test
+    void should_return_same_entity() {
+        DelegatesMock.MyEntity entity = new DelegatesMock.MyEntity();
+        Assertions.assertSame(entity, EntityDelegate.unboxEntity(entity));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void should_return_entity_from_delegate() {
+        Object object = new Object();
+        EntityDelegate<Object> delegate = Mockito.mock(EntityDelegate.class);
+        Mockito.when(delegate.getEntity())
+                .thenReturn(object);
+        Assertions.assertSame(object, EntityDelegate.unboxEntity(delegate));
     }
 
     @SuppressWarnings("unchecked")

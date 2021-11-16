@@ -1,11 +1,18 @@
 # CHANGELOG
 
+## 0.31.0
+- Feature: Batch Insert/Update for Entity
+- Feature: Dsl Support for Insert/Update
+- Feature: Lombok Support for NoArgsConstructor
+- Feature: Log Sql for Batch Insert/Update
+
 ## 0.30.0
 - Feature: Projections Support
 
 ## 0.29.0
 - Feature: Support for Multiple Jaorm SPI Configurations
 - Feature: Hash Cache for Jaorm Validation
+- Feature: Tables with Suffix
 - Feature: Jaorm Validation for Classpath Entities
 
 ## 0.28.0

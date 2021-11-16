@@ -263,6 +263,59 @@ class QueryBuilderIT extends AbstractIT {
         }
     }
 
+    @ParameterizedTest
+    @MethodSource("getSqlTests")
+    void should_insert_using_dsl(HSQLDBProvider.DatabaseType databaseType, String initSql) {
+        setDataSource(databaseType, initSql);
+
+        UserDAO userDAO = QueriesService.getInstance().getQuery(UserDAO.class);
+
+        User user = new User();
+        user.setId(10);
+        Optional<User> optUser = userDAO.readOpt(user);
+
+        Assertions.assertFalse(optUser.isPresent());
+
+        QueryBuilder.insertInto(User.class)
+                .column(UserColumns.USER_ID).withValue(10)
+                .column(UserColumns.USER_NAME).withValue("NAME")
+                .column(UserColumns.DEPARTMENT_ID).withValue(20)
+                .execute();
+
+        optUser = userDAO.readOpt(user);
+
+        Assertions.assertTrue(optUser.isPresent());
+        Assertions.assertEquals(10, optUser.get().getId());
+        Assertions.assertEquals("NAME", optUser.get().getName());
+        Assertions.assertEquals(20, optUser.get().getDepartmentId());
+    }
+
+    @ParameterizedTest
+    @MethodSource("getSqlTests")
+    void should_update_using_dsl(HSQLDBProvider.DatabaseType databaseType, String initSql) {
+        setDataSource(databaseType, initSql);
+
+        UserDAO userDAO = QueriesService.getInstance().getQuery(UserDAO.class);
+
+        User user = new User();
+        user.setId(15);
+        user.setName("NAME");
+        user.setDepartmentId(30);
+        userDAO.insert(user);
+
+        QueryBuilder.update(User.class)
+                .setting(UserColumns.USER_NAME).toValue("CHANGE_USERNAME")
+                .setting(UserColumns.DEPARTMENT_ID).toValue(25)
+                .where(UserColumns.USER_NAME).eq("NAME")
+                .andWhere(UserColumns.USER_ID).eq(15)
+                .execute();
+
+        Optional<User> optUser = userDAO.readOpt(user);
+        Assertions.assertTrue(optUser.isPresent());
+        Assertions.assertEquals("CHANGE_USERNAME", optUser.get().getName());
+        Assertions.assertEquals(25, optUser.get().getDepartmentId());
+    }
+
     private User createUser(int i) {
         User user = new User();
         user.setId(i);
