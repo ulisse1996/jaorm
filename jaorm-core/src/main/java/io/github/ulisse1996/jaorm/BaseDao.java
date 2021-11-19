@@ -28,7 +28,8 @@ public interface BaseDao<R> {
     List<R> readAll();
 
     default int delete(R entity) {
-        Objects.requireNonNull(entity);
+        System.out.println(entity);
+        Objects.requireNonNull(entity, "Entity can't be null !");
         int res = 0;
         RelationshipService relationshipService = RelationshipService.getInstance();
         if (relationshipService.isEventActive(entity.getClass(), EntityEventType.REMOVE)) {
