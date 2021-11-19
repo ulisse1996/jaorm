@@ -7,6 +7,7 @@ public class ExceptionLogger implements TestExecutionExceptionHandler {
 
     @Override
     public void handleTestExecutionException(ExtensionContext context, Throwable throwable) throws Throwable {
+        System.out.println(throwable.getMessage());
         throwable.printStackTrace();
         throw throwable;
     }
