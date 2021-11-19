@@ -5,12 +5,13 @@
     <parent>
         <artifactId>jaorm-pom</artifactId>
         <groupId>io.github.ulisse1996</groupId>
-        <version>0.31.0</version>
+        <version>0.32.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <packaging>pom</packaging>
     <modules>
         <module>jaorm-maven-plugin</module>
+        <module>jaorm-tools-core</module>
     </modules>
 
     <artifactId>jaorm-tools</artifactId>
