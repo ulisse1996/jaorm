@@ -14,6 +14,7 @@ import io.github.ulisse1996.jaorm.spi.QueryRunner;
 import io.github.ulisse1996.jaorm.spi.RelationshipService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.function.Executable;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
@@ -27,6 +28,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+@ExtendWith(ExceptionLogger.class)
 class BaseDaoTest {
 
     @Test
