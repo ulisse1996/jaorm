@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 0.32.0
+- Feature: Move Tools Core to specific Project
+- Feature: Move IT run to optional profile
+- Feature: SQL Validation for Query
+- Feature: Maven Plugin skip cache
+- Bugfix: Move hash to SHA-512
+
 ## 0.31.0
 - Feature: Batch Insert/Update for Entity
 - Feature: Dsl Support for Insert/Update

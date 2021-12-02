@@ -8,12 +8,12 @@ import io.github.ulisse1996.jaorm.entity.sql.SqlParameter;
 import io.github.ulisse1996.jaorm.exception.PersistEventException;
 import io.github.ulisse1996.jaorm.exception.RemoveEventException;
 import io.github.ulisse1996.jaorm.exception.UpdateEventException;
-import io.github.ulisse1996.jaorm.spi.DelegatesService;
-import io.github.ulisse1996.jaorm.spi.QueriesService;
-import io.github.ulisse1996.jaorm.spi.QueryRunner;
-import io.github.ulisse1996.jaorm.spi.RelationshipService;
+import io.github.ulisse1996.jaorm.spi.*;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.function.Executable;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+@ExtendWith(ExceptionLogger.class)
 class BaseDaoTest {
 
     @Test
@@ -97,7 +98,9 @@ class BaseDaoTest {
         RelationshipService relationshipService = Mockito.mock(RelationshipService.class);
         try (MockedStatic<QueryRunner> mkRunner = Mockito.mockStatic(QueryRunner.class);
              MockedStatic<DelegatesService> mkDelegates = Mockito.mockStatic(DelegatesService.class);
-             MockedStatic<RelationshipService> mkRelationship = Mockito.mockStatic(RelationshipService.class)) {
+             MockedStatic<RelationshipService> mkRelationship = Mockito.mockStatic(RelationshipService.class);
+             MockedStatic<ListenersService> mkList = Mockito.mockStatic(ListenersService.class)) {
+            mkList.when(ListenersService::getInstance).thenReturn(Mockito.mock(ListenersService.class));
             mkRunner.when(() -> QueryRunner.getInstance(Mockito.any()))
                     .thenReturn(runner);
             mkDelegates.when(DelegatesService::getInstance)
@@ -125,7 +128,9 @@ class BaseDaoTest {
         RelationshipService relationshipService = Mockito.mock(RelationshipService.class);
         try (MockedStatic<QueryRunner> mkRunner = Mockito.mockStatic(QueryRunner.class);
              MockedStatic<DelegatesService> mkDelegates = Mockito.mockStatic(DelegatesService.class);
-             MockedStatic<RelationshipService> mkRelationship = Mockito.mockStatic(RelationshipService.class)) {
+             MockedStatic<RelationshipService> mkRelationship = Mockito.mockStatic(RelationshipService.class);
+             MockedStatic<ListenersService> mkList = Mockito.mockStatic(ListenersService.class)) {
+            mkList.when(ListenersService::getInstance).thenReturn(Mockito.mock(ListenersService.class));
             mkRunner.when(() -> QueryRunner.getInstance(Mockito.any()))
                     .thenReturn(runner);
             mkDelegates.when(DelegatesService::getInstance)
@@ -153,7 +158,9 @@ class BaseDaoTest {
         RelationshipService relationshipService = Mockito.mock(RelationshipService.class);
         try (MockedStatic<QueryRunner> mkRunner = Mockito.mockStatic(QueryRunner.class);
              MockedStatic<DelegatesService> mkDelegates = Mockito.mockStatic(DelegatesService.class);
-             MockedStatic<RelationshipService> mkRelationship = Mockito.mockStatic(RelationshipService.class)) {
+             MockedStatic<RelationshipService> mkRelationship = Mockito.mockStatic(RelationshipService.class);
+             MockedStatic<ListenersService> mkList = Mockito.mockStatic(ListenersService.class)) {
+            mkList.when(ListenersService::getInstance).thenReturn(Mockito.mock(ListenersService.class));
             mkRunner.when(() -> QueryRunner.getInstance(Mockito.any()))
                     .thenReturn(runner);
             mkDelegates.when(DelegatesService::getInstance)
@@ -179,7 +186,9 @@ class BaseDaoTest {
         RelationshipService relationshipService = Mockito.mock(RelationshipService.class);
         try (MockedStatic<QueryRunner> mkRunner = Mockito.mockStatic(QueryRunner.class);
              MockedStatic<DelegatesService> mkDelegates = Mockito.mockStatic(DelegatesService.class);
-             MockedStatic<RelationshipService> mkRelationship = Mockito.mockStatic(RelationshipService.class)) {
+             MockedStatic<RelationshipService> mkRelationship = Mockito.mockStatic(RelationshipService.class);
+             MockedStatic<ListenersService> mkList = Mockito.mockStatic(ListenersService.class)) {
+            mkList.when(ListenersService::getInstance).thenReturn(Mockito.mock(ListenersService.class));
             mkRunner.when(() -> QueryRunner.getInstance(Mockito.any()))
                     .thenReturn(runner);
             mkDelegates.when(DelegatesService::getInstance)
@@ -205,7 +214,9 @@ class BaseDaoTest {
         RelationshipService relationshipService = Mockito.mock(RelationshipService.class);
         try (MockedStatic<QueryRunner> mkRunner = Mockito.mockStatic(QueryRunner.class);
              MockedStatic<DelegatesService> mkDelegates = Mockito.mockStatic(DelegatesService.class);
-             MockedStatic<RelationshipService> mkRelationship = Mockito.mockStatic(RelationshipService.class)) {
+             MockedStatic<RelationshipService> mkRelationship = Mockito.mockStatic(RelationshipService.class);
+             MockedStatic<ListenersService> mkList = Mockito.mockStatic(ListenersService.class)) {
+            mkList.when(ListenersService::getInstance).thenReturn(Mockito.mock(ListenersService.class));
             mkRunner.when(() -> QueryRunner.getInstance(Mockito.any()))
                     .thenReturn(runner);
             mkDelegates.when(DelegatesService::getInstance)
@@ -231,7 +242,9 @@ class BaseDaoTest {
         RelationshipService relationshipService = Mockito.mock(RelationshipService.class);
         try (MockedStatic<QueryRunner> mkRunner = Mockito.mockStatic(QueryRunner.class);
              MockedStatic<DelegatesService> mkDelegates = Mockito.mockStatic(DelegatesService.class);
-             MockedStatic<RelationshipService> mkRelationship = Mockito.mockStatic(RelationshipService.class)) {
+             MockedStatic<RelationshipService> mkRelationship = Mockito.mockStatic(RelationshipService.class);
+             MockedStatic<ListenersService> mkList = Mockito.mockStatic(ListenersService.class)) {
+            mkList.when(ListenersService::getInstance).thenReturn(Mockito.mock(ListenersService.class));
             mkRunner.when(() -> QueryRunner.getInstance(Mockito.any()))
                     .thenReturn(runner);
             mkDelegates.when(DelegatesService::getInstance)
@@ -258,7 +271,9 @@ class BaseDaoTest {
         RelationshipService relationshipService = Mockito.mock(RelationshipService.class);
         try (MockedStatic<QueryRunner> mkRunner = Mockito.mockStatic(QueryRunner.class);
              MockedStatic<DelegatesService> mkDelegates = Mockito.mockStatic(DelegatesService.class);
-             MockedStatic<RelationshipService> mkRelationship = Mockito.mockStatic(RelationshipService.class)) {
+             MockedStatic<RelationshipService> mkRelationship = Mockito.mockStatic(RelationshipService.class);
+             MockedStatic<ListenersService> mkList = Mockito.mockStatic(ListenersService.class)) {
+            mkList.when(ListenersService::getInstance).thenReturn(Mockito.mock(ListenersService.class));
             mkRunner.when(() -> QueryRunner.getInstance(Mockito.any()))
                     .thenReturn(runner);
             mkDelegates.when(DelegatesService::getInstance)
@@ -289,7 +304,9 @@ class BaseDaoTest {
         RelationshipService relationshipService = Mockito.mock(RelationshipService.class);
         try (MockedStatic<QueryRunner> mkRunner = Mockito.mockStatic(QueryRunner.class);
              MockedStatic<DelegatesService> mkDelegates = Mockito.mockStatic(DelegatesService.class);
-             MockedStatic<RelationshipService> mkRelationship = Mockito.mockStatic(RelationshipService.class)) {
+             MockedStatic<RelationshipService> mkRelationship = Mockito.mockStatic(RelationshipService.class);
+             MockedStatic<ListenersService> mkList = Mockito.mockStatic(ListenersService.class)) {
+            mkList.when(ListenersService::getInstance).thenReturn(Mockito.mock(ListenersService.class));
             mkRunner.when(() -> QueryRunner.getInstance(Mockito.any()))
                     .thenReturn(runner);
             mkDelegates.when(DelegatesService::getInstance)
@@ -339,7 +356,9 @@ class BaseDaoTest {
         QueryRunner queryRunner = Mockito.mock(QueryRunner.class);
         List<DelegatesMock.MyEntity> entities = Collections.singletonList(Mockito.mock(DelegatesMock.MyEntity.class));
         try (MockedStatic<DelegatesService> mkDel = Mockito.mockStatic(DelegatesService.class);
-            MockedStatic<QueryRunner> mkQuery = Mockito.mockStatic(QueryRunner.class)) {
+            MockedStatic<QueryRunner> mkQuery = Mockito.mockStatic(QueryRunner.class);
+            MockedStatic<ListenersService> mkList = Mockito.mockStatic(ListenersService.class)) {
+            mkList.when(ListenersService::getInstance).thenReturn(Mockito.mock(ListenersService.class));
             mkDel.when(DelegatesService::getInstance)
                     .thenReturn(delegatesService);
             mkQuery.when(() -> QueryRunner.getInstance(Mockito.any()))
@@ -360,7 +379,10 @@ class BaseDaoTest {
         QueryRunner queryRunner = Mockito.mock(QueryRunner.class);
         List<DelegatesMock.MyEntity> entities = Collections.singletonList(Mockito.mock(DelegatesMock.MyEntity.class));
         try (MockedStatic<DelegatesService> mkDel = Mockito.mockStatic(DelegatesService.class);
-             MockedStatic<QueryRunner> mkQuery = Mockito.mockStatic(QueryRunner.class)) {
+             MockedStatic<QueryRunner> mkQuery = Mockito.mockStatic(QueryRunner.class);
+             MockedStatic<ListenersService> mkList = Mockito.mockStatic(ListenersService.class)) {
+            mkList.when(ListenersService::getInstance)
+                    .thenReturn(Mockito.mock(ListenersService.class));
             mkDel.when(DelegatesService::getInstance)
                     .thenReturn(delegatesService);
             mkQuery.when(() -> QueryRunner.getInstance(Mockito.any()))
@@ -383,7 +405,9 @@ class BaseDaoTest {
         List<DelegatesMock.MyEntity> entities = Collections.singletonList(Mockito.mock(DelegatesMock.MyEntity.class));
         try (MockedStatic<DelegatesService> mkDel = Mockito.mockStatic(DelegatesService.class);
              MockedStatic<QueryRunner> mkQuery = Mockito.mockStatic(QueryRunner.class);
-             MockedStatic<RelationshipService> mkRel = Mockito.mockStatic(RelationshipService.class)) {
+             MockedStatic<RelationshipService> mkRel = Mockito.mockStatic(RelationshipService.class);
+             MockedStatic<ListenersService> mkList = Mockito.mockStatic(ListenersService.class)) {
+            mkList.when(ListenersService::getInstance).thenReturn(Mockito.mock(ListenersService.class));
             mkDel.when(DelegatesService::getInstance)
                     .thenReturn(delegatesService);
             mkRel.when(RelationshipService::getInstance)
@@ -414,7 +438,9 @@ class BaseDaoTest {
         try (MockedStatic<DelegatesService> mkDel = Mockito.mockStatic(DelegatesService.class);
              MockedStatic<QueryRunner> mkQuery = Mockito.mockStatic(QueryRunner.class);
              MockedStatic<RelationshipService> mkRel = Mockito.mockStatic(RelationshipService.class);
-             MockedStatic<QueriesService> mkQueries = Mockito.mockStatic(QueriesService.class)) {
+             MockedStatic<QueriesService> mkQueries = Mockito.mockStatic(QueriesService.class);
+             MockedStatic<ListenersService> mkList = Mockito.mockStatic(ListenersService.class)) {
+            mkList.when(ListenersService::getInstance).thenReturn(Mockito.mock(ListenersService.class));
             mkDel.when(DelegatesService::getInstance)
                     .thenReturn(delegatesService);
             mkRel.when(RelationshipService::getInstance)
@@ -464,7 +490,9 @@ class BaseDaoTest {
         try (MockedStatic<DelegatesService> mkDel = Mockito.mockStatic(DelegatesService.class);
              MockedStatic<QueryRunner> mkQuery = Mockito.mockStatic(QueryRunner.class);
              MockedStatic<RelationshipService> mkRel = Mockito.mockStatic(RelationshipService.class);
-             MockedStatic<QueriesService> mkQueries = Mockito.mockStatic(QueriesService.class)) {
+             MockedStatic<QueriesService> mkQueries = Mockito.mockStatic(QueriesService.class);
+             MockedStatic<ListenersService> mkList = Mockito.mockStatic(ListenersService.class)) {
+            mkList.when(ListenersService::getInstance).thenReturn(Mockito.mock(ListenersService.class));
             mkDel.when(DelegatesService::getInstance)
                     .thenReturn(delegatesService);
             mkRel.when(RelationshipService::getInstance)
@@ -509,7 +537,9 @@ class BaseDaoTest {
         List<DelegatesMock.MyEntity> entities = Collections.singletonList(Mockito.mock(DelegatesMock.MyEntity.class));
         try (MockedStatic<DelegatesService> mkDel = Mockito.mockStatic(DelegatesService.class);
              MockedStatic<QueryRunner> mkQuery = Mockito.mockStatic(QueryRunner.class);
-             MockedStatic<RelationshipService> mkRel = Mockito.mockStatic(RelationshipService.class)) {
+             MockedStatic<RelationshipService> mkRel = Mockito.mockStatic(RelationshipService.class);
+             MockedStatic<ListenersService> mkList = Mockito.mockStatic(ListenersService.class)) {
+            mkList.when(ListenersService::getInstance).thenReturn(Mockito.mock(ListenersService.class));
             mkDel.when(DelegatesService::getInstance)
                     .thenReturn(delegatesService);
             mkRel.when(RelationshipService::getInstance)
@@ -534,7 +564,9 @@ class BaseDaoTest {
         RelationshipService relationshipService = Mockito.mock(RelationshipService.class);
         EntityEvent event = Mockito.mock(EntityEvent.class);
         try (MockedStatic<RelationshipService> mk = Mockito.mockStatic(RelationshipService.class);
-             MockedStatic<EntityEvent> mkEntity = Mockito.mockStatic(EntityEvent.class)) {
+             MockedStatic<EntityEvent> mkEntity = Mockito.mockStatic(EntityEvent.class);
+             MockedStatic<ListenersService> mkList = Mockito.mockStatic(ListenersService.class)) {
+            mkList.when(ListenersService::getInstance).thenReturn(Mockito.mock(ListenersService.class));
             mk.when(RelationshipService::getInstance)
                     .thenReturn(relationshipService);
             Mockito.when(relationshipService.isEventActive(DelegatesMock.MyEntity.class, eventType))

@@ -5,7 +5,7 @@ import java.lang.annotation.*;
 /**
  * Specifies that annotated method must be implemented by Core Module
  */
-@Retention(RetentionPolicy.CLASS)
+@Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 @Documented
 public @interface Query {
