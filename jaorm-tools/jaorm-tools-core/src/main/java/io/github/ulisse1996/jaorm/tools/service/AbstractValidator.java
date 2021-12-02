@@ -22,6 +22,7 @@ import java.sql.*;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Properties;
 import java.util.stream.Collectors;
 
 public abstract class AbstractValidator implements Validator {
@@ -48,7 +49,7 @@ public abstract class AbstractValidator implements Validator {
                     Statement statement = CCJSqlParserUtil.parse(realQuery);
                     TableColumnFinder finder = new TableColumnFinder();
                     finder.getTableList(statement);
-                    validateResult(realQuery, finder);
+                    validateResult(finder);
                 } catch (JSQLParserException | SQLException ex) {
                     throw new QueryValidationException(ex);
                 }
@@ -58,7 +59,7 @@ public abstract class AbstractValidator implements Validator {
         getLog().warn(() -> String.format("Can't validate %s for missing strategy !", query));
     }
 
-    private void validateResult(String realQuery, TableColumnFinder finder) throws SQLException {
+    private void validateResult(TableColumnFinder finder) throws SQLException {
         List<TableAliasPair> tables = finder.getTables();
         List<TableColumnPair> columns = finder.getPairs();
         Map<String, List<TableColumnPair>> grouped = columns.stream()
@@ -70,13 +71,11 @@ public abstract class AbstractValidator implements Validator {
             }
             if (table.isEmpty()) {
                 doMultiFromValidation(tables, entry.getValue());
-            } else {
-                getLog().warn(() -> String.format("Can't validate %s", realQuery));
             }
         }
         List<TableColumnFinder> subQueries = finder.getSubQueries();
         for (TableColumnFinder subQuery : subQueries) {
-            validateResult(realQuery, subQuery);
+            validateResult(subQuery);
         }
     }
 
@@ -104,7 +103,7 @@ public abstract class AbstractValidator implements Validator {
         executeSql(
                 String.format(
                         "SELECT %s FROM %s",
-                        columns.stream().map(TableColumnPair::getColumn).collect(Collectors.joining(",")),
+                        columns.stream().map(TableColumnPair::getColumn).distinct().collect(Collectors.joining(",")),
                         withoutAlias.stream().map(TableAliasPair::getName).collect(Collectors.joining(","))
                 )
         );
@@ -169,7 +168,9 @@ public abstract class AbstractValidator implements Validator {
             }
         }
 
-        return DriverManager.getConnection(this.connectionInfo.getJdbcUrl(),
-                this.connectionInfo.getJdbcUsername(), this.connectionInfo.getJdbcPassword());
+        Properties properties = new Properties();
+        properties.put("user", this.connectionInfo.getJdbcUsername());
+        properties.put("password", this.connectionInfo.getJdbcPassword());
+        return driver.connect(this.connectionInfo.getJdbcUrl(), properties);
     }
 }

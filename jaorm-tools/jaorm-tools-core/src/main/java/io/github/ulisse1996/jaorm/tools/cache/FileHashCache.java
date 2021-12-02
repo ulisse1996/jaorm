@@ -1,5 +1,6 @@
 package io.github.ulisse1996.jaorm.tools.cache;
 
+import com.google.common.annotations.VisibleForTesting;
 import io.github.ulisse1996.jaorm.spi.common.Singleton;
 import io.github.ulisse1996.jaorm.tools.model.FileHash;
 import io.github.ulisse1996.jaorm.tools.model.FileHashes;
@@ -9,14 +10,19 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
+import java.nio.file.attribute.FileAttribute;
+import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class FileHashCache {
@@ -107,10 +113,7 @@ public class FileHashCache {
                 Path path = fileSystem.getPath(filePath);
                 path = path.subpath(1, path.getNameCount());
                 String fileName = path.getFileName().toString();
-                Path tmp = Files.createTempFile(
-                        fileName.substring(0, fileName.lastIndexOf(".")),
-                        ".class"
-                );
+                Path tmp = createTmp(fileName);
                 Files.copy(path, tmp, StandardCopyOption.REPLACE_EXISTING);
                 return tmp;
             } catch (Exception ex) {
@@ -118,6 +121,23 @@ public class FileHashCache {
             }
         } else {
             return Paths.get(key);
+        }
+    }
+
+    @SuppressWarnings({"java:S899", "ResultOfMethodCallIgnored"})
+    private Path createTmp(String fileName) throws IOException {
+        String os = System.getProperty("os.name");
+        if (os.toLowerCase().contains("linux")) {
+            FileAttribute<Set<PosixFilePermission>> attr = PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rwx------"));
+            return Files.createTempFile(
+                    fileName.substring(0, fileName.lastIndexOf(".")),
+                    ".class", attr);
+        } else {
+            File f = Files.createTempFile(fileName.substring(0, fileName.lastIndexOf(".")), ".class").toFile();
+            f.setReadable(true, true);
+            f.setWritable(true, true);
+            f.setExecutable(true, true);
+            return f.toPath();
         }
     }
 
@@ -142,5 +162,10 @@ public class FileHashCache {
         } catch (Exception ex) {
             throw new IOException(ex);
         }
+    }
+
+    @VisibleForTesting
+    Map<String, String> getHashCache() {
+        return hashCache;
     }
 }
