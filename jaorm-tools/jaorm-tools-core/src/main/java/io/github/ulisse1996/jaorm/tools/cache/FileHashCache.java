@@ -133,7 +133,7 @@ public class FileHashCache {
                     fileName.substring(0, fileName.lastIndexOf(".")),
                     ".class", attr);
         } else {
-            File f = Files.createTempFile(fileName.substring(0, fileName.lastIndexOf(".")), ".class").toFile();
+            File f = Files.createTempFile(String.format("/jaorm-gen/%s", fileName.substring(0, fileName.lastIndexOf("."))), ".class").toFile();
             f.setReadable(true, true);
             f.setWritable(true, true);
             f.setExecutable(true, true);
