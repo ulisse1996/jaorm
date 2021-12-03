@@ -1,6 +1,5 @@
 package io.github.ulisse1996.jaorm;
 
-import io.github.ulisse1996.jaorm.entity.EntityDelegate;
 import io.github.ulisse1996.jaorm.entity.sql.DataSourceProvider;
 import io.github.ulisse1996.jaorm.entity.sql.SqlParameter;
 import io.github.ulisse1996.jaorm.exception.JaormSqlException;
@@ -163,7 +162,7 @@ class QueryRunnerTest {
             }
 
             @Override
-            protected Connection getConnection() {
+            public Connection getConnection() {
                 return connection;
             }
         };
@@ -293,7 +292,7 @@ class QueryRunnerTest {
             }
 
             @Override
-            protected Connection getConnection() {
+            public Connection getConnection() {
                 return connection;
             }
         };
@@ -343,7 +342,7 @@ class QueryRunnerTest {
             }
 
             @Override
-            protected Connection getConnection() {
+            public Connection getConnection() {
                 return connection;
             }
         };

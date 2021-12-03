@@ -7,4 +7,8 @@ public class JaormSqlException extends RuntimeException {
     public JaormSqlException(SQLException ex) {
         super(ex);
     }
+
+    public JaormSqlException(String message) {
+        super(message);
+    }
 }

@@ -132,6 +132,11 @@ class RelationshipServiceTest {
         }
 
         @Override
+        public String getKeysWhere(String alias) {
+            return null;
+        }
+
+        @Override
         public String getInsertSql() {
             return null;
         }

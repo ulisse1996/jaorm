@@ -10,5 +10,6 @@ public enum GenerationType {
     LISTENERS,
     GENERATORS,
     TABLES,
-    PROJECTIONS
+    PROJECTIONS,
+    GRAPH
 }

@@ -100,6 +100,11 @@ public abstract class AbstractIT {
         createDB(initSql);
     }
 
+    protected String getLastExecuted() {
+        List<String> executedSql = HSQLDBProvider.getExecutedSql();
+        return executedSql.get(executedSql.size() - 1);
+    }
+
     protected void createDB(String initSql) {
         List<String> strings = readFile(initSql);
         strings.add(0, "DROP SCHEMA PUBLIC CASCADE");

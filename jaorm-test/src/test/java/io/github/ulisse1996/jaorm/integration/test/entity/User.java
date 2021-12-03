@@ -1,16 +1,19 @@
 package io.github.ulisse1996.jaorm.integration.test.entity;
 
-import io.github.ulisse1996.jaorm.annotation.Column;
-import io.github.ulisse1996.jaorm.annotation.Id;
-import io.github.ulisse1996.jaorm.annotation.Relationship;
-import io.github.ulisse1996.jaorm.annotation.Table;
+import io.github.ulisse1996.jaorm.annotation.*;
 import io.github.ulisse1996.jaorm.entity.Result;
+import io.github.ulisse1996.jaorm.graph.EntityGraphFetcher;
 
 import java.util.List;
 import java.util.Objects;
 
 @Table(name = "USER_ENTITY")
+@Graph(name = "UserFull", nodes = {"roles", "userSpecific"})
+@Graph(name = "UserFullWithRoles", nodes = {"roles", "userSpecific"}, subGraphs = {"withRole"})
 public class User {
+
+    public static final EntityGraphFetcher<User> USER_FULL = EntityGraphFetcher.of(User.class, "UserFull");
+    public static final EntityGraphFetcher<User> USER_FULL_WITH_ROLES = EntityGraphFetcher.of(User.class, "UserFullWithRoles");
 
     @Id
     @Column(name = "USER_ID")

@@ -514,4 +514,13 @@ public class ProcessorUtils {
         LombokSupport lombokSupport = LombokSupport.getInstance();
         return lombokSupport.hasLombokNoArgs(entity);
     }
+
+    public static VariableElement getFieldFromName(TypeElement type, String name) {
+        return type.getEnclosedElements()
+                .stream()
+                .filter(e -> e.getSimpleName().contentEquals(name))
+                .findFirst()
+                .map(VariableElement.class::cast)
+                .orElseThrow(() -> new ProcessorException("Can't find field with name " + name));
+    }
 }

@@ -116,6 +116,37 @@ public class EntityMapper<T> {
         return entity;
     }
 
+    public T mapForGraph(Supplier<T> entitySupplier, ResultSet rs, String table) throws SQLException {
+        T entity = entitySupplier.get();
+        for (ColumnMapper<T> mapper : mappers) {
+            SqlAccessor accessor = SqlAccessor.find(mapper.type);
+            try {
+                mapper.setter.accept(entity, accessor.getGetter().get(rs, String.format("%s.%s", table, mapper.name)));
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+                throw ex;
+            }
+        }
+        return entity;
+    }
+
+
+    public boolean containsGraphResult(ResultSet resultSet, String table) throws SQLException {
+        List<ColumnMapper<T>> keysMappers = this.mappers.stream()
+                .filter(m -> m.key)
+                .collect(Collectors.toList());
+        for (ColumnMapper<T> mapper : keysMappers) {
+            String name = String.format("%s.%s", table, mapper.name);
+            SqlAccessor accessor = SqlAccessor.find(mapper.type);
+            accessor.getGetter().get(resultSet, name);
+            if (resultSet.wasNull()) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     public List<ColumnMapper<T>> getMappers() {
         return mappers;
     }

@@ -4,14 +4,23 @@ import io.github.ulisse1996.jaorm.entity.sql.DataSourceProvider;
 import org.hsqldb.jdbc.JDBCDataSourceFactory;
 
 import javax.sql.DataSource;
+import java.lang.reflect.Proxy;
+import java.sql.Connection;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 public class HSQLDBProvider extends DataSourceProvider {
 
     private DataSource dataSource;
+    private static List<String> executedSql;
 
     public void set(DataSource dataSource) {
         this.dataSource = dataSource;
+    }
+
+    public static List<String> getExecutedSql() {
+        return executedSql;
     }
 
     @Override
@@ -25,6 +34,7 @@ public class HSQLDBProvider extends DataSourceProvider {
 
     public void createFor(DatabaseType type) {
         this.dataSource = createDatasource(type);
+        executedSql = new ArrayList<>();
     }
 
     private static DataSource createDatasource(DatabaseType type) {
@@ -33,10 +43,32 @@ public class HSQLDBProvider extends DataSourceProvider {
             prop.put("url", "jdbc:hsqldb:mem:jaorm;" + type.getSyntax());
             prop.put("user", "jaorm");
             prop.put("password", "");
-            return JDBCDataSourceFactory.createDataSource(prop);
+            DataSource dataSource = JDBCDataSourceFactory.createDataSource(prop);
+            return datasourceProxy(dataSource);
         } catch (Exception ex) {
             throw new IllegalArgumentException(ex);
         }
+    }
+
+    private static DataSource datasourceProxy(DataSource dataSource) {
+        return (DataSource) Proxy.newProxyInstance(HSQLDBProvider.class.getClassLoader(), new Class[] {DataSource.class}, (proxy, method, args) -> {
+            if (method.getName().equalsIgnoreCase("getConnection")) {
+                return connectionProxy(dataSource.getConnection());
+            }
+
+            return method.invoke(dataSource, args);
+        });
+    }
+
+    private static Connection connectionProxy(Connection connection) {
+        return (Connection) Proxy.newProxyInstance(HSQLDBProvider.class.getClassLoader(), new Class[] {Connection.class}, (proxy, method, args) -> {
+            if (method.getName().equalsIgnoreCase("prepareStatement")) {
+                executedSql.add((String) args[0]);
+                return method.invoke(connection, args);
+            }
+
+            return method.invoke(connection, args);
+        });
     }
 
     public enum DatabaseType {
