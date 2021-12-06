@@ -78,12 +78,12 @@ public class GraphsGenerator extends Generator {
             Graph[] graphs = type.getAnnotationsByType(Graph.class);
             for (Graph graph : graphs) {
                 if (first) {
-                    builder.addStatement("$T builder = new $T<>($T.class)",
+                    builder.addStatement("$T builder = $T.builder($T.class)",
                             ParameterizedTypeName.get(ClassName.get(EntityGraph.Builder.class), WildcardTypeName.subtypeOf(Object.class)),
-                            EntityGraph.Builder.class, type);
+                            EntityGraph.class, type);
                     first = false;
                 } else {
-                    builder.addStatement("builder = new $T<>($T.class)", EntityGraph.Builder.class, type);
+                    builder.addStatement("builder = $T.builder($T.class)", EntityGraph.class, type);
                 }
                 int index = 0;
                 for (String name : graph.nodes()) {
