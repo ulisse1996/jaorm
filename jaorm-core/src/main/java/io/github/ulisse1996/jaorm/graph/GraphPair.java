@@ -12,14 +12,6 @@ public class GraphPair {
         this.name = name;
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public Class<?> getEntity() {
-        return entity;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

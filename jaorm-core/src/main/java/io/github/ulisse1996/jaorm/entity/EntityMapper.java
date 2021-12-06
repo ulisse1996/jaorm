@@ -120,16 +120,10 @@ public class EntityMapper<T> {
         T entity = entitySupplier.get();
         for (ColumnMapper<T> mapper : mappers) {
             SqlAccessor accessor = SqlAccessor.find(mapper.type);
-            try {
-                mapper.setter.accept(entity, accessor.getGetter().get(rs, String.format("%s.%s", table, mapper.name)));
-            } catch (SQLException ex) {
-                ex.printStackTrace();
-                throw ex;
-            }
+            mapper.setter.accept(entity, accessor.getGetter().get(rs, String.format("%s.%s", table, mapper.name)));
         }
         return entity;
     }
-
 
     public boolean containsGraphResult(ResultSet resultSet, String table) throws SQLException {
         List<ColumnMapper<T>> keysMappers = this.mappers.stream()

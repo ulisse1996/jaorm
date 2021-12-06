@@ -35,7 +35,7 @@ public class GraphsValidator extends Validator {
                String[] parts = graph.nodes();
                for (String name : parts) {
                    VariableElement field = ProcessorUtils.getFieldFromName(type, name);
-                   if (field.getAnnotation(Relationship.class) != null) {
+                   if (field.getAnnotation(Relationship.class) == null) {
                        throw new ProcessorException(String.format("Field with name %s is not annotated with @Relationship !", name));
                    }
                }

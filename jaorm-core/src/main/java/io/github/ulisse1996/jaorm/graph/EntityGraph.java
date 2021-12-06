@@ -37,7 +37,7 @@ public class EntityGraph<T> {
         private final Class<T> klass;
         private final List<Node> nodes;
 
-        public Builder(Class<T> klass) {
+        private Builder(Class<T> klass) {
             this.klass = klass;
             this.nodes = new ArrayList<>();
         }

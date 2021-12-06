@@ -6,10 +6,7 @@ import io.github.ulisse1996.jaorm.graph.GraphPair;
 import io.github.ulisse1996.jaorm.spi.combined.CombinedGraphs;
 import io.github.ulisse1996.jaorm.spi.common.Singleton;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -31,7 +28,7 @@ public abstract class GraphsService {
                         INSTANCE.set(services.get(0));
                     }
                 }
-            } catch (Exception ex) {
+            } catch (Exception | ServiceConfigurationError ex) {
                 INSTANCE.set(NoOp.INSTANCE);
             }
         }
@@ -48,7 +45,7 @@ public abstract class GraphsService {
 
     public abstract Map<GraphPair, EntityGraph<?>> getEntityGraphs(); //NOSONAR
 
-    private static class NoOp extends GraphsService {
+    static class NoOp extends GraphsService {
 
         private static final NoOp INSTANCE = new NoOp();
 

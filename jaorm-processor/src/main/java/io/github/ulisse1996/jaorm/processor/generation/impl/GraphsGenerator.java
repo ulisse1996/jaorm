@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class GraphsGenerator extends Generator {
 
@@ -36,9 +37,10 @@ public class GraphsGenerator extends Generator {
 
     @Override
     public void generate(RoundEnvironment roundEnvironment) {
-        List<TypeElement> types = roundEnvironment.getElementsAnnotatedWith(Graph.class)
-                .stream()
-                .map(TypeElement.class::cast)
+        List<TypeElement> types = Stream.concat(
+                roundEnvironment.getElementsAnnotatedWith(Graph.class).stream(),
+                roundEnvironment.getElementsAnnotatedWith(Graph.Graphs.class).stream()
+        ).map(TypeElement.class::cast)
                 .collect(Collectors.toList());
         if (!types.isEmpty()) {
             buildGraphs(types);
@@ -73,27 +75,29 @@ public class GraphsGenerator extends Generator {
                 .addStatement("$T values = new $T<>()", graphsMap(), HashMap.class);
         boolean first = true;
         for (TypeElement type : types) {
-            Graph graph = type.getAnnotation(Graph.class);
-            if (first) {
-                builder.addStatement("$T builder = new $T<>($T.class)",
-                        ParameterizedTypeName.get(ClassName.get(EntityGraph.Builder.class), WildcardTypeName.subtypeOf(Object.class)),
-                        EntityGraph.Builder.class, type);
-                first = false;
-            } else {
-                builder.addStatement("builder = new $T<>($T.class)", EntityGraph.Builder.class, type);
+            Graph[] graphs = type.getAnnotationsByType(Graph.class);
+            for (Graph graph : graphs) {
+                if (first) {
+                    builder.addStatement("$T builder = new $T<>($T.class)",
+                            ParameterizedTypeName.get(ClassName.get(EntityGraph.Builder.class), WildcardTypeName.subtypeOf(Object.class)),
+                            EntityGraph.Builder.class, type);
+                    first = false;
+                } else {
+                    builder.addStatement("builder = new $T<>($T.class)", EntityGraph.Builder.class, type);
+                }
+                int index = 0;
+                for (String name : graph.nodes()) {
+                    index++;
+                    VariableElement element = ProcessorUtils.getFieldFromName(type, name);
+                    ReturnTypeDefinition definition = new ReturnTypeDefinition(processingEnvironment, element.asType());
+                    ExecutableElement getter = ProcessorUtils.findGetter(processingEnvironment, type, element.getSimpleName());
+                    ExecutableElement setter = ProcessorUtils.findSetter(processingEnvironment, type, element.getSimpleName());
+                    builder.addStatement("builder.addChild($T.class, $S, $T.$L, (t, el) -> (($T) t).$L(($L) el), t -> (($T) t).$L(), $S)", definition.getRealClass(),
+                            buildJoin(element, definition, index), NodeType.class, findNodeType(definition), type, setter.getSimpleName(),
+                            setter.getParameters().get(0).asType(), type, getter.getSimpleName(), getAlias(index, definition.getRealClass()));
+                }
+                builder.addStatement("values.put(new $T($T.class, $S), builder.build())", GraphPair.class, type, graph.name());
             }
-            int index = 0;
-            for (String name : graph.nodes()) {
-                index++;
-                VariableElement element = ProcessorUtils.getFieldFromName(type, name);
-                ReturnTypeDefinition definition = new ReturnTypeDefinition(processingEnvironment, element.asType());
-                ExecutableElement getter = ProcessorUtils.findGetter(processingEnvironment, type, element.getSimpleName());
-                ExecutableElement setter = ProcessorUtils.findSetter(processingEnvironment, type, element.getSimpleName());
-                builder.addStatement("builder.addChild($T.class, $S, $T.$L, (t, el) -> (($T) t).$L(($L) el), t -> (($T) t).$L(), $S)", definition.getRealClass(),
-                        buildJoin(element, definition, index), NodeType.class, findNodeType(definition), type, setter.getSimpleName(),
-                        setter.getParameters().get(0).asType(), type, getter.getSimpleName(), getAlias(index, definition.getRealClass()));
-            }
-            builder.addStatement("values.put(new $T($T.class, $S), builder.build())", GraphPair.class, type, graph.name());
         }
         builder.addStatement("this.elements = $T.unmodifiableMap(values)", Collections.class);
         return builder.build();
