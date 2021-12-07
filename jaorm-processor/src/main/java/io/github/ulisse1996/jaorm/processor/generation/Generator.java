@@ -37,6 +37,8 @@ public abstract class Generator {
                 return new TablesGenerator(processingEnvironment);
             case PROJECTIONS:
                 return new ProjectionsGenerator(processingEnvironment);
+            case GRAPH:
+                return new GraphsGenerator(processingEnvironment);
             default:
                 throw new IllegalArgumentException("Can't find validator");
         }

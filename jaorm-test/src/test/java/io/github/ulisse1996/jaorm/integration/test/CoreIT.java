@@ -374,4 +374,99 @@ class CoreIT extends AbstractIT {
         Assertions.assertFalse(result2.getStores().isEmpty());
         Assertions.assertFalse(result2.getStores().get(0).getSellers().isEmpty());
     }
+
+    @ParameterizedTest
+    @MethodSource("getSqlTests")
+    void should_return_empty_result_for_entity_from_graph(HSQLDBProvider.DatabaseType type, String initSql) {
+        setDataSource(type, initSql);
+
+        User user = new User();
+        user.setId(2);
+        Optional<User> userOpt = User.USER_FULL.fetchOpt(user);
+        Assertions.assertFalse(userOpt.isPresent());
+        Assertions.assertEquals(
+                "SELECT user_0.USER_ID AS \"user_0.USER_ID\", user_0.USER_NAME AS \"user_0.USER_NAME\", user_0.DEPARTMENT_ID AS \"user_0.DEPARTMENT_ID\", user_role_1.USER_ID AS \"user_role_1.USER_ID\", user_role_1.ROLE_ID AS \"user_role_1.ROLE_ID\", user_specific_2.USER_ID AS \"user_specific_2.USER_ID\", user_specific_2.SPECIFIC_ID AS \"user_specific_2.SPECIFIC_ID\" FROM USER_ENTITY user_0 JOIN USER_ROLE user_role_1 ON user_0.USER_ID = user_role_1.USER_ID LEFT JOIN USER_SPECIFIC user_specific_2 ON user_0.USER_ID = user_specific_2.USER_ID WHERE user_0.USER_ID = ? ",
+                getLastExecuted()
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("getSqlTests")
+    void should_return_result_for_entity_from_graph_without_opt(HSQLDBProvider.DatabaseType type, String initSql) {
+        setDataSource(type, initSql);
+
+        UserDAO userDao = QueriesService.getInstance().getQuery(UserDAO.class);
+        UserRoleDAO rolesDao = QueriesService.getInstance().getQuery(UserRoleDAO.class);
+
+        User user = new User();
+        user.setId(2);
+        user.setName("NAME");
+        List<UserRole> roles = createRoles(5, 2);
+
+        userDao.insert(user);
+        rolesDao.insert(roles);
+
+        user = new User();
+        user.setId(2);
+        Optional<User> userOpt = User.USER_FULL.fetchOpt(user);
+        Assertions.assertTrue(userOpt.isPresent());
+        Assertions.assertEquals(
+                "SELECT user_0.USER_ID AS \"user_0.USER_ID\", user_0.USER_NAME AS \"user_0.USER_NAME\", user_0.DEPARTMENT_ID AS \"user_0.DEPARTMENT_ID\", user_role_1.USER_ID AS \"user_role_1.USER_ID\", user_role_1.ROLE_ID AS \"user_role_1.ROLE_ID\", user_specific_2.USER_ID AS \"user_specific_2.USER_ID\", user_specific_2.SPECIFIC_ID AS \"user_specific_2.SPECIFIC_ID\" FROM USER_ENTITY user_0 JOIN USER_ROLE user_role_1 ON user_0.USER_ID = user_role_1.USER_ID LEFT JOIN USER_SPECIFIC user_specific_2 ON user_0.USER_ID = user_specific_2.USER_ID WHERE user_0.USER_ID = ? ",
+                getLastExecuted()
+        );
+        user = userOpt.get();
+        Assertions.assertEquals(2, user.getId());
+        Assertions.assertEquals("NAME", user.getName());
+        Assertions.assertNotNull(user.getRoles());
+        Assertions.assertEquals(5, user.getRoles().size());
+        Assertions.assertFalse(user.getUserSpecific().isPresent());
+    }
+
+    @ParameterizedTest
+    @MethodSource("getSqlTests")
+    void should_return_result_for_entity_from_graph_with_opt(HSQLDBProvider.DatabaseType type, String initSql) {
+        setDataSource(type, initSql);
+
+        UserDAO userDao = QueriesService.getInstance().getQuery(UserDAO.class);
+        UserRoleDAO rolesDao = QueriesService.getInstance().getQuery(UserRoleDAO.class);
+        UserSpecificDAO userSpecificDAO = QueriesService.getInstance().getQuery(UserSpecificDAO.class);
+
+        User user = new User();
+        user.setId(3);
+        user.setName("NAME");
+        List<UserRole> roles = createRoles(4, 3);
+        UserSpecific specific = new UserSpecific();
+        specific.setSpecificId(10);
+        specific.setUserId(3);
+
+        userDao.insert(user);
+        rolesDao.insert(roles);
+        userSpecificDAO.insert(specific);
+
+        user = new User();
+        user.setId(3);
+        Optional<User> userOpt = User.USER_FULL.fetchOpt(user);
+        Assertions.assertTrue(userOpt.isPresent());
+        Assertions.assertEquals(
+                "SELECT user_0.USER_ID AS \"user_0.USER_ID\", user_0.USER_NAME AS \"user_0.USER_NAME\", user_0.DEPARTMENT_ID AS \"user_0.DEPARTMENT_ID\", user_role_1.USER_ID AS \"user_role_1.USER_ID\", user_role_1.ROLE_ID AS \"user_role_1.ROLE_ID\", user_specific_2.USER_ID AS \"user_specific_2.USER_ID\", user_specific_2.SPECIFIC_ID AS \"user_specific_2.SPECIFIC_ID\" FROM USER_ENTITY user_0 JOIN USER_ROLE user_role_1 ON user_0.USER_ID = user_role_1.USER_ID LEFT JOIN USER_SPECIFIC user_specific_2 ON user_0.USER_ID = user_specific_2.USER_ID WHERE user_0.USER_ID = ? ",
+                getLastExecuted()
+        );
+        user = userOpt.get();
+        Assertions.assertEquals(3, user.getId());
+        Assertions.assertEquals("NAME", user.getName());
+        Assertions.assertNotNull(user.getRoles());
+        Assertions.assertEquals(4, user.getRoles().size());
+        Assertions.assertTrue(user.getUserSpecific().isPresent());
+        Assertions.assertEquals(10, user.getUserSpecific().get().getSpecificId());
+    }
+
+    private List<UserRole> createRoles(int times, int ref) {
+        return IntStream.range(0, times)
+                .mapToObj(i -> {
+                    UserRole role = new UserRole();
+                    role.setRoleId(i);
+                    role.setUserId(ref);
+                    return role;
+                }).collect(Collectors.toList());
+    }
 }

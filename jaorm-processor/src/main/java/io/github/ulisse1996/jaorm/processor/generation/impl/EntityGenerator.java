@@ -32,6 +32,12 @@ public class EntityGenerator extends Generator {
     private static final String BUILDER_SIMPLE_APPEND = "builder.append($S)";
     private static final String KEYS_WHERE = "KEYS_WHERE";
     private static final String MAP_FORMAT = "$T values = new $T<>()";
+    private static final String WHERE = " WHERE ";
+    private static final String WILDCARD = " = ? ";
+    private static final String AND = " AND ";
+    protected static final String RESET_FIRST = "first = false";
+    protected static final String CHECK_FIRST = "if (first)";
+    protected static final String SET_FIRST = "boolean first = true";
 
     public EntityGenerator(ProcessingEnvironment processingEnvironment) {
         super(processingEnvironment);
@@ -189,10 +195,10 @@ public class EntityGenerator extends Generator {
         for (Relationship.RelationshipColumn column : columns) {
             String target = column.targetColumn();
             if (first) {
-                builder.append("WHERE ").append(target).append(" = ? ");
+                builder.append("WHERE ").append(target).append(WILDCARD);
                 first = false;
             } else {
-                builder.append("AND ").append(target).append(" = ?");
+                builder.append("AND ").append(target).append(WILDCARD);
             }
         }
 
@@ -329,11 +335,36 @@ public class EntityGenerator extends Generator {
                 )
                 .addCode(buildFullEntityColumnsCode(entity))
                 .build();
+        MethodSpec getKeyWhere = MethodSpec.methodBuilder("getKeysWhere")
+                .addModifiers(Modifier.PUBLIC)
+                .addAnnotation(Override.class)
+                .addParameter(TypeName.get(String.class), "alias")
+                .returns(String.class)
+                .addCode(buildGetKeys())
+                .build();
         return Stream.of(supplierEntity, entityMapper,
                 setEntity, setEntityObj, baseSql, keysWhere,
                 insertSql, selectables, table, updateSql,
-                getEntity, deleteSql, modified, setFullEntityFullColumns)
+                getEntity, deleteSql, modified, setFullEntityFullColumns, getKeyWhere)
                 .collect(Collectors.toList());
+    }
+
+    private CodeBlock buildGetKeys() {
+        return CodeBlock.builder()
+                .addStatement("$L keys = $T.of(Column.values()).filter(col -> col.key).map(col -> col.colName).collect($T.toList())",
+                        ParameterizedTypeName.get(List.class, String.class), Stream.class, Collectors.class)
+                .addStatement(SET_FIRST)
+                .addStatement(BUILDER_INSTANCE, StringBuilder.class, StringBuilder.class)
+                .beginControlFlow("for (String key : keys)")
+                .beginControlFlow(CHECK_FIRST)
+                .addStatement("builder.append($S).append(String.format(\"%s.%s\", alias, key)).append($S)", WHERE, WILDCARD)
+                .addStatement(RESET_FIRST)
+                .nextControlFlow("else")
+                .addStatement("builder.append($S).append(String.format(\"%s.%s\", alias, key)).append($S)", AND, WILDCARD)
+                .endControlFlow()
+                .endControlFlow()
+                .addStatement("return builder.toString()")
+                .build();
     }
 
     private CodeBlock buildFullEntityColumnsCode(TypeElement entity) {
@@ -434,12 +465,12 @@ public class EntityGenerator extends Generator {
                 .beginControlFlow("if (UPDATE_SQL == null)")
                 .addStatement(BUILDER_INSTANCE, StringBuilder.class, StringBuilder.class)
                 .addStatement(BUILDER_SIMPLE_APPEND, "UPDATE " + table + " ")
-                .addStatement("boolean first = true")
+                .addStatement(SET_FIRST)
                 .beginControlFlow("for (int i = 0; i < values().length; i++)")
                 .addStatement("Column column = values()[i]")
-                .beginControlFlow("if (first)")
+                .beginControlFlow(CHECK_FIRST)
                 .addStatement(BUILDER_SIMPLE_APPEND, "SET ")
-                .addStatement("first = false")
+                .addStatement(RESET_FIRST)
                 .endControlFlow()
                 .addStatement("builder.append(column.colName).append($S)", " = ?")
                 .beginControlFlow("if (i != values().length - 1)")
@@ -488,21 +519,18 @@ public class EntityGenerator extends Generator {
     }
 
     private CodeBlock buildKeysWhereCodeBlock() {
-        String where = " WHERE ";
-        String wildcard = " = ? ";
-        String and = " AND ";
         return CodeBlock.builder()
                 .beginControlFlow("if (KEYS_WHERE == null)")
                 .addStatement("$L keys = $T.of(values()).filter(col -> col.key).map(col -> col.colName).collect($T.toList())",
                         ParameterizedTypeName.get(List.class, String.class), Stream.class, Collectors.class)
-                .addStatement("boolean first = true")
+                .addStatement(SET_FIRST)
                 .addStatement(BUILDER_INSTANCE, StringBuilder.class, StringBuilder.class)
                 .beginControlFlow("for (String key : keys)")
-                .beginControlFlow("if (first)")
-                .addStatement("builder.append($S).append(key).append($S)", where, wildcard)
-                .addStatement("first = false")
+                .beginControlFlow(CHECK_FIRST)
+                .addStatement("builder.append($S).append(key).append($S)", WHERE, WILDCARD)
+                .addStatement(RESET_FIRST)
                 .nextControlFlow("else")
-                .addStatement("builder.append($S).append(key).append($S)", and, wildcard)
+                .addStatement("builder.append($S).append(key).append($S)", AND, WILDCARD)
                 .endControlFlow()
                 .endControlFlow()
                 .addStatement("KEYS_WHERE = builder.toString()")

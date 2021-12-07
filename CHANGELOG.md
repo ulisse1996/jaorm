@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 0.33.0
+- Feature: Entity Graph Selection for Entity
+
 ## 0.32.0
 - Feature: Move Tools Core to specific Project
 - Feature: Move IT run to optional profile

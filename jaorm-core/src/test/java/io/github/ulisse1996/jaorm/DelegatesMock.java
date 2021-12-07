@@ -135,6 +135,11 @@ public class DelegatesMock extends DelegatesService {
         }
 
         @Override
+        public String getKeysWhere(String alias) {
+            return null;
+        }
+
+        @Override
         public String getInsertSql() {
             return "INSERT INTO MYENTITY (FIELD1, FIELD2) VALUES (?,?)";
         }

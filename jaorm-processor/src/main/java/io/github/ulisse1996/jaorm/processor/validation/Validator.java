@@ -27,6 +27,8 @@ public abstract class Validator {
                 return new GeneratedValidator(processingEnvironment);
             case PROJECTIONS:
                 return new ProjectionsValidator(processingEnvironment);
+            case GRAPHS:
+                return new GraphsValidator(processingEnvironment);
             default:
                 throw new IllegalArgumentException("Can't find validator");
         }

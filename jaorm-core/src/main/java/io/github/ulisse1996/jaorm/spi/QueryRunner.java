@@ -21,7 +21,7 @@ import java.util.stream.Stream;
 
 public abstract class QueryRunner {
 
-    protected static final SqlJaormLogger logger = JaormLogger.getSqlLogger(ResultSetExecutor.class);
+    public static final SqlJaormLogger logger = JaormLogger.getSqlLogger(ResultSetExecutor.class);
     private static final Singleton<QueryRunner> ENTITY_RUNNER = Singleton.instance();
     private static final Singleton<QueryRunner> SIMPLE_RUNNER = Singleton.instance();
     private static final ThreadLocal<Map<Object, Integer>> UPDATED_ROWS_LOCAL = ThreadLocal.withInitial(HashMap::new); //NOSONAR
@@ -152,7 +152,7 @@ public abstract class QueryRunner {
         }
     }
 
-    protected Connection getConnection() throws SQLException {
+    public Connection getConnection() throws SQLException {
         DataSourceProvider provider = DataSourceProvider.getCurrent();
         TransactionManager manager = TransactionManager.getInstance();
         if (manager instanceof TransactionManager.NoOpTransactionManager || manager.getCurrentTransaction() == null) {

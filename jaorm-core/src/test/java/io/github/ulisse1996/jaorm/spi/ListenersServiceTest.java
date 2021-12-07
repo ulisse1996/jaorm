@@ -1,5 +1,6 @@
 package io.github.ulisse1996.jaorm.spi;
 
+import io.github.ulisse1996.jaorm.DelegatesMock;
 import io.github.ulisse1996.jaorm.ServiceFinder;
 import io.github.ulisse1996.jaorm.entity.event.GlobalEventType;
 import io.github.ulisse1996.jaorm.spi.combined.CombinedListeners;
@@ -91,6 +92,20 @@ class ListenersServiceTest {
             mk.when(() -> ServiceFinder.loadServices(ListenersService.class))
                     .thenReturn(Collections.nCopies(3, mock));
             Assertions.assertTrue(ListenersService.getInstance() instanceof CombinedListeners);
+        }
+    }
+
+    @Test
+    void should_fire_event_with_delegate() {
+        DelegatesService delegatesService = Mockito.mock(DelegatesService.class);
+        try (MockedStatic<ServiceFinder> mk = Mockito.mockStatic(ServiceFinder.class);
+            MockedStatic<DelegatesService> mkDel = Mockito.mockStatic(DelegatesService.class)) {
+            mkDel.when(DelegatesService::getInstance).thenReturn(delegatesService);
+            mk.when(() -> ServiceFinder.loadServices(ListenersService.class))
+                    .thenReturn(Collections.nCopies(3, mock));
+            ListenersService.getInstance().fireEvent(new DelegatesMock.MyEntityDelegate(), GlobalEventType.POST_PERSIST);
+            Mockito.verify(delegatesService)
+                    .getEntityClass(DelegatesMock.MyEntityDelegate.class);
         }
     }
 }

@@ -23,6 +23,7 @@ public interface EntityDelegate<T> {
     T getEntity();
     String getBaseSql();
     String getKeysWhere();
+    String getKeysWhere(String alias);
     String getInsertSql();
     String[] getSelectables();
     String getTable();

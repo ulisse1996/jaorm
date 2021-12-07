@@ -9,7 +9,7 @@ public class UserSpecific {
 
     @Id
     @Column(name = "USER_ID")
-    public int userId;
+    private int userId;
 
     @Column(name = "SPECIFIC_ID")
     private int specificId;
@@ -28,5 +28,13 @@ public class UserSpecific {
 
     public void setSpecificId(int specificId) {
         this.specificId = specificId;
+    }
+
+    @Override
+    public String toString() {
+        return "UserSpecific{" +
+                "userId=" + userId +
+                ", specificId=" + specificId +
+                '}';
     }
 }
