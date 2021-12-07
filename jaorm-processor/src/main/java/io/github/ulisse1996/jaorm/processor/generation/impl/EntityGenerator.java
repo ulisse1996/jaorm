@@ -519,9 +519,6 @@ public class EntityGenerator extends Generator {
     }
 
     private CodeBlock buildKeysWhereCodeBlock() {
-        String where = " WHERE ";
-        String wildcard = " = ? ";
-        String and = " AND ";
         return CodeBlock.builder()
                 .beginControlFlow("if (KEYS_WHERE == null)")
                 .addStatement("$L keys = $T.of(values()).filter(col -> col.key).map(col -> col.colName).collect($T.toList())",
@@ -530,10 +527,10 @@ public class EntityGenerator extends Generator {
                 .addStatement(BUILDER_INSTANCE, StringBuilder.class, StringBuilder.class)
                 .beginControlFlow("for (String key : keys)")
                 .beginControlFlow(CHECK_FIRST)
-                .addStatement("builder.append($S).append(key).append($S)", where, wildcard)
+                .addStatement("builder.append($S).append(key).append($S)", WHERE, WILDCARD)
                 .addStatement(RESET_FIRST)
                 .nextControlFlow("else")
-                .addStatement("builder.append($S).append(key).append($S)", and, wildcard)
+                .addStatement("builder.append($S).append(key).append($S)", AND, WILDCARD)
                 .endControlFlow()
                 .endControlFlow()
                 .addStatement("KEYS_WHERE = builder.toString()")
