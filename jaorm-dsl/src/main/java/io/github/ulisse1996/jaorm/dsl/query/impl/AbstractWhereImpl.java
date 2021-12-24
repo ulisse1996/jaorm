@@ -176,7 +176,7 @@ public abstract class AbstractWhereImpl<T, R> {
             parameters.add(new SqlParameter(value));
         } else if (iterable != null) {
             parameters.addAll(StreamSupport.stream(iterable.spliterator(), false).map(SqlParameter::new).collect(Collectors.toList()));
-        } else {
+        } else if (subQuery != null) {
             parameters.addAll(this.subQuery.getParameters());
         }
         return Stream.concat(
