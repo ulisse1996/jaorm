@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 0.33.1
+- Bugfix: Fix NPE on Where Clause Checks
+
 ## 0.33.0
 - Feature: Entity Graph Selection for Entity
 
