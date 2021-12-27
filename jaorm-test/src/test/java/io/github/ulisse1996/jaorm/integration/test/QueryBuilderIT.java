@@ -1,8 +1,11 @@
 package io.github.ulisse1996.jaorm.integration.test;
 
+import io.github.ulisse1996.jaorm.dsl.config.QueryConfig;
 import io.github.ulisse1996.jaorm.dsl.query.QueryBuilder;
+import io.github.ulisse1996.jaorm.dsl.query.common.SelectedWhere;
 import io.github.ulisse1996.jaorm.dsl.query.enums.LikeType;
 import io.github.ulisse1996.jaorm.dsl.query.enums.OrderType;
+import io.github.ulisse1996.jaorm.dsl.query.impl.SelectedImpl;
 import io.github.ulisse1996.jaorm.entity.EntityComparator;
 import io.github.ulisse1996.jaorm.exception.JaormSqlException;
 import io.github.ulisse1996.jaorm.integration.test.entity.*;
@@ -314,6 +317,44 @@ class QueryBuilderIT extends AbstractIT {
         Assertions.assertTrue(optUser.isPresent());
         Assertions.assertEquals("CHANGE_USERNAME", optUser.get().getName());
         Assertions.assertEquals(25, optUser.get().getDepartmentId());
+    }
+
+    @ParameterizedTest
+    @MethodSource("getSqlTests")
+    void should_invalidate_inner_where(HSQLDBProvider.DatabaseType databaseType, String initSql) {
+        setDataSource(databaseType, initSql);
+
+        UserDAO userDao = QueriesService.getInstance().getQuery(UserDAO.class);
+
+        User user = new User();
+        user.setId(2);
+        user.setName("NAME_2");
+        userDao.insert(user);
+
+        Assertions.assertTrue(
+                userDao.readOpt(user).isPresent()
+        );
+
+        SelectedWhere<User> eq = QueryBuilder.select(
+                User.class,
+                QueryConfig.builder()
+                        .withWhereChecker((column, operation, value) -> {
+                            if (column.getType().equals(String.class)) {
+                                return value != null && !((String) value).isEmpty();
+                            }
+
+                            return true;
+                        })
+                        .build()
+        ).where(UserColumns.USER_ID).eq(2)
+                .andWhere(UserColumns.USER_NAME).eq(null).or(UserColumns.USER_NAME).eq(null);
+        SelectedImpl<User, ?> impl = (SelectedImpl<User, ?>) eq;
+
+        Assertions.assertEquals( "SELECT USER_ENTITY.USER_ID, USER_ENTITY.USER_NAME, USER_ENTITY.DEPARTMENT_ID FROM USER_ENTITY WHERE (USER_ENTITY.USER_ID = ?)", impl.asString(false));
+
+        Assertions.assertTrue(
+                eq.readOpt().isPresent()
+        );
     }
 
     private User createUser(int i) {
