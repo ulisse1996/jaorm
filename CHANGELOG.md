@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 0.35.0
+- Feature: Default value for String, Temporal (Date, LocalDate, Instant ecc.) and Numeric
+
 ## 0.34.0
 - Feature: Query SQL Reference in files
 

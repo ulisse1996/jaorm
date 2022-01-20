@@ -9,9 +9,7 @@ import io.github.ulisse1996.jaorm.exception.PersistEventException;
 import io.github.ulisse1996.jaorm.exception.RemoveEventException;
 import io.github.ulisse1996.jaorm.exception.UpdateEventException;
 import io.github.ulisse1996.jaorm.spi.*;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.function.Executable;
@@ -195,6 +193,38 @@ class BaseDaoTest {
                     .thenReturn(delegates);
             mkRelationship.when(RelationshipService::getInstance)
                     .thenReturn(relationshipService);
+            Mockito.when(delegates.getInsertSql(Mockito.any()))
+                    .thenReturn("TEST");
+            Mockito.when(delegates.asInsert(Mockito.any()))
+                    .thenReturn(Arguments.empty());
+            Mockito.when(runner.insert(Mockito.any(), Mockito.any(), Mockito.any()))
+                    .then(invocationOnMock -> invocationOnMock.getArgument(0));
+            Assertions.assertEquals(entity, dao.insert(entity));
+        }
+    }
+
+    @Test
+    void should_do_insert_with_init_defaults() {
+        final MyDao dao = new MyDao();
+        final DelegatesMock.MyEntity entity = new DelegatesMock.MyEntity();
+        QueryRunner runner = Mockito.mock(QueryRunner.class);
+        DelegatesService delegates = Mockito.mock(DelegatesService.class);
+        RelationshipService relationshipService = Mockito.mock(RelationshipService.class);
+        try (MockedStatic<QueryRunner> mkRunner = Mockito.mockStatic(QueryRunner.class);
+             MockedStatic<DelegatesService> mkDelegates = Mockito.mockStatic(DelegatesService.class);
+             MockedStatic<RelationshipService> mkRelationship = Mockito.mockStatic(RelationshipService.class);
+             MockedStatic<ListenersService> mkList = Mockito.mockStatic(ListenersService.class)) {
+            mkList.when(ListenersService::getInstance).thenReturn(Mockito.mock(ListenersService.class));
+            mkRunner.when(() -> QueryRunner.getInstance(Mockito.any()))
+                    .thenReturn(runner);
+            mkDelegates.when(DelegatesService::getInstance)
+                    .thenReturn(delegates);
+            mkRelationship.when(RelationshipService::getInstance)
+                    .thenReturn(relationshipService);
+            Mockito.when(delegates.isDefaultGeneration(Mockito.any()))
+                    .thenReturn(true);
+            Mockito.when(delegates.initDefaults(Mockito.any()))
+                    .then(invocation -> invocation.getArgument(0));
             Mockito.when(delegates.getInsertSql(Mockito.any()))
                     .thenReturn("TEST");
             Mockito.when(delegates.asInsert(Mockito.any()))

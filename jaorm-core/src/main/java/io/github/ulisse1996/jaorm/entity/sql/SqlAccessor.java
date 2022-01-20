@@ -4,10 +4,12 @@ import io.github.ulisse1996.jaorm.spi.ConverterService;
 
 import java.io.InputStream;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.sql.*;
 import java.time.*;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 public abstract class SqlAccessor {
 
@@ -45,6 +47,17 @@ public abstract class SqlAccessor {
     private static final SqlAccessor LOCAL_TIME = new SqlAccessor(LocalTime.class, (rs, col) -> rs.getObject(col, LocalTime.class), PreparedStatement::setObject){};
     private static final SqlAccessor OFFSET_TIME = new SqlAccessor(OffsetTime.class, (rs, col) -> rs.getObject(col, OffsetTime.class), PreparedStatement::setObject){};
     private static final SqlAccessor BIG_DECIMAL = new SqlAccessor(BigDecimal.class, ResultSet::getBigDecimal, (pr, index, val) -> pr.setBigDecimal(index, (BigDecimal) val)){};
+    private static final SqlAccessor BIG_INTEGER = new SqlAccessor(BigInteger.class, (rs, col) -> {
+        BigDecimal bigDecimal = rs.getBigDecimal(col);
+        return Optional.ofNullable(bigDecimal).map(b -> BigInteger.valueOf(b.longValue())).orElse(null);
+    }, (pr, index, val) -> {
+        BigInteger b = (BigInteger) val;
+        if (b != null) {
+            pr.setBigDecimal(index, BigDecimal.valueOf(b.longValue()));
+        } else {
+            pr.setBigDecimal(index, null);
+        }
+    }){};
     public static final SqlAccessor NULL = new SqlAccessor(void.class, (rs, colName) -> null, (pr, index, val) -> pr.setNull(index, JDBCType.NULL.getVendorTypeNumber())){};
 
     private static final List<SqlAccessor> ALL = Arrays.asList(
@@ -53,7 +66,7 @@ public abstract class SqlAccessor {
             STRING, BOOLEAN, BOOLEAN_WRAPPER, ARRAY, STREAM, BLOB,
             BYTES, NCLOB, XML, TIME, TIMESTAMP, URL, DATE, DATE_UTIL,
             INSTANT, OFFSET_DATE_TIME, ZONED_DATE_TIME, LOCAL_DATE_TIME,
-            LOCAL_DATE, LOCAL_TIME, OFFSET_TIME, BIG_DECIMAL, NULL
+            LOCAL_DATE, LOCAL_TIME, OFFSET_TIME, BIG_DECIMAL, BIG_INTEGER, NULL
     );
 
     private final Class<?> klass;

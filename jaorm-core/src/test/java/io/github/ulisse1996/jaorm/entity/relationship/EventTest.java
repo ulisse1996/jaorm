@@ -109,6 +109,16 @@ public abstract class EventTest {
         public boolean isModified() {
             return false;
         }
+
+        @Override
+        public boolean isDefaultGeneration() {
+            return false;
+        }
+
+        @Override
+        public Entity initDefault(Entity entity) {
+            return null;
+        }
     }
 
     protected static class RelEntity {}

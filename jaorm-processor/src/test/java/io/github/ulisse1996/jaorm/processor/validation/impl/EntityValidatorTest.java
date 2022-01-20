@@ -1,9 +1,6 @@
 package io.github.ulisse1996.jaorm.processor.validation.impl;
 
-import io.github.ulisse1996.jaorm.annotation.Column;
-import io.github.ulisse1996.jaorm.annotation.Converter;
-import io.github.ulisse1996.jaorm.annotation.Relationship;
-import io.github.ulisse1996.jaorm.annotation.Table;
+import io.github.ulisse1996.jaorm.annotation.*;
 import io.github.ulisse1996.jaorm.processor.CustomName;
 import io.github.ulisse1996.jaorm.processor.exception.ProcessorException;
 import io.github.ulisse1996.jaorm.processor.util.ProcessorUtils;
@@ -18,20 +15,19 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.element.Modifier;
-import javax.lang.model.element.TypeElement;
-import javax.lang.model.element.VariableElement;
+import javax.lang.model.element.*;
 import javax.lang.model.type.TypeMirror;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Optional;
-import java.util.Set;
+import java.math.BigDecimal;
+import java.time.OffsetDateTime;
+import java.util.*;
 
 @ExtendWith(MockitoExtension.class)
 class EntityValidatorTest {
 
     @Mock private TypeElement entity;
+    @Mock private DefaultTemporal temporal;
+    @Mock private DefaultString string;
+    @Mock private DefaultNumeric numeric;
     private EntityValidator testSubject;
 
     @BeforeEach
@@ -326,6 +322,365 @@ class EntityValidatorTest {
                     .thenReturn(mirror2);
             Mockito.when(field.asType())
                     .thenReturn(mirror2);
+
+            testSubject.validate(Collections.singletonList(entity));
+        } catch (ProcessorException ex) {
+            Assertions.fail(ex);
+        }
+    }
+
+    @Test
+    void should_throw_exception_for_default_temporal_with_a_wrong_type() {
+        try (MockedStatic<ProcessorUtils> mk = Mockito.mockStatic(ProcessorUtils.class)) {
+            mockConstructor(mk, Modifier.PUBLIC);
+            mockEntityType(entity.getModifiers(), Modifier.PUBLIC);
+
+            Name name = Mockito.mock(Name.class);
+            TypeElement gen = Mockito.mock(TypeElement.class);
+            VariableElement field = Mockito.mock(VariableElement.class);
+            mockGetterAndSetter(mk);
+            Mockito.when(field.getAnnotation(Column.class))
+                    .thenReturn(Mockito.mock(Column.class));
+            Mockito.when(field.getAnnotation(Relationship.class))
+                    .thenReturn(null);
+            Mockito.when(field.getAnnotation(Converter.class))
+                    .thenReturn(null);
+            Mockito.when(field.getAnnotation(DefaultNumeric.class))
+                    .thenReturn(null);
+            Mockito.when(field.getAnnotation(DefaultString.class))
+                    .thenReturn(null);
+            Mockito.when(field.getAnnotation(DefaultTemporal.class))
+                    .thenReturn(temporal);
+            mk.when(() -> ProcessorUtils.getAnnotated(Mockito.any(), Mockito.any(), Mockito.any()))
+                    .thenReturn(Collections.singletonList(field));
+            mk.when(() -> ProcessorUtils.getFieldType(Mockito.any(), Mockito.any()))
+                    .thenReturn(gen);
+            Mockito.when(gen.getQualifiedName())
+                    .thenReturn(name);
+            Mockito.when(name.toString())
+                    .thenReturn("notValid");
+
+            testSubject.validate(Collections.singletonList(entity));
+        } catch (ProcessorException ex) {
+            Assertions.assertTrue(
+                    ex.getMessage().contains("is not a valid temporal!")
+            );
+        }
+    }
+
+    @Test
+    void should_throw_exception_for_default_temporal_with_format_and_with_a_wrong_type() {
+        try (MockedStatic<ProcessorUtils> mk = Mockito.mockStatic(ProcessorUtils.class)) {
+            mockConstructor(mk, Modifier.PUBLIC);
+            mockEntityType(entity.getModifiers(), Modifier.PUBLIC);
+
+            Name name = Mockito.mock(Name.class);
+            TypeElement gen = Mockito.mock(TypeElement.class);
+            VariableElement field = Mockito.mock(VariableElement.class);
+            mockGetterAndSetter(mk);
+            Mockito.when(field.getAnnotation(Column.class))
+                    .thenReturn(Mockito.mock(Column.class));
+            Mockito.when(field.getAnnotation(Relationship.class))
+                    .thenReturn(null);
+            Mockito.when(field.getAnnotation(Converter.class))
+                    .thenReturn(null);
+            Mockito.when(field.getAnnotation(DefaultNumeric.class))
+                    .thenReturn(null);
+            Mockito.when(field.getAnnotation(DefaultString.class))
+                    .thenReturn(null);
+            Mockito.when(field.getAnnotation(DefaultTemporal.class))
+                    .thenReturn(temporal);
+            Mockito.when(temporal.format())
+                    .thenReturn("format");
+            mk.when(() -> ProcessorUtils.getAnnotated(Mockito.any(), Mockito.any(), Mockito.any()))
+                    .thenReturn(Collections.singletonList(field));
+            mk.when(() -> ProcessorUtils.getFieldType(Mockito.any(), Mockito.any()))
+                    .thenReturn(gen);
+            Mockito.when(gen.getQualifiedName())
+                    .thenReturn(name);
+            Mockito.when(name.toString())
+                    .thenReturn(OffsetDateTime.class.getName());
+
+            testSubject.validate(Collections.singletonList(entity));
+        } catch (ProcessorException ex) {
+            Assertions.assertTrue(
+                    ex.getMessage().contains("is not a valid temporal with format!")
+            );
+        }
+    }
+
+    @Test
+    void should_throw_exception_for_default_temporal_with_format_and_empty_value() {
+        try (MockedStatic<ProcessorUtils> mk = Mockito.mockStatic(ProcessorUtils.class)) {
+            mockConstructor(mk, Modifier.PUBLIC);
+            mockEntityType(entity.getModifiers(), Modifier.PUBLIC);
+
+            Name name = Mockito.mock(Name.class);
+            TypeElement gen = Mockito.mock(TypeElement.class);
+            VariableElement field = Mockito.mock(VariableElement.class);
+            mockGetterAndSetter(mk);
+            Mockito.when(field.getAnnotation(Column.class))
+                    .thenReturn(Mockito.mock(Column.class));
+            Mockito.when(field.getAnnotation(Relationship.class))
+                    .thenReturn(null);
+            Mockito.when(field.getAnnotation(Converter.class))
+                    .thenReturn(null);
+            Mockito.when(field.getAnnotation(DefaultNumeric.class))
+                    .thenReturn(null);
+            Mockito.when(field.getAnnotation(DefaultString.class))
+                    .thenReturn(null);
+            Mockito.when(field.getAnnotation(DefaultTemporal.class))
+                    .thenReturn(temporal);
+            Mockito.when(temporal.format())
+                    .thenReturn("format");
+            Mockito.when(temporal.value())
+                    .thenReturn("");
+            mk.when(() -> ProcessorUtils.getAnnotated(Mockito.any(), Mockito.any(), Mockito.any()))
+                    .thenReturn(Collections.singletonList(field));
+            mk.when(() -> ProcessorUtils.getFieldType(Mockito.any(), Mockito.any()))
+                    .thenReturn(gen);
+            Mockito.when(gen.getQualifiedName())
+                    .thenReturn(name);
+            Mockito.when(name.toString())
+                    .thenReturn(Date.class.getName());
+
+            testSubject.validate(Collections.singletonList(entity));
+        } catch (ProcessorException ex) {
+            Assertions.assertTrue(
+                    ex.getMessage().contains("can't have a default temporal without a value !")
+            );
+        }
+    }
+
+    @Test
+    void should_validate_entity_with_default_temporal() {
+        try (MockedStatic<ProcessorUtils> mk = Mockito.mockStatic(ProcessorUtils.class)) {
+            mockConstructor(mk, Modifier.PUBLIC);
+            mockEntityType(entity.getModifiers(), Modifier.PUBLIC);
+
+            Name name = Mockito.mock(Name.class);
+            TypeElement gen = Mockito.mock(TypeElement.class);
+            VariableElement field = Mockito.mock(VariableElement.class);
+            mockGetterAndSetter(mk);
+            Mockito.when(field.getAnnotation(Column.class))
+                    .thenReturn(Mockito.mock(Column.class));
+            Mockito.when(field.getAnnotation(Relationship.class))
+                    .thenReturn(null);
+            Mockito.when(field.getAnnotation(Converter.class))
+                    .thenReturn(null);
+            Mockito.when(field.getAnnotation(DefaultNumeric.class))
+                    .thenReturn(null);
+            Mockito.when(field.getAnnotation(DefaultString.class))
+                    .thenReturn(null);
+            Mockito.when(field.getAnnotation(DefaultTemporal.class))
+                    .thenReturn(temporal);
+            Mockito.when(temporal.format())
+                    .thenReturn("dd-MM-yyyy'T'HH:mm:ss");
+            Mockito.when(temporal.value())
+                    .thenReturn("20-10-2022T00:00:00");
+            mk.when(() -> ProcessorUtils.getAnnotated(Mockito.any(), Mockito.any(), Mockito.any()))
+                    .thenReturn(Collections.singletonList(field));
+            mk.when(() -> ProcessorUtils.getFieldType(Mockito.any(), Mockito.any()))
+                    .thenReturn(gen);
+            Mockito.when(gen.getQualifiedName())
+                    .thenReturn(name);
+            Mockito.when(name.toString())
+                    .thenReturn(Date.class.getName());
+
+            testSubject.validate(Collections.singletonList(entity));
+        } catch (ProcessorException ex) {
+            Assertions.fail(ex);
+        }
+    }
+
+    @Test
+    void should_throw_exception_for_default_temporal_with_format_and_bad_value() {
+        try (MockedStatic<ProcessorUtils> mk = Mockito.mockStatic(ProcessorUtils.class)) {
+            mockConstructor(mk, Modifier.PUBLIC);
+            mockEntityType(entity.getModifiers(), Modifier.PUBLIC);
+
+            Name name = Mockito.mock(Name.class);
+            TypeElement gen = Mockito.mock(TypeElement.class);
+            VariableElement field = Mockito.mock(VariableElement.class);
+            mockGetterAndSetter(mk);
+            Mockito.when(field.getAnnotation(Column.class))
+                    .thenReturn(Mockito.mock(Column.class));
+            Mockito.when(field.getAnnotation(Relationship.class))
+                    .thenReturn(null);
+            Mockito.when(field.getAnnotation(Converter.class))
+                    .thenReturn(null);
+            Mockito.when(field.getAnnotation(DefaultNumeric.class))
+                    .thenReturn(null);
+            Mockito.when(field.getAnnotation(DefaultString.class))
+                    .thenReturn(null);
+            Mockito.when(field.getAnnotation(DefaultTemporal.class))
+                    .thenReturn(temporal);
+            Mockito.when(temporal.format())
+                    .thenReturn("format");
+            Mockito.when(temporal.value())
+                    .thenReturn("bad_value");
+            mk.when(() -> ProcessorUtils.getAnnotated(Mockito.any(), Mockito.any(), Mockito.any()))
+                    .thenReturn(Collections.singletonList(field));
+            mk.when(() -> ProcessorUtils.getFieldType(Mockito.any(), Mockito.any()))
+                    .thenReturn(gen);
+            Mockito.when(gen.getQualifiedName())
+                    .thenReturn(name);
+            Mockito.when(name.toString())
+                    .thenReturn(Date.class.getName());
+
+            testSubject.validate(Collections.singletonList(entity));
+        } catch (ProcessorException ex) {
+            Assertions.assertTrue(
+                    ex.getMessage().contains("has not a valid value for provided format!")
+            );
+        }
+    }
+
+    @Test
+    void should_throw_exception_for_default_string_and_wrong_type() {
+        try (MockedStatic<ProcessorUtils> mk = Mockito.mockStatic(ProcessorUtils.class)) {
+            mockConstructor(mk, Modifier.PUBLIC);
+            mockEntityType(entity.getModifiers(), Modifier.PUBLIC);
+
+            Name name = Mockito.mock(Name.class);
+            TypeElement gen = Mockito.mock(TypeElement.class);
+            VariableElement field = Mockito.mock(VariableElement.class);
+            mockGetterAndSetter(mk);
+            Mockito.when(field.getAnnotation(Column.class))
+                    .thenReturn(Mockito.mock(Column.class));
+            Mockito.when(field.getAnnotation(Relationship.class))
+                    .thenReturn(null);
+            Mockito.when(field.getAnnotation(Converter.class))
+                    .thenReturn(null);
+            Mockito.when(field.getAnnotation(DefaultNumeric.class))
+                    .thenReturn(null);
+            Mockito.when(field.getAnnotation(DefaultString.class))
+                    .thenReturn(string);
+            Mockito.when(field.getAnnotation(DefaultTemporal.class))
+                    .thenReturn(null);
+            mk.when(() -> ProcessorUtils.getAnnotated(Mockito.any(), Mockito.any(), Mockito.any()))
+                    .thenReturn(Collections.singletonList(field));
+            mk.when(() -> ProcessorUtils.getFieldType(Mockito.any(), Mockito.any()))
+                    .thenReturn(gen);
+            Mockito.when(gen.getQualifiedName())
+                    .thenReturn(name);
+            Mockito.when(name.toString())
+                    .thenReturn(Date.class.getName());
+
+            testSubject.validate(Collections.singletonList(entity));
+        } catch (ProcessorException ex) {
+            Assertions.assertTrue(
+                    ex.getMessage().contains("is not a String!")
+            );
+        }
+    }
+
+    @Test
+    void should_throw_exception_for_default_numeric_and_wrong_type() {
+        try (MockedStatic<ProcessorUtils> mk = Mockito.mockStatic(ProcessorUtils.class)) {
+            mockConstructor(mk, Modifier.PUBLIC);
+            mockEntityType(entity.getModifiers(), Modifier.PUBLIC);
+
+            Name name = Mockito.mock(Name.class);
+            TypeElement gen = Mockito.mock(TypeElement.class);
+            VariableElement field = Mockito.mock(VariableElement.class);
+            mockGetterAndSetter(mk);
+            Mockito.when(field.getAnnotation(Column.class))
+                    .thenReturn(Mockito.mock(Column.class));
+            Mockito.when(field.getAnnotation(Relationship.class))
+                    .thenReturn(null);
+            Mockito.when(field.getAnnotation(Converter.class))
+                    .thenReturn(null);
+            Mockito.when(field.getAnnotation(DefaultNumeric.class))
+                    .thenReturn(numeric);
+            Mockito.when(field.getAnnotation(DefaultString.class))
+                    .thenReturn(null);
+            Mockito.when(field.getAnnotation(DefaultTemporal.class))
+                    .thenReturn(null);
+            mk.when(() -> ProcessorUtils.getAnnotated(Mockito.any(), Mockito.any(), Mockito.any()))
+                    .thenReturn(Collections.singletonList(field));
+            mk.when(() -> ProcessorUtils.getFieldType(Mockito.any(), Mockito.any()))
+                    .thenReturn(gen);
+            Mockito.when(gen.getQualifiedName())
+                    .thenReturn(name);
+            Mockito.when(name.toString())
+                    .thenReturn(Date.class.getName());
+
+            testSubject.validate(Collections.singletonList(entity));
+        } catch (ProcessorException ex) {
+            Assertions.assertTrue(
+                    ex.getMessage().contains("is not a valid numeric!")
+            );
+        }
+    }
+
+    @Test
+    void should_validate_entity_with_default_string() {
+        try (MockedStatic<ProcessorUtils> mk = Mockito.mockStatic(ProcessorUtils.class)) {
+            mockConstructor(mk, Modifier.PUBLIC);
+            mockEntityType(entity.getModifiers(), Modifier.PUBLIC);
+
+            Name name = Mockito.mock(Name.class);
+            TypeElement gen = Mockito.mock(TypeElement.class);
+            VariableElement field = Mockito.mock(VariableElement.class);
+            mockGetterAndSetter(mk);
+            Mockito.when(field.getAnnotation(Column.class))
+                    .thenReturn(Mockito.mock(Column.class));
+            Mockito.when(field.getAnnotation(Relationship.class))
+                    .thenReturn(null);
+            Mockito.when(field.getAnnotation(Converter.class))
+                    .thenReturn(null);
+            Mockito.when(field.getAnnotation(DefaultNumeric.class))
+                    .thenReturn(null);
+            Mockito.when(field.getAnnotation(DefaultString.class))
+                    .thenReturn(string);
+            Mockito.when(field.getAnnotation(DefaultTemporal.class))
+                    .thenReturn(null);
+            mk.when(() -> ProcessorUtils.getAnnotated(Mockito.any(), Mockito.any(), Mockito.any()))
+                    .thenReturn(Collections.singletonList(field));
+            mk.when(() -> ProcessorUtils.getFieldType(Mockito.any(), Mockito.any()))
+                    .thenReturn(gen);
+            Mockito.when(gen.getQualifiedName())
+                    .thenReturn(name);
+            Mockito.when(name.toString())
+                    .thenReturn(String.class.getName());
+
+            testSubject.validate(Collections.singletonList(entity));
+        } catch (ProcessorException ex) {
+            Assertions.fail(ex);
+        }
+    }
+
+    @Test
+    void should_validate_entity_with_default_numeric() {
+        try (MockedStatic<ProcessorUtils> mk = Mockito.mockStatic(ProcessorUtils.class)) {
+            mockConstructor(mk, Modifier.PUBLIC);
+            mockEntityType(entity.getModifiers(), Modifier.PUBLIC);
+
+            Name name = Mockito.mock(Name.class);
+            TypeElement gen = Mockito.mock(TypeElement.class);
+            VariableElement field = Mockito.mock(VariableElement.class);
+            mockGetterAndSetter(mk);
+            Mockito.when(field.getAnnotation(Column.class))
+                    .thenReturn(Mockito.mock(Column.class));
+            Mockito.when(field.getAnnotation(Relationship.class))
+                    .thenReturn(null);
+            Mockito.when(field.getAnnotation(Converter.class))
+                    .thenReturn(null);
+            Mockito.when(field.getAnnotation(DefaultNumeric.class))
+                    .thenReturn(numeric);
+            Mockito.when(field.getAnnotation(DefaultString.class))
+                    .thenReturn(null);
+            Mockito.when(field.getAnnotation(DefaultTemporal.class))
+                    .thenReturn(null);
+            mk.when(() -> ProcessorUtils.getAnnotated(Mockito.any(), Mockito.any(), Mockito.any()))
+                    .thenReturn(Collections.singletonList(field));
+            mk.when(() -> ProcessorUtils.getFieldType(Mockito.any(), Mockito.any()))
+                    .thenReturn(gen);
+            Mockito.when(gen.getQualifiedName())
+                    .thenReturn(name);
+            Mockito.when(name.toString())
+                    .thenReturn(BigDecimal.class.getName());
 
             testSubject.validate(Collections.singletonList(entity));
         } catch (ProcessorException ex) {

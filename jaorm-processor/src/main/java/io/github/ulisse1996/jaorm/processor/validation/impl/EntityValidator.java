@@ -1,9 +1,7 @@
 package io.github.ulisse1996.jaorm.processor.validation.impl;
 
-import io.github.ulisse1996.jaorm.annotation.Column;
-import io.github.ulisse1996.jaorm.annotation.Converter;
-import io.github.ulisse1996.jaorm.annotation.Relationship;
-import io.github.ulisse1996.jaorm.annotation.Table;
+import io.github.ulisse1996.jaorm.annotation.*;
+import io.github.ulisse1996.jaorm.entity.DefaultGenerator;
 import io.github.ulisse1996.jaorm.processor.exception.ProcessorException;
 import io.github.ulisse1996.jaorm.processor.util.ProcessorUtils;
 import io.github.ulisse1996.jaorm.processor.validation.Validator;
@@ -11,13 +9,55 @@ import io.github.ulisse1996.jaorm.processor.validation.Validator;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.*;
 import javax.lang.model.type.TypeMirror;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.lang.annotation.Annotation;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.sql.Time;
+import java.sql.Timestamp;
+import java.time.*;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class EntityValidator extends Validator {
 
+    private static final List<Class<? extends Annotation>> DEFAULTS = Arrays.asList(
+            DefaultNumeric.class,
+            DefaultString.class,
+            DefaultTemporal.class
+    );
+    private static final List<Class<?>> NUMERICS = Arrays.asList(
+            BigDecimal.class,
+            BigInteger.class,
+            byte.class,
+            Byte.class,
+            short.class,
+            Short.class,
+            int.class,
+            Integer.class,
+            float.class,
+            Float.class,
+            double.class,
+            Double.class
+    );
+    private static final List<Class<?>> TEMPORAL = Arrays.asList(
+            Date.class,
+            java.sql.Date.class,
+            Time.class,
+            Timestamp.class,
+            Instant.class,
+            LocalDateTime.class,
+            LocalDate.class,
+            LocalTime.class,
+            OffsetTime.class,
+            OffsetDateTime.class,
+            ZonedDateTime.class
+    );
+    private static final List<Class<?>> TEMPORAL_WITH_FORMAT = Collections.unmodifiableList(
+            TEMPORAL.stream()
+                .filter(c -> !c.equals(OffsetTime.class) && !c.equals(OffsetDateTime.class) && !c.equals(ZonedDateTime.class))
+                .collect(Collectors.toList())
+    );
+    
     public EntityValidator(ProcessingEnvironment processingEnvironment) {
         super(processingEnvironment);
     }
@@ -52,6 +92,65 @@ public class EntityValidator extends Validator {
                 .filter(ele -> ele.getAnnotation(Column.class) != null)
                 .filter(ele -> ele.getAnnotation(Converter.class) != null)
                 .forEach(c -> this.checkConverter(entity, c));
+        
+        columnsAndRelationship.stream()
+                .filter(ele -> ele.getAnnotation(Column.class) != null)
+                .filter(ele -> DEFAULTS.stream().anyMatch(c -> ele.getAnnotation(c) != null))
+                .forEach(c -> this.checkDefaultGenerated(entity, c));
+    }
+
+    private void checkDefaultGenerated(TypeElement entity, VariableElement field) {
+        TypeElement fieldType = ProcessorUtils.getFieldType(this.processingEnvironment, field);
+        DefaultTemporal temporal = field.getAnnotation(DefaultTemporal.class);
+        DefaultString string = field.getAnnotation(DefaultString.class);
+        DefaultNumeric numeric = field.getAnnotation(DefaultNumeric.class);
+
+        if (temporal != null) {
+            boolean withFormat = !DefaultTemporal.DEFAULT_FORMAT.equalsIgnoreCase(temporal.format());
+            if (TEMPORAL.stream().noneMatch(c -> c.getName().equalsIgnoreCase(fieldType.getQualifiedName().toString()))) {
+                throw new ProcessorException(
+                        String.format("Field %s in Entity %s with type %s is not a valid temporal! Must be one of %s",
+                                field.getSimpleName(), entity.getQualifiedName(), fieldType.getSimpleName(), TEMPORAL));
+            } else if (withFormat) {
+                if (TEMPORAL_WITH_FORMAT.stream().noneMatch(c -> c.getName().equalsIgnoreCase(fieldType.getQualifiedName().toString()))) {
+                    throw new ProcessorException(
+                            String.format("Field %s in Entity %s with type %s is not a valid temporal with format! Must be one of %s",
+                                    field.getSimpleName(), entity.getQualifiedName(), fieldType.getSimpleName(), TEMPORAL_WITH_FORMAT));
+                } else if (temporal.value().trim().isEmpty()) {
+                    throw new ProcessorException(
+                            String.format("Field %s in Entity %s can't have a default temporal without a value !",
+                                    field.getSimpleName(), entity.getQualifiedName())
+                    );
+                } else if (!isValidDate(fieldType, temporal)) {
+                    throw new ProcessorException(
+                            String.format("Field %s in Entity %s has not a valid value for provided format!",
+                                    field.getSimpleName(), entity.getQualifiedName())
+                    );
+                }
+            }
+        }
+
+        if (string != null && !String.class.getName().equalsIgnoreCase(fieldType.getQualifiedName().toString())) {
+            throw new ProcessorException(
+                    String.format("Field %s in Entity %s with type %s is not a String!",
+                            field.getSimpleName(), entity.getQualifiedName(), fieldType.getSimpleName())
+            );
+        }
+
+        if (numeric != null && NUMERICS.stream().noneMatch(c -> c.getName().equalsIgnoreCase(fieldType.getQualifiedName().toString()))) {
+            throw new ProcessorException(
+                    String.format("Field %s in Entity %s with type %s is not a valid numeric! Must be one of %s",
+                            field.getSimpleName(), entity.getQualifiedName(), fieldType.getSimpleName(), NUMERICS));
+        }
+    }
+
+    private boolean isValidDate(TypeElement fieldType, DefaultTemporal temporal) {
+        try {
+            DefaultGenerator.forTemporal(Class.forName(fieldType.getQualifiedName().toString()), temporal.format(), temporal.value());
+            return true;
+        } catch (Exception ex) {
+            return false;
+        }
     }
 
     private void checkModifiers(TypeElement entity) {

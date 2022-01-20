@@ -91,6 +91,10 @@ public interface BaseDao<R> {
 
     default R insert(R entity) {
         Objects.requireNonNull(entity);
+        DelegatesService delegatesService = DelegatesService.getInstance();
+        if (delegatesService.isDefaultGeneration(entity)) {
+            entity = delegatesService.initDefaults(entity);
+        }
         RelationshipService relationshipService = RelationshipService.getInstance();
         if (relationshipService.isEventActive(entity.getClass(), EntityEventType.PERSIST)) {
             entity = EntityEvent.forType(EntityEventType.PERSIST)
