@@ -7,7 +7,7 @@
     <groupId>io.github.ulisse1996</groupId>
     <artifactId>jaorm-pom</artifactId>
     <packaging>pom</packaging>
-    <version>0.33.1</version>
+    <version>0.34.0</version>
     <modules>
         <module>jaorm-processor</module>
         <module>jaorm-core</module>

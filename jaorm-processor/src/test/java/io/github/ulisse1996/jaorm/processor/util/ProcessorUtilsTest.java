@@ -11,6 +11,8 @@ import io.github.ulisse1996.jaorm.processor.exception.ProcessorException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
@@ -25,8 +27,13 @@ import javax.lang.model.type.PrimitiveType;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
+import javax.tools.FileObject;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -843,6 +850,49 @@ class ProcessorUtilsTest {
                     .thenReturn(instance);
             Assertions.assertTrue(ProcessorUtils.hasExternalConstructor(Mockito.mock(TypeElement.class)));
         }
+    }
+
+    @Test
+    void should_return_same_sql_for_standard_query() {
+        String mySql = "SELECT ";
+        Assertions.assertEquals(mySql, ProcessorUtils.getSqlOrSqlFromFile(mySql, this.environment));
+        Mockito.verifyNoInteractions(this.environment);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"/test.sql", "test.sql"})
+    void should_return_sql_from_file(String sql) throws IOException, URISyntaxException {
+        FileObject obj = Mockito.mock(FileObject.class);
+        URI uri = Objects.requireNonNull(ProcessorUtilsTest.class.getResource("/fakeSql.sql")).toURI();
+        Mockito.when(environment.getFiler())
+                .thenReturn(filer);
+        Mockito.when(filer.getResource(Mockito.any(), Mockito.anyString(), Mockito.any()))
+                .thenReturn(obj);
+        Mockito.when(obj.toUri())
+                .thenReturn(uri);
+        Assertions.assertEquals(
+                String.join("", Files.readAllLines(Paths.get(uri))),
+                ProcessorUtils.getSqlOrSqlFromFile(sql, environment)
+        );
+    }
+
+    @Test
+    void should_throw_exception_for_sql_read() throws IOException {
+        Mockito.when(environment.getFiler())
+                .thenReturn(filer);
+        Mockito.when(filer.getResource(Mockito.any(), Mockito.anyString(), Mockito.any()))
+                .thenThrow(IOException.class);
+        Assertions.assertThrows(ProcessorException.class, () -> ProcessorUtils.getSqlOrSqlFromFile(".sql", environment));
+    }
+
+    @Test
+    void should_throw_exception_for_spi_creation() throws IOException {
+        Mockito.when(environment.getFiler())
+                .thenReturn(filer);
+        Mockito.when(filer.createResource(Mockito.any(), Mockito.anyString(), Mockito.any()))
+                .thenThrow(IOException.class);
+        Assertions.assertThrows(ProcessorException.class, () -> ProcessorUtils.generateSpi(environment, new GeneratedFile("", null, ""),
+                Object.class));
     }
 
     private ExecutableElement fakeAccessor() {
