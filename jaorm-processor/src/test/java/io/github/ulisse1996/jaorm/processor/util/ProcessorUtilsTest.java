@@ -891,7 +891,7 @@ class ProcessorUtilsTest {
                 .thenReturn(filer);
         Mockito.when(filer.createResource(Mockito.any(), Mockito.anyString(), Mockito.any()))
                 .thenThrow(IOException.class);
-        Assertions.assertThrows(ProcessorException.class, () -> ProcessorUtils.generateSpi(environment, new GeneratedFile("", null, ""),
+        Assertions.assertThrows(ProcessorException.class, () -> ProcessorUtils.generateSpi(environment, new GeneratedFile("", null, ""), //NOSONAR
                 Object.class));
     }
 
