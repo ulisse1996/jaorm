@@ -3,6 +3,7 @@ package io.github.ulisse1996.jaorm.processor.validation.impl;
 import io.github.ulisse1996.jaorm.annotation.Query;
 import io.github.ulisse1996.jaorm.processor.exception.ProcessorException;
 import io.github.ulisse1996.jaorm.processor.strategy.QueryStrategy;
+import io.github.ulisse1996.jaorm.processor.util.ProcessorUtils;
 import io.github.ulisse1996.jaorm.processor.validation.Validator;
 
 import javax.annotation.processing.ProcessingEnvironment;
@@ -30,7 +31,7 @@ public class QueryValidator extends Validator {
     private void checkQuery(ExecutableElement executableElement) {
         debugMessage("Check validation for Query " + executableElement.getSimpleName());
         Query query = executableElement.getAnnotation(Query.class);
-        String sql = query.sql();
+        String sql = getSql(query);
         for (QueryStrategy queryStrategy : QueryStrategy.values()) {
             if (queryStrategy.isValid(sql, query.noArgs())) {
                 int paramNumber = queryStrategy.getParamNumber(sql);
@@ -43,6 +44,11 @@ public class QueryValidator extends Validator {
         }
 
         throw new ProcessorException(String.format("Can't find query strategy for method %s", executableElement.getSimpleName()));
+    }
+
+    private String getSql(Query query) {
+        String sql = query.sql();
+        return ProcessorUtils.getSqlOrSqlFromFile(sql, this.processingEnvironment);
     }
 
     private void checkSpecs(String sql, ExecutableElement method) {

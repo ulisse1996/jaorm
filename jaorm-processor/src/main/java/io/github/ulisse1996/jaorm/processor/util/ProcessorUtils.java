@@ -23,11 +23,15 @@ import javax.lang.model.type.PrimitiveType;
 import javax.lang.model.type.TypeMirror;
 import javax.tools.FileObject;
 import javax.tools.StandardLocation;
+import java.io.File;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.lang.annotation.Annotation;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -522,5 +526,27 @@ public class ProcessorUtils {
                 .findFirst()
                 .map(VariableElement.class::cast)
                 .orElseThrow(() -> new ProcessorException("Can't find field with name " + name));
+    }
+
+    public static String getSqlOrSqlFromFile(String sql, ProcessingEnvironment processingEnvironment) {
+        if (sql.endsWith(".sql")) {
+            try {
+                FileObject resource = getResource(sql, processingEnvironment);
+                URI uri = resource.toUri();
+                return String.join("", Files.readAllLines(Paths.get(uri)));
+            } catch (IOException ex) {
+                throw new ProcessorException(ex.getMessage());
+            }
+        }
+
+        return sql;
+    }
+
+    private static FileObject getResource(String sql, ProcessingEnvironment processingEnvironment) throws IOException {
+        if (sql.startsWith(File.separator)) {
+            return processingEnvironment.getFiler().getResource(StandardLocation.CLASS_PATH, "", sql.substring(1));
+        } else {
+            return processingEnvironment.getFiler().getResource(StandardLocation.CLASS_PATH, "", sql);
+        }
     }
 }

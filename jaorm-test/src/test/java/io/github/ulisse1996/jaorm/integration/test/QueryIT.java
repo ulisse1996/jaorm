@@ -210,6 +210,17 @@ class QueryIT extends AbstractIT {
 
     @ParameterizedTest
     @MethodSource("getSqlTests")
+    void should_create_query_using_file(HSQLDBProvider.DatabaseType type, String initSql) {
+        setDataSource(type, initSql);
+
+        CustomUserDao query = QueriesService.getInstance()
+                .getQuery(CustomUserDao.class);
+        Optional<User> userOpt = query.getUserOpt(1);
+        Assertions.assertFalse(userOpt.isPresent());
+    }
+
+    @ParameterizedTest
+    @MethodSource("getSqlTests")
     void should_create_and_use_correct_table_row_mapping(HSQLDBProvider.DatabaseType type, String initSql) throws SQLException {
         setDataSource(type, initSql);
 

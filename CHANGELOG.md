@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 0.34.0
+- Feature: Query SQL Reference in files
+
 ## 0.33.1
 - Bugfix: Fix NPE on Where Clause Checks
 

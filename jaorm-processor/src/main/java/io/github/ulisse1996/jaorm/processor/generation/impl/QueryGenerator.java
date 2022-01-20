@@ -177,7 +177,7 @@ public class QueryGenerator extends Generator {
 
     private MethodSpec buildImpl(List<TypeElement> entities, ExecutableElement executableElement) {
         Query query = executableElement.getAnnotation(Query.class);
-        String sql = query.sql();
+        String sql = ProcessorUtils.getSqlOrSqlFromFile(query.sql(), this.processingEnvironment);
         MethodSpec.Builder builder = MethodSpec.overriding(executableElement)
                 .addStatement("$T params = new $T<>()",
                         ParameterizedTypeName.get(List.class, SqlParameter.class), ArrayList.class);
