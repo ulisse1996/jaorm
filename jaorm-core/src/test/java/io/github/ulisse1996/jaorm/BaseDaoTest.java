@@ -595,7 +595,9 @@ class BaseDaoTest {
         EntityEvent event = Mockito.mock(EntityEvent.class);
         try (MockedStatic<RelationshipService> mk = Mockito.mockStatic(RelationshipService.class);
              MockedStatic<EntityEvent> mkEntity = Mockito.mockStatic(EntityEvent.class);
-             MockedStatic<ListenersService> mkList = Mockito.mockStatic(ListenersService.class)) {
+             MockedStatic<ListenersService> mkList = Mockito.mockStatic(ListenersService.class);
+             MockedStatic<DelegatesService> mkDelegate = Mockito.mockStatic(DelegatesService.class)) {
+            mkDelegate.when(DelegatesService::getInstance).thenReturn(Mockito.mock(DelegatesService.class));
             mkList.when(ListenersService::getInstance).thenReturn(Mockito.mock(ListenersService.class));
             mk.when(RelationshipService::getInstance)
                     .thenReturn(relationshipService);
