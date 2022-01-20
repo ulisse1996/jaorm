@@ -65,7 +65,9 @@ class BaseDaoTest {
     void should_throw_event_exception_for_pre_persist() {
         final DelegatesMock.MyEntity entity = Mockito.spy(new DelegatesMock.MyEntity());
         final MyDao dao = new MyDao();
-        try (MockedStatic<RelationshipService> mk = Mockito.mockStatic(RelationshipService.class)) {
+        try (MockedStatic<RelationshipService> mk = Mockito.mockStatic(RelationshipService.class);
+            MockedStatic<DelegatesService> mkDel = Mockito.mockStatic(DelegatesService.class)) {
+            mkDel.when(DelegatesService::getInstance).thenReturn(Mockito.mock(DelegatesService.class));
             mk.when(RelationshipService::getInstance)
                     .thenReturn(new RelationshipMock());
             Mockito.doThrow(IllegalArgumentException.class)
