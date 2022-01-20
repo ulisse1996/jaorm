@@ -125,4 +125,11 @@ class DelegatesServiceTest {
             Assertions.assertTrue(DelegatesService.getInstance() instanceof CombinedDelegates);
         }
     }
+
+    @Test
+    void should_init_defaults() {
+        DelegatesMock.MyEntity entity = new DelegatesMock.MyEntity();
+        DelegatesMock.MyEntity result = testSubject.initDefaults(entity);
+        Assertions.assertSame(entity, result);
+    }
 }

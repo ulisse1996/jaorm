@@ -116,5 +116,18 @@ public abstract class DelegatesService {
         return delegate.getDeleteSql();
     }
 
+    public <R> boolean isDefaultGeneration(R entity) {
+        return searchDelegate(entity)
+                .get()
+                .isDefaultGeneration();
+    }
+
+    @SuppressWarnings("unchecked")
+    public <R> R initDefaults(R entity) {
+        EntityDelegate<R> delegate = (EntityDelegate<R>) searchDelegate(entity)
+                .get();
+        return delegate.initDefault(entity);
+    }
+
     public abstract Map<Class<?>, Supplier<? extends EntityDelegate<?>>> getDelegates(); //NOSONAR
 }

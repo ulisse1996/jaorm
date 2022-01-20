@@ -18,6 +18,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.sql.SQLException;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -458,6 +459,29 @@ class CoreIT extends AbstractIT {
         Assertions.assertEquals(4, user.getRoles().size());
         Assertions.assertTrue(user.getUserSpecific().isPresent());
         Assertions.assertEquals(10, user.getUserSpecific().get().getSpecificId());
+    }
+
+    @ParameterizedTest
+    @MethodSource("getSqlTests")
+    void should_generate_default_value(HSQLDBProvider.DatabaseType type, String initSql) {
+        setDataSource(type, initSql);
+
+        EntityWithDefaultsDao dao = QueriesService.getInstance()
+                .getQuery(EntityWithDefaultsDao.class);
+
+        EntityWithDefaults defaults = new EntityWithDefaults();
+        defaults.setId(BigInteger.ONE);
+
+        dao.insert(defaults);
+
+        defaults = new EntityWithDefaults();
+        defaults.setId(BigInteger.ONE);
+        defaults = dao.read(defaults);
+        Assertions.assertEquals(BigInteger.ONE, defaults.getId());
+        Assertions.assertEquals("STRING", defaults.getStr());
+        Assertions.assertEquals(0, BigDecimal.valueOf(0.390).compareTo(defaults.getDec()));
+        Assertions.assertNotNull(defaults.getDate());
+        Assertions.assertNotNull(defaults.getDateWithFormat());
     }
 
     private List<UserRole> createRoles(int times, int ref) {

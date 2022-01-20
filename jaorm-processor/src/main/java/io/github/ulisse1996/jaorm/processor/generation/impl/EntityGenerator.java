@@ -19,6 +19,7 @@ import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.*;
 import javax.lang.model.type.TypeMirror;
+import java.lang.annotation.Annotation;
 import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -26,6 +27,11 @@ import java.util.stream.Stream;
 
 public class EntityGenerator extends Generator {
 
+    private static final List<Class<? extends Annotation>> DEFAULTS = Arrays.asList(
+            DefaultNumeric.class,
+            DefaultString.class,
+            DefaultTemporal.class
+    );
     private static final String COL_NAME = "colName";
     private static final String REQUIRE_NON_NULL = "$T.requireNonNull(this.entity)";
     private static final String BUILDER_INSTANCE = "$T builder = new $T()";
@@ -38,6 +44,7 @@ public class EntityGenerator extends Generator {
     protected static final String RESET_FIRST = "first = false";
     protected static final String CHECK_FIRST = "if (first)";
     protected static final String SET_FIRST = "boolean first = true";
+    protected static final String ENTITY = "entity";
 
     public EntityGenerator(ProcessingEnvironment processingEnvironment) {
         super(processingEnvironment);
@@ -107,7 +114,7 @@ public class EntityGenerator extends Generator {
                 .addSuperinterface(ParameterizedTypeName.get(ClassName.get(EntityDelegate.class), ClassName.get(entity)));
         TypeSpec columns = generateColumns(processingEnvironment, entity);
         builder.addType(columns);
-        builder.addField(ClassName.get(entity), "entity", Modifier.PRIVATE);
+        builder.addField(ClassName.get(entity), ENTITY, Modifier.PRIVATE);
         builder.addField(addTableName(entity));
         builder.addField(addBaseSql(entity));
         builder.addField(addKeysWhere());
@@ -289,7 +296,7 @@ public class EntityGenerator extends Generator {
         MethodSpec setEntityObj = MethodSpec.methodBuilder("setFullEntity")
                 .addAnnotation(Override.class)
                 .addModifiers(Modifier.PUBLIC)
-                .addParameter(ClassName.get(entity), "entity")
+                .addParameter(ClassName.get(entity), ENTITY)
                 .addStatement("this.entity = entity")
                 .build();
         MethodSpec getEntity = MethodSpec.methodBuilder("getEntity")
@@ -322,6 +329,9 @@ public class EntityGenerator extends Generator {
         MethodSpec modified = MethodSpec.overriding(ProcessorUtils.getMethod(processingEnvironment, "isModified", EntityDelegate.class))
                 .addStatement("return this.modified")
                 .build();
+        MethodSpec isDefaultGeneration = MethodSpec.overriding(ProcessorUtils.getMethod(processingEnvironment, "isDefaultGeneration", EntityDelegate.class))
+                .addStatement("return $L", hasDefaultGenerated(entity))
+                .build();
         MethodSpec setFullEntityFullColumns = MethodSpec.methodBuilder("setFullEntityFullColumns")
                 .addModifiers(Modifier.PUBLIC)
                 .addAnnotation(Override.class)
@@ -342,11 +352,94 @@ public class EntityGenerator extends Generator {
                 .returns(String.class)
                 .addCode(buildGetKeys())
                 .build();
+
+        MethodSpec initDefault;
+        if (hasDefaultGenerated(entity)) {
+            initDefault = buildInitDefault(entity);
+        } else {
+            initDefault = getInitDefault(entity)
+                    .addStatement("return e")
+                    .build();
+        }
+
         return Stream.of(supplierEntity, entityMapper,
                 setEntity, setEntityObj, baseSql, keysWhere,
                 insertSql, selectables, table, updateSql,
-                getEntity, deleteSql, modified, setFullEntityFullColumns, getKeyWhere)
+                getEntity, deleteSql, modified,
+                isDefaultGeneration, initDefault,
+                setFullEntityFullColumns, getKeyWhere)
                 .collect(Collectors.toList());
+    }
+
+    private MethodSpec.Builder getInitDefault(TypeElement entity) {
+        MethodSpec.Builder builder = MethodSpec.overriding(ProcessorUtils.getMethod(processingEnvironment, "initDefault", EntityDelegate.class))
+                .returns(TypeName.get(entity.asType()));
+        builder.parameters.set(0, ParameterSpec.builder(TypeName.get(entity.asType()), "e").build());
+        return builder;
+    }
+
+    private MethodSpec buildInitDefault(TypeElement entity) {
+        MethodSpec.Builder builder = getInitDefault(entity);
+        entity.getEnclosedElements()
+                .stream()
+                .filter(e -> DEFAULTS.stream().anyMatch(c -> e.getAnnotation(c) != null))
+                .filter(VariableElement.class::isInstance)
+                .map(VariableElement.class::cast)
+                .forEach(e -> {
+                    DefaultTemporal temporal = e.getAnnotation(DefaultTemporal.class);
+                    DefaultString string = e.getAnnotation(DefaultString.class);
+                    DefaultNumeric numeric = e.getAnnotation(DefaultNumeric.class);
+
+                    if (temporal != null) {
+                        if (!DefaultTemporal.DEFAULT_FORMAT.equalsIgnoreCase(temporal.format())) {
+                            builder.addStatement(
+                                    "e.$L($T.forTemporal($T.class, $S, $S))",
+                                    ProcessorUtils.findSetter(processingEnvironment, entity, e.getSimpleName())
+                                            .getSimpleName(),
+                                    DefaultGenerator.class,
+                                    e.asType(),
+                                    temporal.format(),
+                                    temporal.value()
+                            );
+                        } else {
+                            builder.addStatement(
+                                    "e.$L($T.forTemporal($T.class))",
+                                    ProcessorUtils.findSetter(processingEnvironment, entity, e.getSimpleName())
+                                            .getSimpleName(),
+                                    DefaultGenerator.class,
+                                    e.asType()
+                            );
+                        }
+                    }
+
+                    if (string != null) {
+                        builder.addStatement(
+                                "e.$L($S)",
+                                ProcessorUtils.findSetter(processingEnvironment, entity, e.getSimpleName())
+                                        .getSimpleName(),
+                                string.value()
+                        );
+                    }
+
+                    if (numeric != null) {
+                        builder.addStatement(
+                                "e.$L($T.forNumeric($T.class, $L))",
+                                ProcessorUtils.findSetter(processingEnvironment, entity, e.getSimpleName())
+                                        .getSimpleName(),
+                                DefaultGenerator.class,
+                                e.asType(),
+                                numeric.value()
+                        );
+                    }
+                });
+        return builder.addStatement("return e")
+                .build();
+    }
+
+    private boolean hasDefaultGenerated(TypeElement entity) {
+        return entity.getEnclosedElements()
+                .stream()
+                .anyMatch(e -> DEFAULTS.stream().anyMatch(c -> e.getAnnotation(c) != null));
     }
 
     private CodeBlock buildGetKeys() {

@@ -165,6 +165,16 @@ class RelationshipServiceTest {
         public boolean isModified() {
             return false;
         }
+
+        @Override
+        public boolean isDefaultGeneration() {
+            return false;
+        }
+
+        @Override
+        public String initDefault(String entity) {
+            return null;
+        }
     }
 
     private static class RelationshipMock extends RelationshipService {

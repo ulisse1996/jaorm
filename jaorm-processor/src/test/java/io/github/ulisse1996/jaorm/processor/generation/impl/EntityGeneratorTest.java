@@ -7,6 +7,20 @@ import org.junit.jupiter.api.Test;
 class EntityGeneratorTest extends CompilerTest {
 
     @Test
+    void should_generate_entity_with_defaults() {
+        checkCompilation(
+                Compiler.javac()
+                        .withProcessors(new JaormProcessor())
+                        .compile(
+                                getFile("entity", "EntityWithDefaultNumeric.java"),
+                                getFile("entity", "EntityWithDefaultString.java"),
+                                getFile("entity", "EntityWithDefaultDate.java"),
+                                getFile("entity", "EntityWithDefaultDateAndFormat.java")
+                        )
+        );
+    }
+
+    @Test
     void should_generate_entity_with_relationship_and_default_value() {
         checkCompilation(
                 Compiler.javac()

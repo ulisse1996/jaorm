@@ -132,5 +132,15 @@ public class DelegatesMock extends DelegatesService {
         public boolean isModified() {
             return false;
         }
+
+        @Override
+        public boolean isDefaultGeneration() {
+            return false;
+        }
+
+        @Override
+        public MyEntity initDefault(MyEntity entity) {
+            return null;
+        }
     }
 }
