@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.36.0
+- Feature: Schema Support
+- Feature: Fix duplicate plugins and wrong properties
+
 ## 0.35.0
 - Feature: Default value for String, Temporal (Date, LocalDate, Instant ecc.) and Numeric
 
