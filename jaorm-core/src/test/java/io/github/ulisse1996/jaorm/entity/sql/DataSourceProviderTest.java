@@ -1,5 +1,6 @@
 package io.github.ulisse1996.jaorm.entity.sql;
 
+import io.github.ulisse1996.jaorm.entity.schema.TableInfo;
 import io.github.ulisse1996.jaorm.spi.common.Singleton;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,6 +21,11 @@ class DataSourceProviderTest {
         DataSourceProvider myImpl = new DataSourceProvider() {
             @Override
             public DataSource getDataSource() {
+                return null;
+            }
+
+            @Override
+            public DataSource getDataSource(TableInfo tableInfo) {
                 return null;
             }
         };

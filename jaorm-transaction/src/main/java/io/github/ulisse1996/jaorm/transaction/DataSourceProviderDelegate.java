@@ -1,6 +1,7 @@
 package io.github.ulisse1996.jaorm.transaction;
 
 import io.github.ulisse1996.jaorm.Transaction;
+import io.github.ulisse1996.jaorm.entity.schema.TableInfo;
 import io.github.ulisse1996.jaorm.entity.sql.DataSourceProvider;
 import io.github.ulisse1996.jaorm.spi.TransactionManager;
 
@@ -27,6 +28,11 @@ public class DataSourceProviderDelegate extends DataSourceProvider {
         }
 
         return proxyInstance;
+    }
+
+    @Override
+    public DataSource getDataSource(TableInfo tableInfo) {
+        return null; // TODO
     }
 
     private DataSource createProxyDataSource(DataSource dataSource) {

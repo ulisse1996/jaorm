@@ -1,5 +1,6 @@
 package io.github.ulisse1996.jaorm.integration.test;
 
+import io.github.ulisse1996.jaorm.entity.schema.TableInfo;
 import io.github.ulisse1996.jaorm.entity.sql.DataSourceProvider;
 import org.hsqldb.jdbc.JDBCDataSourceFactory;
 
@@ -25,6 +26,15 @@ public class HSQLDBProvider extends DataSourceProvider {
 
     @Override
     public DataSource getDataSource() {
+        if (this.dataSource == null) {
+            createFor(DatabaseType.ORACLE);
+        }
+
+        return this.dataSource;
+    }
+
+    @Override
+    public DataSource getDataSource(TableInfo tableInfo) {
         if (this.dataSource == null) {
             createFor(DatabaseType.ORACLE);
         }
