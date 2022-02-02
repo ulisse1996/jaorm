@@ -24,6 +24,7 @@
         <weld-junit5.version>2.0.2.Final</weld-junit5.version>
         <hsqldb.version>2.5.2</hsqldb.version>
         <jaorm.version>1.0.0</jaorm.version>
+        <sonar.coverage.jacoco.xmlReportPaths>${project.basedir}/../${aggregate.report.dir}</sonar.coverage.jacoco.xmlReportPaths>
     </properties>
 
     <dependencies>

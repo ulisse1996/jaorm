@@ -6,7 +6,7 @@ import java.util.List;
 
 public class JaormValidationException extends RuntimeException {
 
-    private final List<ValidationResult<Object>> results;
+    private final transient List<ValidationResult<Object>> results;
 
     public JaormValidationException(List<ValidationResult<Object>> results) {
         this.results = results;

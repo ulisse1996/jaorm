@@ -57,7 +57,7 @@ class EntityValidatorTest {
 
     @Test
     void should_throw_unsupported_for_no_op_validation() {
-        Assertions.assertThrows(UnsupportedOperationException.class, () -> EntityValidator.NoOp.INSTANCE.validate(new Object()));
+        Assertions.assertThrows(UnsupportedOperationException.class, () -> EntityValidator.NoOp.INSTANCE.validate(new Object())); //NOSONAR
     }
 
     @Test
