@@ -1,9 +1,11 @@
 # CHANGELOG
 
+## 1.0.1
+- Bugfix: Fix Hibernate Validation Dependency version 
+
 ## 1.0.0
 - Feature: Schema Support for Entities
 - Feature: JSR 380 Validation Support for Entities
-- Fix: Remove unused sonar properties
 
 ## 0.35.0
 - Feature: Default value for String, Temporal (Date, LocalDate, Instant ecc.) and Numeric
