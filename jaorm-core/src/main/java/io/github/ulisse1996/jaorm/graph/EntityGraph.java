@@ -91,7 +91,8 @@ public class EntityGraph<T> {
         String sql = buildSql(entityDelegate);
         List<SqlParameter> sqlParameters = ((EntityMapper<T>) entityDelegate.getEntityMapper()).getKeys(entity).asSqlParameters();
         QueryRunner.logger.logSql(sql, sqlParameters);
-        try (Connection connection = QueryRunner.getInstance(entity.getClass()).getConnection();
+        try (Connection connection = QueryRunner.getInstance(entity.getClass())
+                .getConnection(DelegatesService.getInstance().getTableInfo(entity.getClass()));
              PreparedStatement pr = connection.prepareStatement(sql);
              ResultSetExecutor rs = new ResultSetExecutor(pr, sqlParameters)) {
             boolean hasNext = rs.getResultSet().next();

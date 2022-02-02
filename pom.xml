@@ -7,7 +7,7 @@
     <groupId>io.github.ulisse1996</groupId>
     <artifactId>jaorm-pom</artifactId>
     <packaging>pom</packaging>
-    <version>0.35.0</version>
+    <version>1.0.0</version>
     <modules>
         <module>jaorm-processor</module>
         <module>jaorm-core</module>
@@ -19,6 +19,7 @@
         <module>jaorm-lombok</module>
         <module>jaorm-sql-specific</module>
         <module>jaorm-tools</module>
+        <module>jaorm-validation</module>
     </modules>
 
     <properties>
@@ -32,7 +33,6 @@
         <sonar.organization>ulisse1996</sonar.organization>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
         <jacoco-maven-plugin.version>0.8.6</jacoco-maven-plugin.version>
-        <sonar.coverage.jacoco.xmlReportPaths>jaorm-test/target/site/jacoco-aggregate/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
         <aggregate.report.dir>jaorm-test/target/site/jacoco-aggregate/jacoco.xml</aggregate.report.dir>
     </properties>
 

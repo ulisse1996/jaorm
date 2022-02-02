@@ -5,6 +5,8 @@ import io.github.ulisse1996.jaorm.entity.relationship.EntityEvent;
 import io.github.ulisse1996.jaorm.entity.relationship.EntityEventType;
 import io.github.ulisse1996.jaorm.entity.relationship.Relationship;
 import io.github.ulisse1996.jaorm.entity.sql.SqlParameter;
+import io.github.ulisse1996.jaorm.entity.validation.ValidationResult;
+import io.github.ulisse1996.jaorm.exception.JaormValidationException;
 import io.github.ulisse1996.jaorm.exception.PersistEventException;
 import io.github.ulisse1996.jaorm.exception.RemoveEventException;
 import io.github.ulisse1996.jaorm.exception.UpdateEventException;
@@ -17,8 +19,10 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Collections;
 import java.util.List;
@@ -26,7 +30,10 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 @ExtendWith(ExceptionLogger.class)
+@ExtendWith(MockitoExtension.class)
 class BaseDaoTest {
+
+    @Mock private EntityValidator validator;
 
     @Test
     void should_transform_arguments_in_parameters() {
@@ -607,8 +614,6 @@ class BaseDaoTest {
                     .thenReturn(true);
             mkEntity.when(() -> EntityEvent.forType(eventType))
                     .thenReturn(event);
-            Mockito.when(event.applyAndReturn(Mockito.any()))
-                    .then(i -> i.getArgument(0));
             switch (eventType) {
                 case PERSIST:
                     dao.insert(new DelegatesMock.MyEntity());
@@ -629,6 +634,126 @@ class BaseDaoTest {
                         .applyAndReturn(Mockito.any());
             }
         }
+    }
+
+    @Test
+    void should_throw_exception_for_validation_errors_during_insert() {
+        final MyDao dao = Mockito.spy(new MyDao());
+
+        try (MockedStatic<EntityValidator> mk = Mockito.mockStatic(EntityValidator.class)) {
+            mk.when(EntityValidator::getInstance)
+                    .thenReturn(validator);
+            Mockito.when(validator.isActive())
+                    .thenReturn(true);
+            Mockito.when(validator.validate(Mockito.any()))
+                    .thenReturn(Collections.singletonList(
+                            new ValidationResult<>(
+                                 "message",
+                                 new Object(),
+                                 Object.class,
+                                 new Object(),
+                                 "path"
+                            )
+                    ));
+            dao.insert(new DelegatesMock.MyEntity());
+        } catch (JaormValidationException ex) {
+            Assertions.assertEquals(1, ex.getResults().size());
+            return;
+        } catch (Exception ex) {
+            Assertions.fail(ex);
+        }
+
+        Assertions.fail("Should throw JaormValidationException");
+    }
+
+    @Test
+    void should_throw_exception_for_validation_errors_during_updare() {
+        final MyDao dao = Mockito.spy(new MyDao());
+
+        try (MockedStatic<EntityValidator> mk = Mockito.mockStatic(EntityValidator.class)) {
+            mk.when(EntityValidator::getInstance)
+                    .thenReturn(validator);
+            Mockito.when(validator.isActive())
+                    .thenReturn(true);
+            Mockito.when(validator.validate(Mockito.any()))
+                    .thenReturn(Collections.singletonList(
+                            new ValidationResult<>(
+                                    "message",
+                                    new Object(),
+                                    Object.class,
+                                    new Object(),
+                                    "path"
+                            )
+                    ));
+            dao.update(new DelegatesMock.MyEntity());
+        } catch (JaormValidationException ex) {
+            Assertions.assertEquals(1, ex.getResults().size());
+            return;
+        } catch (Exception ex) {
+            Assertions.fail(ex);
+        }
+
+        Assertions.fail("Should throw JaormValidationException");
+    }
+
+    @Test
+    void should_throw_exception_for_validation_errors_during_insert_batch() {
+        final MyDao dao = Mockito.spy(new MyDao());
+
+        try (MockedStatic<EntityValidator> mk = Mockito.mockStatic(EntityValidator.class)) {
+            mk.when(EntityValidator::getInstance)
+                    .thenReturn(validator);
+            Mockito.when(validator.isActive())
+                    .thenReturn(true);
+            Mockito.when(validator.validate(Mockito.any()))
+                    .thenReturn(Collections.singletonList(
+                            new ValidationResult<>(
+                                    "message",
+                                    new Object(),
+                                    Object.class,
+                                    new Object(),
+                                    "path"
+                            )
+                    ));
+            dao.insertWithBatch(Collections.singletonList(new DelegatesMock.MyEntity()));
+        } catch (JaormValidationException ex) {
+            Assertions.assertEquals(1, ex.getResults().size());
+            return;
+        } catch (Exception ex) {
+            Assertions.fail(ex);
+        }
+
+        Assertions.fail("Should throw JaormValidationException");
+    }
+
+    @Test
+    void should_throw_exception_for_validation_errors_during_update_batch() {
+        final MyDao dao = Mockito.spy(new MyDao());
+
+        try (MockedStatic<EntityValidator> mk = Mockito.mockStatic(EntityValidator.class)) {
+            mk.when(EntityValidator::getInstance)
+                    .thenReturn(validator);
+            Mockito.when(validator.isActive())
+                    .thenReturn(true);
+            Mockito.when(validator.validate(Mockito.any()))
+                    .thenReturn(Collections.singletonList(
+                            new ValidationResult<>(
+                                    "message",
+                                    new Object(),
+                                    Object.class,
+                                    new Object(),
+                                    "path"
+                            )
+                    ));
+            dao.updateWithBatch(Collections.singletonList(new DelegatesMock.MyEntity()));
+        } catch (JaormValidationException ex) {
+            Assertions.assertEquals(1, ex.getResults().size());
+            return;
+        } catch (Exception ex) {
+            Assertions.fail(ex);
+        }
+
+        Assertions.fail("Should throw JaormValidationException");
     }
 
     @SuppressWarnings("unused")

@@ -5,7 +5,7 @@
     <parent>
         <artifactId>jaorm-pom</artifactId>
         <groupId>io.github.ulisse1996</groupId>
-        <version>0.35.0</version>
+        <version>1.0.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -17,14 +17,13 @@
         <maven.compiler.target>8</maven.compiler.target>
         <javapoet.version>1.13.0</javapoet.version>
         <compile-testing.version>0.19</compile-testing.version>
-        <sonar.coverage.jacoco.xmlReportPaths>${project.basedir}/../${aggregate.report.dir}</sonar.coverage.jacoco.xmlReportPaths>
         <spring-data-jdbc.version>2.1.5</spring-data-jdbc.version>
         <spring-web.version>5.3.4</spring-web.version>
         <spring-boot-starter-test.version>2.4.3</spring-boot-starter-test.version>
         <junit-platform-launcher.version>1.4.1</junit-platform-launcher.version>
         <weld-junit5.version>2.0.2.Final</weld-junit5.version>
         <hsqldb.version>2.5.2</hsqldb.version>
-        <jaorm.version>0.35.0</jaorm.version>
+        <jaorm.version>1.0.0</jaorm.version>
     </properties>
 
     <dependencies>
@@ -56,6 +55,11 @@
         <dependency>
             <groupId>io.github.ulisse1996</groupId>
             <artifactId>jaorm-lombok</artifactId>
+            <version>${jaorm.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.ulisse1996</groupId>
+            <artifactId>jaorm-validation</artifactId>
             <version>${jaorm.version}</version>
         </dependency>
         <dependency>
@@ -135,6 +139,18 @@
             <groupId>org.springframework.data</groupId>
             <artifactId>spring-data-jdbc</artifactId>
             <version>${spring-data-jdbc.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.hibernate.validator</groupId>
+            <artifactId>hibernate-validator</artifactId>
+            <version>6.0.13.Final</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish</groupId>
+            <artifactId>javax.el</artifactId>
+            <version>3.0.0</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

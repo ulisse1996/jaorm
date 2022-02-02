@@ -5,7 +5,7 @@
     <parent>
         <artifactId>jaorm-tools</artifactId>
         <groupId>io.github.ulisse1996</groupId>
-        <version>0.35.0</version>
+        <version>1.0.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -15,19 +15,18 @@
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
-        <sonar.coverage.jacoco.xmlReportPaths>${project.basedir}/../../${aggregate.report.dir}</sonar.coverage.jacoco.xmlReportPaths>
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>io.github.ulisse1996</groupId>
             <artifactId>jaorm-core</artifactId>
-            <version>0.35.0</version>
+            <version>1.0.0</version>
         </dependency>
         <dependency>
             <groupId>io.github.ulisse1996</groupId>
             <artifactId>jaorm-processor</artifactId>
-            <version>0.35.0</version>
+            <version>1.0.0</version>
         </dependency>
         <dependency>
             <groupId>com.github.javaparser</groupId>

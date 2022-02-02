@@ -2,21 +2,25 @@ package io.github.ulisse1996.jaorm.transaction;
 
 import io.github.ulisse1996.jaorm.Transaction;
 import io.github.ulisse1996.jaorm.entity.sql.DataSourceProvider;
+import io.github.ulisse1996.jaorm.schema.TableInfo;
 import io.github.ulisse1996.jaorm.spi.TransactionManager;
 
 import javax.sql.DataSource;
 import java.lang.reflect.Proxy;
 import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 public class DataSourceProviderDelegate extends DataSourceProvider {
 
     private final DataSourceProvider instance;
     private DataSource proxyInstance;
+    private final Map<String, DataSource> schemaProxies;
 
     public DataSourceProviderDelegate(DataSourceProvider instance) {
         this.instance = instance;
+        this.schemaProxies = new HashMap<>();
     }
 
     @Override
@@ -27,6 +31,16 @@ public class DataSourceProviderDelegate extends DataSourceProvider {
         }
 
         return proxyInstance;
+    }
+
+    @Override
+    public DataSource getDataSource(TableInfo tableInfo) {
+        if (!this.schemaProxies.containsKey(tableInfo.getSchema())) {
+            DataSource dataSource = this.instance.getDataSource(tableInfo);
+            this.schemaProxies.put(tableInfo.getSchema(), createProxyDataSource(dataSource));
+        }
+
+        return this.schemaProxies.get(tableInfo.getSchema());
     }
 
     private DataSource createProxyDataSource(DataSource dataSource) {
@@ -62,10 +76,5 @@ public class DataSourceProviderDelegate extends DataSourceProvider {
 
                     return method.invoke(connection, args);
                 });
-    }
-
-    @Override
-    public Connection getConnection() throws SQLException {
-        return getDataSource().getConnection();
     }
 }

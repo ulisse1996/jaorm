@@ -5,4 +5,9 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.CLASS)
 @Target(ElementType.TYPE)
 @Documented
-public @interface Projection {}
+public @interface Projection {
+
+    String schema() default UNSET;
+
+    String UNSET = "_UNSET_";
+}

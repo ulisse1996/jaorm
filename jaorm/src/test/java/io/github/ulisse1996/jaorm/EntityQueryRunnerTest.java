@@ -6,6 +6,7 @@ import io.github.ulisse1996.jaorm.entity.sql.DataSourceProvider;
 import io.github.ulisse1996.jaorm.entity.sql.SqlParameter;
 import io.github.ulisse1996.jaorm.exception.JaormSqlException;
 import io.github.ulisse1996.jaorm.mapping.ProjectionDelegate;
+import io.github.ulisse1996.jaorm.schema.TableInfo;
 import io.github.ulisse1996.jaorm.spi.DelegatesService;
 import io.github.ulisse1996.jaorm.spi.GeneratorsService;
 import io.github.ulisse1996.jaorm.spi.ProjectionsService;
@@ -40,6 +41,7 @@ class EntityQueryRunnerTest {
 
     private final EntityQueryRunner testSubject = new EntityQueryRunner();
 
+    @Mock private DelegatesService delegatesService;
     @Mock private Connection connection;
     @Mock private PreparedStatement preparedStatement;
     @Mock private ResultSet resultSet;
@@ -51,32 +53,36 @@ class EntityQueryRunnerTest {
     }
 
     @Test
-    void should_return_stream() throws SQLException {
-        DataSource dataSource = DataSourceProvider.getCurrent().getDataSource();
-        Mockito.when(dataSource.getConnection())
-                .thenReturn(connection);
-        Mockito.when(connection.prepareStatement(Mockito.anyString()))
-                .thenReturn(preparedStatement);
-        Mockito.when(preparedStatement.executeQuery())
-                .thenReturn(resultSet);
-        Mockito.when(resultSet.next())
-                .thenReturn(false);
-        Stream<DelegatesMock.MyEntity> myEntityStream = testSubject.readStream(DelegatesMock.MyEntity.class, "", Collections.emptyList());
-        Assertions.assertEquals(0, myEntityStream.count());
+    void should_return_stream() throws Throwable {
+        withMockedSchemaSupport(() -> {
+            DataSource dataSource = DataSourceProvider.getCurrent().getDataSource();
+            Mockito.when(dataSource.getConnection())
+                    .thenReturn(connection);
+            Mockito.when(connection.prepareStatement(Mockito.anyString()))
+                    .thenReturn(preparedStatement);
+            Mockito.when(preparedStatement.executeQuery())
+                    .thenReturn(resultSet);
+            Mockito.when(resultSet.next())
+                    .thenReturn(false);
+            Stream<DelegatesMock.MyEntity> myEntityStream = testSubject.readStream(DelegatesMock.MyEntity.class, "", Collections.emptyList());
+            Assertions.assertEquals(0, myEntityStream.count());
+        });
     }
 
     @Test
-    void should_throw_sql_exception_for_readStream() {
-        try {
-            DataSource dataSource = DataSourceProvider.getCurrent().getDataSource();
-            Mockito.when(dataSource.getConnection())
-                    .thenThrow(SQLException.class);
-            testSubject.readStream(DelegatesMock.MyEntity.class, "", Collections.emptyList());
-        } catch (SQLException ex) {
-            Assertions.fail(ex);
-        } catch (JaormSqlException ex) {
-            Assertions.assertTrue(ex.getCause() instanceof SQLException);
-        }
+    void should_throw_sql_exception_for_readStream() throws Throwable {
+        withMockedSchemaSupport(() -> {
+            try {
+                DataSource dataSource = DataSourceProvider.getCurrent().getDataSource();
+                Mockito.when(dataSource.getConnection())
+                        .thenThrow(SQLException.class);
+                testSubject.readStream(DelegatesMock.MyEntity.class, "", Collections.emptyList());
+            } catch (SQLException ex) {
+                Assertions.fail(ex);
+            } catch (JaormSqlException ex) {
+                Assertions.assertTrue(ex.getCause() instanceof SQLException);
+            }
+        });
     }
 
     @BeforeEach
@@ -100,59 +106,69 @@ class EntityQueryRunnerTest {
     }
 
     @Test
-    void should_throw_sql_exception_for_read() {
-        try {
-            DataSource dataSource = DataSourceProvider.getCurrent().getDataSource();
-            Mockito.when(dataSource.getConnection())
-                    .thenThrow(SQLException.class);
-            testSubject.read(DelegatesMock.MyEntity.class, "", Collections.emptyList());
-        } catch (SQLException ex) {
-            Assertions.fail(ex);
-        } catch (JaormSqlException ex) {
-            Assertions.assertTrue(ex.getCause() instanceof SQLException);
-        }
+    void should_throw_sql_exception_for_read() throws Throwable {
+        withMockedSchemaSupport(() -> {
+            try {
+                DataSource dataSource = DataSourceProvider.getCurrent().getDataSource();
+                Mockito.when(dataSource.getConnection())
+                        .thenThrow(SQLException.class);
+                testSubject.read(DelegatesMock.MyEntity.class, "", Collections.emptyList());
+            } catch (SQLException ex) {
+                Assertions.fail(ex);
+            } catch (JaormSqlException ex) {
+                Assertions.assertTrue(ex.getCause() instanceof SQLException);
+            }
+        });
     }
 
     @Test
-    void should_throw_sql_exception_for_read_opt() {
-        try {
-            DataSource dataSource = DataSourceProvider.getCurrent().getDataSource();
-            Mockito.when(dataSource.getConnection())
-                    .thenThrow(SQLException.class);
-            testSubject.readOpt(DelegatesMock.MyEntity.class, "", Collections.emptyList());
-        } catch (SQLException ex) {
-            Assertions.fail(ex);
-        } catch (JaormSqlException ex) {
-            Assertions.assertTrue(ex.getCause() instanceof SQLException);
-        }
+    void should_throw_sql_exception_for_read_opt() throws Throwable {
+        withMockedSchemaSupport(() -> {
+            try {
+                DataSource dataSource = DataSourceProvider.getCurrent().getDataSource();
+                Mockito.when(dataSource.getConnection())
+                        .thenThrow(SQLException.class);
+                testSubject.readOpt(DelegatesMock.MyEntity.class, "", Collections.emptyList());
+            } catch (SQLException ex) {
+                Assertions.fail(ex);
+            } catch (JaormSqlException ex) {
+                Assertions.assertTrue(ex.getCause() instanceof SQLException);
+            }
+        });
     }
 
     @Test
-    void should_throw_sql_exception_for_read_all() {
-        try {
-            DataSource dataSource = DataSourceProvider.getCurrent().getDataSource();
-            Mockito.when(dataSource.getConnection())
-                    .thenThrow(SQLException.class);
-            testSubject.readAll(DelegatesMock.MyEntity.class, "", Collections.emptyList());
-        } catch (SQLException ex) {
-            Assertions.fail(ex);
-        } catch (JaormSqlException ex) {
-            Assertions.assertTrue(ex.getCause() instanceof SQLException);
-        }
+    void should_throw_sql_exception_for_read_all() throws Throwable {
+        withMockedSchemaSupport(() -> {
+            try {
+                DataSource dataSource = DataSourceProvider.getCurrent().getDataSource();
+                Mockito.when(dataSource.getConnection())
+                        .thenThrow(SQLException.class);
+                testSubject.readAll(DelegatesMock.MyEntity.class, "", Collections.emptyList());
+            } catch (SQLException ex) {
+                Assertions.fail(ex);
+            } catch (JaormSqlException ex) {
+                Assertions.assertTrue(ex.getCause() instanceof SQLException);
+            }
+        });
     }
 
     @Test
-    void should_throw_sql_exception_for_insert() {
-        try {
-            DataSource dataSource = DataSourceProvider.getCurrent().getDataSource();
-            Mockito.when(dataSource.getConnection())
-                    .thenThrow(SQLException.class);
-            testSubject.insert(new DelegatesMock.MyEntity(), "", Collections.emptyList());
-        } catch (SQLException ex) {
-            Assertions.fail(ex);
-        } catch (JaormSqlException ex) {
-            Assertions.assertTrue(ex.getCause() instanceof SQLException);
-        }
+    void should_throw_sql_exception_for_insert() throws Throwable {
+        withMockedSchemaSupport(() -> {
+            try {
+                DataSource dataSource = DataSourceProvider.getCurrent().getDataSource();
+                Mockito.when(delegatesService.searchDelegate(Mockito.any()))
+                        .then(invocation -> (Supplier<?>) DelegatesMock.MyEntityDelegate::new);
+                Mockito.when(dataSource.getConnection())
+                        .thenThrow(SQLException.class);
+                testSubject.insert(new DelegatesMock.MyEntity(), "", Collections.emptyList());
+            } catch (SQLException ex) {
+                Assertions.fail(ex);
+            } catch (JaormSqlException ex) {
+                Assertions.assertTrue(ex.getCause() instanceof SQLException);
+            }
+        });
     }
 
     @Test
@@ -184,58 +200,98 @@ class EntityQueryRunnerTest {
     }
 
     @Test
-    void should_return_mapped_entity_for_read() {
-        try {
+    void should_return_mapped_entity_for_read() throws Throwable {
+        withMockedSchemaSupport(() -> {
+            try {
+                DelegatesMock.MyEntity expected = new DelegatesMock.MyEntity();
+                expected.setField1("OK");
+                expected.setField2(BigDecimal.ZERO);
+                Mockito.when(delegatesService.searchDelegate(Mockito.any()))
+                        .then(invocation -> (Supplier<?>) DelegatesMock.MyEntityDelegate::new);
+                DataSource dataSource = DataSourceProvider.getCurrent().getDataSource();
+                Mockito.when(dataSource.getConnection())
+                        .thenReturn(connection);
+                Mockito.when(connection.prepareStatement(Mockito.anyString()))
+                        .thenReturn(preparedStatement);
+                Mockito.when(preparedStatement.executeQuery())
+                        .thenReturn(resultSet);
+                Mockito.when(resultSet.next())
+                        .thenReturn(true);
+                setResultSet(expected);
+                DelegatesMock.MyEntity result = testSubject.read(DelegatesMock.MyEntity.class, "", Collections.emptyList());
+                Assertions.assertTrue(result instanceof EntityDelegate);
+                Assertions.assertAll(
+                        () -> Assertions.assertEquals(expected.getField1(), result.getField1()),
+                        () -> Assertions.assertEquals(expected.getField2(), result.getField2())
+                );
+            } catch (SQLException | JaormSqlException ex) {
+                Assertions.fail(ex);
+            }
+        });
+    }
+
+    @Test
+    void should_return_empty_optional_for_read_opt() throws Throwable {
+        withMockedSchemaSupport(() -> {
+            try {
+                DataSource dataSource = DataSourceProvider.getCurrent().getDataSource();
+                Mockito.when(dataSource.getConnection())
+                        .thenReturn(connection);
+                Mockito.when(connection.prepareStatement(Mockito.anyString()))
+                        .thenReturn(preparedStatement);
+                Mockito.when(preparedStatement.executeQuery())
+                        .thenReturn(resultSet);
+                Mockito.when(resultSet.next())
+                        .thenReturn(false);
+                Result<DelegatesMock.MyEntity> result = testSubject.readOpt(DelegatesMock.MyEntity.class, "", Collections.emptyList());
+                Assertions.assertFalse(result.isPresent());
+            } catch (SQLException | JaormSqlException ex) {
+                Assertions.fail(ex);
+            }
+        });
+    }
+
+    @Test
+    void should_return_optional_with_value_for_read_opt() throws Throwable {
+        withMockedSchemaSupport(() -> {
+            try {
+                DelegatesMock.MyEntity expected = new DelegatesMock.MyEntity();
+                expected.setField1("OK");
+                expected.setField2(BigDecimal.ZERO);
+                DataSource dataSource = DataSourceProvider.getCurrent().getDataSource();
+                Mockito.when(delegatesService.searchDelegate(Mockito.any()))
+                        .then(invocation -> (Supplier<?>) DelegatesMock.MyEntityDelegate::new);
+                Mockito.when(dataSource.getConnection())
+                        .thenReturn(connection);
+                Mockito.when(connection.prepareStatement(Mockito.anyString()))
+                        .thenReturn(preparedStatement);
+                Mockito.when(preparedStatement.executeQuery())
+                        .thenReturn(resultSet);
+                Mockito.when(resultSet.next())
+                        .thenReturn(true);
+                setResultSet(expected);
+                Result<DelegatesMock.MyEntity> result = testSubject.readOpt(DelegatesMock.MyEntity.class, "", Collections.emptyList());
+                Assertions.assertTrue(result.isPresent());
+                checkResult(expected, result.get());
+            } catch (SQLException | JaormSqlException ex) {
+                Assertions.fail(ex);
+            }
+        });
+    }
+
+    @Test
+    void should_return_optional_with_value_for_read_opt_with_schema() {
+        try (MockedStatic<DelegatesService> mk = Mockito.mockStatic(DelegatesService.class)) {
             DelegatesMock.MyEntity expected = new DelegatesMock.MyEntity();
             expected.setField1("OK");
             expected.setField2(BigDecimal.ZERO);
             DataSource dataSource = DataSourceProvider.getCurrent().getDataSource();
-            Mockito.when(dataSource.getConnection())
-                    .thenReturn(connection);
-            Mockito.when(connection.prepareStatement(Mockito.anyString()))
-                    .thenReturn(preparedStatement);
-            Mockito.when(preparedStatement.executeQuery())
-                    .thenReturn(resultSet);
-            Mockito.when(resultSet.next())
-                    .thenReturn(true);
-            setResultSet(expected);
-            DelegatesMock.MyEntity result = testSubject.read(DelegatesMock.MyEntity.class, "", Collections.emptyList());
-            Assertions.assertTrue(result instanceof EntityDelegate);
-            Assertions.assertAll(
-                    () -> Assertions.assertEquals(expected.getField1(), result.getField1()),
-                    () -> Assertions.assertEquals(expected.getField2(), result.getField2())
-            );
-        } catch (SQLException | JaormSqlException ex) {
-            Assertions.fail(ex);
-        }
-    }
-
-    @Test
-    void should_return_empty_optional_for_read_opt() {
-        try {
-            DataSource dataSource = DataSourceProvider.getCurrent().getDataSource();
-            Mockito.when(dataSource.getConnection())
-                    .thenReturn(connection);
-            Mockito.when(connection.prepareStatement(Mockito.anyString()))
-                    .thenReturn(preparedStatement);
-            Mockito.when(preparedStatement.executeQuery())
-                    .thenReturn(resultSet);
-            Mockito.when(resultSet.next())
-                    .thenReturn(false);
-            Result<DelegatesMock.MyEntity> result = testSubject.readOpt(DelegatesMock.MyEntity.class, "", Collections.emptyList());
-            Assertions.assertFalse(result.isPresent());
-        } catch (SQLException | JaormSqlException ex) {
-            Assertions.fail(ex);
-        }
-    }
-
-    @Test
-    void should_return_optional_with_value_for_read_opt() {
-        try {
-            DelegatesMock.MyEntity expected = new DelegatesMock.MyEntity();
-            expected.setField1("OK");
-            expected.setField2(BigDecimal.ZERO);
-            DataSource dataSource = DataSourceProvider.getCurrent().getDataSource();
+            mk.when(DelegatesService::getInstance)
+                    .thenReturn(delegatesService);
+            Mockito.when(delegatesService.getTableInfo(Mockito.any()))
+                    .thenReturn(new TableInfo("TABLE", DelegatesMock.MyEntity.class, "SCHEMA"));
+            Mockito.when(delegatesService.searchDelegate(Mockito.any()))
+                    .then(invocation -> (Supplier<?>) DelegatesMock.MyEntityDelegate::new);
             Mockito.when(dataSource.getConnection())
                     .thenReturn(connection);
             Mockito.when(connection.prepareStatement(Mockito.anyString()))
@@ -254,47 +310,55 @@ class EntityQueryRunnerTest {
     }
 
     @Test
-    void should_return_list_for_read_all() {
-        try {
-            DelegatesMock.MyEntity expected = new DelegatesMock.MyEntity();
-            expected.setField1("OK");
-            expected.setField2(BigDecimal.ZERO);
-            DataSource dataSource = DataSourceProvider.getCurrent().getDataSource();
-            Mockito.when(dataSource.getConnection())
-                    .thenReturn(connection);
-            Mockito.when(connection.prepareStatement(Mockito.anyString()))
-                    .thenReturn(preparedStatement);
-            Mockito.when(preparedStatement.executeQuery())
-                    .thenReturn(resultSet);
-            Mockito.when(resultSet.next())
-                    .thenReturn(true)
-                    .thenReturn(false);
-            setResultSet(expected);
-            List<DelegatesMock.MyEntity> result = testSubject.readAll(DelegatesMock.MyEntity.class, "", Collections.emptyList());
-            Assertions.assertFalse(result.isEmpty());
-            Assertions.assertEquals(1, result.size());
-            checkResult(expected, result.get(0));
-        } catch (SQLException | JaormSqlException ex) {
-            Assertions.fail(ex);
-        }
+    void should_return_list_for_read_all() throws Throwable {
+        withMockedSchemaSupport(() -> {
+            try {
+                DelegatesMock.MyEntity expected = new DelegatesMock.MyEntity();
+                expected.setField1("OK");
+                expected.setField2(BigDecimal.ZERO);
+                DataSource dataSource = DataSourceProvider.getCurrent().getDataSource();
+                Mockito.when(delegatesService.searchDelegate(Mockito.any()))
+                        .then(invocation -> (Supplier<?>) DelegatesMock.MyEntityDelegate::new);
+                Mockito.when(dataSource.getConnection())
+                        .thenReturn(connection);
+                Mockito.when(connection.prepareStatement(Mockito.anyString()))
+                        .thenReturn(preparedStatement);
+                Mockito.when(preparedStatement.executeQuery())
+                        .thenReturn(resultSet);
+                Mockito.when(resultSet.next())
+                        .thenReturn(true)
+                        .thenReturn(false);
+                setResultSet(expected);
+                List<DelegatesMock.MyEntity> result = testSubject.readAll(DelegatesMock.MyEntity.class, "", Collections.emptyList());
+                Assertions.assertFalse(result.isEmpty());
+                Assertions.assertEquals(1, result.size());
+                checkResult(expected, result.get(0));
+            } catch (SQLException | JaormSqlException ex) {
+                Assertions.fail(ex);
+            }
+        });
     }
 
     @Test
-    void should_not_return_same_entity_after_insert() {
-        try {
-            DelegatesMock.MyEntity expected = new DelegatesMock.MyEntity();
-            expected.setField1("OK");
-            expected.setField2(BigDecimal.ZERO);
-            DataSource dataSource = DataSourceProvider.getCurrent().getDataSource();
-            Mockito.when(dataSource.getConnection())
-                    .thenReturn(connection);
-            Mockito.when(connection.prepareStatement(Mockito.anyString()))
-                    .thenReturn(preparedStatement);
-            DelegatesMock.MyEntity result = testSubject.insert(expected, "QUERY", Collections.emptyList());
-            Assertions.assertNotEquals(expected, result);
-        } catch (SQLException | JaormSqlException ex) {
-            Assertions.fail(ex);
-        }
+    void should_not_return_same_entity_after_insert() throws Throwable {
+        withMockedSchemaSupport(() -> {
+            try {
+                DelegatesMock.MyEntity expected = new DelegatesMock.MyEntity();
+                expected.setField1("OK");
+                expected.setField2(BigDecimal.ZERO);
+                DataSource dataSource = DataSourceProvider.getCurrent().getDataSource();
+                Mockito.when(delegatesService.searchDelegate(Mockito.any()))
+                        .then(invocation -> (Supplier<?>) DelegatesMock.MyEntityDelegate::new);
+                Mockito.when(dataSource.getConnection())
+                        .thenReturn(connection);
+                Mockito.when(connection.prepareStatement(Mockito.anyString()))
+                        .thenReturn(preparedStatement);
+                DelegatesMock.MyEntity result = testSubject.insert(expected, "QUERY", Collections.emptyList());
+                Assertions.assertNotEquals(expected, result);
+            } catch (SQLException | JaormSqlException ex) {
+                Assertions.fail(ex);
+            }
+        });
     }
 
     @Test
@@ -353,7 +417,7 @@ class EntityQueryRunnerTest {
                     .thenReturn(io.github.ulisse1996.jaorm.Arguments.empty());
             EntityQueryRunner runner = new EntityQueryRunner() {
                 @Override
-                protected Map<String, Object> doUpdate(String query, List<SqlParameter> params, Map<String, Class<?>> autoGenerated) {
+                protected Map<String, Object> doUpdate(Class<?> entity, String query, List<SqlParameter> params, Map<String, Class<?>> autoGenerated) {
                     return Collections.emptyMap();
                 }
             };
@@ -377,6 +441,7 @@ class EntityQueryRunnerTest {
                     .thenReturn(provider);
             Mockito.when(projectionsService.getProjections())
                     .thenReturn(Collections.singletonMap(ProjectionDelegate.class, () -> delegate));
+            Mockito.when(delegate.asTableInfo()).thenReturn(TableInfo.EMPTY);
             Mockito.when(provider.getConnection())
                     .thenReturn(connection);
             Mockito.when(connection.prepareStatement(Mockito.anyString()))
@@ -402,6 +467,8 @@ class EntityQueryRunnerTest {
                     .thenReturn(provider);
             Mockito.when(projectionsService.getProjections())
                     .thenReturn(Collections.singletonMap(ProjectionDelegate.class, () -> delegate));
+            Mockito.when(delegate.asTableInfo())
+                    .thenReturn(TableInfo.EMPTY);
             Mockito.when(provider.getConnection())
                     .thenReturn(connection);
             Mockito.when(connection.prepareStatement(Mockito.anyString()))
@@ -417,7 +484,7 @@ class EntityQueryRunnerTest {
     }
 
     @Test
-    void should_read_all_projection() throws SQLException {
+    void should_read_all_projection() throws Throwable {
         ProjectionDelegate delegate = Mockito.mock(ProjectionDelegate.class);
         ProjectionsService projectionsService = Mockito.mock(ProjectionsService.class);
         DataSourceProvider provider = Mockito.mock(DataSourceProvider.class);
@@ -429,6 +496,8 @@ class EntityQueryRunnerTest {
                     .thenReturn(provider);
             Mockito.when(projectionsService.getProjections())
                     .thenReturn(Collections.singletonMap(ProjectionDelegate.class, () -> delegate));
+            Mockito.when(delegate.asTableInfo())
+                    .thenReturn(TableInfo.EMPTY);
             Mockito.when(provider.getConnection())
                     .thenReturn(connection);
             Mockito.when(connection.prepareStatement(Mockito.anyString()))
@@ -454,6 +523,8 @@ class EntityQueryRunnerTest {
                     .thenReturn(delegatesService);
             mkProvider.when(DataSourceProvider::getCurrent)
                     .thenReturn(provider);
+            Mockito.when(delegatesService.getTableInfo(Mockito.any()))
+                    .thenReturn(TableInfo.EMPTY);
             Mockito.when(delegatesService.asArguments(Mockito.any()))
                     .thenReturn(io.github.ulisse1996.jaorm.Arguments.empty());
             Mockito.when(delegatesService.asWhere(Mockito.any()))
@@ -480,6 +551,8 @@ class EntityQueryRunnerTest {
                     .thenReturn(io.github.ulisse1996.jaorm.Arguments.of(1, 2, 3));
             Mockito.when(delegatesService.asWhere(Mockito.any()))
                     .thenReturn(io.github.ulisse1996.jaorm.Arguments.of(1, 2, 3));
+            Mockito.when(delegatesService.getTableInfo(Mockito.any()))
+                    .thenReturn(TableInfo.EMPTY);
             Mockito.when(provider.getConnection())
                     .thenReturn(connection);
             Mockito.when(connection.prepareStatement(Mockito.anyString()))
@@ -505,6 +578,8 @@ class EntityQueryRunnerTest {
                     .thenReturn(provider);
             Mockito.when(delegatesService.searchDelegate(Mockito.any()))
                     .thenReturn(DelegatesMock.MyEntityDelegate::new);
+            Mockito.when(delegatesService.getTableInfo(Mockito.any()))
+                    .thenReturn(TableInfo.EMPTY);
             Mockito.when(delegatesService.asInsert(Mockito.any()))
                     .thenReturn(io.github.ulisse1996.jaorm.Arguments.of(1, 2, 3));
             Mockito.when(provider.getConnection())
@@ -539,6 +614,8 @@ class EntityQueryRunnerTest {
                     .thenReturn(generatorsService);
             Mockito.when(delegatesService.searchDelegate(Mockito.any()))
                     .then(invocation -> (Supplier<EntityDelegate<?>>)() -> delegate);
+            Mockito.when(delegatesService.getTableInfo(Mockito.any()))
+                    .thenReturn(TableInfo.EMPTY);
             Mockito.when(generatorsService.needGeneration(Mockito.any()))
                     .thenReturn(true);
             Mockito.when(delegate.getAutoGenerated())
@@ -583,6 +660,8 @@ class EntityQueryRunnerTest {
                     .thenReturn(generatorsService);
             Mockito.when(delegatesService.searchDelegate(Mockito.any()))
                     .then(invocation -> (Supplier<EntityDelegate<?>>)() -> delegate);
+            Mockito.when(delegatesService.getTableInfo(Mockito.any()))
+                    .thenReturn(TableInfo.EMPTY);
             Mockito.when(delegate.getAutoGenerated())
                     .thenReturn(map);
             Mockito.when(delegatesService.asInsert(Mockito.any()))
@@ -633,7 +712,7 @@ class EntityQueryRunnerTest {
                     .thenThrow(SQLException.class);
             EntityQueryRunner runner = new EntityQueryRunner() {
                 @Override
-                protected Map<String, Object> doUpdate(String query, List<SqlParameter> params, Map<String, Class<?>> autoGenerated) {
+                protected Map<String, Object> doUpdate(Class<?> entity, String query, List<SqlParameter> params, Map<String, Class<?>> autoGenerated) {
                     return Collections.emptyMap();
                 }
             };
@@ -663,5 +742,15 @@ class EntityQueryRunnerTest {
                 .thenReturn(expected.getField1());
         Mockito.when(resultSet.getBigDecimal("FIELD2"))
                 .thenReturn(expected.getField2());
+    }
+
+    private void withMockedSchemaSupport(Executable executable) throws Throwable {
+        try (MockedStatic<DelegatesService> mk = Mockito.mockStatic(DelegatesService.class)) {
+            mk.when(DelegatesService::getInstance)
+                    .thenReturn(delegatesService);
+            Mockito.when(delegatesService.getTableInfo(Mockito.any()))
+                    .thenReturn(TableInfo.EMPTY);
+            executable.execute();
+        }
     }
 }

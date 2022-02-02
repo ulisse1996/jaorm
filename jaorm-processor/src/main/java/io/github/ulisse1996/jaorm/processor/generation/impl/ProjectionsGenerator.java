@@ -8,6 +8,7 @@ import io.github.ulisse1996.jaorm.mapping.ProjectionDelegate;
 import io.github.ulisse1996.jaorm.processor.generation.Generator;
 import io.github.ulisse1996.jaorm.processor.util.GeneratedFile;
 import io.github.ulisse1996.jaorm.processor.util.ProcessorUtils;
+import io.github.ulisse1996.jaorm.schema.TableInfo;
 import io.github.ulisse1996.jaorm.spi.ProjectionsService;
 
 import javax.annotation.processing.ProcessingEnvironment;
@@ -16,7 +17,7 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -89,6 +90,20 @@ public class ProjectionsGenerator extends Generator {
                 .superclass(element.asType())
                 .addSuperinterface(ProjectionDelegate.class)
                 .addField(TypeName.get(element.asType()), "entity", Modifier.FINAL, Modifier.PRIVATE)
+                .addField(
+                        FieldSpec.builder(String.class, "SCHEMA", Modifier.FINAL, Modifier.PRIVATE)
+                                .initializer("$S", element.getAnnotation(Projection.class).schema())
+                                .build()
+                )
+                .addField(
+                    FieldSpec.builder(
+                                ParameterizedTypeName.get(ClassName.get(Class.class), WildcardTypeName.subtypeOf(Object.class)),
+                                "projectionClass",
+                                Modifier.PRIVATE, Modifier.FINAL
+                        )
+                        .initializer("$L.class", TypeName.get(element.asType()))
+                        .build()
+                )
                 .addMethod(generateConstructor(element))
                 .addMethods(generateDelegate(element))
                 .addMethods(generateDelegations(element))
@@ -115,10 +130,13 @@ public class ProjectionsGenerator extends Generator {
     }
 
     private Iterable<MethodSpec> generateDelegate(TypeElement element) {
-        MethodSpec methodSpec = MethodSpec.overriding(ProcessorUtils.getMethod(processingEnvironment, "setEntity", ProjectionDelegate.class))
+        MethodSpec setEntity = MethodSpec.overriding(ProcessorUtils.getMethod(processingEnvironment, "setEntity", ProjectionDelegate.class))
                 .addCode(buildSetEntityCode(element))
                 .build();
-        return Collections.singletonList(methodSpec);
+        MethodSpec asTableInfo = MethodSpec.overriding(ProcessorUtils.getMethod(processingEnvironment, "asTableInfo", ProjectionDelegate.class))
+                .addStatement("return new $T($S, this.projectionClass, SCHEMA)", TableInfo.class, "")
+                .build();
+        return Arrays.asList(setEntity, asTableInfo);
     }
 
     private CodeBlock buildSetEntityCode(TypeElement element) {

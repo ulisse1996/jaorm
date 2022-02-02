@@ -50,7 +50,7 @@ class EntityGraphTest {
             Mockito.when(delegate.getEntityMapper()).then(invocation -> mapper);
             Mockito.when(mapper.getKeys(Mockito.any()))
                     .thenReturn(Arguments.empty());
-            Mockito.when(runner.getConnection())
+            Mockito.when(runner.getConnection(Mockito.any()))
                     .thenReturn(connection);
             Mockito.when(connection.prepareStatement(Mockito.any()))
                     .thenReturn(preparedStatement);
@@ -77,7 +77,7 @@ class EntityGraphTest {
             Mockito.when(delegate.getEntityMapper()).then(invocation -> mapper);
             Mockito.when(mapper.getKeys(Mockito.any()))
                     .thenReturn(Arguments.empty());
-            Mockito.when(runner.getConnection())
+            Mockito.when(runner.getConnection(Mockito.any()))
                     .thenThrow(SQLException.class);
             try {
                 graph.fetch(new DelegatesMock.MyEntity());
@@ -102,7 +102,7 @@ class EntityGraphTest {
             Mockito.when(delegate.getEntityMapper()).then(invocation -> mapper);
             Mockito.when(mapper.getKeys(Mockito.any()))
                     .thenReturn(Arguments.empty());
-            Mockito.when(runner.getConnection())
+            Mockito.when(runner.getConnection(Mockito.any()))
                     .thenReturn(connection);
             Mockito.when(connection.prepareStatement(Mockito.any()))
                     .thenReturn(preparedStatement);

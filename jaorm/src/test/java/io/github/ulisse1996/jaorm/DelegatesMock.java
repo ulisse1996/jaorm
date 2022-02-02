@@ -1,6 +1,7 @@
 package io.github.ulisse1996.jaorm;
 
 import io.github.ulisse1996.jaorm.entity.SqlColumn;
+import io.github.ulisse1996.jaorm.schema.TableInfo;
 import io.github.ulisse1996.jaorm.spi.DelegatesService;
 import io.github.ulisse1996.jaorm.entity.EntityDelegate;
 import io.github.ulisse1996.jaorm.entity.EntityMapper;
@@ -140,6 +141,11 @@ public class DelegatesMock extends DelegatesService {
 
         @Override
         public MyEntity initDefault(MyEntity entity) {
+            return null;
+        }
+
+        @Override
+        public TableInfo toTableInfo() {
             return null;
         }
     }

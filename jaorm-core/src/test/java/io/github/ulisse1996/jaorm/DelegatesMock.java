@@ -1,9 +1,11 @@
 package io.github.ulisse1996.jaorm;
 
+import io.github.ulisse1996.jaorm.annotation.Table;
 import io.github.ulisse1996.jaorm.entity.EntityDelegate;
 import io.github.ulisse1996.jaorm.entity.EntityMapper;
 import io.github.ulisse1996.jaorm.entity.SqlColumn;
 import io.github.ulisse1996.jaorm.entity.event.*;
+import io.github.ulisse1996.jaorm.schema.TableInfo;
 import io.github.ulisse1996.jaorm.spi.DelegatesService;
 
 import java.math.BigDecimal;
@@ -79,7 +81,6 @@ public class DelegatesMock extends DelegatesService {
     public static class MyEntityDelegate extends MyEntity implements EntityDelegate<MyEntity> {
 
         private MyEntity entity;
-        private int updatedRow;
 
         @Override
         public String getField1() {
@@ -177,6 +178,11 @@ public class DelegatesMock extends DelegatesService {
         @Override
         public MyEntity initDefault(MyEntity entity) {
             return entity;
+        }
+
+        @Override
+        public TableInfo toTableInfo() {
+            return new TableInfo("TAB", MyEntity.class, Table.UNSET);
         }
     }
 }
