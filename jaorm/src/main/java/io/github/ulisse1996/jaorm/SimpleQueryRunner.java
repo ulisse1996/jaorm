@@ -8,6 +8,7 @@ import io.github.ulisse1996.jaorm.exception.JaormSqlException;
 import io.github.ulisse1996.jaorm.mapping.EmptyClosable;
 import io.github.ulisse1996.jaorm.mapping.ResultSetStream;
 import io.github.ulisse1996.jaorm.mapping.TableRow;
+import io.github.ulisse1996.jaorm.schema.TableInfo;
 import io.github.ulisse1996.jaorm.spi.QueryRunner;
 
 import java.sql.Connection;
@@ -92,7 +93,7 @@ public class SimpleQueryRunner extends QueryRunner {
         PreparedStatement preparedStatement = EmptyClosable.instance(PreparedStatement.class);
         SqlExecutor executor = EmptyClosable.instance(SqlExecutor.class);
         try {
-            connection = getConnection();
+            connection = getConnection(TableInfo.EMPTY);
             preparedStatement = connection.prepareStatement(query);
             executor = new ResultSetExecutor(preparedStatement, params);
             return new ResultSetStream<>(connection, preparedStatement, executor,
@@ -111,7 +112,7 @@ public class SimpleQueryRunner extends QueryRunner {
         PreparedStatement preparedStatement = EmptyClosable.instance(PreparedStatement.class);
         SqlExecutor executor = EmptyClosable.instance(SqlExecutor.class);
         try {
-            connection = getConnection();
+            connection = getConnection(TableInfo.EMPTY);
             preparedStatement = connection.prepareStatement(query);
             executor = new ResultSetExecutor(preparedStatement, params); //NOSONAR Should close it in tableRow
             return new TableRow(connection, preparedStatement, (ResultSetExecutor) executor);
@@ -128,7 +129,7 @@ public class SimpleQueryRunner extends QueryRunner {
         PreparedStatement preparedStatement = EmptyClosable.instance(PreparedStatement.class);
         SqlExecutor executor = EmptyClosable.instance(SqlExecutor.class);
         try {
-            connection = getConnection();
+            connection = getConnection(TableInfo.EMPTY);
             preparedStatement = connection.prepareStatement(query, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
             executor = new ResultSetExecutor(preparedStatement, params); //NOSONAR Should close it in tableRow
             if (((ResultSetExecutor) executor).getResultSet().next()) {
@@ -151,7 +152,7 @@ public class SimpleQueryRunner extends QueryRunner {
         PreparedStatement preparedStatement = EmptyClosable.instance(PreparedStatement.class);
         SqlExecutor executor = EmptyClosable.instance(SqlExecutor.class);
         try {
-            connection = getConnection();
+            connection = getConnection(TableInfo.EMPTY);
             preparedStatement = connection.prepareStatement(query);
             executor = new ResultSetExecutor(preparedStatement, params);
             Connection finalConnection = connection;

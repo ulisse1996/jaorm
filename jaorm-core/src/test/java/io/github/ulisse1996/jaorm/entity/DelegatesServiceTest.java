@@ -3,6 +3,8 @@ package io.github.ulisse1996.jaorm.entity;
 import io.github.ulisse1996.jaorm.Arguments;
 import io.github.ulisse1996.jaorm.DelegatesMock;
 import io.github.ulisse1996.jaorm.ServiceFinder;
+import io.github.ulisse1996.jaorm.annotation.Table;
+import io.github.ulisse1996.jaorm.schema.TableInfo;
 import io.github.ulisse1996.jaorm.spi.DelegatesService;
 import io.github.ulisse1996.jaorm.spi.combined.CombinedDelegates;
 import io.github.ulisse1996.jaorm.spi.common.Singleton;
@@ -131,5 +133,19 @@ class DelegatesServiceTest {
         DelegatesMock.MyEntity entity = new DelegatesMock.MyEntity();
         DelegatesMock.MyEntity result = testSubject.initDefaults(entity);
         Assertions.assertSame(entity, result);
+    }
+
+    @Test
+    void should_return_false_for_default_generation() {
+        DelegatesMock.MyEntity entity = new DelegatesMock.MyEntity();
+        Assertions.assertFalse(testSubject.isDefaultGeneration(entity));
+    }
+
+    @Test
+    void should_return_table_info() {
+        TableInfo info = testSubject.getTableInfo(DelegatesMock.MyEntity.class);
+        Assertions.assertEquals("TAB", info.getTable());
+        Assertions.assertEquals(DelegatesMock.MyEntity.class, info.getEntity());
+        Assertions.assertEquals(Table.UNSET, info.getSchema());
     }
 }

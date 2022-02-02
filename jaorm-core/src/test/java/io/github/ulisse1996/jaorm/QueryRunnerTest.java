@@ -3,6 +3,7 @@ package io.github.ulisse1996.jaorm;
 import io.github.ulisse1996.jaorm.entity.sql.DataSourceProvider;
 import io.github.ulisse1996.jaorm.entity.sql.SqlParameter;
 import io.github.ulisse1996.jaorm.exception.JaormSqlException;
+import io.github.ulisse1996.jaorm.schema.TableInfo;
 import io.github.ulisse1996.jaorm.spi.DelegatesService;
 import io.github.ulisse1996.jaorm.spi.QueryRunner;
 import io.github.ulisse1996.jaorm.spi.TransactionManager;
@@ -10,15 +11,21 @@ import io.github.ulisse1996.jaorm.spi.common.Singleton;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import javax.sql.DataSource;
 import java.lang.reflect.Field;
 import java.sql.*;
 import java.util.*;
 
+@ExtendWith(MockitoExtension.class)
 class QueryRunnerTest {
+
+    @Mock private DelegatesService delegatesService;
 
     @BeforeEach
     @SuppressWarnings("unchecked")
@@ -155,18 +162,24 @@ class QueryRunnerTest {
                 autoGen.put("NAME1", String.class);
                 autoGen.put("NAME2", String.class);
 
-                Map<String,Object> map = doUpdate(query, params, autoGen);
+                Map<String,Object> map = doUpdate(entity.getClass(), query, params, autoGen);
                 Assertions.assertFalse(map.isEmpty());
                 Assertions.assertEquals(expected, map);
                 return entity;
             }
 
             @Override
-            public Connection getConnection() {
+            public Connection getConnection(TableInfo tableInfo) {
                 return connection;
             }
         };
-        runner.insert(new Object(), "", Collections.emptyList());
+        try (MockedStatic<DelegatesService> mk = Mockito.mockStatic(DelegatesService.class)) {
+            mk.when(DelegatesService::getInstance)
+                    .thenReturn(delegatesService);
+            Mockito.when(delegatesService.getTableInfo(Mockito.any()))
+                    .thenReturn(TableInfo.EMPTY);
+            runner.insert(new Object(), "", Collections.emptyList());
+        }
     }
 
     @Test
@@ -285,18 +298,24 @@ class QueryRunnerTest {
                 autoGen.put("NAME1", String.class);
                 autoGen.put("NAME2", String.class);
 
-                Map<String,Object> map = doUpdate(query, params, autoGen);
+                Map<String,Object> map = doUpdate(entity.getClass(), query, params, autoGen);
                 Assertions.assertFalse(map.isEmpty());
                 Assertions.assertEquals(expected, map);
                 return entity;
             }
 
             @Override
-            public Connection getConnection() {
+            public Connection getConnection(TableInfo tableInfo) {
                 return connection;
             }
         };
-        runner.insert(new Object(), "", Collections.emptyList());
+        try (MockedStatic<DelegatesService> mk = Mockito.mockStatic(DelegatesService.class)) {
+            mk.when(DelegatesService::getInstance)
+                    .thenReturn(delegatesService);
+            Mockito.when(delegatesService.getTableInfo(Mockito.any()))
+                    .thenReturn(TableInfo.EMPTY);
+            runner.insert(new Object(), "", Collections.emptyList());
+        }
     }
 
     private Throwable customSql() {
@@ -308,21 +327,14 @@ class QueryRunnerTest {
         Connection connection = Mockito.mock(Connection.class);
         PreparedStatement preparedStatement = Mockito.mock(PreparedStatement.class);
         ResultSet resultSet = Mockito.mock(ResultSet.class);
-        ResultSetMetaData metaData = Mockito.mock(ResultSetMetaData.class);
         Mockito.when(connection.prepareStatement(Mockito.anyString(), Mockito.any(String[].class)))
                 .thenReturn(preparedStatement);
         Mockito.when(preparedStatement.getGeneratedKeys())
                 .thenReturn(resultSet);
-        Mockito.when(resultSet.getMetaData())
-                .thenReturn(metaData);
         Mockito.when(resultSet.next())
                 .thenReturn(true, false);
-        Mockito.when(resultSet.getString("NAME1"))
-                .thenThrow(SQLException.class);
         Mockito.when(resultSet.getString("NAME2"))
                 .thenThrow(SQLException.class);
-        Mockito.when(metaData.getColumnCount())
-                .thenReturn(0);
 
         QueryRunner runner = new MockedRunner() {
             @Override
@@ -335,18 +347,24 @@ class QueryRunnerTest {
                 autoGen.put("NAME1", String.class);
                 autoGen.put("NAME2", String.class);
 
-                Map<String,Object> map = doUpdate(query, params, autoGen);
+                Map<String,Object> map = doUpdate(entity.getClass(), query, params, autoGen);
                 Assertions.assertFalse(map.isEmpty());
                 Assertions.assertEquals(expected, map);
                 return entity;
             }
 
             @Override
-            public Connection getConnection() {
+            public Connection getConnection(TableInfo tableInfo) {
                 return connection;
             }
         };
-        Assertions.assertThrows(JaormSqlException.class, () -> runner.insert(new Object(), "", Collections.emptyList())); //NOSONAR
+        try (MockedStatic<DelegatesService> mk = Mockito.mockStatic(DelegatesService.class)) {
+            mk.when(DelegatesService::getInstance)
+                    .thenReturn(delegatesService);
+            Mockito.when(delegatesService.getTableInfo(Mockito.any()))
+                    .thenReturn(TableInfo.EMPTY);
+            Assertions.assertThrows(JaormSqlException.class, () -> runner.insert(new Object(), "", Collections.emptyList())); //NOSONAR
+        }
     }
 
     private QueryRunner buildRunner() {
@@ -354,7 +372,7 @@ class QueryRunnerTest {
             @Override
             public int update(String query, List<SqlParameter> params) {
                 try {
-                    getConnection();
+                    getConnection(TableInfo.EMPTY);
                 } catch (Exception ex) {
                     Assertions.fail(ex);
                 }

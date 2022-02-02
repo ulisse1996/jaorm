@@ -3,6 +3,7 @@ package io.github.ulisse1996.jaorm.spi;
 import io.github.ulisse1996.jaorm.Arguments;
 import io.github.ulisse1996.jaorm.ServiceFinder;
 import io.github.ulisse1996.jaorm.entity.EntityDelegate;
+import io.github.ulisse1996.jaorm.schema.TableInfo;
 import io.github.ulisse1996.jaorm.spi.combined.CombinedDelegates;
 import io.github.ulisse1996.jaorm.spi.common.Singleton;
 
@@ -127,6 +128,12 @@ public abstract class DelegatesService {
         EntityDelegate<R> delegate = (EntityDelegate<R>) searchDelegate(entity)
                 .get();
         return delegate.initDefault(entity);
+    }
+
+    public TableInfo getTableInfo(Class<?> entity) {
+        return searchDelegate(entity)
+                .get()
+                .toTableInfo();
     }
 
     public abstract Map<Class<?>, Supplier<? extends EntityDelegate<?>>> getDelegates(); //NOSONAR

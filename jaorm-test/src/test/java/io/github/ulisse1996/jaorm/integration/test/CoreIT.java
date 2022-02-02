@@ -4,6 +4,7 @@ import io.github.ulisse1996.jaorm.BaseDao;
 import io.github.ulisse1996.jaorm.entity.EntityComparator;
 import io.github.ulisse1996.jaorm.entity.Result;
 import io.github.ulisse1996.jaorm.exception.JaormSqlException;
+import io.github.ulisse1996.jaorm.exception.JaormValidationException;
 import io.github.ulisse1996.jaorm.generated.Tables;
 import io.github.ulisse1996.jaorm.integration.test.entity.*;
 import io.github.ulisse1996.jaorm.integration.test.projection.MyProjection;
@@ -18,7 +19,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.sql.SQLException;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -463,25 +463,22 @@ class CoreIT extends AbstractIT {
 
     @ParameterizedTest
     @MethodSource("getSqlTests")
-    void should_generate_default_value(HSQLDBProvider.DatabaseType type, String initSql) {
+    void should_validate_entity(HSQLDBProvider.DatabaseType type, String initSql) {
         setDataSource(type, initSql);
 
-        EntityWithDefaultsDao dao = QueriesService.getInstance()
-                .getQuery(EntityWithDefaultsDao.class);
+        ValidatedEntity entity = new ValidatedEntity();
+        entity.setVal1(BigDecimal.TEN);
+        entity.setDate(new Date()); // past date
 
-        EntityWithDefaults defaults = new EntityWithDefaults();
-        defaults.setId(BigInteger.ONE);
+        ValidatedEntityDAO dao = QueriesService.getInstance().getQuery(ValidatedEntityDAO.class);
+        try {
+            dao.insert(entity);
+        } catch (JaormValidationException ex) {
+            Assertions.assertEquals(2, ex.getResults().size());
+            return;
+        }
 
-        dao.insert(defaults);
-
-        defaults = new EntityWithDefaults();
-        defaults.setId(BigInteger.ONE);
-        defaults = dao.read(defaults);
-        Assertions.assertEquals(BigInteger.ONE, defaults.getId());
-        Assertions.assertEquals("STRING", defaults.getStr());
-        Assertions.assertEquals(0, BigDecimal.valueOf(0.390).compareTo(defaults.getDec()));
-        Assertions.assertNotNull(defaults.getDate());
-        Assertions.assertNotNull(defaults.getDateWithFormat());
+        Assertions.fail("Should throw JaormValidationException !");
     }
 
     private List<UserRole> createRoles(int times, int ref) {

@@ -10,4 +10,7 @@ import java.lang.annotation.Target;
 public @interface Table {
 
     String name();
+    String schema() default UNSET;
+
+    String UNSET = "_UNSET_";
 }

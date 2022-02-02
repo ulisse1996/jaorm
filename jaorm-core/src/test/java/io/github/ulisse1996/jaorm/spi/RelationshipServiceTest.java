@@ -6,6 +6,7 @@ import io.github.ulisse1996.jaorm.entity.EntityMapper;
 import io.github.ulisse1996.jaorm.entity.SqlColumn;
 import io.github.ulisse1996.jaorm.entity.relationship.EntityEventType;
 import io.github.ulisse1996.jaorm.entity.relationship.Relationship;
+import io.github.ulisse1996.jaorm.schema.TableInfo;
 import io.github.ulisse1996.jaorm.spi.combined.CombinedRelationships;
 import io.github.ulisse1996.jaorm.spi.common.Singleton;
 import org.junit.jupiter.api.Assertions;
@@ -173,6 +174,11 @@ class RelationshipServiceTest {
 
         @Override
         public String initDefault(String entity) {
+            return null;
+        }
+
+        @Override
+        public TableInfo toTableInfo() {
             return null;
         }
     }

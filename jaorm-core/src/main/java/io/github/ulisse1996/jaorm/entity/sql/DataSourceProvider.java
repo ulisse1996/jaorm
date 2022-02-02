@@ -1,6 +1,7 @@
 package io.github.ulisse1996.jaorm.entity.sql;
 
 import io.github.ulisse1996.jaorm.ServiceFinder;
+import io.github.ulisse1996.jaorm.schema.TableInfo;
 import io.github.ulisse1996.jaorm.spi.common.Singleton;
 
 import javax.sql.DataSource;
@@ -34,7 +35,13 @@ public abstract class DataSourceProvider {
 
     public abstract DataSource getDataSource();
 
+    public abstract DataSource getDataSource(TableInfo tableInfo);
+
     public Connection getConnection() throws SQLException {
         return getDataSource().getConnection();
+    }
+
+    public Connection getConnection(TableInfo tableInfo) throws SQLException {
+        return getDataSource(tableInfo).getConnection();
     }
 }

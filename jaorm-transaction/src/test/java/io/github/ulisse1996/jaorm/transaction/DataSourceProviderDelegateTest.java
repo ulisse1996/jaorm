@@ -2,6 +2,7 @@ package io.github.ulisse1996.jaorm.transaction;
 
 import io.github.ulisse1996.jaorm.Transaction;
 import io.github.ulisse1996.jaorm.entity.sql.DataSourceProvider;
+import io.github.ulisse1996.jaorm.schema.TableInfo;
 import io.github.ulisse1996.jaorm.spi.TransactionManager;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -31,6 +32,22 @@ class DataSourceProviderDelegateTest {
             DataSourceProviderDelegate providerDelegate =
                     new DataSourceProviderDelegate(Mockito.mock(DataSourceProvider.class));
             DataSource dataSource = providerDelegate.getDataSource();
+            Assertions.assertTrue(Proxy.isProxyClass(dataSource.getClass()));
+        }
+    }
+
+    @Test
+    void should_return_proxy_datasource_for_schema() {
+        TransactionManager manager = Mockito.mock(TransactionManager.class);
+        TransactionImpl transaction = new TransactionImpl();
+        try (MockedStatic<TransactionManager> mk = Mockito.mockStatic(TransactionManager.class)) {
+            mk.when(TransactionManager::getInstance)
+                    .thenReturn(manager);
+            Mockito.when(manager.getCurrentTransaction())
+                    .thenReturn(transaction);
+            DataSourceProviderDelegate providerDelegate =
+                    new DataSourceProviderDelegate(Mockito.mock(DataSourceProvider.class));
+            DataSource dataSource = providerDelegate.getDataSource(TableInfo.EMPTY);
             Assertions.assertTrue(Proxy.isProxyClass(dataSource.getClass()));
         }
     }

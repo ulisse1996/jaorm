@@ -11,6 +11,7 @@ import io.github.ulisse1996.jaorm.processor.generation.Generator;
 import io.github.ulisse1996.jaorm.processor.util.GeneratedFile;
 import io.github.ulisse1996.jaorm.processor.util.ProcessorUtils;
 import io.github.ulisse1996.jaorm.processor.util.ReturnTypeDefinition;
+import io.github.ulisse1996.jaorm.schema.TableInfo;
 import io.github.ulisse1996.jaorm.spi.DelegatesService;
 import io.github.ulisse1996.jaorm.spi.GeneratorsService;
 import io.github.ulisse1996.jaorm.spi.QueryRunner;
@@ -115,7 +116,17 @@ public class EntityGenerator extends Generator {
         TypeSpec columns = generateColumns(processingEnvironment, entity);
         builder.addType(columns);
         builder.addField(ClassName.get(entity), ENTITY, Modifier.PRIVATE);
+        builder.addField(
+                FieldSpec.builder(
+                            ParameterizedTypeName.get(ClassName.get(Class.class), WildcardTypeName.subtypeOf(Object.class)),
+                            "entityClass",
+                                Modifier.PRIVATE, Modifier.FINAL
+                        )
+                        .initializer("$L.class", ClassName.get(entity))
+                        .build()
+        );
         builder.addField(addTableName(entity));
+        builder.addField(addSchemaName(entity));
         builder.addField(addBaseSql(entity));
         builder.addField(addKeysWhere());
         builder.addField(addInsertSql());
@@ -126,6 +137,13 @@ public class EntityGenerator extends Generator {
         builder.addMethods(buildDelegation(entity));
         builder.addMethods(buildOverrideEntity(entity));
         return new GeneratedFile(getPackage(entity), builder.build(), entity.getQualifiedName().toString());
+    }
+
+    private FieldSpec addSchemaName(TypeElement entity) {
+        String schema = entity.getAnnotation(Table.class).schema();
+        return FieldSpec.builder(String.class, "SCHEMA", Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
+                .initializer("$S", schema)
+                .build();
     }
 
     private Iterable<MethodSpec> buildDelegation(TypeElement entity) {
@@ -362,12 +380,16 @@ public class EntityGenerator extends Generator {
                     .build();
         }
 
+        MethodSpec toTableInfo = MethodSpec.overriding(ProcessorUtils.getMethod(processingEnvironment, "toTableInfo", EntityDelegate.class))
+                .addStatement("return new $T(TABLE, this.entityClass, SCHEMA)", TableInfo.class)
+                .build();
+
         return Stream.of(supplierEntity, entityMapper,
                 setEntity, setEntityObj, baseSql, keysWhere,
                 insertSql, selectables, table, updateSql,
                 getEntity, deleteSql, modified,
                 isDefaultGeneration, initDefault,
-                setFullEntityFullColumns, getKeyWhere)
+                setFullEntityFullColumns, getKeyWhere, toTableInfo)
                 .collect(Collectors.toList());
     }
 

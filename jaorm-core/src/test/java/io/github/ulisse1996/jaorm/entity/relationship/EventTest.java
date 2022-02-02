@@ -4,6 +4,7 @@ import io.github.ulisse1996.jaorm.entity.EntityDelegate;
 import io.github.ulisse1996.jaorm.entity.EntityMapper;
 import io.github.ulisse1996.jaorm.entity.Result;
 import io.github.ulisse1996.jaorm.entity.SqlColumn;
+import io.github.ulisse1996.jaorm.schema.TableInfo;
 import org.junit.jupiter.params.provider.Arguments;
 
 import java.sql.ResultSet;
@@ -117,6 +118,11 @@ public abstract class EventTest {
 
         @Override
         public Entity initDefault(Entity entity) {
+            return null;
+        }
+
+        @Override
+        public TableInfo toTableInfo() {
             return null;
         }
     }

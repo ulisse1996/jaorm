@@ -9,6 +9,8 @@ import io.github.ulisse1996.jaorm.entity.relationship.Relationship;
 import io.github.ulisse1996.jaorm.entity.relationship.UpdateEvent;
 import io.github.ulisse1996.jaorm.entity.sql.SqlAccessor;
 import io.github.ulisse1996.jaorm.entity.sql.SqlParameter;
+import io.github.ulisse1996.jaorm.entity.validation.ValidationResult;
+import io.github.ulisse1996.jaorm.exception.JaormValidationException;
 import io.github.ulisse1996.jaorm.exception.PersistEventException;
 import io.github.ulisse1996.jaorm.exception.RemoveEventException;
 import io.github.ulisse1996.jaorm.exception.UpdateEventException;
@@ -62,6 +64,7 @@ public interface BaseDao<R> {
 
     default R update(R entity) {
         Objects.requireNonNull(entity);
+        doValidation(entity);
         RelationshipService relationshipService = RelationshipService.getInstance();
         if (relationshipService.isEventActive(entity.getClass(), EntityEventType.UPDATE)) {
             ListenersService.getInstance().fireEvent(entity, GlobalEventType.PRE_UPDATE);
@@ -91,6 +94,7 @@ public interface BaseDao<R> {
 
     default R insert(R entity) {
         Objects.requireNonNull(entity);
+        doValidation(entity);
         DelegatesService delegatesService = DelegatesService.getInstance();
         if (delegatesService.isDefaultGeneration(entity)) {
             entity = delegatesService.initDefaults(entity);
@@ -126,6 +130,16 @@ public interface BaseDao<R> {
         return entity;
     }
 
+    default void doValidation(R entity) {
+        EntityValidator instance = EntityValidator.getInstance();
+        if (instance.isActive()) {
+            List<ValidationResult<Object>> results = instance.validate(entity);
+            if (!results.isEmpty()) {
+                throw new JaormValidationException(results);
+            }
+        }
+    }
+
     default List<R> update(List<R> entities) {
         Objects.requireNonNull(entities);
         return entities.stream().map(this::update).collect(Collectors.toList());
@@ -148,6 +162,7 @@ public interface BaseDao<R> {
         if (entities.isEmpty()) {
             return entities;
         }
+        entities.forEach(this::doValidation);
         Class<?> entityClass = entities.get(0).getClass();
         RelationshipService relationshipService = RelationshipService.getInstance();
         for (R entity : entities) {
@@ -224,6 +239,7 @@ public interface BaseDao<R> {
         if (entities.isEmpty()) {
             return entities;
         }
+        entities.forEach(this::doValidation);
         Class<?> entityClass = entities.get(0).getClass();
         RelationshipService relationshipService = RelationshipService.getInstance();
         for (R entity : entities) {
