@@ -481,6 +481,29 @@ class CoreIT extends AbstractIT {
         Assertions.fail("Should throw JaormValidationException !");
     }
 
+    @ParameterizedTest
+    @MethodSource("getSqlTests")
+    void should_use_auto_set_for_cascade(HSQLDBProvider.DatabaseType type, String initSql) {
+        setDataSource(type, initSql);
+
+        SchoolDao schoolDao = QueriesService.getInstance().getQuery(SchoolDao.class);
+
+        School school = new School();
+        school.setSchoolId(BigDecimal.ONE);
+        school.setStudents(new ArrayList<>());
+        school.getStudents().add(new Student());
+        school.getStudents().add(new Student());
+        school.getStudents().get(0).setStudentId(BigDecimal.TEN);
+        school.getStudents().get(1).setStudentId(BigDecimal.valueOf(11));
+
+        school = schoolDao.insert(school);
+
+        for (Student student : school.getStudents()) {
+            Assertions.assertEquals(BigDecimal.ONE, student.getSchoolId());
+            Assertions.assertEquals("MY_NAME", student.getName());
+        }
+    }
+
     private List<UserRole> createRoles(int times, int ref) {
         return IntStream.range(0, times)
                 .mapToObj(i -> {
