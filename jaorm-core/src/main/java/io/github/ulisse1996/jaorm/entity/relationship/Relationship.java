@@ -3,24 +3,29 @@ package io.github.ulisse1996.jaorm.entity.relationship;
 import io.github.ulisse1996.jaorm.entity.Result;
 
 import java.util.*;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 public class Relationship<T> {
 
     private final Class<T> entityClass;
-    private final Set<Node<T>> nodeSet;
+    private final List<Node<T>> nodeSet;
 
     public Relationship(Class<T> entityClass) {
         this.entityClass = entityClass;
-        this.nodeSet = new HashSet<>();
+        this.nodeSet = new ArrayList<>();
     }
 
     public void add(Node<T> node) {
         this.nodeSet.add(node);
     }
 
-    public Set<Node<T>> getNodeSet() { //NOSONAR
-        return Collections.unmodifiableSet(this.nodeSet);
+    public Node<T> getLast() {
+        return this.nodeSet.get(this.nodeSet.size() - 1);
+    }
+
+    public List<Node<T>> getNodeSet() { //NOSONAR
+        return Collections.unmodifiableList(this.nodeSet);
     }
 
     public Class<T> getEntityClass() {
@@ -34,6 +39,7 @@ public class Relationship<T> {
         private final boolean collection;
         private final List<EntityEventType> events;
         private final Class<?> linkedClass;
+        private BiConsumer<T, Object> autoSet;
 
         public Node(Class<?> linkedClass, Function<T, ?> function, boolean opt, boolean collection, EntityEventType... events) {
             this.function = function;
@@ -41,6 +47,15 @@ public class Relationship<T> {
             this.collection = collection;
             this.events = Arrays.asList(events);
             this.linkedClass = linkedClass;
+            this.autoSet = (entity, link) -> {};
+        }
+
+        public void appendThen(BiConsumer<T, Object> then) {
+            this.autoSet = this.autoSet.andThen(then);
+        }
+
+        public BiConsumer<T, Object> getAutoSet() { //NOSONAR
+            return autoSet;
         }
 
         public Class<?> getLinkedClass() {

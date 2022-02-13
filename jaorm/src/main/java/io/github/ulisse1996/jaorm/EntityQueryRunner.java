@@ -4,10 +4,7 @@ import io.github.ulisse1996.jaorm.entity.EntityDelegate;
 import io.github.ulisse1996.jaorm.entity.Result;
 import io.github.ulisse1996.jaorm.entity.sql.SqlParameter;
 import io.github.ulisse1996.jaorm.exception.JaormSqlException;
-import io.github.ulisse1996.jaorm.mapping.EmptyClosable;
-import io.github.ulisse1996.jaorm.mapping.ProjectionDelegate;
-import io.github.ulisse1996.jaorm.mapping.ResultSetStream;
-import io.github.ulisse1996.jaorm.mapping.TableRow;
+import io.github.ulisse1996.jaorm.mapping.*;
 import io.github.ulisse1996.jaorm.spi.DelegatesService;
 import io.github.ulisse1996.jaorm.spi.GeneratorsService;
 import io.github.ulisse1996.jaorm.spi.ProjectionsService;
@@ -15,6 +12,7 @@ import io.github.ulisse1996.jaorm.spi.QueryRunner;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
 import java.util.function.Supplier;
@@ -141,24 +139,40 @@ public class EntityQueryRunner extends QueryRunner {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public <R> Stream<R> readStream(Class<R> entity, String query, List<SqlParameter> params) {
         logger.logSql(query, params);
         Connection connection = EmptyClosable.instance(Connection.class);
         PreparedStatement preparedStatement = EmptyClosable.instance(PreparedStatement.class);
         SqlExecutor executor = EmptyClosable.instance(SqlExecutor.class);
         try {
-            Supplier<EntityDelegate<?>> delegateSupplier = DelegatesService.getInstance().searchDelegate(entity);
-            connection = getConnection(DelegatesService.getInstance().getTableInfo(entity));
+            SupplierPair supplierPair = getSupplierPair(entity);
+            connection = getConnection(
+                    supplierPair.projectionSupplier == null
+                            ? DelegatesService.getInstance().getTableInfo(entity)
+                            : supplierPair.projectionSupplier.get().asTableInfo()
+            );
             preparedStatement = connection.prepareStatement(query);
             executor = new ResultSetExecutor(preparedStatement, params);
-            return new ResultSetStream<>(connection, preparedStatement, executor,
-                    rs -> (R) delegateSupplier.get().toEntity(rs)).getStream();
+            return new ResultSetStream<R>(connection, preparedStatement, executor, getMapper(supplierPair)).getStream();
         } catch (SQLException ex) {
             SqlUtil.silentClose(executor, preparedStatement, connection);
             logger.error(String.format("Error during readStream for entity %s", entity)::toString, ex);
             throw new JaormSqlException(ex);
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private <R> ThrowingFunction<ResultSet, R, SQLException> getMapper(SupplierPair supplierPair) {
+        return rs -> {
+            if (supplierPair.projectionSupplier != null) {
+                ProjectionDelegate delegate = supplierPair.projectionSupplier.get();
+                delegate.setEntity(rs);
+                return (R) delegate;
+            }
+            EntityDelegate<R> delegate = (EntityDelegate<R>) supplierPair.delegateSupplier.get();
+            delegate.setEntity(rs);
+            return (R) delegate;
+        };
     }
 
     @Override

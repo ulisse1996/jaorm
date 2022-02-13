@@ -4,6 +4,8 @@ import io.github.ulisse1996.jaorm.entity.EntityComparator;
 import io.github.ulisse1996.jaorm.entity.EntityDelegate;
 import io.github.ulisse1996.jaorm.exception.JaormSqlException;
 import io.github.ulisse1996.jaorm.integration.test.entity.*;
+import io.github.ulisse1996.jaorm.integration.test.projection.MyProjection;
+import io.github.ulisse1996.jaorm.integration.test.projection.ProjectionDao;
 import io.github.ulisse1996.jaorm.integration.test.query.*;
 import io.github.ulisse1996.jaorm.mapping.RowMapper;
 import io.github.ulisse1996.jaorm.mapping.TableRow;
@@ -274,6 +276,23 @@ class QueryIT extends AbstractIT {
                 EntityComparator.getInstance(User.class)
                         .equals(user, userOpt.get())
         );
+    }
+
+    @ParameterizedTest
+    @MethodSource("getSqlTests")
+    void should_map_stream_with_projection(HSQLDBProvider.DatabaseType type, String initSql) {
+        setDataSource(type, initSql);
+
+        ProjectionDao projectionDao = QueriesService.getInstance().getQuery(ProjectionDao.class);
+
+        List<MyProjection> myProjections = projectionDao.getAllStream()
+                .collect(Collectors.toList());
+
+        Assertions.assertEquals(1, myProjections.size());
+        Assertions.assertEquals("SUB_NAME", myProjections.get(0).getSubName());
+        Assertions.assertEquals(BigDecimal.ONE, myProjections.get(0).getId());
+        Assertions.assertTrue(myProjections.get(0).isValid());
+        Assertions.assertNull(myProjections.get(0).getOther());
     }
 
     private User getUser(int i) {

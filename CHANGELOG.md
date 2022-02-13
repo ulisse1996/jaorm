@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 1.1.0
+- Feature: Automatic set of Relationship columns
+- Bugfix: Fix NPE on Listener Service for empty events
+- Bugfix: Fix wrong sql server specific name
+- Bugfix: Fix Stream support for Entities and Projection
+
 ## 1.0.1
 - Bugfix: Fix Hibernate Validation Dependency version 
 

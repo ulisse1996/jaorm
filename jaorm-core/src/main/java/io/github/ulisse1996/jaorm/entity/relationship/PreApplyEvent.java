@@ -27,7 +27,7 @@ public abstract class PreApplyEvent implements EntityEvent {
                     BaseDao<Object> baseDao = (BaseDao<Object>) QueriesService.getInstance().getBaseDao(i.getClass());
                     int res = function.apply(baseDao, i);
                     if (res == 0 && update) {
-                        tryInsert(baseDao, node, i);
+                        tryInsert(baseDao, node, i, entity);
                     }
                 });
             } else if (node.isOpt()) {
@@ -37,7 +37,7 @@ public abstract class PreApplyEvent implements EntityEvent {
                 BaseDao<Object> baseDao = (BaseDao<Object>) QueriesService.getInstance().getBaseDao(i.getClass());
                 int res = function.apply(baseDao, i);
                 if (res == 0 && update) {
-                    tryInsert(baseDao, node, i);
+                    tryInsert(baseDao, node, i, entity);
                 }
             }
         }
@@ -50,13 +50,14 @@ public abstract class PreApplyEvent implements EntityEvent {
             BaseDao<Object> baseDao = (BaseDao<Object>) QueriesService.getInstance().getBaseDao(i.getClass());
             int res = function.apply(baseDao, i);
             if (res == 0 && update) {
-                tryInsert(baseDao, node, i);
+                tryInsert(baseDao, node, i, entity);
             }
         }
     }
 
-    private <T> void tryInsert(BaseDao<Object> baseDao, Relationship.Node<T> node, Object i) {
+    private <T> void tryInsert(BaseDao<Object> baseDao, Relationship.Node<T> node, Object i, T entity) {
         if (node.matchEvent(EntityEventType.PERSIST) && FeatureConfigurator.getInstance().isInsertAfterFailedUpdateEnabled()) {
+            node.getAutoSet().accept(entity, i);
             baseDao.insert(i);
         } else {
             JaormLogger.getLogger(PreApplyEvent.class).debug(() -> {
