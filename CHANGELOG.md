@@ -2,7 +2,7 @@
 
 ## 1.1.0
 - Feature: Automatic set of Relationship columns
-- Feature: Benchmarks
+- Bugfix: Fix NPE on Listener Service for empty events
 - Bugfix: Fix wrong sql server specific name
 - Bugfix: Fix Stream support for Entities and Projection
 

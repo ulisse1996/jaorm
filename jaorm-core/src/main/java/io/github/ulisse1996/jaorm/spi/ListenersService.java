@@ -6,7 +6,10 @@ import io.github.ulisse1996.jaorm.entity.event.GlobalEventType;
 import io.github.ulisse1996.jaorm.spi.combined.CombinedListeners;
 import io.github.ulisse1996.jaorm.spi.common.Singleton;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.ServiceConfigurationError;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -26,6 +29,8 @@ public abstract class ListenersService {
                     } else {
                         INSTANCE.set(new CombinedListeners(services));
                     }
+                } else {
+                    INSTANCE.set(NoOp.INSTANCE);
                 }
             } catch (Exception | ServiceConfigurationError ex) {
                 INSTANCE.set(NoOp.INSTANCE);
