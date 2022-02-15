@@ -24,9 +24,12 @@ jobs:
           distribution: temurin
           java-version: 8
       - name: Set version
-        env:
-          JAORM_VERSION: mvn help:evaluate -Dexpression=project.version -q -DforceStdout
-        run: echo "jaormVersion=${JAORM_VERSION}" >> $GITHUB_ENV
+        run: |
+          JAORM_VERSION=$(mvn help:evaluate \
+            -Dexpression=project.version \
+            -q \
+            -DforceStdout)
+          echo "jaormVersion=${JAORM_VERSION}" >> $GITHUB_ENV
       - name: Create tag
         uses: actions/github-script@v5
         with:
