@@ -9,8 +9,6 @@ on:
         description: 'Log level'
         required: true
         default: 'warning'
-      tags:
-        description: 'Test scenario tags'
 
 jobs:
   tag:
@@ -33,11 +31,10 @@ jobs:
         uses: actions/github-script@v5
         with:
           script: |
-            const { jaormVersion } = process.env;
             github.rest.git.createRef({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              ref: 'refs/tags/${jaormVersion}',
+              ref: 'refs/tags/${{ env.jaormVersion }}',
               sha: context.sha
             })
         
