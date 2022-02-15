@@ -17,7 +17,10 @@ public class MyEntityWithCascadeAll {
 
     @Cascade(CascadeType.ALL)
     @Relationship(
-            columns = @Relationship.RelationshipColumn(sourceColumn = "COL3", targetColumn = "COL_1")
+            columns = {
+                    @Relationship.RelationshipColumn(sourceColumn = "COL3", targetColumn = "COL_1"),
+                    @Relationship.RelationshipColumn(targetColumn = "COL_1", defaultValue = "TEST")
+            }
     )
     private MyRelEntity relEntity;
 

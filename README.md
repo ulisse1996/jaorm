@@ -23,6 +23,8 @@ JAORM is divided in modules that are used from main module using **Java SPI**
 - DSL (Domain-Specific Language)
 - Transaction
 - Lombok Support
+- SQL Specifics
+- Validation
 
 ## Features
 
@@ -34,6 +36,7 @@ JAORM is divided in modules that are used from main module using **Java SPI**
 - Easy and Customizable Entity Cache
 - Supports for most of famous RDBMS
 - Supports for **@Getter**, **@Setter** and **@Data** Annotations of [Lombok](https://projectlombok.org/) on Entity
+- Supports for [JSR 380](https://beanvalidation.org/2.0-jsr380/) Validation on Entity during Persist/Update
 
 ## Use
 

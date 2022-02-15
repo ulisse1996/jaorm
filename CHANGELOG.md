@@ -1,17 +1,23 @@
 # CHANGELOG
 
+<<<<<<< HEAD
 <<<<<<< Updated upstream
 =======
 ## 1.1.1
 - Bugfix: Remove query load for cascade impl
 
+=======
+>>>>>>> 2e8109f1793e9c9b0c02f364df10402e34efa8fd
 ## 1.1.0
 - Feature: Automatic set of Relationship columns
 - Bugfix: Fix NPE on Listener Service for empty events
 - Bugfix: Fix wrong sql server specific name
 - Bugfix: Fix Stream support for Entities and Projection
 
+<<<<<<< HEAD
 >>>>>>> Stashed changes
+=======
+>>>>>>> 2e8109f1793e9c9b0c02f364df10402e34efa8fd
 ## 1.0.1
 - Bugfix: Fix Hibernate Validation Dependency version 
 

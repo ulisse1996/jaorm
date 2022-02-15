@@ -4,6 +4,7 @@ import com.squareup.javapoet.*;
 import io.github.ulisse1996.jaorm.annotation.Cascade;
 import io.github.ulisse1996.jaorm.annotation.CascadeType;
 import io.github.ulisse1996.jaorm.annotation.Table;
+import io.github.ulisse1996.jaorm.entity.converter.ParameterConverter;
 import io.github.ulisse1996.jaorm.entity.relationship.EntityEventType;
 import io.github.ulisse1996.jaorm.entity.relationship.Relationship;
 import io.github.ulisse1996.jaorm.processor.exception.ProcessorException;
@@ -18,6 +19,7 @@ import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.VariableElement;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -67,7 +69,7 @@ public class RelationshipGenerator extends Generator {
                     ExecutableElement getter = ProcessorUtils.findGetter(processingEnvironment, entity, el.getSimpleName());
                     ReturnTypeDefinition returnTypeDefinition = new ReturnTypeDefinition(processingEnvironment, getter.getReturnType());
                     CascadeType[] cascadeTypes = el.getAnnotation(Cascade.class).value();
-                    return new RelationshipAccessor(returnTypeDefinition, getter, cascadeTypes);
+                    return new RelationshipAccessor(returnTypeDefinition, getter, cascadeTypes, (VariableElement) el);
                 }).collect(Collectors.toList());
         annotated.forEach(acc -> checkBaseDao(acc.returnTypeDefinition.getRealClass(), daoTypes));
         return new RelationshipInfo(entity, annotated);
@@ -126,11 +128,47 @@ public class RelationshipGenerator extends Generator {
                         relationship.returnTypeDefinition.isCollection() ? "true" : "false",
                         events
                 );
+                addAutoSetNode(info.entity, relationship, builder);
             }
         }
 
         return builder.addStatement("this.relationships = $T.unmodifiableMap(map)", Collections.class)
                 .build();
+    }
+
+    private void addAutoSetNode(TypeElement entity, RelationshipAccessor relationship, CodeBlock.Builder builder) {
+        TypeElement rel = relationship.returnTypeDefinition.getRealClass();
+        VariableElement variable = relationship.relationship;
+        io.github.ulisse1996.jaorm.annotation.Relationship currRel = variable.getAnnotation(io.github.ulisse1996.jaorm.annotation.Relationship.class);
+        Map<String, List<Object>> params = new HashMap<>();
+        for (io.github.ulisse1996.jaorm.annotation.Relationship.RelationshipColumn column : currRel.columns()) {
+            VariableElement toSet = ProcessorUtils.getFieldWithColumnName(processingEnvironment, rel, column.targetColumn());
+            if (column.sourceColumn().isEmpty()) {
+                params.put(
+                        "(($T)link).$L($T.$L.toValue($S))",
+                        Arrays.asList(
+                                entity,
+                                rel,
+                                ProcessorUtils.findSetter(processingEnvironment, rel, toSet.getSimpleName()).getSimpleName(),
+                                ParameterConverter.class,
+                                column.converter().name(),
+                                column.defaultValue()
+                        ));
+            } else {
+                VariableElement fromSet = ProcessorUtils.getFieldWithColumnName(processingEnvironment, entity, column.sourceColumn());
+                params.put(
+                        "(($T)link).$L((($T)entity).$L())",
+                        Arrays.asList(
+                                entity,
+                                rel,
+                                ProcessorUtils.findSetter(processingEnvironment, rel, toSet.getSimpleName()).getSimpleName(),
+                                entity,
+                                ProcessorUtils.findGetter(processingEnvironment, entity, fromSet.getSimpleName()).getSimpleName()
+                        ));
+            }
+        }
+        params.forEach((code, p) -> builder.addStatement(
+                String.format("map.get($T.class).getLast().appendThen((entity, link) -> %s)", code), p.toArray()));
     }
 
     private EntityEventType[] getEvents(RelationshipAccessor relationship) {
@@ -193,12 +231,15 @@ public class RelationshipGenerator extends Generator {
         private final ReturnTypeDefinition returnTypeDefinition;
         private final ExecutableElement getter;
         private final CascadeType[] cascadeTypes;
+        private final VariableElement relationship;
 
         private RelationshipAccessor(ReturnTypeDefinition returnTypeDefinition,
-                                    ExecutableElement getter, CascadeType[] cascadeTypes) {
+                                    ExecutableElement getter, CascadeType[] cascadeTypes,
+                                     VariableElement relationship) {
             this.returnTypeDefinition = returnTypeDefinition;
             this.getter = getter;
             this.cascadeTypes = cascadeTypes;
+            this.relationship = relationship;
         }
     }
 }

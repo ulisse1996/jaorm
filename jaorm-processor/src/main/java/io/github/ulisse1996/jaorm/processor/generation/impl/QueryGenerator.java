@@ -232,8 +232,8 @@ public class QueryGenerator extends Generator {
         } else if (definition.isStream()) {
             if (!definition.isStreamTableRow()) {
                 return new AbstractMap.SimpleImmutableEntry<>(
-                        "return $T.getSimple().readStream($T.class, $S, params)",
-                        new Object[] {QueryRunner.class, definition.getRealClass(), sql}
+                        "return $T.getInstance($T.class).readStream($T.class, $S, params)",
+                        new Object[] {QueryRunner.class, definition.getRealClass(), definition.getRealClass(), sql}
                 );
             } else {
                 return new AbstractMap.SimpleImmutableEntry<>(
