@@ -25,10 +25,11 @@ jobs:
         uses: actions/github-script@v5
         with:
           script: |
+            const { jaormVersion } = process.env;
             github.rest.git.createRef({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              ref: 'refs/tags/${env.jaormVersion}',
+              ref: 'refs/tags/${jaormVersion}',
               sha: context.sha
             })
         
