@@ -33,12 +33,18 @@ public abstract class PreApplyEvent implements EntityEvent {
             } else if (node.isOpt()) {
                 applyOpt(entity, function, node, update);
             } else {
-                Object i = node.get(entity);
-                BaseDao<Object> baseDao = (BaseDao<Object>) QueriesService.getInstance().getBaseDao(i.getClass());
-                int res = function.apply(baseDao, i);
-                if (res == 0 && update) {
-                    tryInsert(baseDao, node, i);
-                }
+                doSimple(entity, function, update, node);
+            }
+        }
+    }
+
+    private <T> void doSimple(T entity, BiFunction<BaseDao<Object>, Object, Integer> function, boolean update, Relationship.Node<T> node) {
+        Object i = node.get(entity);
+        if (i != null) {
+            BaseDao<Object> baseDao = (BaseDao<Object>) QueriesService.getInstance().getBaseDao(i.getClass());
+            int res = function.apply(baseDao, i);
+            if (res == 0 && update) {
+                tryInsert(baseDao, node, i, entity);
             }
         }
     }
