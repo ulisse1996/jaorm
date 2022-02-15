@@ -32,6 +32,25 @@ class RelationshipGeneratorTest extends CompilerTest {
     }
 
     @Test
+    void should_create_custom_relationship_with_converters() {
+        checkCompilation(
+                Compiler.javac()
+                        .withProcessors(new JaormProcessor())
+                        .compile(
+                                Arrays.asList(
+                                        getFile("entity", "EntityWithCustomConverterAndRel.java"),
+                                        getFile("entity", "RelEntityCustom.java"),
+                                        getFile("relationship", "EntityWithCustomConverterAndRelDAO.java"),
+                                        getFile("relationship","RelEntityCustomDAO.java"),
+                                        getFile("relationship", "StringToBigDecimalConverter.java"),
+                                        getFile("relationship", "CustomEnum.java"),
+                                        getFile("relationship", "EnumConverter.java")
+                                )
+                        )
+        );
+    }
+
+    @Test
     void should_throw_exception_for_missing_dao() {
         try {
             Compiler.javac()

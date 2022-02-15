@@ -2,6 +2,7 @@
 
 ## 1.1.1
 - Bugfix: Remove query load for cascade impl
+- Bugfix: Fix conversion on id columns
 
 ## 1.1.0
 - Feature: Automatic set of Relationship columns

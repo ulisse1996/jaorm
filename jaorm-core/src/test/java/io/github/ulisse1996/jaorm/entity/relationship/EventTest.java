@@ -34,7 +34,7 @@ public abstract class EventTest {
 
     protected static class MyEntityDelegate extends Entity implements EntityDelegate<Entity> {
 
-        private Entity entity;
+        private Entity entity = new Entity();
 
         @Override
         public Supplier<Entity> getEntityInstance() {
