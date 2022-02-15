@@ -1,5 +1,6 @@
 package io.github.ulisse1996.jaorm.entity.relationship;
 
+import io.github.ulisse1996.jaorm.entity.EntityDelegate;
 import io.github.ulisse1996.jaorm.entity.Result;
 
 import java.util.*;
@@ -76,16 +77,27 @@ public class Relationship<T> {
 
         @SuppressWarnings("unchecked")
         public Result<Object> getAsOpt(T entity) {
-            return (Result<Object>) function.apply(entity);
+            if (EntityDelegate.class.isAssignableFrom(entity.getClass())) {
+                entity = ((EntityDelegate<T>) entity).getEntity();
+            }
+            return Optional.ofNullable((Result<Object>) function.apply(entity))
+                    .orElse(Result.empty());
         }
 
         @SuppressWarnings("unchecked")
         public Collection<Object> getAsCollection(T entity) {
+            if (EntityDelegate.class.isAssignableFrom(entity.getClass())) {
+                entity = ((EntityDelegate<T>) entity).getEntity();
+            }
             Collection<Object> res = (Collection<Object>) function.apply(entity);
             return Optional.ofNullable(res).orElse(Collections.emptyList());
         }
 
+        @SuppressWarnings("unchecked")
         public Object get(T entity) {
+            if (EntityDelegate.class.isAssignableFrom(entity.getClass())) {
+                entity = ((EntityDelegate<T>) entity).getEntity();
+            }
             return function.apply(entity);
         }
     }

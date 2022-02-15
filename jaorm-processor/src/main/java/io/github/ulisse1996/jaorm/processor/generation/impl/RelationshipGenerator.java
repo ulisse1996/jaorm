@@ -3,6 +3,7 @@ package io.github.ulisse1996.jaorm.processor.generation.impl;
 import com.squareup.javapoet.*;
 import io.github.ulisse1996.jaorm.annotation.Cascade;
 import io.github.ulisse1996.jaorm.annotation.CascadeType;
+import io.github.ulisse1996.jaorm.annotation.Converter;
 import io.github.ulisse1996.jaorm.annotation.Table;
 import io.github.ulisse1996.jaorm.entity.converter.ParameterConverter;
 import io.github.ulisse1996.jaorm.entity.relationship.EntityEventType;
@@ -144,31 +145,62 @@ public class RelationshipGenerator extends Generator {
         for (io.github.ulisse1996.jaorm.annotation.Relationship.RelationshipColumn column : currRel.columns()) {
             VariableElement toSet = ProcessorUtils.getFieldWithColumnName(processingEnvironment, rel, column.targetColumn());
             if (column.sourceColumn().isEmpty()) {
-                params.put(
-                        "(($T)link).$L($T.$L.toValue($S))",
-                        Arrays.asList(
-                                entity,
-                                rel,
-                                ProcessorUtils.findSetter(processingEnvironment, rel, toSet.getSimpleName()).getSimpleName(),
-                                ParameterConverter.class,
-                                column.converter().name(),
-                                column.defaultValue()
-                        ));
+                if (toSet.getAnnotation(Converter.class) == null) {
+                    params.put(
+                            "(($T)link).$L($T.$L.toValue($S))",
+                            Arrays.asList(
+                                    entity,
+                                    rel,
+                                    ProcessorUtils.findSetter(processingEnvironment, rel, toSet.getSimpleName()).getSimpleName(),
+                                    ParameterConverter.class,
+                                    column.converter().name(),
+                                    column.defaultValue()
+                            ));
+                } else {
+                    params.put(
+                            "(($T)link).$L($L.fromSql($T.$L.toValue($S)))",
+                            Arrays.asList(
+                                    entity,
+                                    rel,
+                                    ProcessorUtils.findSetter(processingEnvironment, rel, toSet.getSimpleName()).getSimpleName(),
+                                    ProcessorUtils.getConverterCaller(processingEnvironment, toSet),
+                                    ParameterConverter.class,
+                                    column.converter().name(),
+                                    column.defaultValue()
+                            ));
+                }
             } else {
                 VariableElement fromSet = ProcessorUtils.getFieldWithColumnName(processingEnvironment, entity, column.sourceColumn());
-                params.put(
-                        "(($T)link).$L((($T)entity).$L())",
-                        Arrays.asList(
-                                entity,
-                                rel,
-                                ProcessorUtils.findSetter(processingEnvironment, rel, toSet.getSimpleName()).getSimpleName(),
-                                entity,
-                                ProcessorUtils.findGetter(processingEnvironment, entity, fromSet.getSimpleName()).getSimpleName()
-                        ));
+                if (fromSet.getAnnotation(Converter.class) == null || noNeedForConversion(fromSet, toSet)) {
+                    params.put(
+                            "(($T)link).$L((($T)entity).$L())",
+                            Arrays.asList(
+                                    entity,
+                                    rel,
+                                    ProcessorUtils.findSetter(processingEnvironment, rel, toSet.getSimpleName()).getSimpleName(),
+                                    entity,
+                                    ProcessorUtils.findGetter(processingEnvironment, entity, fromSet.getSimpleName()).getSimpleName()
+                            ));
+                } else {
+                    params.put(
+                            "(($T)link).$L($L.toSql((($T)entity).$L()))",
+                            Arrays.asList(
+                                    entity,
+                                    rel,
+                                    ProcessorUtils.findSetter(processingEnvironment, rel, toSet.getSimpleName()).getSimpleName(),
+                                    ProcessorUtils.getConverterCaller(processingEnvironment, fromSet),
+                                    entity,
+                                    ProcessorUtils.findGetter(processingEnvironment, entity, fromSet.getSimpleName()).getSimpleName()
+                            ));
+                }
             }
         }
         params.forEach((code, p) -> builder.addStatement(
                 String.format("map.get($T.class).getLast().appendThen((entity, link) -> %s)", code), p.toArray()));
+    }
+
+    private boolean noNeedForConversion(VariableElement fromSet, VariableElement toSet) {
+        return fromSet.asType().equals(toSet.asType()); // We apply some implicit conversion during select like string/number conversion
     }
 
     private EntityEventType[] getEvents(RelationshipAccessor relationship) {

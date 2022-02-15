@@ -48,9 +48,11 @@ public class PersistEvent implements EntityEvent {
                 }
             } else {
                 Object i = node.get(insert);
-                node.getAutoSet().accept(insert, i);
-                BaseDao<Object> baseDao = QueriesService.getInstance().getBaseDao((Class<Object>) i.getClass());
-                baseDao.insert(i);
+                if (i != null) {
+                    node.getAutoSet().accept(insert, i);
+                    BaseDao<Object> baseDao = QueriesService.getInstance().getBaseDao((Class<Object>) i.getClass());
+                    baseDao.insert(i);
+                }
             }
         }
 
