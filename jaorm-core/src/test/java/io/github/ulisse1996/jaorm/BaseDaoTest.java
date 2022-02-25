@@ -1,5 +1,6 @@
 package io.github.ulisse1996.jaorm;
 
+import io.github.ulisse1996.jaorm.entity.Page;
 import io.github.ulisse1996.jaorm.entity.Result;
 import io.github.ulisse1996.jaorm.entity.relationship.EntityEvent;
 import io.github.ulisse1996.jaorm.entity.relationship.EntityEventType;
@@ -780,6 +781,11 @@ class BaseDaoTest {
 
         @Override
         public List<DelegatesMock.MyEntity> readAll() {
+            return null;
+        }
+
+        @Override
+        public Page<DelegatesMock.MyEntity> page(int page, int size, List<Sort<DelegatesMock.MyEntity>> sorts) {
             return null;
         }
     }

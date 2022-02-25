@@ -1,6 +1,7 @@
 package io.github.ulisse1996.jaorm;
 
 import io.github.ulisse1996.jaorm.entity.EntityDelegate;
+import io.github.ulisse1996.jaorm.entity.Page;
 import io.github.ulisse1996.jaorm.entity.Result;
 import io.github.ulisse1996.jaorm.entity.event.*;
 import io.github.ulisse1996.jaorm.entity.relationship.EntityEvent;
@@ -28,6 +29,7 @@ public interface BaseDao<R> {
     R read(R entity);
     Optional<R> readOpt(R entity);
     List<R> readAll();
+    Page<R> page(int page, int size, List<Sort<R>> sorts);
 
     default int delete(R entity) {
         Objects.requireNonNull(entity, "Entity can't be null !");

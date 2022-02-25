@@ -1,7 +1,9 @@
 package io.github.ulisse1996.jaorm.integration.test;
 
+import io.github.ulisse1996.jaorm.Sort;
 import io.github.ulisse1996.jaorm.entity.EntityComparator;
 import io.github.ulisse1996.jaorm.entity.EntityDelegate;
+import io.github.ulisse1996.jaorm.entity.Page;
 import io.github.ulisse1996.jaorm.exception.JaormSqlException;
 import io.github.ulisse1996.jaorm.integration.test.entity.*;
 import io.github.ulisse1996.jaorm.integration.test.projection.MyProjection;
@@ -18,6 +20,7 @@ import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 class QueryIT extends AbstractIT {
 
@@ -293,6 +296,43 @@ class QueryIT extends AbstractIT {
         Assertions.assertEquals(BigDecimal.ONE, myProjections.get(0).getId());
         Assertions.assertTrue(myProjections.get(0).isValid());
         Assertions.assertNull(myProjections.get(0).getOther());
+    }
+
+    @ParameterizedTest
+    @MethodSource("getSqlTests")
+    void should_get_page_from_dao(HSQLDBProvider.DatabaseType type, String initSql) {
+        setDataSource(type, initSql);
+
+        UserDAO userDAO = QueriesService.getInstance().getQuery(UserDAO.class);
+
+        Page<User> userPage = userDAO.page(0, 10, Collections.emptyList());
+        Assertions.assertEquals(0, userPage.getCount());
+
+        List<User> users = IntStream.range(0, 12)
+                .mapToObj(i -> {
+                    User user = new User();
+                    user.setId(i);
+                    user.setName("NAME_" + i);
+                    return user;
+                }).collect(Collectors.toList());
+        userDAO.insertWithBatch(users);
+
+        userPage = userDAO.page(0, 10, Collections.singletonList(Sort.asc(UserColumns.USER_ID)));
+
+        Assertions.assertEquals(12, userPage.getCount());
+        Assertions.assertEquals(10, userPage.getData().size());
+        for (int i = 0; i < 10; i++) {
+            User exp = users.get(i);
+            User res = userPage.getData().get(i);
+            Assertions.assertEquals(exp.getId(), res.getId());
+            Assertions.assertEquals(exp.getName(), res.getName());
+        }
+        Assertions.assertFalse(userPage.hasPrevious());
+        Assertions.assertTrue(userPage.hasNext());
+
+        Optional<Page<User>> optionalUserPage = userPage.getNext();
+        Assertions.assertTrue(optionalUserPage.isPresent());
+        Assertions.assertEquals(2, optionalUserPage.get().getData().size());
     }
 
     private User getUser(int i) {

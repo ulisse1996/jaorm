@@ -7,6 +7,7 @@ import io.github.ulisse1996.jaorm.dsl.query.enums.LikeType;
 import io.github.ulisse1996.jaorm.dsl.query.enums.OrderType;
 import io.github.ulisse1996.jaorm.dsl.query.impl.SelectedImpl;
 import io.github.ulisse1996.jaorm.entity.EntityComparator;
+import io.github.ulisse1996.jaorm.entity.Page;
 import io.github.ulisse1996.jaorm.exception.JaormSqlException;
 import io.github.ulisse1996.jaorm.integration.test.entity.*;
 import io.github.ulisse1996.jaorm.integration.test.query.RoleDAO;
@@ -25,6 +26,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 class QueryBuilderIT extends AbstractIT {
 
@@ -355,6 +357,45 @@ class QueryBuilderIT extends AbstractIT {
         Assertions.assertTrue(
                 eq.readOpt().isPresent()
         );
+    }
+
+    @ParameterizedTest
+    @MethodSource("getSqlTests")
+    void should_get_page_from_dsl(HSQLDBProvider.DatabaseType type, String initSql) {
+        setDataSource(type, initSql);
+
+        UserDAO userDAO = QueriesService.getInstance().getQuery(UserDAO.class);
+
+        Page<User> userPage = QueryBuilder.select(User.class)
+                        .page(1, 10);
+        Assertions.assertEquals(0, userPage.getCount());
+
+        List<User> users = IntStream.range(0, 12)
+                .mapToObj(i -> {
+                    User user = new User();
+                    user.setId(i);
+                    user.setName("NAME_" + i);
+                    return user;
+                }).collect(Collectors.toList());
+        userDAO.insertWithBatch(users);
+
+        userPage = QueryBuilder.select(User.class)
+                        .page(0, 10);
+
+        Assertions.assertEquals(12, userPage.getCount());
+        Assertions.assertEquals(10, userPage.getData().size());
+        for (int i = 0; i < 10; i++) {
+            User exp = users.get(i);
+            User res = userPage.getData().get(i);
+            Assertions.assertEquals(exp.getId(), res.getId());
+            Assertions.assertEquals(exp.getName(), res.getName());
+        }
+        Assertions.assertFalse(userPage.hasPrevious());
+        Assertions.assertTrue(userPage.hasNext());
+
+        Optional<Page<User>> optionalUserPage = userPage.getNext();
+        Assertions.assertTrue(optionalUserPage.isPresent());
+        Assertions.assertEquals(2, optionalUserPage.get().getData().size());
     }
 
     private User createUser(int i) {

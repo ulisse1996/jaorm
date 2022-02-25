@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 1.2.0
+- Feature: Page support for Base Dao and Query Builder
+
 ## 1.1.1
 - Bugfix: Remove query load for cascade impl
 - Bugfix: Fix conversion on id columns

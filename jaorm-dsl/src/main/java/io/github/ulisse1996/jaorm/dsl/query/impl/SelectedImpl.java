@@ -3,6 +3,7 @@ package io.github.ulisse1996.jaorm.dsl.query.impl;
 import io.github.ulisse1996.jaorm.dsl.config.DefaultWhereChecker;
 import io.github.ulisse1996.jaorm.dsl.config.QueryConfig;
 import io.github.ulisse1996.jaorm.dsl.config.WhereChecker;
+import io.github.ulisse1996.jaorm.dsl.query.DslPage;
 import io.github.ulisse1996.jaorm.dsl.query.common.*;
 import io.github.ulisse1996.jaorm.dsl.query.common.intermediate.IntermediateJoin;
 import io.github.ulisse1996.jaorm.dsl.query.common.intermediate.IntermediateWhere;
@@ -11,6 +12,7 @@ import io.github.ulisse1996.jaorm.dsl.query.enums.JoinType;
 import io.github.ulisse1996.jaorm.dsl.query.enums.OrderType;
 import io.github.ulisse1996.jaorm.dsl.util.Pair;
 import io.github.ulisse1996.jaorm.entity.EntityDelegate;
+import io.github.ulisse1996.jaorm.entity.Page;
 import io.github.ulisse1996.jaorm.entity.SqlColumn;
 import io.github.ulisse1996.jaorm.entity.sql.SqlParameter;
 import io.github.ulisse1996.jaorm.spi.DelegatesService;
@@ -277,6 +279,12 @@ public class SelectedImpl<T, N> implements Selected<T>, SelectedWhere<T>, Select
         return this;
     }
 
+    @Override
+    public Page<T> page(int page, int size) {
+        long count = count();
+        return new DslPage<>(page, size, count, this);
+    }
+
     @SuppressWarnings("unchecked")
     private <R> On<T, R> addJoin(Class<R> table, JoinType joinType, String alias) {
         JoinImpl<T, R, ?> join = new JoinImpl<>(table, this, joinType, alias);
@@ -372,5 +380,13 @@ public class SelectedImpl<T, N> implements Selected<T>, SelectedWhere<T>, Select
 
     public String getTable() {
         return this.table;
+    }
+
+    public void setOffset(int offset) {
+        this.offset = offset;
+    }
+
+    public void setLimit(int size) {
+        this.limit = size;
     }
 }

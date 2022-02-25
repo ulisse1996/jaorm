@@ -8,7 +8,6 @@ import io.github.ulisse1996.jaorm.entity.SqlColumn;
 import io.github.ulisse1996.jaorm.processor.generation.Generator;
 import io.github.ulisse1996.jaorm.processor.util.GeneratedFile;
 import io.github.ulisse1996.jaorm.processor.util.ProcessorUtils;
-import io.github.ulisse1996.jaorm.spi.DslService;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
@@ -60,10 +59,6 @@ public class DslColumnsGenerator extends Generator {
 
     @Override
     public void generate(RoundEnvironment roundEnvironment) {
-        boolean supported = DslService.getInstance().isSupported();
-        if (!supported) {
-            debugMessage("Skipping Dsl generation");
-        }
         List<TypeElement> entities = roundEnvironment.getElementsAnnotatedWith(Table.class)
                 .stream()
                 .map(TypeElement.class::cast)
