@@ -2,10 +2,14 @@ package io.github.ulisse1996.jaorm.entity;
 
 import io.github.ulisse1996.jaorm.BaseDao;
 import io.github.ulisse1996.jaorm.DaoImplementation;
+import io.github.ulisse1996.jaorm.Sort;
 import io.github.ulisse1996.jaorm.spi.QueriesService;
 
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 public class QueriesMock extends QueriesService {
 
@@ -43,6 +47,11 @@ public class QueriesMock extends QueriesService {
 
         @Override
         public List<Object> readAll() {
+            return null;
+        }
+
+        @Override
+        public final Page<Object> page(int page, int size, List<Sort<Object>> sorts) {
             return null;
         }
     }

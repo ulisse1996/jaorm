@@ -4,11 +4,14 @@ import com.squareup.javapoet.*;
 import io.github.ulisse1996.jaorm.Arguments;
 import io.github.ulisse1996.jaorm.BaseDao;
 import io.github.ulisse1996.jaorm.DaoImplementation;
+import io.github.ulisse1996.jaorm.Sort;
 import io.github.ulisse1996.jaorm.annotation.Dao;
 import io.github.ulisse1996.jaorm.annotation.Projection;
 import io.github.ulisse1996.jaorm.annotation.Query;
 import io.github.ulisse1996.jaorm.annotation.Table;
 import io.github.ulisse1996.jaorm.cache.Cacheable;
+import io.github.ulisse1996.jaorm.entity.Page;
+import io.github.ulisse1996.jaorm.entity.PageImpl;
 import io.github.ulisse1996.jaorm.entity.sql.SqlParameter;
 import io.github.ulisse1996.jaorm.processor.generation.Generator;
 import io.github.ulisse1996.jaorm.processor.strategy.QueryStrategy;
@@ -31,6 +34,7 @@ import java.util.stream.Stream;
 
 public class QueryGenerator extends Generator {
 
+    private static final String COUNT_SQL = "SELECT COUNT(*) FROM %s";
     private static final String MAP_FORMAT = "$T values = new $T<>()";
     private static final String REQUIRED_NOT_NULL_STATEMENT = "$T.requireNonNull(arg0, $S)";
     private static final String ENTITY_CAN_T_BE_NULL = "Entity can't be null !";
@@ -133,6 +137,8 @@ public class QueryGenerator extends Generator {
 
     private Collection<MethodSpec> buildBaseDao(TypeElement query) {
         String realClass = ProcessorUtils.getBaseDaoGeneric(query);
+        TypeElement element = processingEnvironment.getElementUtils().getTypeElement(realClass);
+        Table table = element.getAnnotation(Table.class);
         ClassName className = ClassName.bestGuess(realClass);
         MethodSpec read = resolveParameter(MethodSpec.overriding(ProcessorUtils.getMethod(processingEnvironment, "read", BaseDao.class))
                 .returns(className)
@@ -150,7 +156,19 @@ public class QueryGenerator extends Generator {
                 .returns(ParameterizedTypeName.get(ClassName.get(List.class), className))
                 .addStatement("return $T.getCachedAll($T.class, () -> $T.getInstance($T.class).readAll($T.class, $T.getInstance().getSimpleSql($T.class), $T.emptyList()))",
                         Cacheable.class, className, QueryRunner.class, className, className, DelegatesService.class, className, Collections.class), realClass);
-        return Stream.of(read, readOpt, readAll).collect(Collectors.toList());
+        MethodSpec.Builder page = MethodSpec.overriding(ProcessorUtils.getMethod(processingEnvironment, "page", BaseDao.class))
+                .returns(ParameterizedTypeName.get(ClassName.get(Page.class), className))
+                .addStatement("long count = $T.getSimple().read(Long.class, $S, $T.emptyList())", QueryRunner.class, String.format(COUNT_SQL, table.name()), Collections.class)
+                .addStatement("return count > 0 ? new $T<$T>(arg0, arg1, count, $T.class, arg2) : $T.empty()", PageImpl.class, className, className, Page.class);
+        page.parameters.set(2, getSortsType(className)); // Fix generics override
+        return Stream.of(read, readOpt, readAll, page.build()).collect(Collectors.toList());
+    }
+
+    private ParameterSpec getSortsType(ClassName className) {
+        return ParameterSpec.builder(ParameterizedTypeName.get(
+                ClassName.get(List.class),
+                ParameterizedTypeName.get(ClassName.get(Sort.class), className)), "arg2")
+                .build();
     }
 
     private List<AnnotationSpec> getExtraAnnotations(TypeElement query) {
