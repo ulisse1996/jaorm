@@ -7,8 +7,11 @@ import io.github.ulisse1996.jaorm.entity.converter.ValueConverter;
 import io.github.ulisse1996.jaorm.external.LombokMock;
 import io.github.ulisse1996.jaorm.external.LombokSupport;
 import io.github.ulisse1996.jaorm.processor.CustomName;
+import io.github.ulisse1996.jaorm.processor.config.ConfigHolder;
 import io.github.ulisse1996.jaorm.processor.exception.ProcessorException;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -28,12 +31,16 @@ import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 import javax.tools.FileObject;
+import java.io.File;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.FileSystem;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.spi.FileSystemProvider;
 import java.util.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -45,6 +52,16 @@ class ProcessorUtilsTest {
     @Mock private Types types;
     @Mock private Filer filer;
     @Mock private VariableElement variableElement;
+
+    @BeforeEach
+    void initConfig() {
+        ConfigHolder.init(Collections.emptyMap());
+    }
+
+    @AfterEach
+    void destroyConfig() {
+        ConfigHolder.destroy();
+    }
 
     @Test
     void should_return_constructors_list() {
@@ -959,6 +976,65 @@ class ProcessorUtilsTest {
         Mockito.when(notMyGetter.getSimpleName())
                 .thenReturn(nameOf("notMyGetter"));
         return getter;
+    }
+
+    @Test
+    void should_throw_exception_during_spi_creation_with_nio() throws IOException {
+        GeneratedFile file = new GeneratedFile(
+                "package",
+                TypeSpec.classBuilder("TEST").build(),
+                null
+        );
+        Path servicePath = Mockito.mock(Path.class);
+        Path path = Mockito.mock(Path.class);
+        FileSystem fileSystem = Mockito.mock(FileSystem.class);
+        FileSystemProvider provider = Mockito.mock(FileSystemProvider.class);
+        ConfigHolder.init(new HashMap<>());
+        ConfigHolder.setServices(path);
+
+        Mockito.when(path.getParent()).thenReturn(path);
+        Mockito.when(path.getFileSystem())
+                .thenReturn(fileSystem);
+        Mockito.when(fileSystem.provider())
+                .thenReturn(provider);
+        Mockito.when(path.resolve(Mockito.anyString()))
+                .thenReturn(servicePath);
+        Mockito.when(servicePath.getFileSystem()).thenReturn(fileSystem);
+        Mockito.when(provider.newByteChannel(Mockito.any(), Mockito.any()))
+                .thenThrow(IOException.class);
+        Mockito.doThrow(IOException.class)
+                .when(provider).checkAccess(Mockito.any(), Mockito.any());
+
+        Assertions.assertThrows(ProcessorException.class,
+                () -> ProcessorUtils.generateSpi(environment, file, Object.class));
+    }
+
+    @SuppressWarnings("ResultOfMethodCallIgnored")
+    @Test
+    void should_generate_spi_using_nio() throws IOException {
+        GeneratedFile file = new GeneratedFile(
+                "package",
+                TypeSpec.classBuilder("TEST").build(),
+                null
+        );
+        Path testDir = Files.createTempDirectory("testDir");
+        Path testPath = testDir.resolve("META-INF").resolve("services");
+        try {
+            ConfigHolder.init(new HashMap<>());
+            ConfigHolder.setServices(testPath);
+            ProcessorUtils.generateSpi(environment, file, Object.class);
+
+            Assertions.assertTrue(testDir.resolve("META-INF").toFile().exists());
+            Assertions.assertTrue(testDir.resolve("META-INF").resolve("services").toFile().exists());
+            Assertions.assertTrue(testDir.resolve("META-INF").resolve("services").resolve("java.lang.Object").toFile().exists());
+        } finally {
+            ConfigHolder.destroy();
+            Files.walk(testDir)
+                    .sorted(Comparator.reverseOrder())
+                    .map(Path::toFile)
+                    .forEach(File::delete);
+            Files.deleteIfExists(testDir);
+        }
     }
 
     private Name nameOf(String name) {

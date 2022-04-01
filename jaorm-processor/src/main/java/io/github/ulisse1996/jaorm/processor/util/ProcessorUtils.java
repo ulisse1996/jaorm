@@ -12,6 +12,7 @@ import io.github.ulisse1996.jaorm.entity.Result;
 import io.github.ulisse1996.jaorm.entity.converter.ValueConverter;
 import io.github.ulisse1996.jaorm.external.LombokMock;
 import io.github.ulisse1996.jaorm.external.LombokSupport;
+import io.github.ulisse1996.jaorm.processor.config.ConfigHolder;
 import io.github.ulisse1996.jaorm.processor.exception.ProcessorException;
 
 import javax.annotation.processing.ProcessingEnvironment;
@@ -23,15 +24,14 @@ import javax.lang.model.type.PrimitiveType;
 import javax.lang.model.type.TypeMirror;
 import javax.tools.FileObject;
 import javax.tools.StandardLocation;
-import java.io.File;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
+import java.io.*;
 import java.lang.annotation.Annotation;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -433,7 +433,30 @@ public class ProcessorUtils {
                 .orElse(false);
     }
 
-    public static void generateSpi(ProcessingEnvironment processingEnvironment, GeneratedFile generatedFile, Class<?> serviceClass) {
+    public static void generateSpi(ProcessingEnvironment environment, GeneratedFile generatedFile, Class<?> serviceClass) {
+        try {
+            Path services = ConfigHolder.getServices();
+            if (services == null) {
+                fallbackGenerateSpi(environment, generatedFile, serviceClass);
+                return;
+            }
+            Map.Entry<Path, Boolean> entry = getOrCreateFile(serviceClass);
+            boolean needReturn = !entry.getValue();
+            try (Writer w = Files.newBufferedWriter(entry.getKey(), StandardOpenOption.APPEND)) {
+                w.write(String.format("%s%s.%s",
+                        needReturn ? "\n" : "",
+                        generatedFile.getPackageName(),
+                        generatedFile.getSpec().name));
+            }
+        } catch (IOException ex) {
+            StringWriter writer = new StringWriter();
+            PrintWriter p = new PrintWriter(writer);
+            ex.printStackTrace(p);
+            throw new ProcessorException("Error during Resource creation : " + writer);
+        }
+    }
+
+    private static void fallbackGenerateSpi(ProcessingEnvironment processingEnvironment, GeneratedFile generatedFile, Class<?> serviceClass) {
         try {
             String name = serviceClass.getName();
             FileObject resource = processingEnvironment.getFiler().createResource(
@@ -446,12 +469,34 @@ public class ProcessorUtils {
         }
     }
 
+    private static Map.Entry<Path, Boolean> getOrCreateFile(Class<?> serviceClass) throws IOException {
+        boolean missing = false;
+        Path services = ConfigHolder.getServices();
+        createIfMissing(services);
+        Path spi = services.resolve(serviceClass.getName());
+        if (!Files.exists(spi)) {
+            Files.createFile(spi);
+            missing = true;
+        }
+        return new AbstractMap.SimpleEntry<>(spi, missing);
+    }
+
+    private static void createIfMissing(Path services) throws IOException {
+        Path meta = services.getParent();
+        if (!Files.exists(meta)) {
+            Files.createDirectory(meta);
+        }
+        if (!Files.exists(services)) {
+            Files.createDirectory(services);
+        }
+    }
+
     public static String randomIdentifier() {
         int leftLimit = 48;
         int rightLimit = 122;
         int targetStringLength = 10;
 
-        return "$$Generated$$" + RANDOM.ints(leftLimit, rightLimit + 1)
+        return "_" + RANDOM.ints(leftLimit, rightLimit + 1)
                 .filter(i -> (i <= 57 || i >= 65) && (i <= 90 || i >= 97))
                 .limit(targetStringLength)
                 .collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append)

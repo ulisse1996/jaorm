@@ -7,7 +7,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 public class CombinedProjections extends ProjectionsService {
 
@@ -22,7 +21,7 @@ public class CombinedProjections extends ProjectionsService {
         return Collections.unmodifiableMap(
                 this.projections.stream()
                         .flatMap(p -> p.getProjections().entrySet().stream())
-                        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))
+                        .collect(Combiners.getEntryMapCollector())
         );
     }
 }

@@ -9,7 +9,6 @@ public enum GenerationType {
     CONVERTER,
     LISTENERS,
     GENERATORS,
-    TABLES,
     PROJECTIONS,
     GRAPH
 }

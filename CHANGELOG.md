@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 1.3.0
+- Feature: Improving for Incremental Build
+- Removed: Removed Tables, use Jaorm DSL as alternative read
+
 ## 1.2.0
 - Feature: Page support for Base Dao and Query Builder
 
