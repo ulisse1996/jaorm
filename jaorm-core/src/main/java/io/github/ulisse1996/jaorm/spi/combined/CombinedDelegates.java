@@ -7,7 +7,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 public class CombinedDelegates extends DelegatesService {
 
@@ -16,7 +15,7 @@ public class CombinedDelegates extends DelegatesService {
     public CombinedDelegates(List<DelegatesService> delegates) {
         this.delegates = delegates.stream()
                 .flatMap(d -> d.getDelegates().entrySet().stream())
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+                .collect(Combiners.getEntryMapCollector());
     }
 
     @Override

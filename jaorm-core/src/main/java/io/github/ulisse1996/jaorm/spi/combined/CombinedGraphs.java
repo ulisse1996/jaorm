@@ -6,7 +6,6 @@ import io.github.ulisse1996.jaorm.spi.GraphsService;
 
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 public class CombinedGraphs extends GraphsService {
 
@@ -20,6 +19,6 @@ public class CombinedGraphs extends GraphsService {
     public Map<GraphPair, EntityGraph<?>> getEntityGraphs() {
         return this.graphsServices.stream()
                 .flatMap(m -> m.getEntityGraphs().entrySet().stream())
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+                .collect(Combiners.getEntryMapCollector());
     }
 }

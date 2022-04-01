@@ -1,9 +1,6 @@
 package io.github.ulisse1996.jaorm.integration.test;
 
-import io.github.ulisse1996.jaorm.cache.EntityCache;
-import io.github.ulisse1996.jaorm.cache.StandardConfiguration;
 import io.github.ulisse1996.jaorm.entity.sql.DataSourceProvider;
-import io.github.ulisse1996.jaorm.integration.test.entity.Role;
 import io.github.ulisse1996.jaorm.integration.test.util.ExceptionLogger;
 import io.github.ulisse1996.jaorm.spi.CacheService;
 import io.github.ulisse1996.jaorm.spi.TransactionManager;
@@ -21,7 +18,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Stream;
 
 @ExtendWith(ExceptionLogger.class)
@@ -85,13 +82,6 @@ public abstract class AbstractIT {
                 throw new IllegalStateException(ex);
             }
         }
-        fillCache();
-    }
-
-    private static void fillCache() {
-        Map<Class<?>, EntityCache<?>> cacheMap = CacheService.getInstance().getCaches();
-        Stream.of(Role.class)
-                .forEach(c -> cacheMap.put(c, EntityCache.fromConfiguration(c, new StandardConfiguration())));
     }
 
     protected void setDataSource(HSQLDBProvider.DatabaseType type, String initSql) {
@@ -124,7 +114,7 @@ public abstract class AbstractIT {
 
     protected List<String> readFile(String initSql) {
         try {
-            return Files.readAllLines(Paths.get(QueryBuilderIT.class.getResource("/inits/" + initSql).toURI()));
+            return Files.readAllLines(Paths.get(Objects.requireNonNull(QueryBuilderIT.class.getResource("/inits/" + initSql)).toURI()));
         } catch (Exception ex) {
             Assertions.fail(ex);
             return Collections.emptyList();
