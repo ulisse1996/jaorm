@@ -435,7 +435,7 @@ public class ProcessorUtils {
 
     public static void generateSpi(ProcessingEnvironment environment, GeneratedFile generatedFile, Class<?> serviceClass) {
         try {
-            Path services = ConfigHolder.getInstance().getServices();
+            Path services = ConfigHolder.getServices();
             if (services == null) {
                 fallbackGenerateSpi(environment, generatedFile, serviceClass);
                 return;
@@ -471,7 +471,7 @@ public class ProcessorUtils {
 
     private static Map.Entry<Path, Boolean> getOrCreateFile(Class<?> serviceClass) throws IOException {
         boolean missing = false;
-        Path services = ConfigHolder.getInstance().getServices();
+        Path services = ConfigHolder.getServices();
         createIfMissing(services);
         Path spi = services.resolve(serviceClass.getName());
         if (!Files.exists(spi)) {

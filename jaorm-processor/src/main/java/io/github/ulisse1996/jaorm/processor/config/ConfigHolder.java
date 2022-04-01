@@ -31,7 +31,7 @@ public class ConfigHolder {
         HOLDER_SERVICES.set(parent);
     }
 
-    public Path getServices() {
+    public static Path getServices() {
         return HOLDER_SERVICES.get();
     }
 }

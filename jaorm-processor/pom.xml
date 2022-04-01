@@ -42,11 +42,6 @@
             <version>${javapoet.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.github.javaparser</groupId>
-            <artifactId>javaparser-symbol-solver-core</artifactId>
-            <version>3.23.1</version>
-        </dependency>
-        <dependency>
             <groupId>com.google.testing.compile</groupId>
                 <artifactId>compile-testing</artifactId>
             <version>${compile-testing.version}</version>
