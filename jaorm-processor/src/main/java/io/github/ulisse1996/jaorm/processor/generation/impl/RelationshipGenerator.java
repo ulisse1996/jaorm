@@ -27,6 +27,8 @@ import java.util.stream.Stream;
 
 public class RelationshipGenerator extends Generator {
 
+    private static final List<String> INCREMENTALS = Collections.singletonList("org.jetbrains.jps.incremental");
+
     public RelationshipGenerator(ProcessingEnvironment processingEnvironment) {
         super(processingEnvironment);
     }
@@ -235,10 +237,25 @@ public class RelationshipGenerator extends Generator {
     }
 
     private void checkBaseDao(TypeElement entity, Set<TypeElement> daoTypes) {
-
-        if (!daoTypes.contains(entity)) {
+        if (!daoTypes.contains(entity) && !isSkipForIncrementalBuilding()) {
             throw new ProcessorException(String.format("Can't find BaseDao<%s> for Cascade implementation !", entity));
         }
+    }
+
+    private boolean isSkipForIncrementalBuilding() {
+        StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
+        for (StackTraceElement element : stackTrace) {
+            if (isIncremental(element.getClassName())) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private boolean isIncremental(String className) {
+        return INCREMENTALS.stream()
+                .anyMatch(className::contains);
     }
 
     private boolean hasRelationships(TypeElement entity) {

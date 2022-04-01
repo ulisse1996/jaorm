@@ -1,10 +1,13 @@
 package io.github.ulisse1996.jaorm.processor.config;
 
+import java.nio.file.Path;
 import java.util.Map;
 
 public class ConfigHolder {
 
     private static final ThreadLocal<ConfigHolder> HOLDER_THREAD_LOCAL = new InheritableThreadLocal<>();
+    private static final ThreadLocal<Path> HOLDER_SERVICES = new InheritableThreadLocal<>();
+    @SuppressWarnings({"unused", "FieldCanBeLocal"})
     private final Map<String, String> config;
 
     private ConfigHolder(Map<String, String> config) {
@@ -21,9 +24,14 @@ public class ConfigHolder {
 
     public static void destroy() {
         HOLDER_THREAD_LOCAL.remove();
+        HOLDER_SERVICES.remove();
     }
 
-    public String getConfig(String key) {
-        return this.config.get(key);
+    public static void setServices(Path parent) {
+        HOLDER_SERVICES.set(parent);
+    }
+
+    public Path getServices() {
+        return HOLDER_SERVICES.get();
     }
 }

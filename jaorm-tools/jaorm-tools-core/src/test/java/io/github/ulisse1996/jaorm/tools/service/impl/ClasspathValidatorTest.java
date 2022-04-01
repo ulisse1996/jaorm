@@ -4,6 +4,7 @@ import io.github.ulisse1996.jaorm.DaoImplementation;
 import io.github.ulisse1996.jaorm.entity.EntityDelegate;
 import io.github.ulisse1996.jaorm.entity.EntityMapper;
 import io.github.ulisse1996.jaorm.logger.JaormLogger;
+import io.github.ulisse1996.jaorm.logger.SqlJaormLogger;
 import io.github.ulisse1996.jaorm.spi.DelegatesService;
 import io.github.ulisse1996.jaorm.spi.QueriesService;
 import io.github.ulisse1996.jaorm.spi.common.Singleton;
@@ -36,7 +37,7 @@ import java.util.ServiceLoader;
 class ClasspathValidatorTest {
 
     @Mock private FileHashCache cache;
-    @Mock private JaormLogger logger;
+    private final JaormLogger logger = new SqlJaormLogger(ClasspathValidatorTest.class);
     @Mock private DelegatesService delegatesService;
     @Mock private QueriesService queries;
     @Mock private EntityDelegate<?> delegate;
