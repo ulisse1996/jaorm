@@ -5,7 +5,7 @@
     <parent>
         <artifactId>jaorm-tools</artifactId>
         <groupId>io.github.ulisse1996</groupId>
-        <version>1.3.0</version>
+        <version>1.3.1</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -22,12 +22,12 @@
         <dependency>
             <groupId>io.github.ulisse1996</groupId>
             <artifactId>jaorm-core</artifactId>
-            <version>1.3.0</version>
+            <version>1.3.1</version>
         </dependency>
         <dependency>
             <groupId>io.github.ulisse1996</groupId>
             <artifactId>jaorm-processor</artifactId>
-            <version>1.3.0</version>
+            <version>1.3.1</version>
         </dependency>
         <dependency>
             <groupId>com.github.javaparser</groupId>
