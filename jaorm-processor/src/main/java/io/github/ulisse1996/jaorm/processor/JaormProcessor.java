@@ -68,12 +68,22 @@ public class JaormProcessor extends AbstractProcessor {
                 String message = ex.getMessage().replace("Attempt to reopen a file for path", "")
                         .trim()
                         .replace("META-INF/services/jaorm_generated", "");
+                message = checkSpecialCases(message);
                 ConfigHolder.setServices(Paths.get(message));
                 return Optional.empty();
             }
 
             throw ex;
         }
+    }
+
+    private String checkSpecialCases(String message) {
+        // For Intellij we have a strange path in Windows that starts with a /
+        if (System.getProperty("os.name").startsWith("Windows") && message.startsWith("/")) {
+            return message.substring(1);
+        }
+
+        return message;
     }
 
     private void generate(RoundEnvironment roundEnv) {

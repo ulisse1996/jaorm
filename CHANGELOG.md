@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 1.3.1
+- Bugfix: Fix wrong path provider for Windows with IntelliJ Wrapped API
+
 ## 1.3.0
 - Feature: Improving for Incremental Build
 - Removed: Removed Tables, use Jaorm DSL as alternative read
