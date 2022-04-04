@@ -93,12 +93,12 @@ class PageImplTest {
 
     @Test
     void should_throw_exception_for_bad_page_number() {
-        Assertions.assertThrows(IllegalArgumentException.class, () -> new PageImpl<>(-1, 0, 0, Object.class, Collections.emptyList()));
+        Assertions.assertThrows(IllegalArgumentException.class, () -> new PageImpl<>(-1, 0, 0, Object.class, Collections.emptyList())); //NOSONAR
     }
 
     @Test
     void should_throw_exception_for_bad_fetch_size_number() {
-        Assertions.assertThrows(IllegalArgumentException.class, () -> new PageImpl<>(0, 0, 0, Object.class, Collections.emptyList()));
+        Assertions.assertThrows(IllegalArgumentException.class, () -> new PageImpl<>(0, 0, 0, Object.class, Collections.emptyList())); //NOSONAR
     }
 
     @Test
