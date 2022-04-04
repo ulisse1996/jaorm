@@ -123,7 +123,7 @@ class JaormProcessorTest {
                     });
             valMock.when(() -> Validator.forType(Mockito.any(), Mockito.any()))
                     .thenReturn(EMPTY_VALIDATOR);
-            String name = file.toUri().toString();
+            String name = file.getParent().toString();
             FilerException exception = new FilerException(String.format("Attempt to reopen a file for path /%s", name));
             System.setProperty("os.name", "Windows");
             JaormProcessor processor = new JaormProcessor() {{
@@ -134,12 +134,11 @@ class JaormProcessorTest {
                         .thenReturn(filer);
                 Mockito.when(filer.createResource(Mockito.any(), Mockito.anyString(), Mockito.any()))
                         .thenThrow(exception);
-                Mockito.when(object.toUri())
-                        .thenReturn(file.toUri());
             }};
             boolean result = processor.process(Collections.emptySet(), Mockito.mock(RoundEnvironment.class));
             Assertions.assertTrue(result);
-            Assertions.assertFalse(Files.exists(file));
+            Assertions.assertTrue(Files.exists(file));
+            Files.deleteIfExists(file);
         }
     }
 }
