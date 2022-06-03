@@ -50,13 +50,13 @@ class EntityRecordDaoTest {
 
     @Test
     void should_throw_exception_for_unsupported_read_all() {
-        Assertions.assertThrows(UnsupportedOperationException.class,
+        Assertions.assertThrows(UnsupportedOperationException.class, // NOSONAR
                 () -> EntityRecordDao.getInstance(Object.class).readAll());
     }
 
     @Test
     void should_throw_exception_for_unsupported_read_page() {
-        Assertions.assertThrows(UnsupportedOperationException.class,
+        Assertions.assertThrows(UnsupportedOperationException.class, // NOSONAR
                 () -> EntityRecordDao.getInstance(Object.class).page(1, 10, Collections.emptyList()));
     }
 
