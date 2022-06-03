@@ -14,6 +14,7 @@ import io.github.ulisse1996.jaorm.integration.test.query.RoleDAO;
 import io.github.ulisse1996.jaorm.integration.test.query.UserDAO;
 import io.github.ulisse1996.jaorm.integration.test.query.UserRoleDAO;
 import io.github.ulisse1996.jaorm.spi.QueriesService;
+import io.github.ulisse1996.jaorm.vendor.AnsiFunctions;
 import io.github.ulisse1996.jaorm.vendor.VendorSpecific;
 import io.github.ulisse1996.jaorm.vendor.specific.LimitOffsetSpecific;
 import org.junit.jupiter.api.Assertions;
@@ -349,7 +350,7 @@ class QueryBuilderIT extends AbstractIT {
                         })
                         .build()
         ).where(UserColumns.USER_ID).eq(2)
-                .andWhere(UserColumns.USER_NAME).eq(null).or(UserColumns.USER_NAME).eq(null);
+                .andWhere(UserColumns.USER_NAME).eq((String) null).or(UserColumns.USER_NAME).eq((String) null);
         SelectedImpl<User, ?> impl = (SelectedImpl<User, ?>) eq;
 
         Assertions.assertEquals( "SELECT USER_ENTITY.USER_ID, USER_ENTITY.USER_NAME, USER_ENTITY.DEPARTMENT_ID FROM USER_ENTITY WHERE (USER_ENTITY.USER_ID = ?)", impl.asString(false));
@@ -396,6 +397,28 @@ class QueryBuilderIT extends AbstractIT {
         Optional<Page<User>> optionalUserPage = userPage.getNext();
         Assertions.assertTrue(optionalUserPage.isPresent());
         Assertions.assertEquals(2, optionalUserPage.get().getData().size());
+    }
+
+    @ParameterizedTest
+    @MethodSource("getSqlTests")
+    void should_update_using_function(HSQLDBProvider.DatabaseType type, String initSql) {
+        setDataSource(type, initSql);
+
+        User user = new User();
+        user.setId(10);
+        user.setName("name");
+
+        UserDAO userDAO = QueriesService.getInstance().getQuery(UserDAO.class);
+
+        userDAO.insert(user);
+
+        QueryBuilder.update(User.class)
+                .setting(UserColumns.USER_NAME).usingFunction(AnsiFunctions.upper(UserColumns.USER_NAME))
+                .execute();
+
+        Optional<User> optUser = userDAO.readOpt(user);
+        Assertions.assertTrue(optUser.isPresent());
+        Assertions.assertEquals(user.getName().toUpperCase(), optUser.get().getName());
     }
 
     private User createUser(int i) {

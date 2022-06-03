@@ -2,6 +2,7 @@ package io.github.ulisse1996.jaorm.integration.test;
 
 import io.github.ulisse1996.jaorm.BaseDao;
 import io.github.ulisse1996.jaorm.entity.EntityComparator;
+import io.github.ulisse1996.jaorm.entity.EntityDelegate;
 import io.github.ulisse1996.jaorm.entity.Result;
 import io.github.ulisse1996.jaorm.exception.JaormSqlException;
 import io.github.ulisse1996.jaorm.exception.JaormValidationException;
@@ -477,6 +478,33 @@ class CoreIT extends AbstractIT {
             Assertions.assertEquals(BigDecimal.ONE, student.getSchoolId());
             Assertions.assertEquals("MY_NAME", student.getName());
         }
+    }
+
+    @ParameterizedTest
+    @MethodSource("getSqlTests")
+    void should_use_crud_operations_with_active_record(HSQLDBProvider.DatabaseType type, String initSql) {
+        setDataSource(type, initSql);
+
+        Activity activity = new Activity();
+        activity.setId(BigDecimal.ONE);
+        activity.setName("NAME");
+        activity.setDate(new Date());
+        activity = activity.insert();
+
+        Assertions.assertTrue(activity instanceof EntityDelegate);
+
+        Date current = activity.getDate();
+
+        activity.setDate(new Date());
+        activity = activity.update();
+
+        Assertions.assertNotEquals(current, activity.getDate());
+
+        activity.delete();
+
+        Assertions.assertFalse(
+                activity.readOpt().isPresent()
+        );
     }
 
     private List<UserRole> createRoles(int times, int ref) {

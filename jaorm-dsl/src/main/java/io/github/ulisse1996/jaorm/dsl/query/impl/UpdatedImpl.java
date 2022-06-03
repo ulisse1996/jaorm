@@ -15,6 +15,7 @@ import io.github.ulisse1996.jaorm.vendor.VendorFunction;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -57,8 +58,11 @@ public class UpdatedImpl<T> implements Updated<T>, UpdatedExecutable<T>, Updated
     public void execute() {
         String sql = asString();
         List<SqlParameter> params = Stream.concat(
-                this.setters.stream().map(SetterImpl::getValue).map(SqlParameter::new),
-                this.wheres.stream().flatMap(AbstractWhereImpl::getParameters)
+                this.setters.stream()
+                        .map(SetterImpl::getValue)
+                        .filter(Objects::nonNull)
+                        .map(SqlParameter::new),
+                this.wheres.stream().flatMap(m -> m.getParameters(this.config.isCaseInsensitive()))
         ).collect(Collectors.toList());
         QueryRunner.getSimple().update(sql, params);
     }
@@ -74,7 +78,11 @@ public class UpdatedImpl<T> implements Updated<T>, UpdatedExecutable<T>, Updated
     private String formatSettings() {
         return this.setters
                 .stream()
-                .map(s -> String.format("%s.%s = ?", this.table, s.getColumn().getName()))
+                .map(s -> String.format("%s.%s = %s",
+                        this.table,
+                        s.getColumn().getName(),
+                        Optional.ofNullable(s.getFunction()).map(v -> v.apply(this.table)).orElse("?")
+                ))
                 .collect(Collectors.joining(", "));
     }
 

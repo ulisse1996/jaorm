@@ -11,6 +11,7 @@ import io.github.ulisse1996.jaorm.spi.DelegatesService;
 import io.github.ulisse1996.jaorm.spi.QueryRunner;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -44,11 +45,11 @@ public class InsertedImpl<T> implements Inserted<T>, InsertedExecutable<T> {
     @Override
     @SuppressWarnings("unchecked")
     public void execute() {
-        boolean hasAllKeys = this.inserting
+        boolean hasAllKeys = new HashSet<>(this.inserting
                 .stream()
                 .map(InsertingImpl::getColumn)
                 .map(SqlColumn::getName)
-                .collect(Collectors.toList())
+                .collect(Collectors.toList()))
                 .containsAll(this.keyColumns);
         if (!hasAllKeys) {
             throw new IllegalArgumentException(String.format("Missing insert keys %s", getMissingKeys()));

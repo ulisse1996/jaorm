@@ -93,7 +93,7 @@ public class SelectedImpl<T, N> implements Selected<T>, SelectedWhere<T>, Select
     }
 
     public List<SqlParameter> getParameters() {
-        return this.wheres.stream().flatMap(WhereImpl::getParameters)
+        return this.wheres.stream().flatMap(m -> m.getParameters(this.caseInsensitiveLike))
                 .collect(Collectors.toList());
     }
 
