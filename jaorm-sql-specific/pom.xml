@@ -21,6 +21,7 @@
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
+        <sonar.cpd.exclusions>**/jaorm/vendor/**/functions/*</sonar.cpd.exclusions>
     </properties>
 
     <build>
