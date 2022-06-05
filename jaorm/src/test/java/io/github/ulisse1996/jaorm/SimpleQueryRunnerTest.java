@@ -5,17 +5,21 @@ import io.github.ulisse1996.jaorm.entity.sql.DataSourceProvider;
 import io.github.ulisse1996.jaorm.entity.sql.SqlParameter;
 import io.github.ulisse1996.jaorm.exception.JaormSqlException;
 import io.github.ulisse1996.jaorm.mapping.TableRow;
+import io.github.ulisse1996.jaorm.spi.ConverterService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import javax.sql.DataSource;
 import java.sql.*;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @ExtendWith(MockitoExtension.class)
@@ -28,6 +32,7 @@ class SimpleQueryRunnerTest {
     @Mock private PreparedStatement preparedStatement;
     @Mock private ResultSet resultSet;
     @Mock private ResultSetMetaData metaData;
+    @Mock private ConverterService converterService;
 
     @BeforeEach
     public void beforeEach() {
@@ -36,7 +41,11 @@ class SimpleQueryRunnerTest {
 
     @Test
     void should_return_false_for_not_compatible_class() {
-        Assertions.assertFalse(testSubject.isCompatible(Object.class));
+        try (MockedStatic<ConverterService> mk = Mockito.mockStatic(ConverterService.class)) {
+            mk.when(ConverterService::getInstance)
+                    .thenReturn(converterService);
+            Assertions.assertFalse(testSubject.isCompatible(Object.class));
+        }
     }
 
     @Test

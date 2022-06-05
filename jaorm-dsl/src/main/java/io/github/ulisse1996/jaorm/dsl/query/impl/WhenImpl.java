@@ -97,8 +97,10 @@ public class WhenImpl {
                 builder.append(operation.getValue()).append("?");
                 break;
             case IS_NULL:
+                builder.append(" IS NULL");
+                break;
             case IS_NOT_NULL:
-                builder.append(operation.getValue());
+                builder.append(" IS NOT NULL");
                 break;
             case IN:
             case NOT_IN:

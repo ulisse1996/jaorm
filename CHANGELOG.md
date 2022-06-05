@@ -4,6 +4,8 @@
 - Feature: DSL Supports for Standard ANSI SQL Functions
 - Feature: DSL Case
 - Feature: DSL Update with VendorFunction
+- Feature: Entity Active Record using EntityRecord
+- Feature: Projection Columns
 
 ## 1.3.1
 - Bugfix: Fix wrong path provider for Windows with IntelliJ Wrapped API

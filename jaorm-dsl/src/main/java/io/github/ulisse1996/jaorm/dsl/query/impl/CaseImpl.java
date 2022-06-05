@@ -170,15 +170,14 @@ public class CaseImpl<L, R> implements Case<R>, CaseElse<R>, CaseEnd<R>, CaseThe
     @Override
     public CaseThen<R> in(Iterable<L> iterable) {
         Checker.assertNotNull(iterable, "iterable");
-        setOperation(Operation.EQUALS, null, null);
-        this.lastWhen.setValues(iterable);
+        setOperation(Operation.IN, null, iterable);
         return this;
     }
 
     @Override
     public CaseThen<R> notIn(Iterable<L> iterable) {
         Checker.assertNotNull(iterable, "iterable");
-        setOperation(Operation.EQUALS, null, iterable);
+        setOperation(Operation.NOT_IN, null, iterable);
         return this;
     }
 

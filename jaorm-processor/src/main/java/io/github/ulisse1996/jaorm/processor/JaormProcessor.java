@@ -16,6 +16,7 @@ import javax.tools.StandardLocation;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
@@ -46,8 +47,9 @@ public class JaormProcessor extends AbstractProcessor {
                 if (isTestInMemory(uri.toString())) {
                     return;
                 }
-                ConfigHolder.setServices(Paths.get(uri).getParent());
-                Files.deleteIfExists(Paths.get(uri));
+                Path path = Paths.get(uri);
+                ConfigHolder.setServices(path.getParent());
+                Files.deleteIfExists(path);
             }
         } catch (IOException ex) {
             throw new ProcessorException("Can't init services folder", ex);

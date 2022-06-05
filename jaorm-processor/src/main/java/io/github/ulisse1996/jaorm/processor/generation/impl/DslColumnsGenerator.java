@@ -3,6 +3,7 @@ package io.github.ulisse1996.jaorm.processor.generation.impl;
 import com.squareup.javapoet.*;
 import io.github.ulisse1996.jaorm.annotation.Column;
 import io.github.ulisse1996.jaorm.annotation.Converter;
+import io.github.ulisse1996.jaorm.annotation.Projection;
 import io.github.ulisse1996.jaorm.annotation.Table;
 import io.github.ulisse1996.jaorm.entity.SqlColumn;
 import io.github.ulisse1996.jaorm.processor.generation.Generator;
@@ -19,6 +20,7 @@ import javax.lang.model.type.TypeMirror;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class DslColumnsGenerator extends Generator {
 
@@ -59,9 +61,10 @@ public class DslColumnsGenerator extends Generator {
 
     @Override
     public void generate(RoundEnvironment roundEnvironment) {
-        List<TypeElement> entities = roundEnvironment.getElementsAnnotatedWith(Table.class)
-                .stream()
-                .map(TypeElement.class::cast)
+        List<TypeElement> entities = Stream.concat(
+                    roundEnvironment.getElementsAnnotatedWith(Table.class).stream(),
+                    roundEnvironment.getElementsAnnotatedWith(Projection.class).stream()
+                ).map(TypeElement.class::cast)
                 .collect(Collectors.toList());
         if (!entities.isEmpty()) {
             entities.forEach(this::generate);
