@@ -1,13 +1,11 @@
 package io.github.ulisse1996.jaorm.dsl.query;
 
 import io.github.ulisse1996.jaorm.dsl.config.QueryConfig;
+import io.github.ulisse1996.jaorm.dsl.query.common.Case;
 import io.github.ulisse1996.jaorm.dsl.query.common.Inserted;
 import io.github.ulisse1996.jaorm.dsl.query.common.Selected;
 import io.github.ulisse1996.jaorm.dsl.query.common.Updated;
-import io.github.ulisse1996.jaorm.dsl.query.impl.InsertedImpl;
-import io.github.ulisse1996.jaorm.dsl.query.impl.SelectedImpl;
-import io.github.ulisse1996.jaorm.dsl.query.impl.SubQueryImpl;
-import io.github.ulisse1996.jaorm.dsl.query.impl.UpdatedImpl;
+import io.github.ulisse1996.jaorm.dsl.query.impl.*;
 import io.github.ulisse1996.jaorm.entity.SqlColumn;
 
 import java.util.Objects;
@@ -53,5 +51,9 @@ public class QueryBuilder {
     public static <T> Updated<T> update(Class<T> klass, QueryConfig queryConfig) {
         Objects.requireNonNull(klass, ENTITY_CLASS_CAN_T_BE_NULL);
         return new UpdatedImpl<>(klass, queryConfig);
+    }
+
+    public static <R> Case<R> usingCase() {
+        return new CaseImpl<>();
     }
 }

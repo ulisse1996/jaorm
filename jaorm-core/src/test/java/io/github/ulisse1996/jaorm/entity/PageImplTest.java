@@ -14,6 +14,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.lang.reflect.Field;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -141,7 +142,11 @@ class PageImplTest {
     void should_fetch_next_page_data() {
         List<Object> data = Collections.nCopies(10, new Object());
         Page<Object> page = new PageImpl<>(0, 10, 15, Object.class,
-                Collections.singletonList(Sort.asc(SqlColumn.instance(Object.class, "COL", String.class))));
+                Arrays.asList(
+                    Sort.asc(SqlColumn.instance(Object.class, "COL", String.class)),
+                    Sort.desc(SqlColumn.instance(Object.class, "COL_2", String.class))
+                )
+        );
         page = page.getNext()
                 .orElseThrow(() -> new IllegalArgumentException("Can't find page !"));
         try (MockedStatic<DelegatesService> mk = Mockito.mockStatic(DelegatesService.class);

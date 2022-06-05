@@ -18,16 +18,13 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.function.Executable;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentMatcher;
-import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -37,18 +34,8 @@ import java.util.Objects;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-@ExtendWith(MockitoExtension.class)
-class QueryBuilderTest {
+class QueryBuilderTest extends AbstractQueryBuilderTest {
 
-    private static final SqlColumn<MyEntity, Integer> COL_1 = SqlColumn.instance(MyEntity.class, "COL1", Integer.class);
-    private static final SqlColumn<MyEntity, String> COL_2 = SqlColumn.instance(MyEntity.class, "COL2", String.class);
-    private static final SqlColumn<MyEntityJoin, Integer> COL_3 = SqlColumn.instance(MyEntityJoin.class, "COL3", Integer.class);
-    private static final SqlColumn<MyEntityJoin, String> COL_4 = SqlColumn.instance(MyEntityJoin.class, "COL4", String.class);
-    private static final SqlColumn<MySecondEntityJoin, Integer> COL_5 = SqlColumn.instance(MySecondEntityJoin.class, "COL5", Integer.class);
-    private static final SqlColumn<MySecondEntityJoin, String> COL_6 = SqlColumn.instance(MySecondEntityJoin.class, "COL6", String.class);
-
-    @Mock private QueryRunner queryRunner;
-    @Mock private QueryRunner simpleRunner;
     private MockedStatic<VendorSpecific> mkVendor;
 
     @BeforeEach
@@ -260,7 +247,7 @@ class QueryBuilderTest {
 
             QueryBuilder.select(MyEntity.class, config)
                     .join(MyEntityJoin.class, "A").on(COL_3).eq(COL_1)
-                    .where(COL_1).eq(null)
+                    .where(COL_1).eq((Integer) null)
                     .andWhere(COL_2).eq("Hello")
                     .read();
 
@@ -429,25 +416,22 @@ class QueryBuilderTest {
         });
     }
 
-    private void withSimpleDelegate(Executable executable) throws Throwable {
-        try (MockedStatic<DelegatesService> mk = Mockito.mockStatic(DelegatesService.class);
-             MockedStatic<QueryRunner> mkQuery = Mockito.mockStatic(QueryRunner.class)) {
-            EntityDelegate<?> delegate = Mockito.mock(EntityDelegate.class);
-            DelegatesService delegatesService = Mockito.mock(DelegatesService.class);
-            mk.when(DelegatesService::getInstance)
-                    .thenReturn(delegatesService);
-            mkQuery.when(() -> QueryRunner.getInstance(Mockito.any()))
-                    .thenReturn(queryRunner);
-            mkQuery.when(QueryRunner::getSimple)
-                    .thenReturn(simpleRunner);
-            Mockito.when(delegatesService.searchDelegate(MyEntity.class))
-                    .thenReturn(() -> delegate);
-            Mockito.when(delegate.getTable())
-                    .thenReturn("MY_TABLE");
-            Mockito.when(delegate.getSelectables())
-                    .thenReturn(new String[] { "COL1", "COL2" });
-            executable.execute();
-        }
+    @Test
+    void should_create_select_with_where_case() throws Throwable {
+        withSimpleDelegate(() -> {
+            QueryBuilder.select(MyEntity.class)
+                    .where(COL_1).eq(
+                            QueryBuilder.<Integer>usingCase()
+                                    .when(COL_2).eq("3").then(COL_1)
+                                    .when(COL_1).eq(3).then(4)
+                                    .orElse(5)
+                    ).read();
+
+            String sql = "SELECT MY_TABLE.COL1, MY_TABLE.COL2 FROM MY_TABLE WHERE (MY_TABLE.COL1 = CASE WHEN MY_TABLE.COL2 = ? THEN MY_TABLE.COL1 WHEN MY_TABLE.COL1 = ? THEN ? ELSE ? END)";
+
+            Mockito.verify(queryRunner, Mockito.times(1))
+                    .read(Mockito.eq(MyEntity.class), Mockito.eq(sql), Mockito.argThat(matcherList(4)));
+        });
     }
 
     private void withDelegateAndJoin(Executable executable) throws Throwable {
@@ -505,20 +489,6 @@ class QueryBuilderTest {
                     .thenReturn("MY_SECOND_TABLE_JOIN");
             executable.execute();
         }
-    }
-
-    private <T> ArgumentMatcher<T> matcherList(int size) {
-        return new ArgumentMatcher<T>() {
-            @Override
-            public boolean matches(T argument) {
-                return argument instanceof List && ((List<?>) argument).size() == size;
-            }
-
-            @Override
-            public String toString() {
-                return "Match " + size + " elements count";
-            }
-        };
     }
 
     private static Stream<Arguments> getJoinSql() {
@@ -889,10 +859,6 @@ class QueryBuilderTest {
                 )
         );
     }
-
-    private static class MyEntity {}
-    private static class MyEntityJoin {}
-    private static class MySecondEntityJoin {}
 
     private static final class LimitOffsetStandard implements LimitOffsetSpecific {
 

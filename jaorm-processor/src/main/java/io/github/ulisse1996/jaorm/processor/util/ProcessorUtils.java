@@ -509,6 +509,7 @@ public class ProcessorUtils {
                 .filter(ExecutableElement.class::isInstance)
                 .map(ExecutableElement.class::cast)
                 .filter(e -> !e.getKind().equals(ElementKind.CONSTRUCTOR))
+                .filter(e -> !e.isDefault())
                 .collect(Collectors.toList());
         methods.addAll(ProcessorUtils.appendExternalGeneratedMethods(processingEnvironment, element, elements));
         return methods;

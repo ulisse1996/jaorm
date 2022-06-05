@@ -1,6 +1,7 @@
 package io.github.ulisse1996.jaorm.dsl.query.impl;
 
 import io.github.ulisse1996.jaorm.dsl.config.WhereChecker;
+import io.github.ulisse1996.jaorm.dsl.query.common.intermediate.CaseEnd;
 import io.github.ulisse1996.jaorm.dsl.query.common.trait.WithSubQuerySupport;
 import io.github.ulisse1996.jaorm.dsl.query.enums.LikeType;
 import io.github.ulisse1996.jaorm.dsl.query.enums.Operation;
@@ -30,6 +31,7 @@ public abstract class AbstractWhereImpl<T, R> {
     private final String alias;
     protected Iterable<R> iterable;
     protected WithSubQuerySupport subQuery;
+    protected CaseEnd<R> caseEnd;
 
     protected AbstractWhereImpl(SqlColumn<?, R> column, boolean or, String alias) {
         this.column = column;
@@ -58,6 +60,12 @@ public abstract class AbstractWhereImpl<T, R> {
         this.valid = this.getChecker().isValidWhere(this.column, operation, value);
         this.op = operation;
         this.value = value;
+        return parent;
+    }
+
+    protected <M> M operation(CaseEnd<R> caseEnd, Operation operation, M parent) {
+        this.op = operation;
+        this.caseEnd = caseEnd;
         return parent;
     }
 
@@ -125,7 +133,11 @@ public abstract class AbstractWhereImpl<T, R> {
             case GREATER_THAN:
             case LESS_EQUALS:
             case GREATER_EQUALS:
-                return clause.op.getValue() + "?";
+                if (caseEnd != null) {
+                    return clause.op.getValue() + caseEnd.doBuild(this.getTable(), caseInsensitiveLike).getKey();
+                } else {
+                    return clause.op.getValue() + "?";
+                }
             case IS_NULL:
                 return " IS NULL";
             case IS_NOT_NULL:
@@ -167,7 +179,7 @@ public abstract class AbstractWhereImpl<T, R> {
         }
     }
 
-    public Stream<SqlParameter> getParameters() {
+    public Stream<SqlParameter> getParameters(boolean caseInsensitiveLike) {
         if (!valid) {
             return Stream.empty();
         }
@@ -178,10 +190,12 @@ public abstract class AbstractWhereImpl<T, R> {
             parameters.addAll(StreamSupport.stream(iterable.spliterator(), false).map(SqlParameter::new).collect(Collectors.toList()));
         } else if (subQuery != null) {
             parameters.addAll(this.subQuery.getParameters());
+        } else if (caseEnd != null) {
+            parameters.addAll(this.caseEnd.doBuild(this.getTable(), caseInsensitiveLike).getValue());
         }
         return Stream.concat(
                 parameters.stream(),
-                links.stream().flatMap(AbstractWhereImpl::getParameters)
+                links.stream().flatMap(m -> m.getParameters(caseInsensitiveLike))
         );
     }
 

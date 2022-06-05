@@ -3,6 +3,7 @@ package io.github.ulisse1996.jaorm.dsl.query.impl;
 import io.github.ulisse1996.jaorm.dsl.config.WhereChecker;
 import io.github.ulisse1996.jaorm.dsl.query.common.Selected;
 import io.github.ulisse1996.jaorm.dsl.query.common.SelectedWhere;
+import io.github.ulisse1996.jaorm.dsl.query.common.intermediate.CaseEnd;
 import io.github.ulisse1996.jaorm.dsl.query.common.intermediate.IntermediateWhere;
 import io.github.ulisse1996.jaorm.dsl.query.enums.LikeType;
 import io.github.ulisse1996.jaorm.dsl.query.enums.Operation;
@@ -163,4 +164,63 @@ public class WhereImpl<T, R> extends AbstractWhereImpl<T, R> implements Intermed
         return this.parent.getChecker();
     }
 
+    @Override
+    public SelectedWhere<T> eq(CaseEnd<R> val) {
+        return operation(val, Operation.EQUALS, this.parent);
+    }
+
+    @Override
+    public SelectedWhere<T> ne(CaseEnd<R> val) {
+        return operation(val, Operation.NOT_EQUALS, this.parent);
+    }
+
+    @Override
+    public SelectedWhere<T> lt(CaseEnd<R> val) {
+        return operation(val, Operation.LESS_THAN, this.parent);
+    }
+
+    @Override
+    public SelectedWhere<T> gt(CaseEnd<R> val) {
+        return operation(val, Operation.GREATER_THAN, this.parent);
+    }
+
+    @Override
+    public SelectedWhere<T> le(CaseEnd<R> val) {
+        return operation(val, Operation.LESS_EQUALS, this.parent);
+    }
+
+    @Override
+    public SelectedWhere<T> ge(CaseEnd<R> val) {
+        return operation(val, Operation.GREATER_EQUALS, this.parent);
+    }
+
+    @Override
+    public SelectedWhere<T> equalsTo(CaseEnd<R> val) {
+        return operation(val, Operation.EQUALS, this.parent);
+    }
+
+    @Override
+    public SelectedWhere<T> notEqualsTo(CaseEnd<R> val) {
+        return operation(val, Operation.NOT_EQUALS, this.parent);
+    }
+
+    @Override
+    public SelectedWhere<T> lessThan(CaseEnd<R> val) {
+        return operation(val, Operation.LESS_THAN, this.parent);
+    }
+
+    @Override
+    public SelectedWhere<T> greaterThan(CaseEnd<R> val) {
+        return operation(val, Operation.GREATER_THAN, this.parent);
+    }
+
+    @Override
+    public SelectedWhere<T> lessOrEqualsTo(CaseEnd<R> val) {
+        return operation(val, Operation.LESS_EQUALS, this.parent);
+    }
+
+    @Override
+    public SelectedWhere<T> greaterOrEqualsTo(CaseEnd<R> val) {
+        return operation(val, Operation.GREATER_EQUALS, this.parent);
+    }
 }

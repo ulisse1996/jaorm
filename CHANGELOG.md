@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 1.4.0
+- Feature: DSL Supports for Standard ANSI SQL Functions
+- Feature: DSL Case
+- Feature: DSL Update with VendorFunction
+- Feature: Entity Active Record using EntityRecord
+- Feature: Projection Columns
+
 ## 1.3.1
 - Bugfix: Fix wrong path provider for Windows with IntelliJ Wrapped API
 
@@ -8,7 +15,7 @@
 - Removed: Removed Tables, use Jaorm DSL as alternative read
 
 ## 1.2.0
-- Feature: Page support for Base Dao and Query Builder
+- Feature: Page supports for Base Dao and Query Builder
 
 ## 1.1.1
 - Bugfix: Remove query load for cascade impl
