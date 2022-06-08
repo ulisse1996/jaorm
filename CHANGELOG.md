@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 1.4.1
+- Bugfix: Fix recursive read of valid elements from elements
+
 ## 1.4.0
 - Feature: DSL Supports for Standard ANSI SQL Functions
 - Feature: DSL Case
