@@ -838,7 +838,8 @@ class ProcessorUtilsTest {
         Mockito.when(environment.getTypeUtils())
                 .thenReturn(types);
         Mockito.when(types.directSupertypes(Mockito.any()))
-                .then(invocation -> Arrays.asList(objectMirror, interfaceMirror, superMirror));
+                .then(invocation -> Arrays.asList(objectMirror, interfaceMirror, superMirror))
+                .thenReturn(Collections.emptyList());
         Mockito.when(elements.getTypeElement("java.lang.Object"))
                 .thenReturn(objectType);
         Mockito.when(elements.getTypeElement("MyInterface"))

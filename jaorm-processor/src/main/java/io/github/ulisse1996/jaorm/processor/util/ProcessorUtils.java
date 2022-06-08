@@ -378,6 +378,7 @@ public class ProcessorUtils {
             }
             List<Element> allMembers = (List<Element>) processingEnvironment.getElementUtils().getAllMembers(typeElement);
             elements.addAll(allMembers);
+            elements.addAll(getAllElements(processingEnvironment, typeElement));
         }
         return elements.stream()
                 .filter(distinctByKey(Element::getSimpleName))
