@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 1.5.0
+- Feature: Single/Double/Triple Key DAO
+- Bugfix: Fix recursive search for BaseDAO
+
 ## 1.4.1
 - Bugfix: Fix recursive read of valid elements from elements
 

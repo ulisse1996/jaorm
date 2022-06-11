@@ -5,29 +5,27 @@ import io.github.ulisse1996.jaorm.Arguments;
 import io.github.ulisse1996.jaorm.BaseDao;
 import io.github.ulisse1996.jaorm.DaoImplementation;
 import io.github.ulisse1996.jaorm.Sort;
-import io.github.ulisse1996.jaorm.annotation.Dao;
-import io.github.ulisse1996.jaorm.annotation.Projection;
-import io.github.ulisse1996.jaorm.annotation.Query;
-import io.github.ulisse1996.jaorm.annotation.Table;
+import io.github.ulisse1996.jaorm.annotation.*;
 import io.github.ulisse1996.jaorm.cache.Cacheable;
 import io.github.ulisse1996.jaorm.entity.Page;
 import io.github.ulisse1996.jaorm.entity.PageImpl;
 import io.github.ulisse1996.jaorm.entity.sql.SqlParameter;
+import io.github.ulisse1996.jaorm.processor.exception.ProcessorException;
 import io.github.ulisse1996.jaorm.processor.generation.Generator;
 import io.github.ulisse1996.jaorm.processor.strategy.QueryStrategy;
 import io.github.ulisse1996.jaorm.processor.util.GeneratedFile;
 import io.github.ulisse1996.jaorm.processor.util.ProcessorUtils;
 import io.github.ulisse1996.jaorm.processor.util.ReturnTypeDefinition;
+import io.github.ulisse1996.jaorm.specialization.DoubleKeyDao;
+import io.github.ulisse1996.jaorm.specialization.SingleKeyDao;
+import io.github.ulisse1996.jaorm.specialization.TripleKeyDao;
 import io.github.ulisse1996.jaorm.spi.DelegatesService;
 import io.github.ulisse1996.jaorm.spi.QueriesService;
 import io.github.ulisse1996.jaorm.spi.QueryRunner;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
-import javax.lang.model.element.Element;
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.element.Modifier;
-import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.*;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -63,7 +61,7 @@ public class QueryGenerator extends Generator {
 
             List<AnnotationSpec> annotations = getExtraAnnotations(query);
 
-            if (ProcessorUtils.isBaseDao(query)) {
+            if (ProcessorUtils.isBaseDao(processingEnvironment, query)) {
                 methods.addAll(buildBaseDao(query));
             }
 
@@ -112,8 +110,8 @@ public class QueryGenerator extends Generator {
                 .addStatement(MAP_FORMAT, queriesMap(), HashMap.class);
         types.forEach(type -> {
             TypeElement baseType;
-            if (ProcessorUtils.isBaseDao(type)) {
-                baseType = processingEnvironment.getElementUtils().getTypeElement(ProcessorUtils.getBaseDaoGeneric(type));
+            if (ProcessorUtils.isBaseDao(processingEnvironment, type)) {
+                baseType = processingEnvironment.getElementUtils().getTypeElement(ProcessorUtils.getBaseDaoGeneric(processingEnvironment, type));
             } else {
                 baseType = processingEnvironment.getElementUtils().getTypeElement(Object.class.getName());
             }
@@ -136,8 +134,11 @@ public class QueryGenerator extends Generator {
     }
 
     private Collection<MethodSpec> buildBaseDao(TypeElement query) {
-        String realClass = ProcessorUtils.getBaseDaoGeneric(query);
+        String realClass = ProcessorUtils.getBaseDaoGeneric(processingEnvironment, query);
         TypeElement element = processingEnvironment.getElementUtils().getTypeElement(realClass);
+        boolean singleKey = checkSubTypeDao(query, SingleKeyDao.class);
+        boolean doubleKey = checkSubTypeDao(query, DoubleKeyDao.class);
+        boolean tripleKey = checkSubTypeDao(query, TripleKeyDao.class);
         Table table = element.getAnnotation(Table.class);
         ClassName className = ClassName.bestGuess(realClass);
         MethodSpec read = resolveParameter(MethodSpec.overriding(ProcessorUtils.getMethod(processingEnvironment, "read", BaseDao.class))
@@ -161,7 +162,123 @@ public class QueryGenerator extends Generator {
                 .addStatement("long count = $T.getSimple().read(Long.class, $S, $T.emptyList())", QueryRunner.class, String.format(COUNT_SQL, table.name()), Collections.class)
                 .addStatement("return count > 0 ? new $T<$T>(arg0, arg1, count, $T.class, arg2) : $T.empty()", PageImpl.class, className, className, Page.class);
         page.parameters.set(2, getSortsType(className)); // Fix generics override
-        return Stream.of(read, readOpt, readAll, page.build()).collect(Collectors.toList());
+
+        List<MethodSpec> specializations = new ArrayList<>();
+        if (singleKey) {
+            specializations.addAll(buildSingleKeyDao(element));
+        } else if (doubleKey || tripleKey) {
+            specializations.addAll(buildMultipleKeyDao(element));
+        }
+
+        List<MethodSpec> gens = Stream.of(read, readOpt, readAll, page.build())
+                .collect(Collectors.toList());
+        gens.addAll(specializations);
+        return gens;
+    }
+
+    private Collection<MethodSpec> buildMultipleKeyDao(TypeElement element) {
+        List<VariableElement> ids =  ProcessorUtils.getAllValidElements(this.processingEnvironment, element)
+                .stream()
+                .filter(el -> el.getAnnotation(Id.class) != null)
+                .map(VariableElement.class::cast)
+
+                // We can use source order as stated in Element docs, but a custom sorting is
+                // preferred for avoid conflicts caused by source refactoring when one or more parameters
+                // have same Type
+                .sorted(Comparator.comparing(v -> v.getSimpleName().toString()))
+                .collect(Collectors.toList());
+
+        MethodSpec.Builder read = MethodSpec.methodBuilder("readByKeys")
+                .addModifiers(Modifier.PUBLIC)
+                .addAnnotation(Override.class)
+                .returns(TypeName.get(element.asType()))
+                .addStatement("$T entity = new $T()", element, element);
+
+        MethodSpec.Builder readOpt = MethodSpec.methodBuilder("readOptByKeys")
+                .addModifiers(Modifier.PUBLIC)
+                .addAnnotation(Override.class)
+                .returns(ParameterizedTypeName.get(ClassName.get(Optional.class), TypeName.get(element.asType())))
+                .addStatement("$T entity = new $T()", element, element);
+
+        MethodSpec.Builder delete = MethodSpec.methodBuilder("deleteByKeys")
+                .addModifiers(Modifier.PUBLIC)
+                .addAnnotation(Override.class)
+                .returns(TypeName.INT)
+                .addStatement("$T entity = new $T()", element, element);
+
+        for (VariableElement id : ids) {
+            ExecutableElement setter = ProcessorUtils.findSetter(processingEnvironment, element, id.getSimpleName());
+            TypeName paramType = TypeName.get(id.asType());
+            if (paramType.isPrimitive()) {
+                paramType = paramType.box(); // We need to match Generic Type for overriding
+            }
+
+            read.addParameter(paramType, id.getSimpleName().toString());
+            read.addStatement("entity.$L($L)", setter.getSimpleName(), id.getSimpleName().toString());
+
+            readOpt.addParameter(paramType, id.getSimpleName().toString());
+            readOpt.addStatement("entity.$L($L)", setter.getSimpleName(), id.getSimpleName().toString());
+
+            delete.addParameter(paramType, id.getSimpleName().toString());
+            delete.addStatement("entity.$L($L)", setter.getSimpleName(), id.getSimpleName().toString());
+        }
+
+        read.addStatement("return read(entity)");
+        readOpt.addStatement("return readOpt(entity)");
+        delete.addStatement("return delete(entity)");
+
+        return Arrays.asList(read.build(), readOpt.build(), delete.build());
+    }
+
+    private Collection<MethodSpec> buildSingleKeyDao(TypeElement element) {
+        VariableElement id = ProcessorUtils.getAllValidElements(this.processingEnvironment, element)
+                .stream()
+                .filter(el -> el.getAnnotation(Id.class) != null)
+                .map(VariableElement.class::cast)
+                .findFirst()
+                .orElseThrow(() -> new ProcessorException(String.format("Can't find Id from Entity %s", element)));
+        ExecutableElement setter = ProcessorUtils.findSetter(processingEnvironment, element, id.getSimpleName());
+
+        TypeName paramType = TypeName.get(id.asType());
+        if (paramType.isPrimitive()) {
+            paramType = paramType.box(); // We need to match Generic Type for overriding
+        }
+
+        MethodSpec read = MethodSpec.methodBuilder("readByKey")
+                .addModifiers(Modifier.PUBLIC)
+                .addAnnotation(Override.class)
+                .returns(TypeName.get(element.asType()))
+                .addParameter(paramType, id.getSimpleName().toString())
+                .addStatement("$T entity = new $T()", element, element)
+                .addStatement("entity.$L($L)", setter.getSimpleName(), id.getSimpleName().toString())
+                .addStatement("return read(entity)")
+                .build();
+
+        MethodSpec readOpt = MethodSpec.methodBuilder("readOptByKey")
+                .addModifiers(Modifier.PUBLIC)
+                .addAnnotation(Override.class)
+                .returns(ParameterizedTypeName.get(ClassName.get(Optional.class), TypeName.get(element.asType())))
+                .addParameter(paramType, id.getSimpleName().toString())
+                .addStatement("$T entity = new $T()", element, element)
+                .addStatement("entity.$L($L)", setter.getSimpleName(), id.getSimpleName().toString())
+                .addStatement("return readOpt(entity)")
+                .build();
+
+        MethodSpec delete = MethodSpec.methodBuilder("deleteByKey")
+                .addModifiers(Modifier.PUBLIC)
+                .addAnnotation(Override.class)
+                .returns(TypeName.INT)
+                .addParameter(paramType, id.getSimpleName().toString())
+                .addStatement("$T entity = new $T()", element, element)
+                .addStatement("entity.$L($L)", setter.getSimpleName(), id.getSimpleName().toString())
+                .addStatement("return delete(entity)")
+                .build();
+
+        return Arrays.asList(read, readOpt, delete);
+    }
+
+    private boolean checkSubTypeDao(TypeElement query, Class<?> type) {
+        return ProcessorUtils.isSubType(processingEnvironment, query, type);
     }
 
     private ParameterSpec getSortsType(ClassName className) {

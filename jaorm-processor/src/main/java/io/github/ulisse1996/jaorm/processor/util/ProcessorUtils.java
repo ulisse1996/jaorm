@@ -18,10 +18,7 @@ import io.github.ulisse1996.jaorm.processor.exception.ProcessorException;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.*;
-import javax.lang.model.type.MirroredTypeException;
-import javax.lang.model.type.NoType;
-import javax.lang.model.type.PrimitiveType;
-import javax.lang.model.type.TypeMirror;
+import javax.lang.model.type.*;
 import javax.tools.FileObject;
 import javax.tools.StandardLocation;
 import java.io.*;
@@ -317,28 +314,57 @@ public class ProcessorUtils {
                 .collect(Collectors.toList());
     }
 
-    public static boolean isBaseDao(TypeElement element) {
-        if (!element.getInterfaces().isEmpty()) {
-            for (TypeMirror typeMirror : element.getInterfaces()) {
-                if (typeMirror.toString().contains(BaseDao.class.getName())) {
-                    return true;
-                }
+    public static boolean isSubType(ProcessingEnvironment processingEnvironment, TypeElement element, Class<?> klass) {
+        return containsSubType(processingEnvironment, element, klass);
+    }
+
+    public static boolean isBaseDao(ProcessingEnvironment processingEnvironment, TypeElement element) {
+        return containsSubType(processingEnvironment, element, BaseDao.class);
+    }
+
+    private static boolean containsSubType(ProcessingEnvironment processingEnvironment, TypeElement element, Class<?> klass) {
+        for (TypeMirror typeMirror : element.getInterfaces()) {
+            if (typeMirror.toString().contains(klass.getName())) {
+                return true;
+            }
+
+            TypeElement typeElement = (TypeElement) processingEnvironment.getTypeUtils().asElement(typeMirror);
+            boolean isBaseDao = containsSubType(processingEnvironment, typeElement, klass);
+            if (isBaseDao) {
+                return true;
             }
         }
 
         return false;
     }
 
-    public static String getBaseDaoGeneric(TypeElement element) {
-        for (TypeMirror typeMirror : element.getInterfaces()) {
+    public static String getBaseDaoGeneric(ProcessingEnvironment processingEnvironment, TypeElement element) {
+        String res = findBaseDaoGeneric(processingEnvironment, element.asType());
+
+        if (res != null) {
+            return res;
+        }
+
+        throw new ProcessorException("Can't find generic type of BaseDao");
+    }
+
+    private static String findBaseDaoGeneric(ProcessingEnvironment processingEnvironment, TypeMirror type) {
+        for (TypeMirror typeMirror : processingEnvironment.getTypeUtils().directSupertypes(type)) {
             if (typeMirror.toString().contains(BaseDao.class.getName())) {
                 return typeMirror.toString().replace(BaseDao.class.getName(), "")
                         .replace(STARTING_GENERIC, "")
                         .replace(ENDING_GENERING, "");
             }
+
+            if (!Object.class.getName().equalsIgnoreCase(typeMirror.toString())) {
+                String res = findBaseDaoGeneric(processingEnvironment, typeMirror);
+                if (res != null) {
+                    return res;
+                }
+            }
         }
 
-        throw new ProcessorException("Can't find generic type of BaseDao");
+        return null;
     }
 
     public static List<Element> getAllValidElements(ProcessingEnvironment processingEnvironment,

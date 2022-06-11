@@ -6,6 +6,7 @@ import io.github.ulisse1996.jaorm.spi.EntityValidator;
 import javax.validation.ConstraintViolation;
 import javax.validation.Path;
 import javax.validation.Validation;
+import javax.validation.ValidatorFactory;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -20,12 +21,14 @@ public class EntityValidatorImpl extends EntityValidator {
 
     @Override
     public <R> List<ValidationResult<R>> validate(R entity) {
-        Set<ConstraintViolation<R>> result = Validation.buildDefaultValidatorFactory()
-                .getValidator()
-                .validate(entity);
-        return result.stream()
-                .map(this::toResult)
-                .collect(Collectors.toList());
+        try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
+            Set<ConstraintViolation<R>> result = factory
+                    .getValidator()
+                    .validate(entity);
+            return result.stream()
+                    .map(this::toResult)
+                    .collect(Collectors.toList());
+        }
     }
 
     private <R> ValidationResult<R> toResult(ConstraintViolation<R> r) {
