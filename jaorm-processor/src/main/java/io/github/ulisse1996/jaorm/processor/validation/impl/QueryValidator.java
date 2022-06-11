@@ -54,7 +54,7 @@ public class QueryValidator extends Validator {
                 long keys = findKeysNumber(entity.get());
                 if (keys != specific.parameters) {
                     throw new ProcessorException(String.format("Error on %s ! Required %d @Id but found %d in Entity",
-                            type, specific.parameters, keys));
+                            type.getSimpleName(), specific.parameters, keys));
                 }
             }
         }

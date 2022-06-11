@@ -36,6 +36,8 @@ public class QueryGenerator extends Generator {
     private static final String MAP_FORMAT = "$T values = new $T<>()";
     private static final String REQUIRED_NOT_NULL_STATEMENT = "$T.requireNonNull(arg0, $S)";
     private static final String ENTITY_CAN_T_BE_NULL = "Entity can't be null !";
+    protected static final String CREATE_ENTITY = "$T entity = new $T()";
+    protected static final String ENTITY_SETTER = "entity.$L($L)";
 
     public QueryGenerator(ProcessingEnvironment processingEnvironment) {
         super(processingEnvironment);
@@ -192,19 +194,19 @@ public class QueryGenerator extends Generator {
                 .addModifiers(Modifier.PUBLIC)
                 .addAnnotation(Override.class)
                 .returns(TypeName.get(element.asType()))
-                .addStatement("$T entity = new $T()", element, element);
+                .addStatement(CREATE_ENTITY, element, element);
 
         MethodSpec.Builder readOpt = MethodSpec.methodBuilder("readOptByKeys")
                 .addModifiers(Modifier.PUBLIC)
                 .addAnnotation(Override.class)
                 .returns(ParameterizedTypeName.get(ClassName.get(Optional.class), TypeName.get(element.asType())))
-                .addStatement("$T entity = new $T()", element, element);
+                .addStatement(CREATE_ENTITY, element, element);
 
         MethodSpec.Builder delete = MethodSpec.methodBuilder("deleteByKeys")
                 .addModifiers(Modifier.PUBLIC)
                 .addAnnotation(Override.class)
                 .returns(TypeName.INT)
-                .addStatement("$T entity = new $T()", element, element);
+                .addStatement(CREATE_ENTITY, element, element);
 
         for (VariableElement id : ids) {
             ExecutableElement setter = ProcessorUtils.findSetter(processingEnvironment, element, id.getSimpleName());
@@ -214,13 +216,13 @@ public class QueryGenerator extends Generator {
             }
 
             read.addParameter(paramType, id.getSimpleName().toString());
-            read.addStatement("entity.$L($L)", setter.getSimpleName(), id.getSimpleName().toString());
+            read.addStatement(ENTITY_SETTER, setter.getSimpleName(), id.getSimpleName().toString());
 
             readOpt.addParameter(paramType, id.getSimpleName().toString());
-            readOpt.addStatement("entity.$L($L)", setter.getSimpleName(), id.getSimpleName().toString());
+            readOpt.addStatement(ENTITY_SETTER, setter.getSimpleName(), id.getSimpleName().toString());
 
             delete.addParameter(paramType, id.getSimpleName().toString());
-            delete.addStatement("entity.$L($L)", setter.getSimpleName(), id.getSimpleName().toString());
+            delete.addStatement(ENTITY_SETTER, setter.getSimpleName(), id.getSimpleName().toString());
         }
 
         read.addStatement("return read(entity)");
@@ -249,8 +251,8 @@ public class QueryGenerator extends Generator {
                 .addAnnotation(Override.class)
                 .returns(TypeName.get(element.asType()))
                 .addParameter(paramType, id.getSimpleName().toString())
-                .addStatement("$T entity = new $T()", element, element)
-                .addStatement("entity.$L($L)", setter.getSimpleName(), id.getSimpleName().toString())
+                .addStatement(CREATE_ENTITY, element, element)
+                .addStatement(ENTITY_SETTER, setter.getSimpleName(), id.getSimpleName().toString())
                 .addStatement("return read(entity)")
                 .build();
 
@@ -259,8 +261,8 @@ public class QueryGenerator extends Generator {
                 .addAnnotation(Override.class)
                 .returns(ParameterizedTypeName.get(ClassName.get(Optional.class), TypeName.get(element.asType())))
                 .addParameter(paramType, id.getSimpleName().toString())
-                .addStatement("$T entity = new $T()", element, element)
-                .addStatement("entity.$L($L)", setter.getSimpleName(), id.getSimpleName().toString())
+                .addStatement(CREATE_ENTITY, element, element)
+                .addStatement(ENTITY_SETTER, setter.getSimpleName(), id.getSimpleName().toString())
                 .addStatement("return readOpt(entity)")
                 .build();
 
@@ -269,8 +271,8 @@ public class QueryGenerator extends Generator {
                 .addAnnotation(Override.class)
                 .returns(TypeName.INT)
                 .addParameter(paramType, id.getSimpleName().toString())
-                .addStatement("$T entity = new $T()", element, element)
-                .addStatement("entity.$L($L)", setter.getSimpleName(), id.getSimpleName().toString())
+                .addStatement(CREATE_ENTITY, element, element)
+                .addStatement(ENTITY_SETTER, setter.getSimpleName(), id.getSimpleName().toString())
                 .addStatement("return delete(entity)")
                 .build();
 

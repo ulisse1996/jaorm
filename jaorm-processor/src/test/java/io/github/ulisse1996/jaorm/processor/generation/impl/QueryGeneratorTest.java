@@ -50,6 +50,23 @@ class QueryGeneratorTest extends CompilerTest {
         checkCompilation(compilation, message);
     }
 
+    @ParameterizedTest
+    @MethodSource("getKeyDao")
+    void should_create_dao_with_keys(String message, List<JavaFileObject> files) {
+        Compilation compilation = Compiler.javac()
+                .withProcessors(new JaormProcessor())
+                .compile(files);
+        checkCompilation(compilation, message);
+    }
+
+    public static Stream<Arguments> getKeyDao() {
+        return Stream.of(
+                Arguments.of("should_compile_single_key_dao", Arrays.asList(getFile("/entity/SingleSimpleEntity.java"), getFile("/queries/QueryWithSingleKeyDao.java"))),
+                Arguments.of("should_compile_double_key_dao", Arrays.asList(getFile("/entity/DoubleSimpleEntity.java"), getFile("/queries/QueryWithDoubleKeyDao.java"))),
+                Arguments.of("should_compile_triple_key_dao", Arrays.asList(getFile("/entity/TripleSimpleEntity.java"), getFile("/queries/QueryWithTripleKeyDao.java")))
+        );
+    }
+
     public static Stream<Arguments> getCompiled() {
         return Stream.of(
                 Arguments.arguments("should_compile_queries_with_simple_dao", Arrays.asList(getFile("/entity/SimpleEntity.java"), getFile("/queries/QueryWithSelectEntity.java"))),
