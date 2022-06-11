@@ -5,7 +5,7 @@
     <parent>
         <artifactId>jaorm-pom</artifactId>
         <groupId>io.github.ulisse1996</groupId>
-        <version>1.4.1</version>
+        <version>1.5.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -20,10 +20,10 @@
         <spring-data-jdbc.version>2.1.5</spring-data-jdbc.version>
         <spring-web.version>5.3.4</spring-web.version>
         <spring-boot-starter-test.version>2.4.3</spring-boot-starter-test.version>
-        <junit-platform-launcher.version>1.4.1</junit-platform-launcher.version>
+        <junit-platform-launcher.version>1.8.2</junit-platform-launcher.version>
         <weld-junit5.version>2.0.2.Final</weld-junit5.version>
         <hsqldb.version>2.5.2</hsqldb.version>
-        <jaorm.version>1.4.1</jaorm.version>
+        <jaorm.version>1.5.0</jaorm.version>
         <sonar.coverage.jacoco.xmlReportPaths>${project.basedir}/../${aggregate.report.dir}</sonar.coverage.jacoco.xmlReportPaths>
     </properties>
 
@@ -110,6 +110,12 @@
             <groupId>org.jboss.weld</groupId>
             <artifactId>weld-junit5</artifactId>
             <version>${weld-junit5.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.platform</groupId>
+            <artifactId>junit-platform-commons</artifactId>
+            <version>${junit-platform-launcher.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -227,7 +233,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.0.0-M5</version>
+                <version>3.0.0-M7</version>
             </plugin>
             <plugin>
                 <groupId>org.jacoco</groupId>

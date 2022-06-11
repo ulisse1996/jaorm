@@ -46,8 +46,8 @@ public class RelationshipGenerator extends Generator {
 
         List<RelationshipInfo> infos = new ArrayList<>();
         Set<TypeElement> daoTypes = queries.stream()
-                .filter(ProcessorUtils::isBaseDao)
-                .map(ProcessorUtils::getBaseDaoGeneric)
+                .filter(e -> ProcessorUtils.isBaseDao(processingEnvironment, e))
+                .map(e -> ProcessorUtils.getBaseDaoGeneric(processingEnvironment, e))
                 .map(processingEnvironment.getElementUtils()::getTypeElement)
                 .collect(Collectors.toSet());
         for (TypeElement entity : entities) {

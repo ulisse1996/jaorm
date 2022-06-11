@@ -1,9 +1,14 @@
 package io.github.ulisse1996.jaorm.processor.validation.impl;
 
+import io.github.ulisse1996.jaorm.annotation.Dao;
+import io.github.ulisse1996.jaorm.annotation.Id;
 import io.github.ulisse1996.jaorm.annotation.Query;
+import io.github.ulisse1996.jaorm.external.support.mock.MockName;
 import io.github.ulisse1996.jaorm.processor.CustomName;
 import io.github.ulisse1996.jaorm.processor.exception.ProcessorException;
+import io.github.ulisse1996.jaorm.processor.util.ProcessorUtils;
 import io.github.ulisse1996.jaorm.processor.util.ReturnTypeDefinition;
+import io.github.ulisse1996.jaorm.specialization.SingleKeyDao;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -11,24 +16,29 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.MockedConstruction;
+import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
+import javax.lang.model.util.Elements;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.stream.Stream;
 
 class QueryValidatorTest {
 
     private QueryValidator testSubject;
+    ProcessingEnvironment environment;
 
     @BeforeEach
     void init() {
-        ProcessingEnvironment environment = Mockito.mock(ProcessingEnvironment.class);
+        environment = Mockito.mock(ProcessingEnvironment.class);
         Mockito.when(environment.getMessager())
                 .thenReturn(Mockito.mock(Messager.class));
         testSubject = new QueryValidator(environment);
@@ -212,6 +222,45 @@ class QueryValidatorTest {
             testSubject.validate(Collections.singletonList(method));
         } catch (ProcessorException ex) {
             Assertions.fail(ex);
+        }
+    }
+
+    @Test
+    void should_throw_exception_for_mismatch_between_keys_and_dao() {
+        try (MockedStatic<ProcessorUtils> mk = Mockito.mockStatic(ProcessorUtils.class)) {
+            VariableElement v1 = Mockito.mock(VariableElement.class);
+            VariableElement v2 = Mockito.mock(VariableElement.class);
+            TypeElement typeElement = Mockito.mock(TypeElement.class);
+            Elements elements = Mockito.mock(Elements.class);
+            Mockito.when(typeElement.getSimpleName()).thenReturn(new MockName("name"));
+            Mockito.when(typeElement.getAnnotation(Dao.class))
+                    .thenReturn(Mockito.mock(Dao.class));
+            mk.when(() -> ProcessorUtils.getAllValidElements(environment, typeElement))
+                    .thenReturn(Arrays.asList(v1, v2));
+            mk.when(() -> ProcessorUtils.isSubType(Mockito.any(), Mockito.any(), Mockito.any()))
+                    .then(invocation -> {
+                        Class<?> klass = invocation.getArgument(2);
+                        return klass.equals(SingleKeyDao.class);
+                    });
+            mk.when(() -> ProcessorUtils.getBaseDaoGeneric(Mockito.any(), Mockito.any()))
+                    .thenReturn("test");
+            Mockito.when(environment.getElementUtils()).thenReturn(elements);
+            Mockito.when(elements.getTypeElement("test")).thenReturn(typeElement);
+
+            Mockito.when(v1.getAnnotation(Id.class)).thenReturn(Mockito.mock(Id.class));
+            Mockito.when(v2.getAnnotation(Id.class)).thenReturn(Mockito.mock(Id.class));
+
+            try {
+                testSubject.validate(Collections.singletonList(typeElement));
+            } catch (ProcessorException exception) {
+                Assertions.assertEquals(
+                        "Error on name ! Required 1 @Id but found 2 in Entity",
+                        exception.getMessage()
+                );
+                return;
+            }
+
+            Assertions.fail("Should throw exception !");
         }
     }
 

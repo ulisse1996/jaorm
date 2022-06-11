@@ -51,6 +51,7 @@ class ProcessorUtilsTest {
     @Mock private Elements elements;
     @Mock private Types types;
     @Mock private Filer filer;
+    @Mock private TypeMirror tMirror;
     @Mock private VariableElement variableElement;
 
     @BeforeEach
@@ -457,10 +458,14 @@ class ProcessorUtilsTest {
     void should_return_false_for_base_dao() {
         TypeMirror mirror = Mockito.mock(TypeMirror.class);
         Mockito.when(element.getInterfaces())
-                .then(invocation -> Collections.singletonList(mirror));
+                .then(invocation -> Collections.singletonList(mirror))
+                .thenReturn(Collections.emptyList());
         Mockito.when(mirror.toString())
                 .thenReturn("notADao");
-        Assertions.assertFalse(ProcessorUtils.isBaseDao(element));
+        Mockito.when(environment.getTypeUtils()).thenReturn(types);
+        Mockito.when(types.asElement(Mockito.any()))
+                .thenReturn(element);
+        Assertions.assertFalse(ProcessorUtils.isBaseDao(environment, element));
     }
 
     @Test
@@ -470,7 +475,7 @@ class ProcessorUtilsTest {
                 .then(invocation -> Collections.singletonList(mirror));
         Mockito.when(mirror.toString())
                 .thenReturn("io.github.ulisse1996.jaorm.BaseDao<Entity>");
-        Assertions.assertTrue(ProcessorUtils.isBaseDao(element));
+        Assertions.assertTrue(ProcessorUtils.isBaseDao(environment, element));
     }
 
     @Test
@@ -479,12 +484,15 @@ class ProcessorUtilsTest {
         TypeMirror emptyMirror = Mockito.mock(TypeMirror.class);
         Mockito.when(emptyMirror.toString())
                 .thenReturn("empty");
-        Mockito.when(element.getInterfaces())
-                .then(invocation -> Arrays.asList(emptyMirror, mirror));
+        Mockito.when(element.asType()).thenReturn(tMirror);
+        Mockito.when(environment.getTypeUtils()).thenReturn(types);
+        Mockito.when(types.directSupertypes(Mockito.any()))
+                .then(invocation -> Arrays.asList(emptyMirror, mirror))
+                .thenReturn(Collections.emptyList());
         Mockito.when(mirror.toString())
                 .thenReturn("io.github.ulisse1996.jaorm.BaseDao<Entity>");
         String name = "Entity";
-        Assertions.assertEquals(name, ProcessorUtils.getBaseDaoGeneric(element));
+        Assertions.assertEquals(name, ProcessorUtils.getBaseDaoGeneric(environment, element));
     }
 
     @Test
@@ -564,9 +572,11 @@ class ProcessorUtilsTest {
 
     @Test
     void should_throw_exception_for_missing_dao_generic() {
-        Mockito.when(element.getInterfaces())
+        Mockito.when(element.asType()).thenReturn(tMirror);
+        Mockito.when(environment.getTypeUtils()).thenReturn(types);
+        Mockito.when(types.directSupertypes(Mockito.any()))
                 .then(invocation -> Collections.emptyList());
-        Assertions.assertThrows(ProcessorException.class, () -> ProcessorUtils.getBaseDaoGeneric(element));
+        Assertions.assertThrows(ProcessorException.class, () -> ProcessorUtils.getBaseDaoGeneric(environment, element));
     }
 
     @Test
