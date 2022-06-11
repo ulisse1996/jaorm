@@ -49,9 +49,6 @@ compile configuration for maven
     <artifactId>maven-compiler-plugin</artifactId>
     <version>3.8.1</version>
     <configuration>
-        <compilerArgs>
-            <arg>-parameters</arg>
-        </compilerArgs>
         <annotationProcessorPaths>
             <path>
                 <groupId>io.github.ulisse1996</groupId>
@@ -67,9 +64,6 @@ compile configuration for maven
                 <goal>testCompile</goal>
             </goals>
             <configuration>
-                <compilerArgs>
-                    <arg>-parameters</arg>
-                </compilerArgs>
                 <annotationProcessorPaths>
                     <path>
                         <groupId>io.github.ulisse1996</groupId>
