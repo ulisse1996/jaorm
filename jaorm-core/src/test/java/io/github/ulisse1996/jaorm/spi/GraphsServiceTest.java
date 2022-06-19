@@ -1,11 +1,11 @@
 package io.github.ulisse1996.jaorm.spi;
 
-import io.github.ulisse1996.jaorm.DelegatesMock;
 import io.github.ulisse1996.jaorm.ServiceFinder;
 import io.github.ulisse1996.jaorm.graph.EntityGraph;
 import io.github.ulisse1996.jaorm.graph.GraphPair;
-import io.github.ulisse1996.jaorm.spi.combined.CombinedGraphs;
 import io.github.ulisse1996.jaorm.spi.common.Singleton;
+import io.github.ulisse1996.jaorm.spi.impl.DefaultGraphs;
+import io.github.ulisse1996.jaorm.spi.provider.GraphProvider;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -17,16 +17,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.lang.reflect.Field;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.ServiceConfigurationError;
 
 @ExtendWith(MockitoExtension.class)
 class GraphsServiceTest {
 
-    @Mock private GraphsService graphsService;
     @Mock private EntityGraph<?> graph;
-    @Mock private DelegatesService delegatesService;
 
     @BeforeEach
     @SuppressWarnings("unchecked")
@@ -42,93 +40,56 @@ class GraphsServiceTest {
     }
 
     @Test
-    void should_not_find_instances() {
+    void should_return_default_impl() {
+        GraphProvider provider = Mockito.mock(GraphProvider.class);
         try (MockedStatic<ServiceFinder> mk = Mockito.mockStatic(ServiceFinder.class)) {
-            mk.when(() -> ServiceFinder.loadService(GraphsService.class))
-                    .thenReturn(Collections.emptyIterator());
-            Assertions.assertTrue(
-                    GraphsService.getInstance() instanceof GraphsService.NoOp
-            );
-            Assertions.assertTrue(GraphsService.getInstance().getEntityGraphs().isEmpty());
+            mk.when(() -> ServiceFinder.loadServices(GraphProvider.class))
+                    .thenReturn(Collections.singletonList(provider));
+            Mockito.when(provider.getGraph()).then(invocation -> graph);
+            Mockito.when(provider.getPair()).thenReturn(new GraphPair(Object.class, "NAME"));
+
+            GraphsService service = GraphsService.getInstance();
+
+            Assertions.assertTrue(service instanceof DefaultGraphs);
         }
     }
 
     @Test
-    void should_return_simple_service() {
+    void should_return_same_instance() {
+        GraphProvider provider = Mockito.mock(GraphProvider.class);
         try (MockedStatic<ServiceFinder> mk = Mockito.mockStatic(ServiceFinder.class)) {
-            mk.when(() -> ServiceFinder.loadServices(GraphsService.class))
-                    .thenReturn(Collections.singletonList(graphsService));
-            Assertions.assertEquals(
-                    graphsService,
-                    GraphsService.getInstance()
-            );
+            mk.when(() -> ServiceFinder.loadServices(GraphProvider.class))
+                    .thenReturn(Collections.singletonList(provider));
+            Mockito.when(provider.getGraph()).then(invocation -> graph);
+            Mockito.when(provider.getPair()).thenReturn(new GraphPair(Object.class, "NAME"));
+
+            GraphsService service = GraphsService.getInstance();
+
+            Assertions.assertSame(service, GraphsService.getInstance());
         }
     }
 
     @Test
-    void should_return_combined_service() {
-        try (MockedStatic<ServiceFinder> mk = Mockito.mockStatic(ServiceFinder.class)) {
-            mk.when(() -> ServiceFinder.loadServices(GraphsService.class))
-                    .thenReturn(Collections.nCopies(3, graphsService));
-            Assertions.assertTrue(
-                    GraphsService.getInstance() instanceof CombinedGraphs
-            );
-        }
-    }
+    void should_return_entity_graph() {
+        Map<GraphPair, EntityGraph<?>> graphMap = new HashMap<>();
+        GraphPair pair = new GraphPair(Object.class, "NAME");
+        graphMap.put(pair, graph);
 
-    @Test
-    void should_set_no_op_for_exception() {
-        try (MockedStatic<ServiceFinder> mk = Mockito.mockStatic(ServiceFinder.class)) {
-            mk.when(() -> ServiceFinder.loadServices(GraphsService.class))
-                    .thenThrow(ServiceConfigurationError.class);
-            Assertions.assertTrue(
-                    GraphsService.getInstance() instanceof GraphsService.NoOp
-            );
-        }
-    }
-
-    @Test
-    void should_return_empty_graph() {
-        try (MockedStatic<ServiceFinder> mk = Mockito.mockStatic(ServiceFinder.class);
-            MockedStatic<DelegatesService> mkDel = Mockito.mockStatic(DelegatesService.class)) {
-            mk.when(() -> ServiceFinder.loadServices(GraphsService.class))
-                    .thenReturn(Collections.singletonList(new MyGraphService()));
-            mkDel.when(DelegatesService::getInstance)
+        GraphsService service = new GraphsService() {
+            @Override
+            public Map<GraphPair, EntityGraph<?>> getEntityGraphs() {
+                return graphMap;
+            }
+        };
+        DelegatesService delegatesService = Mockito.mock(DelegatesService.class);
+        try (MockedStatic<DelegatesService> mk = Mockito.mockStatic(DelegatesService.class)) {
+            mk.when(DelegatesService::getInstance)
                     .thenReturn(delegatesService);
-            Mockito.when(delegatesService.searchDelegate(Mockito.any(Class.class)))
-                    .thenReturn(() -> null);
-            Assertions.assertFalse(
-                    GraphsService.getInstance() instanceof GraphsService.NoOp
-            );
-            Assertions.assertFalse(
-                    GraphsService.getInstance().getEntityGraph(Object.class, "test").isPresent()
-            );
-        }
-    }
 
-    @Test
-    void should_return_graph() {
-        try (MockedStatic<ServiceFinder> mk = Mockito.mockStatic(ServiceFinder.class);
-            MockedStatic<DelegatesService> mkDel = Mockito.mockStatic(DelegatesService.class)) {
-            mk.when(() -> ServiceFinder.loadServices(GraphsService.class))
-                    .thenReturn(Collections.singletonList(new MyGraphService()));
-            mkDel.when(DelegatesService::getInstance).thenReturn(delegatesService);
-            Mockito.when(delegatesService.searchDelegate(Mockito.any(Class.class)))
-                    .thenReturn(() -> null);
-            Assertions.assertFalse(
-                    GraphsService.getInstance() instanceof GraphsService.NoOp
-            );
-            Optional<EntityGraph<?>> opt = GraphsService.getInstance().getEntityGraph(DelegatesMock.MyEntity.class, "test");
+            Optional<EntityGraph<?>> opt = service.getEntityGraph(Object.class, "NAME");
+
             Assertions.assertTrue(opt.isPresent());
             Assertions.assertEquals(graph, opt.get());
-        }
-    }
-
-    private class MyGraphService extends GraphsService {
-
-        @Override
-        public Map<GraphPair, EntityGraph<?>> getEntityGraphs() {
-            return Collections.singletonMap(new GraphPair(DelegatesMock.MyEntity.class, "test"), graph);
         }
     }
 }

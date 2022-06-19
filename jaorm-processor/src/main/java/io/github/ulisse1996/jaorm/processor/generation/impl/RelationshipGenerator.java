@@ -1,6 +1,9 @@
 package io.github.ulisse1996.jaorm.processor.generation.impl;
 
-import com.squareup.javapoet.*;
+import com.squareup.javapoet.AnnotationSpec;
+import com.squareup.javapoet.ClassName;
+import com.squareup.javapoet.MethodSpec;
+import com.squareup.javapoet.TypeSpec;
 import io.github.ulisse1996.jaorm.annotation.Cascade;
 import io.github.ulisse1996.jaorm.annotation.CascadeType;
 import io.github.ulisse1996.jaorm.annotation.Converter;
@@ -13,7 +16,7 @@ import io.github.ulisse1996.jaorm.processor.generation.Generator;
 import io.github.ulisse1996.jaorm.processor.util.GeneratedFile;
 import io.github.ulisse1996.jaorm.processor.util.ProcessorUtils;
 import io.github.ulisse1996.jaorm.processor.util.ReturnTypeDefinition;
-import io.github.ulisse1996.jaorm.spi.RelationshipService;
+import io.github.ulisse1996.jaorm.spi.provider.RelationshipProvider;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
@@ -79,67 +82,56 @@ public class RelationshipGenerator extends Generator {
     }
 
     private void generateRelationships(List<RelationshipInfo> relationshipInfos) {
-        TypeSpec relationshipEvents = TypeSpec.classBuilder("RelationshipEvents" + ProcessorUtils.randomIdentifier())
-                .addModifiers(Modifier.PUBLIC)
-                .superclass(RelationshipService.class)
-                .addField(relationshipMap(), "relationships", Modifier.PRIVATE, Modifier.FINAL)
-                .addMethod(relationshipEventsConstructor(relationshipInfos))
-                .addMethod(buildGetRelationships())
-                .build();
-        ProcessorUtils.generate(processingEnvironment,
-                new GeneratedFile(JAORM_PACKAGE, relationshipEvents, ""));
-        ProcessorUtils.generateSpi(
-                processingEnvironment,
-                new GeneratedFile(JAORM_PACKAGE, relationshipEvents, ""),
-                RelationshipService.class
-        );
-    }
-
-    private MethodSpec buildGetRelationships() {
-        return MethodSpec.overriding(ProcessorUtils.getMethod(processingEnvironment, "getRelationships", RelationshipService.class))
-                .addStatement("return (Relationship<T>) this.relationships.get($L)", "arg0")
-                .addAnnotation(
-                        AnnotationSpec.builder(SuppressWarnings.class)
-                                .addMember("value", "$S", "unchecked")
-                                .build()
-                )
-                .build();
-    }
-
-    private MethodSpec relationshipEventsConstructor(List<RelationshipInfo> relationshipInfos) {
-        return MethodSpec.constructorBuilder()
-                .addModifiers(Modifier.PUBLIC)
-                .addCode(relationshipEventsConstructorCode(relationshipInfos))
-                .build();
-    }
-
-    private CodeBlock relationshipEventsConstructorCode(List<RelationshipInfo> relationshipInfos) {
-        CodeBlock.Builder builder = CodeBlock.builder()
-                .addStatement("$T map = new $T<>()", relationshipMap(), HashMap.class);
+        List<GeneratedFile> files = new ArrayList<>();
         for (RelationshipInfo info : relationshipInfos) {
-            builder.addStatement("map.put($T.class, new $T<>($T.class))", info.entity, Relationship.class, info.entity);
-            for (RelationshipAccessor relationship : info.annotated) {
-                String events;
-                EntityEventType[] values = getEvents(relationship);
-                events = asVarArgs(values);
-                builder.addStatement("map.get($T.class).add(new $T<>($T.class, e -> (($T)e).$L(), $L, $L, $L))",
-                        info.entity, Relationship.Node.class,
-                        relationship.returnTypeDefinition.getRealClass(),
-                        info.entity,
-                        relationship.getter.getSimpleName(),
-                        relationship.returnTypeDefinition.isOptional() ? "true" : "false",
-                        relationship.returnTypeDefinition.isCollection() ? "true" : "false",
-                        events
-                );
-                addAutoSetNode(info.entity, relationship, builder);
-            }
+            TypeSpec relationshipEvents = TypeSpec.classBuilder(String.format("%sRelationshipsProvider", info.entity.getSimpleName()))
+                    .addModifiers(Modifier.PUBLIC)
+                    .addSuperinterface(RelationshipProvider.class)
+                    .addMethods(getProviderMethods(info))
+                    .build();
+            GeneratedFile file = new GeneratedFile(getPackage(info.entity), relationshipEvents, "");
+            ProcessorUtils.generate(processingEnvironment, file);
+            files.add(file);
         }
 
-        return builder.addStatement("this.relationships = $T.unmodifiableMap(map)", Collections.class)
-                .build();
+        ProcessorUtils.generateSpi(processingEnvironment, files, RelationshipProvider.class);
     }
 
-    private void addAutoSetNode(TypeElement entity, RelationshipAccessor relationship, CodeBlock.Builder builder) {
+    private Iterable<MethodSpec> getProviderMethods(RelationshipInfo info) {
+        MethodSpec getEntityClass = MethodSpec.overriding(ProcessorUtils.getMethod(processingEnvironment, "getEntityClass", RelationshipProvider.class))
+                .addStatement("return $T.class", info.entity)
+                .build();
+
+        MethodSpec.Builder builder = MethodSpec.overriding(ProcessorUtils.getMethod(processingEnvironment, "getRelationship", RelationshipProvider.class))
+                .addAnnotation(AnnotationSpec.builder(SuppressWarnings.class)
+                        .addMember("value", "$S", "unchecked")
+                        .build())
+                .addStatement("$T rel = new $T<>($T.class)", Relationship.class, Relationship.class, info.entity);
+
+        for (RelationshipAccessor relationship : info.annotated) {
+            String events;
+            EntityEventType[] values = getEvents(relationship);
+            events = asVarArgs(values);
+            builder.addStatement("rel.add(new $T<>($T.class, e -> (($T)e).$L(), $L, $L, $L))",
+                    Relationship.Node.class,
+                    relationship.returnTypeDefinition.getRealClass(),
+                    info.entity,
+                    relationship.getter.getSimpleName(),
+                    relationship.returnTypeDefinition.isOptional() ? "true" : "false",
+                    relationship.returnTypeDefinition.isCollection() ? "true" : "false",
+                    events
+            );
+            addAutoSetNode(info.entity, relationship, builder);
+        }
+
+        return Arrays.asList(getEntityClass, builder.addStatement("return rel").build());
+    }
+
+    private String getPackage(TypeElement entity) {
+        return ClassName.get(entity).packageName();
+    }
+
+    private void addAutoSetNode(TypeElement entity, RelationshipAccessor relationship, MethodSpec.Builder builder) {
         TypeElement rel = relationship.returnTypeDefinition.getRealClass();
         VariableElement variable = relationship.relationship;
         io.github.ulisse1996.jaorm.annotation.Relationship currRel = variable.getAnnotation(io.github.ulisse1996.jaorm.annotation.Relationship.class);
@@ -151,7 +143,6 @@ public class RelationshipGenerator extends Generator {
                     params.put(
                             "(($T)link).$L($T.$L.toValue($S))",
                             Arrays.asList(
-                                    entity,
                                     rel,
                                     ProcessorUtils.findSetter(processingEnvironment, rel, toSet.getSimpleName()).getSimpleName(),
                                     ParameterConverter.class,
@@ -162,7 +153,6 @@ public class RelationshipGenerator extends Generator {
                     params.put(
                             "(($T)link).$L($L.fromSql($T.$L.toValue($S)))",
                             Arrays.asList(
-                                    entity,
                                     rel,
                                     ProcessorUtils.findSetter(processingEnvironment, rel, toSet.getSimpleName()).getSimpleName(),
                                     ProcessorUtils.getConverterCaller(processingEnvironment, toSet),
@@ -177,7 +167,6 @@ public class RelationshipGenerator extends Generator {
                     params.put(
                             "(($T)link).$L((($T)entity).$L())",
                             Arrays.asList(
-                                    entity,
                                     rel,
                                     ProcessorUtils.findSetter(processingEnvironment, rel, toSet.getSimpleName()).getSimpleName(),
                                     entity,
@@ -187,7 +176,6 @@ public class RelationshipGenerator extends Generator {
                     params.put(
                             "(($T)link).$L($L.toSql((($T)entity).$L()))",
                             Arrays.asList(
-                                    entity,
                                     rel,
                                     ProcessorUtils.findSetter(processingEnvironment, rel, toSet.getSimpleName()).getSimpleName(),
                                     ProcessorUtils.getConverterCaller(processingEnvironment, fromSet),
@@ -198,7 +186,7 @@ public class RelationshipGenerator extends Generator {
             }
         }
         params.forEach((code, p) -> builder.addStatement(
-                String.format("map.get($T.class).getLast().appendThen((entity, link) -> %s)", code), p.toArray()));
+                String.format("rel.getLast().appendThen((entity, link) -> %s)", code), p.toArray()));
     }
 
     private boolean noNeedForConversion(VariableElement fromSet, VariableElement toSet) {
@@ -227,13 +215,6 @@ public class RelationshipGenerator extends Generator {
                 .map(Enum::name)
                 .map(s -> EntityEventType.class.getName() + "." + s)
                 .collect(Collectors.joining(","));
-    }
-
-    private TypeName relationshipMap() {
-        return ParameterizedTypeName.get(ClassName.get(Map.class),
-                ParameterizedTypeName.get(ClassName.get(Class.class), WildcardTypeName.subtypeOf(Object.class)),
-                ParameterizedTypeName.get(ClassName.get(Relationship.class), WildcardTypeName.subtypeOf(Object.class))
-        );
     }
 
     private void checkBaseDao(TypeElement entity, Set<TypeElement> daoTypes) {

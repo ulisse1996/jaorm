@@ -3,8 +3,9 @@ package io.github.ulisse1996.jaorm.spi;
 import io.github.ulisse1996.jaorm.DelegatesMock;
 import io.github.ulisse1996.jaorm.ServiceFinder;
 import io.github.ulisse1996.jaorm.entity.event.GlobalEventType;
-import io.github.ulisse1996.jaorm.spi.combined.CombinedListeners;
 import io.github.ulisse1996.jaorm.spi.common.Singleton;
+import io.github.ulisse1996.jaorm.spi.impl.DefaultListeners;
+import io.github.ulisse1996.jaorm.spi.provider.ListenerProvider;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -45,7 +46,7 @@ class ListenersServiceTest {
     @Test
     void should_return_no_op_instance() {
         try (MockedStatic<ServiceFinder> mk = Mockito.mockStatic(ServiceFinder.class)) {
-            mk.when(() -> ServiceFinder.loadServices(ListenersService.class))
+            mk.when(() -> ServiceFinder.loadServices(ListenerProvider.class))
                     .thenThrow(IllegalArgumentException.class);
             ListenersService instance = ListenersService.getInstance();
             Assertions.assertTrue(instance.getClass().getName().contains("NoOp"));
@@ -72,30 +73,6 @@ class ListenersServiceTest {
     }
 
     @Test
-    void should_return_saved_instance() {
-        try (MockedStatic<ServiceFinder> mk = Mockito.mockStatic(ServiceFinder.class)) {
-            mk.when(() -> ServiceFinder.loadServices(ListenersService.class))
-                    .thenReturn(Collections.singletonList(mock));
-            mk.when(() -> ServiceFinder.loadServices(GlobalEventListener.class))
-                    .thenReturn(Collections.singletonList(listener));
-            ListenersService instance = ListenersService.getInstance();
-            Assertions.assertEquals(mock, instance); // Loaded
-            Assertions.assertEquals(instance, ListenersService.getInstance());
-            mk.verify(() -> ServiceFinder.loadServices(ListenersService.class)); // We check only 1 call
-        }
-    }
-
-    @Test
-    void should_return_combined_listeners() {
-        ListenersService mock = Mockito.mock(ListenersService.class);
-        try (MockedStatic<ServiceFinder> mk = Mockito.mockStatic(ServiceFinder.class)) {
-            mk.when(() -> ServiceFinder.loadServices(ListenersService.class))
-                    .thenReturn(Collections.nCopies(3, mock));
-            Assertions.assertTrue(ListenersService.getInstance() instanceof CombinedListeners);
-        }
-    }
-
-    @Test
     void should_fire_event_with_delegate() {
         DelegatesService delegatesService = Mockito.mock(DelegatesService.class);
         try (MockedStatic<ServiceFinder> mk = Mockito.mockStatic(ServiceFinder.class);
@@ -106,6 +83,21 @@ class ListenersServiceTest {
             ListenersService.getInstance().fireEvent(new DelegatesMock.MyEntityDelegate(), GlobalEventType.POST_PERSIST);
             Mockito.verify(delegatesService)
                     .getEntityClass(DelegatesMock.MyEntityDelegate.class);
+        }
+    }
+
+    @Test
+    void should_return_default_impl() {
+        ListenerProvider provider = Mockito.mock(ListenerProvider.class);
+        try (MockedStatic<ServiceFinder> mk = Mockito.mockStatic(ServiceFinder.class)) {
+            mk.when(() -> ServiceFinder.loadServices(ListenerProvider.class))
+                    .thenReturn(Collections.singletonList(provider));
+
+            Mockito.when(provider.getEntityClass()).then(invocation -> Object.class);
+
+            ListenersService service = ListenersService.getInstance();
+
+            Assertions.assertTrue(service instanceof DefaultListeners);
         }
     }
 }

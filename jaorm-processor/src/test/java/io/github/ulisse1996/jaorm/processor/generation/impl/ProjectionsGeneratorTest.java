@@ -18,10 +18,6 @@ class ProjectionsGeneratorTest extends CompilerTest {
                 .compile(getFile("projection", "ProjectionWithConverter.java"));
         List<JavaFileObject> files = checkCompilation(compilation);
         Assertions.assertTrue(
-                files.stream().anyMatch(g -> g.getName().contains("Projections")),
-                "Wanted Projections but founds elements : " + files
-        );
-        Assertions.assertTrue(
                 files.stream().anyMatch(g -> g.getName().endsWith("ProjectionWithConverterDelegate.class")),
                 "Wanted ProjectionWithConverterDelegate but founds elements : " + files
         );

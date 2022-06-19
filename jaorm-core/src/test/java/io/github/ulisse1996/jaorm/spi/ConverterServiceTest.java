@@ -2,9 +2,11 @@ package io.github.ulisse1996.jaorm.spi;
 
 import io.github.ulisse1996.jaorm.ConverterMock;
 import io.github.ulisse1996.jaorm.ServiceFinder;
+import io.github.ulisse1996.jaorm.entity.converter.ValueConverter;
 import io.github.ulisse1996.jaorm.entity.sql.SqlAccessor;
-import io.github.ulisse1996.jaorm.spi.combined.CombinedConverters;
 import io.github.ulisse1996.jaorm.spi.common.Singleton;
+import io.github.ulisse1996.jaorm.spi.impl.DefaultConverters;
+import io.github.ulisse1996.jaorm.spi.provider.ConverterProvider;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -79,22 +81,35 @@ class ConverterServiceTest {
     }
 
     @Test
-    void should_return_only_one_converter() {
-        ConverterService mock = Mockito.mock(ConverterService.class);
+    void should_return_default_impl() {
+        ConverterProvider provider = Mockito.mock(ConverterProvider.class);
+        ValueConverter<?, ?> c = Mockito.mock(ValueConverter.class);
         try (MockedStatic<ServiceFinder> mk = Mockito.mockStatic(ServiceFinder.class)) {
-            mk.when(() -> ServiceFinder.loadServices(ConverterService.class))
-                    .thenReturn(Collections.singletonList(mock));
-            Assertions.assertEquals(mock, ConverterService.getInstance());
+            mk.when(() -> ServiceFinder.loadServices(ConverterProvider.class))
+                    .thenReturn(Collections.singletonList(provider));
+            Mockito.when(provider.to()).then(invocation -> Object.class);
+            Mockito.when(provider.from()).then(invocation -> Object.class);
+            Mockito.when(provider.converter()).then(invocation -> c);
+
+            ConverterService service = ConverterService.getInstance();
+
+            Assertions.assertTrue(service instanceof DefaultConverters);
         }
     }
 
     @Test
-    void should_return_combined_converters() {
-        ConverterService mock = Mockito.mock(ConverterService.class);
+    void should_return_same_instance() {
+        ConverterProvider provider = Mockito.mock(ConverterProvider.class);
+        ValueConverter<?, ?> c = Mockito.mock(ValueConverter.class);
         try (MockedStatic<ServiceFinder> mk = Mockito.mockStatic(ServiceFinder.class)) {
-            mk.when(() -> ServiceFinder.loadServices(ConverterService.class))
-                    .thenReturn(Collections.nCopies(3, mock));
-            Assertions.assertTrue(ConverterService.getInstance() instanceof CombinedConverters);
+            mk.when(() -> ServiceFinder.loadServices(ConverterProvider.class))
+                    .thenReturn(Collections.singletonList(provider));
+            Mockito.when(provider.to()).then(invocation -> Object.class);
+            Mockito.when(provider.from()).then(invocation -> Object.class);
+            Mockito.when(provider.converter()).then(invocation -> c);
+
+            ConverterService service = ConverterService.getInstance();
+            Assertions.assertSame(service, ConverterService.getInstance());
         }
     }
 }

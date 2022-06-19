@@ -4,14 +4,12 @@ import io.github.ulisse1996.jaorm.Arguments;
 import io.github.ulisse1996.jaorm.ServiceFinder;
 import io.github.ulisse1996.jaorm.entity.EntityDelegate;
 import io.github.ulisse1996.jaorm.schema.TableInfo;
-import io.github.ulisse1996.jaorm.spi.combined.CombinedDelegates;
 import io.github.ulisse1996.jaorm.spi.common.Singleton;
+import io.github.ulisse1996.jaorm.spi.impl.DefaultDelegates;
+import io.github.ulisse1996.jaorm.util.ClassChecker;
 
-import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 public abstract class DelegatesService {
 
@@ -19,18 +17,8 @@ public abstract class DelegatesService {
 
     public static synchronized DelegatesService getInstance() {
         if (!INSTANCE.isPresent()) {
-            Iterable<DelegatesService> delegatesServices = ServiceFinder.loadServices(DelegatesService.class);
-            if (!delegatesServices.iterator().hasNext()) {
-                throw new IllegalArgumentException("Can't find service of " + DelegatesService.class);
-            }
-            List<DelegatesService> delegates = StreamSupport.stream(delegatesServices.spliterator(), false)
-                    .collect(Collectors.toList());
-
-            if (delegates.size() == 1) {
-                INSTANCE.set(delegates.get(0));
-            } else {
-                INSTANCE.set(new CombinedDelegates(delegates));
-            }
+            @SuppressWarnings("rawtypes") Iterable<EntityDelegate> delegates = ServiceFinder.loadServices(EntityDelegate.class);
+            INSTANCE.set(new DefaultDelegates(delegates));
         }
 
         return INSTANCE.get();
@@ -54,7 +42,8 @@ public abstract class DelegatesService {
                     .stream()
                     .filter(e -> {
                         Supplier<?> supplier = e.getValue();
-                        return delegateClass.isInstance(supplier.get());
+                        Class<?> aClass = supplier.get().getClass();
+                        return ClassChecker.isAssignable(delegateClass, aClass);
                     }).findFirst()
                     .map(Map.Entry::getKey)
                     .orElseThrow(() -> new IllegalArgumentException("Can't find real class from delegate " + delegateClass));
@@ -63,7 +52,10 @@ public abstract class DelegatesService {
 
     @SuppressWarnings("unchecked")
     public <R extends EntityDelegate<?>> Supplier<R> searchDelegate(Class<?> entity) {
-        return (Supplier<R>) getDelegates().entrySet().stream().filter(del -> !del.getKey().equals(Object.class) && del.getKey().isAssignableFrom(entity))
+        return (Supplier<R>) getDelegates()
+                .entrySet()
+                .stream()
+                .filter(del -> ClassChecker.isAssignable(del.getKey(), entity))
                 .findFirst()
                 .map(Map.Entry::getValue)
                 .orElseThrow(() -> new IllegalArgumentException("Can't find delegate for " + entity));

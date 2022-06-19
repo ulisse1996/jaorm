@@ -1,5 +1,7 @@
 package io.github.ulisse1996.jaorm.graph;
 
+import io.github.ulisse1996.jaorm.util.ClassChecker;
+
 import java.util.Objects;
 
 public class GraphPair {
@@ -17,11 +19,19 @@ public class GraphPair {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         GraphPair graphPair = (GraphPair) o;
-        return Objects.equals(entity, graphPair.entity) && Objects.equals(name, graphPair.name);
+        return ClassChecker.isAssignable(entity, graphPair.entity) && Objects.equals(name, graphPair.name);
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(entity, name);
+    }
+
+    @Override
+    public String toString() {
+        return "GraphPair{" +
+                "entity=" + entity +
+                ", name='" + name + '\'' +
+                '}';
     }
 }

@@ -13,7 +13,7 @@ public class CombinedCaches extends CacheService {
     private final List<CacheService> services;
 
     public CombinedCaches(List<CacheService> services) {
-        this.services = services;
+        this.services = Collections.unmodifiableList(services);
     }
 
     @Override

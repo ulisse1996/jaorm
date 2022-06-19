@@ -10,38 +10,42 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.math.BigDecimal;
-import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 @ExtendWith(MockitoExtension.class)
 class CombinedCachesTest {
 
-    @Mock private CacheService mock1;
-    @Mock private CacheService mock2;
-    private CombinedCaches combinedCaches;
+    @Mock private EntityCache<?> entityCache;
+    @Mock private CacheService cacheService;
+    private CombinedCaches caches;
 
     @BeforeEach
     void init() {
-        this.combinedCaches = new CombinedCaches(Arrays.asList(mock1, mock2));
+        this.caches = new CombinedCaches(Collections.singletonList(cacheService));
     }
 
     @Test
-    void should_return_cacheable_only_on_one_service() {
-        Mockito.when(mock2.isCacheable(Mockito.any()))
-                .thenReturn(true);
-        Assertions.assertTrue(combinedCaches.isCacheable(Mockito.any()));
+    void should_return_true_for_default_impl() {
+        Assertions.assertTrue(caches.isDefault());
     }
 
     @Test
-    @SuppressWarnings("unchecked")
-    void should_return_combined_cache() {
-        Mockito.when(mock1.getCaches())
-                .thenReturn(Collections.singletonMap(String.class, Mockito.mock(EntityCache.class)));
-        Mockito.when(mock2.getCaches())
-                .thenReturn(Collections.singletonMap(BigDecimal.class, Mockito.mock(EntityCache.class)));
-        Map<Class<?>, EntityCache<?>> result = combinedCaches.getCaches();
-        Assertions.assertEquals(2, result.keySet().size());
+    void should_return_all_caches() {
+        Map<Class<?>, EntityCache<?>> c = new HashMap<>();
+        c.put(Object.class, entityCache);
+
+        Mockito.when(cacheService.getCaches()).thenReturn(c);
+        Assertions.assertEquals(
+                c,
+                caches.getCaches()
+        );
+    }
+
+    @Test
+    void should_return_false_for_not_valid_cache() {
+        Mockito.when(cacheService.isCacheable(Mockito.any())).thenReturn(false);
+        Assertions.assertFalse(caches.isCacheable(Object.class));
     }
 }

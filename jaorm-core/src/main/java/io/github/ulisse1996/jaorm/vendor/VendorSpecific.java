@@ -12,8 +12,12 @@ public class VendorSpecific {
 
     private VendorSpecific() {}
 
+    public static synchronized <T extends Specific> T getSpecific(Class<T> specific) {
+        return getSpecific(specific, null);
+    }
+
     @SuppressWarnings("unchecked")
-    public static synchronized <T extends Specific> T getSpecific(Class<T> klass) {
+    public static synchronized <T extends Specific> T getSpecific(Class<T> klass, T defaultObj) {
         if (SPECIFIC_MAP.containsKey(klass)) {
             return (T) SPECIFIC_MAP.get(klass);
         }
@@ -22,6 +26,10 @@ public class VendorSpecific {
         if (services.iterator().hasNext()) {
             SPECIFIC_MAP.put(klass, services.iterator().next());
             return (T) SPECIFIC_MAP.get(klass);
+        }
+
+        if (defaultObj != null) {
+            return defaultObj;
         }
 
         throw new IllegalArgumentException("Can't find specific for class " + klass);

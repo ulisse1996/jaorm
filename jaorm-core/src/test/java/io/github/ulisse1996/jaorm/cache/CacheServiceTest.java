@@ -5,6 +5,8 @@ import io.github.ulisse1996.jaorm.ServiceFinder;
 import io.github.ulisse1996.jaorm.spi.CacheService;
 import io.github.ulisse1996.jaorm.spi.combined.CombinedCaches;
 import io.github.ulisse1996.jaorm.spi.common.Singleton;
+import io.github.ulisse1996.jaorm.spi.impl.DefaultCache;
+import io.github.ulisse1996.jaorm.spi.provider.CacheActivator;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -37,6 +39,32 @@ class CacheServiceTest {
     }
 
     @Test
+    void should_return_combined_caches() {
+        CacheService cacheService = Mockito.mock(CacheService.class);
+        try (MockedStatic<ServiceFinder> mk = Mockito.mockStatic(ServiceFinder.class)) {
+            mk.when(() -> ServiceFinder.loadServices(CacheService.class))
+                    .thenReturn(Collections.nCopies(3, cacheService));
+
+            CacheService service = CacheService.getInstance();
+            Assertions.assertTrue(service instanceof CombinedCaches);
+        }
+    }
+
+    @Test
+    void should_return_default_impl() {
+        CacheActivator activator = Mockito.mock(CacheActivator.class);
+        try (MockedStatic<ServiceFinder> mk = Mockito.mockStatic(ServiceFinder.class)) {
+            mk.when(() -> ServiceFinder.loadServices(CacheService.class))
+                    .thenReturn(Collections.emptyList());
+            Mockito.when(activator.getEntityClass()).then(invocation -> Object.class);
+
+            CacheService service = CacheService.getInstance();
+
+            Assertions.assertTrue(service instanceof DefaultCache);
+        }
+    }
+
+    @Test
     void should_return_mocked_cache() {
         Assertions.assertEquals(cache, getInstance().getCache(Object.class));
     }
@@ -52,21 +80,6 @@ class CacheServiceTest {
             mk.when(() -> ServiceFinder.loadServices(CacheService.class))
                     .thenThrow(IllegalArgumentException.class);
             Assertions.assertSame(NoOpCache.INSTANCE, CacheService.getInstance());
-        }
-    }
-
-    @Test
-    void should_return_custom_implementation_with_multiple_services() {
-        CacheService mock = Mockito.spy(CacheService.class);
-        try (MockedStatic<ServiceFinder> mk = Mockito.mockStatic(ServiceFinder.class)) {
-            mk.when(() -> ServiceFinder.loadServices(CacheService.class))
-                    .thenReturn(Collections.nCopies(2, mock));
-            Mockito.when(mock.isDefault())
-                    .thenReturn(true);
-
-            CacheService instance = CacheService.getInstance();
-            Assertions.assertEquals(instance.getClass(), CombinedCaches.class);
-            Assertions.assertTrue(instance.isDefault());
         }
     }
 
@@ -134,28 +147,6 @@ class CacheServiceTest {
         instance.setConfiguration(Object.class, configuration);
         Assertions.assertEquals(cache, instance.getCache(Object.class));
         Assertions.assertEquals(allCache, instance.getCacheAll(Object.class));
-    }
-
-    @Test
-    void should_return_combined_cache() {
-        CacheService mock = Mockito.mock(CacheService.class);
-        Mockito.when(mock.isDefault())
-                .thenReturn(true);
-        try (MockedStatic<ServiceFinder> mk = Mockito.mockStatic(ServiceFinder.class)) {
-            mk.when(() -> ServiceFinder.loadServices(CacheService.class))
-                    .thenReturn(Collections.nCopies(3, mock));
-            Assertions.assertTrue(CacheService.getInstance() instanceof CombinedCaches);
-        }
-    }
-
-    @Test
-    void should_return_no_op_for_multiple_not_defaults() {
-        CacheService mock = Mockito.mock(CacheService.class);
-        try (MockedStatic<ServiceFinder> mk = Mockito.mockStatic(ServiceFinder.class)) {
-            mk.when(() -> ServiceFinder.loadServices(CacheService.class))
-                    .thenReturn(Collections.nCopies(3, mock));
-            Assertions.assertTrue(CacheService.getInstance() instanceof NoOpCache);
-        }
     }
 
     @Test

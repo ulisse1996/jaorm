@@ -2,17 +2,13 @@ package io.github.ulisse1996.jaorm.entity;
 
 import io.github.ulisse1996.jaorm.Arguments;
 import io.github.ulisse1996.jaorm.DelegatesMock;
-import io.github.ulisse1996.jaorm.ServiceFinder;
 import io.github.ulisse1996.jaorm.annotation.Table;
 import io.github.ulisse1996.jaorm.schema.TableInfo;
 import io.github.ulisse1996.jaorm.spi.DelegatesService;
-import io.github.ulisse1996.jaorm.spi.combined.CombinedDelegates;
 import io.github.ulisse1996.jaorm.spi.common.Singleton;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.MockedStatic;
-import org.mockito.Mockito;
 
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
@@ -116,16 +112,6 @@ class DelegatesServiceTest {
     void should_create_insert_arguments_with_generated_values() {
         Arguments arguments = testSubject.asInsert(new DelegatesMock.MyEntity(), Collections.emptyMap());
         Assertions.assertEquals(2, arguments.getValues().length);
-    }
-
-    @Test
-    void should_return_combined_delegates() {
-        DelegatesService mock = Mockito.mock(DelegatesService.class);
-        try (MockedStatic<ServiceFinder> mk = Mockito.mockStatic(ServiceFinder.class)) {
-            mk.when(() -> ServiceFinder.loadServices(DelegatesService.class))
-                    .thenReturn(Collections.nCopies(3, mock));
-            Assertions.assertTrue(DelegatesService.getInstance() instanceof CombinedDelegates);
-        }
     }
 
     @Test

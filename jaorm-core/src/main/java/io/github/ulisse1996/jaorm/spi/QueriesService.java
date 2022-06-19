@@ -4,15 +4,13 @@ import io.github.ulisse1996.jaorm.BaseDao;
 import io.github.ulisse1996.jaorm.DaoImplementation;
 import io.github.ulisse1996.jaorm.ServiceFinder;
 import io.github.ulisse1996.jaorm.entity.EntityDelegate;
-import io.github.ulisse1996.jaorm.spi.combined.CombinedQueries;
 import io.github.ulisse1996.jaorm.spi.common.Singleton;
+import io.github.ulisse1996.jaorm.spi.impl.DefaultQueries;
+import io.github.ulisse1996.jaorm.spi.provider.QueryProvider;
+import io.github.ulisse1996.jaorm.util.ClassChecker;
 
-import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 public abstract class QueriesService {
 
@@ -20,13 +18,7 @@ public abstract class QueriesService {
 
     public static synchronized QueriesService getInstance() {
         if (!INSTANCE.isPresent()) {
-            List<QueriesService> services = StreamSupport.stream(ServiceFinder.loadServices(QueriesService.class).spliterator(), false)
-                            .collect(Collectors.toList());
-            if (services.size() == 1) {
-                INSTANCE.set(services.get(0));
-            } else {
-                INSTANCE.set(new CombinedQueries(services));
-            }
+            INSTANCE.set(new DefaultQueries(ServiceFinder.loadServices(QueryProvider.class)));
         }
 
         return INSTANCE.get();
@@ -34,7 +26,12 @@ public abstract class QueriesService {
 
     @SuppressWarnings("unchecked")
     public <T> T getQuery(Class<T> klass) {
-        return (T) Optional.ofNullable(getQueries().get(klass))
+        return (T) getQueries()
+                .entrySet()
+                .stream()
+                .filter(el -> ClassChecker.isAssignable(el.getKey(), klass))
+                .findFirst()
+                .map(Map.Entry::getValue)
                 .map(DaoImplementation::getDaoSupplier)
                 .map(Supplier::get)
                 .orElseThrow(() -> new IllegalArgumentException("Can't find Query for " + klass));
@@ -52,7 +49,7 @@ public abstract class QueriesService {
         return (BaseDao<T>) getQueries()
                 .values()
                 .stream()
-                .filter(entry -> entry.getEntityClass().equals(found))
+                .filter(entry -> ClassChecker.isAssignable(entry.getEntityClass(), found))
                 .findFirst()
                 .map(DaoImplementation::getDaoSupplier)
                 .map(Supplier::get)

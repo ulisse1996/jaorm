@@ -17,6 +17,7 @@ public interface EntityDelegate<T> {
         return e;
     }
 
+    EntityDelegate<T> generateDelegate();
     Supplier<T> getEntityInstance();
     EntityMapper<T> getEntityMapper();
     void setEntity(ResultSet rs) throws SQLException;

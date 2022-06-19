@@ -3,7 +3,6 @@ package io.github.ulisse1996.jaorm.processor.generation.impl;
 import com.squareup.javapoet.*;
 import io.github.ulisse1996.jaorm.Arguments;
 import io.github.ulisse1996.jaorm.BaseDao;
-import io.github.ulisse1996.jaorm.DaoImplementation;
 import io.github.ulisse1996.jaorm.Sort;
 import io.github.ulisse1996.jaorm.annotation.*;
 import io.github.ulisse1996.jaorm.cache.Cacheable;
@@ -20,8 +19,8 @@ import io.github.ulisse1996.jaorm.specialization.DoubleKeyDao;
 import io.github.ulisse1996.jaorm.specialization.SingleKeyDao;
 import io.github.ulisse1996.jaorm.specialization.TripleKeyDao;
 import io.github.ulisse1996.jaorm.spi.DelegatesService;
-import io.github.ulisse1996.jaorm.spi.QueriesService;
 import io.github.ulisse1996.jaorm.spi.QueryRunner;
+import io.github.ulisse1996.jaorm.spi.provider.QueryProvider;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
@@ -33,7 +32,6 @@ import java.util.stream.Stream;
 public class QueryGenerator extends Generator {
 
     private static final String COUNT_SQL = "SELECT COUNT(*) FROM %s";
-    private static final String MAP_FORMAT = "$T values = new $T<>()";
     private static final String REQUIRED_NOT_NULL_STATEMENT = "$T.requireNonNull(arg0, $S)";
     private static final String ENTITY_CAN_T_BE_NULL = "Entity can't be null !";
     protected static final String CREATE_ENTITY = "$T entity = new $T()";
@@ -45,6 +43,7 @@ public class QueryGenerator extends Generator {
 
     @Override
     public void generate(RoundEnvironment roundEnvironment) {
+        List<GeneratedFile> files = new ArrayList<>();
         List<TypeElement> entities = roundEnvironment.getElementsAnnotatedWith(Table.class)
                 .stream()
                 .map(TypeElement.class::cast)
@@ -72,63 +71,39 @@ public class QueryGenerator extends Generator {
                     .addModifiers(Modifier.PUBLIC)
                     .addAnnotations(annotations)
                     .addSuperinterface(query.asType())
+                    .addSuperinterface(QueryProvider.class)
                     .addMethods(methods)
+                    .addMethods(getProviderMethods(query.getSimpleName() + "Impl", query))
                     .build();
-            ProcessorUtils.generate(processingEnvironment,
-                    new GeneratedFile(packageName, build, query.getQualifiedName().toString()));
+            GeneratedFile file = new GeneratedFile(packageName, build, query.getQualifiedName().toString());
+            ProcessorUtils.generate(processingEnvironment, file);
+            files.add(file);
         }
 
-        if (!queries.isEmpty()) {
-            buildQueries(queries);
+        ProcessorUtils.generateSpi(processingEnvironment, files, QueryProvider.class);
+    }
+
+    private Iterable<MethodSpec> getProviderMethods(String queryName, TypeElement type) {
+        TypeElement baseType;
+        if (ProcessorUtils.isBaseDao(processingEnvironment, type)) {
+            baseType = processingEnvironment.getElementUtils().getTypeElement(ProcessorUtils.getBaseDaoGeneric(processingEnvironment, type));
+        } else {
+            baseType = processingEnvironment.getElementUtils().getTypeElement(Object.class.getName());
         }
-    }
 
-    private void buildQueries(List<TypeElement> types) {
-        TypeSpec queries = TypeSpec.classBuilder("Queries" + ProcessorUtils.randomIdentifier())
-                .addModifiers(Modifier.PUBLIC)
-                .superclass(QueriesService.class)
-                .addField(queriesMap(), "queries", Modifier.PRIVATE, Modifier.FINAL)
-                .addMethod(queriesConstructor(types))
-                .addMethod(buildGetQueries())
+        MethodSpec getEntityClass = MethodSpec.overriding(ProcessorUtils.getMethod(this.processingEnvironment, "getEntityClass", QueryProvider.class))
+                .addStatement("return $T.class", baseType)
                 .build();
-        ProcessorUtils.generate(processingEnvironment,
-                new GeneratedFile(JAORM_PACKAGE, queries, ""));
-        ProcessorUtils.generateSpi(
-                processingEnvironment,
-                new GeneratedFile(JAORM_PACKAGE, queries, ""),
-                QueriesService.class
-        );
-    }
 
-    private MethodSpec buildGetQueries() {
-        return MethodSpec.overriding(ProcessorUtils.getMethod(processingEnvironment, "getQueries", QueriesService.class))
-                .addStatement("return this.queries")
+        MethodSpec getQuerySupplier = MethodSpec.overriding(ProcessorUtils.getMethod(this.processingEnvironment, "getQuerySupplier", QueryProvider.class))
+                .addStatement("return $L::new", queryName)
                 .build();
-    }
 
-    private MethodSpec queriesConstructor(List<TypeElement> types) {
-        MethodSpec.Builder builder = MethodSpec.constructorBuilder()
-                .addModifiers(Modifier.PUBLIC)
-                .addStatement(MAP_FORMAT, queriesMap(), HashMap.class);
-        types.forEach(type -> {
-            TypeElement baseType;
-            if (ProcessorUtils.isBaseDao(processingEnvironment, type)) {
-                baseType = processingEnvironment.getElementUtils().getTypeElement(ProcessorUtils.getBaseDaoGeneric(processingEnvironment, type));
-            } else {
-                baseType = processingEnvironment.getElementUtils().getTypeElement(Object.class.getName());
-            }
-            builder.addStatement("values.put($L.class, new $T($T.class, $LImpl::new))",
-                    type.getQualifiedName(), DaoImplementation.class, baseType, type.getQualifiedName());
-        });
-        builder.addStatement("this.queries = values");
-        return builder.build();
-    }
+        MethodSpec getDaoClass = MethodSpec.overriding(ProcessorUtils.getMethod(this.processingEnvironment, "getDaoClass", QueryProvider.class))
+                .addStatement("return $T.class", type)
+                .build();
 
-    private TypeName queriesMap() {
-        return ParameterizedTypeName.get(ClassName.get(Map.class),
-                ParameterizedTypeName.get(ClassName.get(Class.class), WildcardTypeName.subtypeOf(Object.class)),
-                ClassName.get(DaoImplementation.class)
-        );
+        return Arrays.asList(getEntityClass, getQuerySupplier, getDaoClass);
     }
 
     private String getPackage(TypeElement query) {

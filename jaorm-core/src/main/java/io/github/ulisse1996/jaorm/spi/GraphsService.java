@@ -3,12 +3,12 @@ package io.github.ulisse1996.jaorm.spi;
 import io.github.ulisse1996.jaorm.ServiceFinder;
 import io.github.ulisse1996.jaorm.graph.EntityGraph;
 import io.github.ulisse1996.jaorm.graph.GraphPair;
-import io.github.ulisse1996.jaorm.spi.combined.CombinedGraphs;
 import io.github.ulisse1996.jaorm.spi.common.Singleton;
+import io.github.ulisse1996.jaorm.spi.impl.DefaultGraphs;
+import io.github.ulisse1996.jaorm.spi.provider.GraphProvider;
 
-import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
+import java.util.Map;
+import java.util.Optional;
 
 public abstract class GraphsService {
 
@@ -16,21 +16,8 @@ public abstract class GraphsService {
 
     public static synchronized GraphsService getInstance() {
         if (!INSTANCE.isPresent()) {
-            try {
-                List<GraphsService> services = StreamSupport.stream(ServiceFinder.loadServices(GraphsService.class).spliterator(), false)
-                        .collect(Collectors.toList());
-                if (services.isEmpty()) {
-                    INSTANCE.set(NoOp.INSTANCE);
-                } else {
-                    if (services.size() > 1) {
-                        INSTANCE.set(new CombinedGraphs(services));
-                    } else {
-                        INSTANCE.set(services.get(0));
-                    }
-                }
-            } catch (Exception | ServiceConfigurationError ex) {
-                INSTANCE.set(NoOp.INSTANCE);
-            }
+            Iterable<GraphProvider> providers = ServiceFinder.loadServices(GraphProvider.class);
+            INSTANCE.set(new DefaultGraphs(providers));
         }
 
         return INSTANCE.get();
@@ -44,14 +31,4 @@ public abstract class GraphsService {
     }
 
     public abstract Map<GraphPair, EntityGraph<?>> getEntityGraphs(); //NOSONAR
-
-    static class NoOp extends GraphsService {
-
-        private static final NoOp INSTANCE = new NoOp();
-
-        @Override
-        public Map<GraphPair, EntityGraph<?>> getEntityGraphs() {
-            return Collections.emptyMap();
-        }
-    }
 }
