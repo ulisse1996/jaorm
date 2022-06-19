@@ -57,6 +57,11 @@ public class DelegatesMock extends DelegatesService {
         }
 
         @Override
+        public EntityDelegate<MyEntity> generateDelegate() {
+            return new MyEntityDelegate();
+        }
+
+        @Override
         public Supplier<MyEntity> getEntityInstance() {
             return MyEntity::new;
         }

@@ -10,7 +10,7 @@ import io.github.ulisse1996.jaorm.processor.generation.Generator;
 import io.github.ulisse1996.jaorm.processor.util.GeneratedFile;
 import io.github.ulisse1996.jaorm.processor.util.ProcessorUtils;
 import io.github.ulisse1996.jaorm.processor.util.ReturnTypeDefinition;
-import io.github.ulisse1996.jaorm.spi.GraphsService;
+import io.github.ulisse1996.jaorm.spi.provider.GraphProvider;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
@@ -18,10 +18,9 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
-import java.util.Collections;
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -29,7 +28,7 @@ import java.util.stream.Stream;
 public class GraphsGenerator extends Generator {
 
     private static final Pattern CAMEL_CASE_TO_SNAKE_CASE_PATTERN = Pattern
-            .compile("((?<=[a-z0-9])[A-Z]|(?!^)[A-Z](?=[a-z]))");
+            .compile("((?<=[a-z\\d])[A-Z]|(?!^)[A-Z](?=[a-z]))");
 
     public GraphsGenerator(ProcessingEnvironment processingEnvironment) {
         super(processingEnvironment);
@@ -48,59 +47,60 @@ public class GraphsGenerator extends Generator {
     }
 
     private void buildGraphs(List<TypeElement> types) {
-        TypeSpec graphs = TypeSpec.classBuilder("Graphs" + ProcessorUtils.randomIdentifier())
-                .addModifiers(Modifier.PUBLIC)
-                .superclass(GraphsService.class)
-                .addField(graphsMap(), "elements", Modifier.PRIVATE, Modifier.FINAL)
-                .addMethod(graphsConstructor(types))
-                .addMethod(buildGetGraphs())
-                .build();
-        ProcessorUtils.generate(processingEnvironment,
-                new GeneratedFile(JAORM_PACKAGE, graphs, ""));
-        ProcessorUtils.generateSpi(
-                processingEnvironment,
-                new GeneratedFile(JAORM_PACKAGE, graphs, ""),
-                GraphsService.class
-        );
-    }
-
-    private MethodSpec graphsConstructor(List<TypeElement> types) {
-        MethodSpec.Builder builder = MethodSpec.constructorBuilder()
-                .addModifiers(Modifier.PUBLIC)
-                .addAnnotation(
-                        AnnotationSpec.builder(SuppressWarnings.class)
-                                .addMember("value", "$S", "unchecked")
-                                .build()
-                )
-                .addStatement("$T values = new $T<>()", graphsMap(), HashMap.class);
-        boolean first = true;
+        List<GeneratedFile> files = new ArrayList<>();
         for (TypeElement type : types) {
             Graph[] graphs = type.getAnnotationsByType(Graph.class);
             for (Graph graph : graphs) {
-                if (first) {
-                    builder.addStatement("$T builder = $T.builder($T.class)",
-                            ParameterizedTypeName.get(ClassName.get(EntityGraph.Builder.class), WildcardTypeName.subtypeOf(Object.class)),
-                            EntityGraph.class, type);
-                    first = false;
-                } else {
-                    builder.addStatement("builder = $T.builder($T.class)", EntityGraph.class, type);
-                }
-                int index = 0;
-                for (String name : graph.nodes()) {
-                    index++;
-                    VariableElement element = ProcessorUtils.getFieldFromName(type, name);
-                    ReturnTypeDefinition definition = new ReturnTypeDefinition(processingEnvironment, element.asType());
-                    ExecutableElement getter = ProcessorUtils.findGetter(processingEnvironment, type, element.getSimpleName());
-                    ExecutableElement setter = ProcessorUtils.findSetter(processingEnvironment, type, element.getSimpleName());
-                    builder.addStatement("builder.addChild($T.class, $S, $T.$L, (t, el) -> (($T) t).$L(($L) el), t -> (($T) t).$L(), $S)", definition.getRealClass(),
-                            buildJoin(element, definition, index), NodeType.class, findNodeType(definition), type, setter.getSimpleName(),
-                            setter.getParameters().get(0).asType(), type, getter.getSimpleName(), getAlias(index, definition.getRealClass()));
-                }
-                builder.addStatement("values.put(new $T($T.class, $S), builder.build())", GraphPair.class, type, graph.name());
+                TypeSpec t = TypeSpec.classBuilder(String.format("%sProvider%s", type.getSimpleName(), toGraphName(graph.name())))
+                        .addModifiers(Modifier.PUBLIC)
+                        .addSuperinterface(GraphProvider.class)
+                        .addMethods(getProvidersMethods(type, graph))
+                        .build();
+                GeneratedFile file = new GeneratedFile(getPackage(type), t, "");
+                ProcessorUtils.generate(processingEnvironment, file);
+                files.add(file);
             }
         }
-        builder.addStatement("this.elements = $T.unmodifiableMap(values)", Collections.class);
-        return builder.build();
+
+        ProcessorUtils.generateSpi(processingEnvironment, files, GraphProvider.class);
+    }
+
+    private String toGraphName(String name) {
+        return name.replace("_", "")
+                .replace("-", "")
+                .toUpperCase();
+    }
+
+    private Iterable<MethodSpec> getProvidersMethods(TypeElement type, Graph graph) {
+        MethodSpec getPair = MethodSpec.overriding(ProcessorUtils.getMethod(processingEnvironment, "getPair", GraphProvider.class))
+                .addStatement("return new $T($T.class, $S)", GraphPair.class, type, graph.name())
+                .build();
+
+        MethodSpec.Builder builder = MethodSpec.overriding(ProcessorUtils.getMethod(processingEnvironment, "getGraph", GraphProvider.class))
+                .addAnnotation(AnnotationSpec.builder(SuppressWarnings.class)
+                        .addMember("value", "$S", "unchecked")
+                        .build())
+                .addStatement("$T builder = $T.builder($T.class)",
+                    ParameterizedTypeName.get(ClassName.get(EntityGraph.Builder.class), WildcardTypeName.subtypeOf(Object.class)),
+                    EntityGraph.class, type);
+        int index = 0;
+        for (String name : graph.nodes()) {
+            index++;
+            VariableElement element = ProcessorUtils.getFieldFromName(type, name);
+            ReturnTypeDefinition definition = new ReturnTypeDefinition(processingEnvironment, element.asType());
+            ExecutableElement getter = ProcessorUtils.findGetter(processingEnvironment, type, element.getSimpleName());
+            ExecutableElement setter = ProcessorUtils.findSetter(processingEnvironment, type, element.getSimpleName());
+            builder.addStatement("builder.addChild($T.class, $S, $T.$L, (t, el) -> (($T) t).$L(($L) el), t -> (($T) t).$L(), $S)", definition.getRealClass(),
+                    buildJoin(element, definition, index), NodeType.class, findNodeType(definition), type, setter.getSimpleName(),
+                    setter.getParameters().get(0).asType(), type, getter.getSimpleName(), getAlias(index, definition.getRealClass()));
+        }
+        builder.addStatement("return builder.build()");
+
+        return Arrays.asList(getPair, builder.build());
+    }
+
+    private String getPackage(TypeElement entity) {
+        return ClassName.get(entity).packageName();
     }
 
     private String getAlias(int index, TypeElement realClass) {
@@ -139,19 +139,6 @@ public class GraphsGenerator extends Generator {
         } else {
             return NodeType.SINGLE.name();
         }
-    }
-
-    private MethodSpec buildGetGraphs() {
-        return MethodSpec.overriding(ProcessorUtils.getMethod(processingEnvironment, "getEntityGraphs", GraphsService.class))
-                .addStatement("return this.elements")
-                .build();
-    }
-
-    private TypeName graphsMap() {
-        return ParameterizedTypeName.get(ClassName.get(Map.class),
-                ClassName.get(GraphPair.class),
-                ParameterizedTypeName.get(ClassName.get(EntityGraph.class), WildcardTypeName.subtypeOf(Object.class))
-        );
     }
 
     private String toSnake(String name, int index) {

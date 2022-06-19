@@ -4,12 +4,9 @@ import io.github.ulisse1996.jaorm.ServiceFinder;
 import io.github.ulisse1996.jaorm.entity.EntityDelegate;
 import io.github.ulisse1996.jaorm.entity.relationship.EntityEventType;
 import io.github.ulisse1996.jaorm.entity.relationship.Relationship;
-import io.github.ulisse1996.jaorm.spi.combined.CombinedRelationships;
 import io.github.ulisse1996.jaorm.spi.common.Singleton;
-
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
+import io.github.ulisse1996.jaorm.spi.impl.DefaultRelationships;
+import io.github.ulisse1996.jaorm.spi.provider.RelationshipProvider;
 
 public abstract class RelationshipService {
 
@@ -17,15 +14,7 @@ public abstract class RelationshipService {
 
     public static synchronized RelationshipService getInstance() {
         if (!INSTANCE.isPresent()) {
-            List<RelationshipService> services = StreamSupport.stream(
-                    ServiceFinder.loadServices(RelationshipService.class).spliterator(),
-                    false
-            ).collect(Collectors.toList());
-            if (services.size() == 1) {
-                INSTANCE.set(services.get(0));
-            } else {
-                INSTANCE.set(new CombinedRelationships(services));
-            }
+            INSTANCE.set(new DefaultRelationships(ServiceFinder.loadServices(RelationshipProvider.class)));
         }
         return INSTANCE.get();
     }

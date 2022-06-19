@@ -37,6 +37,11 @@ public abstract class EventTest {
         private Entity entity = new Entity();
 
         @Override
+        public EntityDelegate<Entity> generateDelegate() {
+            return new MyEntityDelegate();
+        }
+
+        @Override
         public Supplier<Entity> getEntityInstance() {
             return null;
         }

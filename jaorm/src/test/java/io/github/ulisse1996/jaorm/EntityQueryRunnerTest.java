@@ -96,16 +96,6 @@ class EntityQueryRunnerTest {
     }
 
     @Test
-    void should_return_true_for_compatible_delegate() {
-        Assertions.assertTrue(testSubject.isCompatible(DelegatesMock.MyEntity.class));
-    }
-
-    @Test
-    void should_return_false_for_missing_delegate() {
-        Assertions.assertFalse(testSubject.isCompatible(Object.class));
-    }
-
-    @Test
     void should_throw_sql_exception_for_read() throws Throwable {
         withMockedSchemaSupport(() -> {
             try {
@@ -717,6 +707,14 @@ class EntityQueryRunnerTest {
                 }
             };
             Assertions.assertThrows(JaormSqlException.class, () -> runner.insert(new Object(), "", Collections.emptyList())); //NOSONAR
+        }
+    }
+
+    @Test
+    void should_return_true_for_delegate_instance() {
+        try (MockedStatic<DelegatesService> mkDel = Mockito.mockStatic(DelegatesService.class)) {
+            mkDel.when(DelegatesService::getInstance).thenReturn(delegatesService);
+            Assertions.assertTrue(testSubject.isCompatible(Mockito.mock(EntityDelegate.class).getClass()));
         }
     }
 

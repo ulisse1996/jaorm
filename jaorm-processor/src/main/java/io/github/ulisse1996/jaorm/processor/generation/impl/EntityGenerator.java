@@ -38,7 +38,6 @@ public class EntityGenerator extends Generator {
     private static final String BUILDER_INSTANCE = "$T builder = new $T()";
     private static final String BUILDER_SIMPLE_APPEND = "builder.append($S)";
     private static final String KEYS_WHERE = "KEYS_WHERE";
-    private static final String MAP_FORMAT = "$T values = new $T<>()";
     private static final String WHERE = " WHERE ";
     private static final String WILDCARD = " = ? ";
     private static final String AND = " AND ";
@@ -59,51 +58,7 @@ public class EntityGenerator extends Generator {
                 .map(this::generate)
                 .collect(Collectors.toList());
         types.forEach(f -> ProcessorUtils.generate(processingEnvironment, f));
-        if (!types.isEmpty()) {
-            generateDelegates(types);
-        }
-    }
-
-    private void generateDelegates(List<GeneratedFile> types) {
-        TypeSpec delegates = TypeSpec.classBuilder("Delegates" + ProcessorUtils.randomIdentifier())
-                .addModifiers(Modifier.PUBLIC)
-                .superclass(DelegatesService.class)
-                .addField(delegatesMap(), "delegates", Modifier.PRIVATE, Modifier.FINAL)
-                .addMethod(delegateConstructor(types))
-                .addMethod(buildGetDelegates())
-                .build();
-        ProcessorUtils.generate(processingEnvironment,
-                new GeneratedFile(JAORM_PACKAGE, delegates, ""));
-        ProcessorUtils.generateSpi(
-                processingEnvironment,
-                new GeneratedFile(JAORM_PACKAGE, delegates, ""),
-                DelegatesService.class
-        );
-    }
-
-    private MethodSpec buildGetDelegates() {
-        return MethodSpec.overriding(ProcessorUtils.getMethod(processingEnvironment, "getDelegates", DelegatesService.class))
-                .addStatement("return this.delegates")
-                .build();
-    }
-
-    private ParameterizedTypeName delegatesMap() {
-        return ParameterizedTypeName.get(ClassName.get(Map.class),
-                ParameterizedTypeName.get(ClassName.get(Class.class), WildcardTypeName.subtypeOf(Object.class)),
-                ParameterizedTypeName.get(ClassName.get(Supplier.class), WildcardTypeName.subtypeOf(
-                        ParameterizedTypeName.get(ClassName.get(EntityDelegate.class), WildcardTypeName.subtypeOf(Object.class))
-                ))
-        );
-    }
-
-    private MethodSpec delegateConstructor(List<GeneratedFile> types) {
-        MethodSpec.Builder builder = MethodSpec.constructorBuilder()
-                .addModifiers(Modifier.PUBLIC)
-                .addStatement(MAP_FORMAT, delegatesMap(), HashMap.class);
-        types.forEach(type -> builder.addStatement("values.put($L.class, $LDelegate::new)",
-                type.getEntityName(), type.getEntityName()));
-        builder.addStatement("this.delegates = values");
-        return builder.build();
+        ProcessorUtils.generateSpi(processingEnvironment, types, EntityDelegate.class);
     }
 
     private GeneratedFile generate(TypeElement entity) {
@@ -384,11 +339,16 @@ public class EntityGenerator extends Generator {
                 .addStatement("return new $T(TABLE, this.entityClass, SCHEMA)", TableInfo.class)
                 .build();
 
+        MethodSpec generateDelegate = MethodSpec.overriding(ProcessorUtils.getMethod(processingEnvironment, "generateDelegate", EntityDelegate.class))
+                .returns(ParameterizedTypeName.get(ClassName.get(EntityDelegate.class), ClassName.get(entity)))
+                .addStatement("return new $LDelegate()", entity)
+                .build();
+
         return Stream.of(supplierEntity, entityMapper,
                 setEntity, setEntityObj, baseSql, keysWhere,
                 insertSql, selectables, table, updateSql,
                 getEntity, deleteSql, modified,
-                isDefaultGeneration, initDefault,
+                isDefaultGeneration, initDefault, generateDelegate,
                 setFullEntityFullColumns, getKeyWhere, toTableInfo)
                 .collect(Collectors.toList());
     }

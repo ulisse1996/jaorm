@@ -7,6 +7,8 @@ import java.sql.SQLException;
 
 public interface ProjectionDelegate {
 
+    ProjectionDelegate getInstance();
+    Class<?> getProjectionClass();
     TableInfo asTableInfo();
     void setEntity(ResultSet resultSet) throws SQLException;
 }

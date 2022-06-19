@@ -18,7 +18,10 @@ import io.github.ulisse1996.jaorm.processor.exception.ProcessorException;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.*;
-import javax.lang.model.type.*;
+import javax.lang.model.type.MirroredTypeException;
+import javax.lang.model.type.NoType;
+import javax.lang.model.type.PrimitiveType;
+import javax.lang.model.type.TypeMirror;
 import javax.tools.FileObject;
 import javax.tools.StandardLocation;
 import java.io.*;
@@ -29,7 +32,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -41,7 +43,6 @@ import java.util.stream.Stream;
 
 public class ProcessorUtils {
 
-    private static final SecureRandom RANDOM = new SecureRandom();
     private static final String REQUIRE_NON_NULL = "$T.requireNonNull(this.entity)";
 
     private ProcessorUtils() {}
@@ -460,21 +461,18 @@ public class ProcessorUtils {
                 .orElse(false);
     }
 
-    public static void generateSpi(ProcessingEnvironment environment, GeneratedFile generatedFile, Class<?> serviceClass) {
+    public static void generateSpi(ProcessingEnvironment environment, List<GeneratedFile> generatedFiles, Class<?> serviceClass) {
         try {
+            if (generatedFiles.isEmpty()) {
+                return;
+            }
             Path services = ConfigHolder.getServices();
             if (services == null) {
-                fallbackGenerateSpi(environment, generatedFile, serviceClass);
+                fallbackGenerateSpi(environment, generatedFiles, serviceClass);
                 return;
             }
             Map.Entry<Path, Boolean> entry = getOrCreateFile(serviceClass);
-            boolean needReturn = !entry.getValue();
-            try (Writer w = Files.newBufferedWriter(entry.getKey(), StandardOpenOption.APPEND)) {
-                w.write(String.format("%s%s.%s",
-                        needReturn ? "\n" : "",
-                        generatedFile.getPackageName(),
-                        generatedFile.getSpec().name));
-            }
+            readAndMergeLines(generatedFiles, entry.getKey());
         } catch (IOException ex) {
             StringWriter writer = new StringWriter();
             PrintWriter p = new PrintWriter(writer);
@@ -483,17 +481,33 @@ public class ProcessorUtils {
         }
     }
 
-    private static void fallbackGenerateSpi(ProcessingEnvironment processingEnvironment, GeneratedFile generatedFile, Class<?> serviceClass) {
+    private static void fallbackGenerateSpi(ProcessingEnvironment processingEnvironment, List<GeneratedFile> generatedFiles, Class<?> serviceClass) {
         try {
             String name = serviceClass.getName();
             FileObject resource = processingEnvironment.getFiler().createResource(
                     StandardLocation.CLASS_OUTPUT, "", String.format("META-INF/services/%s", name));
-            try (Writer w = new OutputStreamWriter(resource.openOutputStream(), StandardCharsets.UTF_8)) {
-                w.write(String.format("%s.%s", generatedFile.getPackageName(), generatedFile.getSpec().name));
+
+            if (resource.toUri().toString().startsWith("mem")) {
+                return;
             }
+
+            readAndMergeLines(generatedFiles, Paths.get(resource.toUri()));
         } catch (IOException ex) {
             throw new ProcessorException("Error during Resource creation : " + ex.getMessage());
         }
+    }
+
+    private static void readAndMergeLines(List<GeneratedFile> generatedFiles, Path path) throws IOException {
+        List<String> written = Files.readAllLines(path);
+        List<String> toGen = generatedFiles.stream()
+                .map(generatedFile -> String.format("%s.%s",
+                        generatedFile.getPackageName(),
+                        generatedFile.getSpec().name))
+                .collect(Collectors.toList());
+        Set<String> toWrite = new HashSet<>();
+        toWrite.addAll(written);
+        toWrite.addAll(toGen);
+        Files.write(path, String.join("\n", toWrite).getBytes(StandardCharsets.UTF_8), StandardOpenOption.TRUNCATE_EXISTING);
     }
 
     private static Map.Entry<Path, Boolean> getOrCreateFile(Class<?> serviceClass) throws IOException {
@@ -516,18 +530,6 @@ public class ProcessorUtils {
         if (!Files.exists(services)) {
             Files.createDirectory(services);
         }
-    }
-
-    public static String randomIdentifier() {
-        int leftLimit = 48;
-        int rightLimit = 122;
-        int targetStringLength = 10;
-
-        return "_" + RANDOM.ints(leftLimit, rightLimit + 1)
-                .filter(i -> (i <= 57 || i >= 65) && (i <= 90 || i >= 97))
-                .limit(targetStringLength)
-                .collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append)
-                .toString();
     }
 
     public static List<ExecutableElement> getAllMethods(ProcessingEnvironment processingEnvironment, TypeElement element) {

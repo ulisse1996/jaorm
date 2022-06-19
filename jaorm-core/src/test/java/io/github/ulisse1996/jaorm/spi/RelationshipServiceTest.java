@@ -1,13 +1,11 @@
 package io.github.ulisse1996.jaorm.spi;
 
-import io.github.ulisse1996.jaorm.ServiceFinder;
 import io.github.ulisse1996.jaorm.entity.EntityDelegate;
 import io.github.ulisse1996.jaorm.entity.EntityMapper;
 import io.github.ulisse1996.jaorm.entity.SqlColumn;
 import io.github.ulisse1996.jaorm.entity.relationship.EntityEventType;
 import io.github.ulisse1996.jaorm.entity.relationship.Relationship;
 import io.github.ulisse1996.jaorm.schema.TableInfo;
-import io.github.ulisse1996.jaorm.spi.combined.CombinedRelationships;
 import io.github.ulisse1996.jaorm.spi.common.Singleton;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,7 +20,6 @@ import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiPredicate;
@@ -62,25 +59,6 @@ class RelationshipServiceTest {
         }
     }
 
-    @Test
-    void should_return_instance() {
-        try (MockedStatic<ServiceFinder> mk = Mockito.mockStatic(ServiceFinder.class)) {
-            mk.when(() -> ServiceFinder.loadServices(RelationshipService.class))
-                    .thenReturn(Collections.singletonList(new RelationshipMock()));
-            Assertions.assertTrue(RelationshipService.getInstance() instanceof RelationshipMock);
-        }
-    }
-
-    @Test
-    void should_return_combined_relationships() {
-        RelationshipService mock = Mockito.mock(RelationshipService.class);
-        try (MockedStatic<ServiceFinder> mk = Mockito.mockStatic(ServiceFinder.class)) {
-            mk.when(() -> ServiceFinder.loadServices(RelationshipService.class))
-                    .thenReturn(Collections.nCopies(3, mock));
-            Assertions.assertTrue(RelationshipService.getInstance() instanceof CombinedRelationships);
-        }
-    }
-
     private static Stream<Arguments> getEventChecks() {
         RelationshipMock mock = new RelationshipMock();
         return Stream.of(
@@ -92,6 +70,11 @@ class RelationshipServiceTest {
     }
 
     private static class StringDelegate implements EntityDelegate<String> {
+        @Override
+        public EntityDelegate<String> generateDelegate() {
+            return new StringDelegate();
+        }
+
         @Override
         public Supplier<String> getEntityInstance() {
             return null;

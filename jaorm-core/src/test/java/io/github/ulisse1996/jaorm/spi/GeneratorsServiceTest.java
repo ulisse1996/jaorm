@@ -1,7 +1,8 @@
 package io.github.ulisse1996.jaorm.spi;
 
 import io.github.ulisse1996.jaorm.ServiceFinder;
-import io.github.ulisse1996.jaorm.spi.combined.CombinedGenerators;
+import io.github.ulisse1996.jaorm.annotation.CustomGenerator;
+import io.github.ulisse1996.jaorm.entity.GenerationInfo;
 import io.github.ulisse1996.jaorm.spi.common.Singleton;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -13,11 +14,10 @@ import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.Collections;
-import java.util.ServiceConfigurationError;
+import java.util.List;
+import java.util.Map;
 
 class GeneratorsServiceTest {
-
-    private MockGenerators generators;
 
     @BeforeEach
     @SuppressWarnings("unchecked")
@@ -27,7 +27,6 @@ class GeneratorsServiceTest {
             instance.setAccessible(true);
             Singleton<GeneratorsService> o = (Singleton<GeneratorsService>) instance.get(null);
             o.set(null);
-            generators = new MockGenerators();
         } catch (Exception ex) {
             Assertions.fail(ex);
         }
@@ -44,83 +43,73 @@ class GeneratorsServiceTest {
     }
 
     @Test
-    void should_throw_exception_for_not_valid_generators() {
-        try (MockedStatic<ServiceFinder> mk = Mockito.mockStatic(ServiceFinder.class)) {
-            mk.when(() -> ServiceFinder.loadServices(Mockito.any()))
-                    .thenThrow(ServiceConfigurationError.class);
-            Assertions.assertEquals(GeneratorsService.NoOp.class, GeneratorsService.getInstance().getClass());
-        }
+    void should_return_true_for_valid_generation() {
+        GenerationInfo info = new GenerationInfo("NAME", Mockito.mock(CustomGenerator.class));
+        GeneratorsService service = new GeneratorsService() {
+            @Override
+            public Map<Class<?>, List<GenerationInfo>> getGenerated() {
+                return Collections.singletonMap(Object.class, Collections.singletonList(info));
+            }
+        };
+
+        Assertions.assertTrue(service.canGenerateValue(Object.class, "NAME"));
     }
 
     @Test
-    void should_return_valid_generators() {
-        try (MockedStatic<ServiceFinder> mk = Mockito.mockStatic(ServiceFinder.class)) {
-            mk.when(() -> ServiceFinder.loadServices(Mockito.any()))
-                    .thenReturn(Collections.singletonList(generators));
-            Assertions.assertEquals(generators, GeneratorsService.getInstance());
-        }
+    void should_return_false_for_invalid_generation() {
+        GenerationInfo info = new GenerationInfo("NAME", Mockito.mock(CustomGenerator.class));
+        GeneratorsService service = new GeneratorsService() {
+            @Override
+            public Map<Class<?>, List<GenerationInfo>> getGenerated() {
+                return Collections.singletonMap(Object.class, Collections.singletonList(info));
+            }
+        };
+
+        Assertions.assertFalse(service.canGenerateValue(Object.class, "NOT_VALID_NAME"));
     }
 
     @Test
-    void should_return_true_for_can_generate() {
-        try (MockedStatic<ServiceFinder> mk = Mockito.mockStatic(ServiceFinder.class)) {
-            mk.when(() -> ServiceFinder.loadServices(Mockito.any()))
-                    .thenReturn(Collections.singletonList(generators));
-            Mockito.when(generators.getInfo().getColumnName())
-                    .thenReturn("NAME");
-            GeneratorsService instance = GeneratorsService.getInstance();
-            boolean res = instance.canGenerateValue(Object.class, "NAME");
-            Assertions.assertTrue(res);
-        }
-    }
+    void should_return_false_for_invalid_column() {
+        GeneratorsService service = new GeneratorsService() {
+            @Override
+            public Map<Class<?>, List<GenerationInfo>> getGenerated() {
+                return Collections.singletonMap(Object.class, null);
+            }
+        };
 
-    @Test
-    void should_return_true_for_need_generation() {
-        try (MockedStatic<ServiceFinder> mk = Mockito.mockStatic(ServiceFinder.class)) {
-            mk.when(() -> ServiceFinder.loadServices(Mockito.any()))
-                    .thenReturn(Collections.singletonList(generators));
-            Mockito.when(generators.getInfo().getColumnName())
-                    .thenReturn("NAME");
-            GeneratorsService instance = GeneratorsService.getInstance();
-            boolean res = instance.needGeneration(Object.class);
-            Assertions.assertTrue(res);
-        }
-    }
-
-    @Test
-    void should_generate_value() throws SQLException {
-        try (MockedStatic<ServiceFinder> mk = Mockito.mockStatic(ServiceFinder.class)) {
-            mk.when(() -> ServiceFinder.loadServices(Mockito.any()))
-                    .thenReturn(Collections.singletonList(generators));
-            Mockito.when(generators.getInfo().getColumnName())
-                    .thenReturn("NAME");
-            Mockito.when(generators.getInfo().generate(Object.class, BigDecimal.class))
-                    .thenReturn(BigDecimal.ONE);
-            GeneratorsService instance = GeneratorsService.getInstance();
-            Object val = instance.generate(Object.class, "NAME", BigDecimal.class);
-            Assertions.assertEquals(BigDecimal.ONE, val);
-        }
+        Assertions.assertFalse(service.canGenerateValue(Object.class, "NAME"));
     }
 
     @Test
     void should_throw_exception_for_missing_generation() {
-        try (MockedStatic<ServiceFinder> mk = Mockito.mockStatic(ServiceFinder.class)) {
-            mk.when(() -> ServiceFinder.loadServices(Mockito.any()))
-                    .thenReturn(Collections.singletonList(generators));
-            Mockito.when(generators.getInfo().getColumnName())
-                    .thenReturn("NAME");
-            GeneratorsService instance = GeneratorsService.getInstance();
-            Assertions.assertThrows(IllegalArgumentException.class, () -> instance.generate(Object.class, "NAME2", BigDecimal.class));
-        }
+        GenerationInfo info = new GenerationInfo("NAME", Mockito.mock(CustomGenerator.class));
+        GeneratorsService service = new GeneratorsService() {
+            @Override
+            public Map<Class<?>, List<GenerationInfo>> getGenerated() {
+                return Collections.singletonMap(Object.class, Collections.singletonList(info));
+            }
+        };
+
+        Assertions.assertThrows(IllegalArgumentException.class, () -> service.generate(Object.class, "NOT_VALID", BigDecimal.class));
     }
 
     @Test
-    void should_return_combined_generators() {
-        GeneratorsService mock = Mockito.mock(GeneratorsService.class);
-        try (MockedStatic<ServiceFinder> mk = Mockito.mockStatic(ServiceFinder.class)) {
-            mk.when(() -> ServiceFinder.loadServices(GeneratorsService.class))
-                    .thenReturn(Collections.nCopies(3, mock));
-            Assertions.assertTrue(GeneratorsService.getInstance() instanceof CombinedGenerators);
-        }
+    void should_generate_value() throws SQLException {
+        CustomGenerator<?> custom = Mockito.mock(CustomGenerator.class);
+        GenerationInfo info = new GenerationInfo("NAME", custom);
+        GeneratorsService service = new GeneratorsService() {
+            @Override
+            public Map<Class<?>, List<GenerationInfo>> getGenerated() {
+                return Collections.singletonMap(Object.class, Collections.singletonList(info));
+            }
+        };
+
+        Mockito.when(custom.generate(Object.class, BigDecimal.class, "NAME"))
+                .then(invocation -> BigDecimal.ONE);
+
+        Assertions.assertEquals(
+                BigDecimal.ONE,
+                service.generate(Object.class, "NAME", BigDecimal.class)
+        );
     }
 }

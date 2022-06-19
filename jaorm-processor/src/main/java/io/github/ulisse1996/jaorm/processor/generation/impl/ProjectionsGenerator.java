@@ -9,7 +9,6 @@ import io.github.ulisse1996.jaorm.processor.generation.Generator;
 import io.github.ulisse1996.jaorm.processor.util.GeneratedFile;
 import io.github.ulisse1996.jaorm.processor.util.ProcessorUtils;
 import io.github.ulisse1996.jaorm.schema.TableInfo;
-import io.github.ulisse1996.jaorm.spi.ProjectionsService;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
@@ -18,10 +17,7 @@ import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public class ProjectionsGenerator extends Generator {
@@ -37,51 +33,8 @@ public class ProjectionsGenerator extends Generator {
                 .map(TypeElement.class::cast)
                 .map(this::toProjection)
                 .collect(Collectors.toList());
-        if (!projections.isEmpty()) {
-            projections.forEach(type ->
-                    ProcessorUtils.generate(processingEnvironment, type));
-            generateProjections(projections);
-        }
-    }
-
-    private void generateProjections(List<GeneratedFile> projections) {
-        TypeSpec delegates = TypeSpec.classBuilder("Projections" + ProcessorUtils.randomIdentifier())
-                .addModifiers(Modifier.PUBLIC)
-                .superclass(ProjectionsService.class)
-                .addField(delegatesMap(), "delegates", Modifier.PRIVATE, Modifier.FINAL)
-                .addMethod(delegateConstructor(projections))
-                .addMethod(buildGetDelegates())
-                .build();
-        ProcessorUtils.generate(processingEnvironment,
-                new GeneratedFile(JAORM_PACKAGE, delegates, ""));
-        ProcessorUtils.generateSpi(
-                processingEnvironment,
-                new GeneratedFile(JAORM_PACKAGE, delegates, ""),
-                ProjectionsService.class
-        );
-    }
-
-    private MethodSpec buildGetDelegates() {
-        return MethodSpec.overriding(ProcessorUtils.getMethod(processingEnvironment, "getProjections", ProjectionsService.class))
-                .addStatement("return this.delegates")
-                .build();
-    }
-
-    private MethodSpec delegateConstructor(List<GeneratedFile> projections) {
-        MethodSpec.Builder builder = MethodSpec.constructorBuilder()
-                .addModifiers(Modifier.PUBLIC)
-                .addStatement("$T values = new $T<>()", delegatesMap(), HashMap.class);
-        projections.forEach(type -> builder.addStatement("values.put($L.class, $LDelegate::new)",
-                type.getEntityName(), type.getEntityName()));
-        builder.addStatement("this.delegates = values");
-        return builder.build();
-    }
-
-    private TypeName delegatesMap() {
-        return ParameterizedTypeName.get(ClassName.get(Map.class),
-                ParameterizedTypeName.get(ClassName.get(Class.class), WildcardTypeName.subtypeOf(Object.class)),
-                ParameterizedTypeName.get(ClassName.get(Supplier.class), TypeName.get(ProjectionDelegate.class)
-        ));
+        projections.forEach(f -> ProcessorUtils.generate(processingEnvironment, f));
+        ProcessorUtils.generateSpi(processingEnvironment, projections, ProjectionDelegate.class);
     }
 
     private GeneratedFile toProjection(TypeElement element) {
@@ -105,7 +58,7 @@ public class ProjectionsGenerator extends Generator {
                         .build()
                 )
                 .addMethod(generateConstructor(element))
-                .addMethods(generateDelegate(element))
+                .addMethods(generateDelegate(element, String.format("%sDelegate", element.getSimpleName())))
                 .addMethods(generateDelegations(element))
                 .build();
         return new GeneratedFile(getPackage(element), typeSpec, element.getQualifiedName().toString());
@@ -129,14 +82,22 @@ public class ProjectionsGenerator extends Generator {
         return ClassName.get(entity).packageName();
     }
 
-    private Iterable<MethodSpec> generateDelegate(TypeElement element) {
+    private Iterable<MethodSpec> generateDelegate(TypeElement element, String name) {
         MethodSpec setEntity = MethodSpec.overriding(ProcessorUtils.getMethod(processingEnvironment, "setEntity", ProjectionDelegate.class))
                 .addCode(buildSetEntityCode(element))
                 .build();
         MethodSpec asTableInfo = MethodSpec.overriding(ProcessorUtils.getMethod(processingEnvironment, "asTableInfo", ProjectionDelegate.class))
                 .addStatement("return new $T($S, this.projectionClass, SCHEMA)", TableInfo.class, "")
                 .build();
-        return Arrays.asList(setEntity, asTableInfo);
+
+        MethodSpec getProjectionClass = MethodSpec.overriding(ProcessorUtils.getMethod(processingEnvironment, "getProjectionClass", ProjectionDelegate.class))
+                .addStatement("return $T.class", element)
+                .build();
+
+        MethodSpec getInstance = MethodSpec.overriding(ProcessorUtils.getMethod(processingEnvironment, "getInstance", ProjectionDelegate.class))
+                .addStatement("return new $L()", name)
+                .build();
+        return Arrays.asList(setEntity, asTableInfo, getProjectionClass, getInstance);
     }
 
     private CodeBlock buildSetEntityCode(TypeElement element) {

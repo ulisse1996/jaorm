@@ -16,6 +16,7 @@ import io.github.ulisse1996.jaorm.logger.SqlJaormLogger;
 import io.github.ulisse1996.jaorm.mapping.TableRow;
 import io.github.ulisse1996.jaorm.schema.TableInfo;
 import io.github.ulisse1996.jaorm.spi.common.Singleton;
+import io.github.ulisse1996.jaorm.util.ClassChecker;
 
 import java.sql.*;
 import java.util.*;
@@ -50,10 +51,10 @@ public abstract class QueryRunner {
         throw new IllegalArgumentException("Can't find a matched runner for klass " + klass);
     }
 
-    private static boolean isDelegate(Class<?> klass) {
-        return DelegatesService.getInstance().getDelegates().containsKey(klass) ||
+    protected static boolean isDelegate(Class<?> klass) {
+        return DelegatesService.getInstance().getDelegates().entrySet().stream().anyMatch(el -> ClassChecker.isAssignable(el.getKey(), klass)) ||
                 EntityDelegate.class.isAssignableFrom(klass) ||
-                ProjectionsService.getInstance().getProjections().containsKey(klass);
+                ProjectionsService.getInstance().getProjections().entrySet().stream().anyMatch(el -> ClassChecker.isAssignable(el.getKey(), klass));
     }
 
     public static QueryRunner getSimple() {

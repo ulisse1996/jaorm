@@ -3,15 +3,14 @@ package io.github.ulisse1996.jaorm.spi;
 import io.github.ulisse1996.jaorm.ServiceFinder;
 import io.github.ulisse1996.jaorm.entity.converter.ConverterPair;
 import io.github.ulisse1996.jaorm.entity.sql.SqlAccessor;
-import io.github.ulisse1996.jaorm.spi.combined.CombinedConverters;
 import io.github.ulisse1996.jaorm.spi.common.Singleton;
+import io.github.ulisse1996.jaorm.spi.impl.DefaultConverters;
+import io.github.ulisse1996.jaorm.spi.provider.ConverterProvider;
+import io.github.ulisse1996.jaorm.util.ClassChecker;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 public abstract class ConverterService {
 
@@ -20,14 +19,7 @@ public abstract class ConverterService {
 
     public static synchronized ConverterService getInstance() {
         if (!INSTANCE.isPresent()) {
-            Iterable<ConverterService> converterServices = ServiceFinder.loadServices(ConverterService.class);
-            List<ConverterService> services = StreamSupport.stream(converterServices.spliterator(), false)
-                    .collect(Collectors.toList());
-            if (services.size() == 1) {
-                INSTANCE.set(services.get(0));
-            } else {
-                INSTANCE.set(new CombinedConverters(services));
-            }
+            INSTANCE.set(new DefaultConverters(ServiceFinder.loadServices(ConverterProvider.class)));
         }
 
         return INSTANCE.get();
@@ -38,7 +30,12 @@ public abstract class ConverterService {
         if (cache.containsKey(klass)) {
             return cache.get(klass);
         }
-        ConverterPair<T,R> converterPair = (ConverterPair<T, R>) getConverters().get(klass);
+        ConverterPair<T,R> converterPair = (ConverterPair<T, R>) getConverters().entrySet()
+                .stream()
+                .filter(el -> ClassChecker.isAssignable(el.getKey(), klass))
+                .findFirst()
+                .map(Map.Entry::getValue)
+                .orElse(null);
         if (converterPair == null) {
             return null;
         }

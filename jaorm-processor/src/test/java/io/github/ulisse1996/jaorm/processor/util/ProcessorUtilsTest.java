@@ -919,7 +919,7 @@ class ProcessorUtilsTest {
                 .thenReturn(filer);
         Mockito.when(filer.createResource(Mockito.any(), Mockito.anyString(), Mockito.any()))
                 .thenThrow(IOException.class);
-        Assertions.assertThrows(ProcessorException.class, () -> ProcessorUtils.generateSpi(environment, new GeneratedFile("", null, ""), //NOSONAR
+        Assertions.assertThrows(ProcessorException.class, () -> ProcessorUtils.generateSpi(environment, Collections.singletonList(new GeneratedFile("", null, "")), //NOSONAR
                 Object.class));
     }
 
@@ -1017,7 +1017,7 @@ class ProcessorUtilsTest {
                 .when(provider).checkAccess(Mockito.any(), Mockito.any());
 
         Assertions.assertThrows(ProcessorException.class,
-                () -> ProcessorUtils.generateSpi(environment, file, Object.class));
+                () -> ProcessorUtils.generateSpi(environment, Collections.singletonList(file), Object.class));
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
@@ -1033,7 +1033,7 @@ class ProcessorUtilsTest {
         try {
             ConfigHolder.init(new HashMap<>());
             ConfigHolder.setServices(testPath);
-            ProcessorUtils.generateSpi(environment, file, Object.class);
+            ProcessorUtils.generateSpi(environment, Collections.singletonList(file), Object.class);
 
             Assertions.assertTrue(testDir.resolve("META-INF").toFile().exists());
             Assertions.assertTrue(testDir.resolve("META-INF").resolve("services").toFile().exists());

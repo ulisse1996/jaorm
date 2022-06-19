@@ -95,11 +95,11 @@ class QueryRunnerTest {
     @Test
     void should_find_custom_runner() {
         MockedRunner expected = new MockedRunner();
-        try (MockedStatic<ServiceFinder> mk = Mockito.mockStatic(ServiceFinder.class)) {
+        try (MockedStatic<ServiceFinder> mk = Mockito.mockStatic(ServiceFinder.class);
+             MockedStatic<DelegatesService> mkDel = Mockito.mockStatic(DelegatesService.class)) {
             mk.when(() -> ServiceFinder.loadServices(QueryRunner.class))
                     .thenReturn(Arrays.asList(new SimpleMockedRunner(), expected));
-            mk.when(() -> ServiceFinder.loadServices(DelegatesService.class))
-                    .thenReturn(Collections.singletonList(new DelegatesMock()));
+            mkDel.when(DelegatesService::getInstance).thenReturn(new DelegatesMock());
             QueryRunner runner = QueryRunner.getInstance(DelegatesMock.MyEntity.class);
             Assertions.assertEquals(expected, runner);
         }
@@ -108,11 +108,11 @@ class QueryRunnerTest {
     @Test
     void should_call_service_load_for_entity_runner_only_first_time() {
         MockedRunner expected = new MockedRunner();
-        try (MockedStatic<ServiceFinder> mk = Mockito.mockStatic(ServiceFinder.class)) {
+        try (MockedStatic<ServiceFinder> mk = Mockito.mockStatic(ServiceFinder.class);
+            MockedStatic<DelegatesService> mkDel = Mockito.mockStatic(DelegatesService.class)) {
             mk.when(() -> ServiceFinder.loadServices(QueryRunner.class))
                     .thenReturn(Arrays.asList(new SimpleMockedRunner(), expected));
-            mk.when(() -> ServiceFinder.loadServices(DelegatesService.class))
-                    .thenReturn(Collections.singletonList(new DelegatesMock()));
+            mkDel.when(DelegatesService::getInstance).thenReturn(new DelegatesMock());
             QueryRunner runner = QueryRunner.getInstance(DelegatesMock.MyEntity.class);
             Assertions.assertEquals(expected, runner);
             QueryRunner runner1 = QueryRunner.getInstance(DelegatesMock.MyEntity.class);

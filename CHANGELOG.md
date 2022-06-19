@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 1.6.0
+- Refactor: Move generation bundle SPI to SPI Provider for Single Feature
+- Bugfix: Fix quoting supports for table and columns
+- Bugfix: Fix quarkus dev reload for class checks
+
 ## 1.5.0
 - Feature: Single/Double/Triple Key DAO
 - Bugfix: Fix recursive search for BaseDAO

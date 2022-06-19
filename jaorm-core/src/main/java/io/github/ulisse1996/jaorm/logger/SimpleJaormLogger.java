@@ -2,6 +2,7 @@ package io.github.ulisse1996.jaorm.logger;
 
 import io.github.ulisse1996.jaorm.ServiceFinder;
 
+import java.util.Optional;
 import java.util.ServiceConfigurationError;
 import java.util.function.Supplier;
 import java.util.logging.Level;
@@ -19,7 +20,7 @@ class SimpleJaormLogger implements JaormLogger {
         } catch (Exception | ServiceConfigurationError ex) {
             foundHandler = JaormLoggerHandler.NoOp.INSTANCE;
         }
-        this.handler = foundHandler;
+        this.handler = Optional.ofNullable(foundHandler).orElse(JaormLoggerHandler.NoOp.INSTANCE);
     }
 
     @Override

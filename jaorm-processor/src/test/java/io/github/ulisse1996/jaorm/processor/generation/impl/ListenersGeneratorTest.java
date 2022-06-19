@@ -16,6 +16,6 @@ class ListenersGeneratorTest extends CompilerTest {
         checkCompilation(compilation);
         Assertions.assertTrue(compilation.generatedFiles()
                 .stream()
-                .anyMatch(f -> f.getName().contains("EntityListeners")));
+                .anyMatch(f -> f.getName().contains("EntityWithListenerListenerProvider")));
     }
 }

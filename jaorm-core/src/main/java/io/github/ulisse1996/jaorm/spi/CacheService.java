@@ -6,6 +6,9 @@ import io.github.ulisse1996.jaorm.cache.*;
 import io.github.ulisse1996.jaorm.logger.JaormLogger;
 import io.github.ulisse1996.jaorm.spi.combined.CombinedCaches;
 import io.github.ulisse1996.jaorm.spi.common.Singleton;
+import io.github.ulisse1996.jaorm.spi.impl.DefaultCache;
+import io.github.ulisse1996.jaorm.spi.provider.CacheActivator;
+import io.github.ulisse1996.jaorm.util.ClassChecker;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -19,17 +22,17 @@ public abstract class CacheService {
     public static synchronized CacheService getInstance() {
         try {
             if (!INSTANCE.isPresent()) {
-                Iterable<CacheService> cacheServices = ServiceFinder.loadServices(CacheService.class);
-                List<CacheService> services = StreamSupport.stream(cacheServices.spliterator(), false)
-                        .collect(Collectors.toList());
+                Iterable<CacheService> services = ServiceFinder.loadServices(CacheService.class);
 
-                if (services.size() == 1) {
-                    INSTANCE.set(services.get(0));
+                List<CacheService> s = StreamSupport.stream(services.spliterator(), false).collect(Collectors.toList());
+
+                if (s.size() > 1) {
+                    INSTANCE.set(new CombinedCaches(s));
                 } else {
-                    if (services.stream().allMatch(CacheService::isDefault)) {
-                        INSTANCE.set(new CombinedCaches(services));
+                    if (services.iterator().hasNext()) {
+                        INSTANCE.set(services.iterator().next());
                     } else {
-                        throw new IllegalArgumentException("Custom implementation must not override isDefault or must return false for isDefault check");
+                        INSTANCE.set(new DefaultCache(ServiceFinder.loadServices(CacheActivator.class)));
                     }
                 }
             }
@@ -49,14 +52,24 @@ public abstract class CacheService {
 
     @SuppressWarnings("unchecked")
     public <T> JaormCache<T> getCache(Class<T> klass) {
-        EntityCache<?> entityCache = getCaches().get(klass);
+        EntityCache<?> entityCache = getCaches().entrySet()
+                .stream()
+                .filter(en -> ClassChecker.isAssignable(en.getKey(), klass))
+                .findFirst()
+                .map(Map.Entry::getValue)
+                .orElseThrow(() -> new IllegalArgumentException("Can't find cache"));
         return (JaormCache<T>) Objects.requireNonNull(entityCache, "Can't find entity for " + klass)
                 .getCache();
     }
 
     @SuppressWarnings("unchecked")
     public <T> JaormAllCache<T> getCacheAll(Class<T> klass) {
-        EntityCache<?> entityCache = getCaches().get(klass);
+        EntityCache<?> entityCache = getCaches().entrySet()
+                .stream()
+                .filter(en -> ClassChecker.isAssignable(en.getKey(), klass))
+                .findFirst()
+                .map(Map.Entry::getValue)
+                .orElseThrow(() -> new IllegalArgumentException("Can't find cache"));
         return (JaormAllCache<T>) Objects.requireNonNull(entityCache, "Can't find entity for " + klass)
                 .getAllCache();
     }
@@ -70,19 +83,21 @@ public abstract class CacheService {
         return false; // Default implementation return true
     }
 
-    public  <T> T get(Class<T> klass, Arguments arguments) {
+    public <T> T get(Class<T> klass, Arguments arguments) {
         return getCache(klass).get(arguments);
     }
 
-    public  <T> List<T> getAll(Class<T> klass) {
+    public <T> List<T> getAll(Class<T> klass) {
         return getCacheAll(klass).getAll();
     }
 
-    public  <T> Optional<T> getOpt(Class<T> klass, Arguments arguments) {
+    public <T> Optional<T> getOpt(Class<T> klass, Arguments arguments) {
         return getCache(klass).getOpt(arguments);
     }
 
     public boolean isDefault() {
-        return getClass().getName().startsWith("io.github.ulisse1996.cache.Caches");
+        return ClassChecker.isAssignable(this.getClass(), DefaultCache.class);
     }
+
+
 }

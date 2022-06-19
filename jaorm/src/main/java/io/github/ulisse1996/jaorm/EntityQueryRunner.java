@@ -9,6 +9,7 @@ import io.github.ulisse1996.jaorm.spi.DelegatesService;
 import io.github.ulisse1996.jaorm.spi.GeneratorsService;
 import io.github.ulisse1996.jaorm.spi.ProjectionsService;
 import io.github.ulisse1996.jaorm.spi.QueryRunner;
+import io.github.ulisse1996.jaorm.util.ClassChecker;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -24,12 +25,7 @@ public class EntityQueryRunner extends QueryRunner {
 
     @Override
     public boolean isCompatible(Class<?> klass) {
-        try {
-            DelegatesService.getInstance().searchDelegate(klass);
-            return true;
-        } catch (IllegalArgumentException ex) {
-            return false;
-        }
+        return isDelegate(klass);
     }
 
     @Override
@@ -68,7 +64,13 @@ public class EntityQueryRunner extends QueryRunner {
     private SupplierPair getSupplierPair(Class<?> klass) {
         Supplier<EntityDelegate<?>> delegateSupplier = null;
         Supplier<ProjectionDelegate> projectionSupplier = ProjectionsService.getInstance()
-                .getProjections().get(klass);
+                .getProjections()
+                .entrySet()
+                .stream()
+                .filter(el -> ClassChecker.isAssignable(el.getKey(), klass))
+                .findFirst()
+                .map(Map.Entry::getValue)
+                .orElse(null);
         if (projectionSupplier == null) {
             delegateSupplier = DelegatesService.getInstance().searchDelegate(klass);
         }
