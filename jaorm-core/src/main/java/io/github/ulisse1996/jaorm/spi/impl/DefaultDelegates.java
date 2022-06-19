@@ -18,12 +18,12 @@ public class DefaultDelegates extends DelegatesService {
 
     @SuppressWarnings("rawtypes")
     public DefaultDelegates(Iterable<EntityDelegate> delegates) {
-        Map<? extends Class<?>, Supplier<? extends EntityDelegate<?>>> entityMap = StreamSupport.stream(delegates.spliterator(), false)
+        Map<Class<?>, Supplier<? extends EntityDelegate<?>>> entityMap = StreamSupport.stream(delegates.spliterator(), false)
                 .collect(Collectors.toMap(
                         e -> e.getEntityInstance().get().getClass(),
                         e -> e::generateDelegate
                 ));
-        Map<? extends Class<?>, Supplier<? extends EntityDelegate<?>>> delegatesMap = StreamSupport.stream(delegates.spliterator(), false)
+        Map<Class<?>, Supplier<? extends EntityDelegate<?>>> delegatesMap = StreamSupport.stream(delegates.spliterator(), false)
                 .collect(Collectors.toMap(
                         Object::getClass,
                         e -> e::generateDelegate

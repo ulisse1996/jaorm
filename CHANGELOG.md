@@ -2,7 +2,6 @@
 
 ## 1.6.0
 - Refactor: Move generation bundle SPI to SPI Provider for Single Feature
-- Bugfix: Fix quoting supports for table and columns
 - Bugfix: Fix quarkus dev reload for class checks
 
 ## 1.5.0

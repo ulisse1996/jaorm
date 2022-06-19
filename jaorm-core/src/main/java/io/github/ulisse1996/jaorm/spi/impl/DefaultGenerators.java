@@ -14,7 +14,7 @@ import java.util.stream.StreamSupport;
 
 public class DefaultGenerators extends GeneratorsService {
 
-    private static final JaormLogger logger = JaormLogger.getLogger(DefaultDelegates.class);
+    private static final JaormLogger logger = JaormLogger.getLogger(DefaultGenerators.class);
     private final Map<Class<?>, List<GenerationInfo>> generators;
 
     public DefaultGenerators(Iterable<GeneratorProvider> providers) {

@@ -6,5 +6,5 @@ import io.github.ulisse1996.jaorm.graph.GraphPair;
 public interface GraphProvider {
 
     GraphPair getPair();
-    EntityGraph<?> getGraph();
+    EntityGraph<?> getGraph(); //NOSONAR
 }

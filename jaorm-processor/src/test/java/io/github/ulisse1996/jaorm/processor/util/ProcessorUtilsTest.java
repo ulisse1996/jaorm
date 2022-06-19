@@ -1016,8 +1016,8 @@ class ProcessorUtilsTest {
         Mockito.doThrow(IOException.class)
                 .when(provider).checkAccess(Mockito.any(), Mockito.any());
 
-        Assertions.assertThrows(ProcessorException.class,
-                () -> ProcessorUtils.generateSpi(environment, Collections.singletonList(file), Object.class));
+        Assertions.assertThrows(ProcessorException.class, //NOSONAR
+                () -> ProcessorUtils.generateSpi(environment, Collections.singletonList(file), Object.class)); //NOSONAR
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
