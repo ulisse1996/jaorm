@@ -12,31 +12,4 @@ public interface JaormLoggerHandler {
     void handleError(Class<?> klass, Supplier<String> message, Throwable ex);
     void handleSqlLog(Class<?> klass, String sql, List<SqlParameter> sqlParameters);
     void handleSqlBatchLog(Class<?> klass, String sql, List<List<SqlParameter>> sqlParameters);
-
-    class NoOp implements JaormLoggerHandler {
-
-        public static final NoOp INSTANCE = new NoOp();
-
-        private NoOp() {}
-
-        @Override
-        public void handleLog(Class<?> klass, Supplier<String> message, Level level) {
-            // nothing here
-        }
-
-        @Override
-        public void handleError(Class<?> klass, Supplier<String> message, Throwable ex) {
-            // nothing here
-        }
-
-        @Override
-        public void handleSqlLog(Class<?> klass, String sql, List<SqlParameter> sqlParameters) {
-            // nothing here
-        }
-
-        @Override
-        public void handleSqlBatchLog(Class<?> klass, String sql, List<List<SqlParameter>> sqlParameters) {
-            // nothing here
-        }
-    }
 }

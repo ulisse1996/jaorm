@@ -18,9 +18,9 @@ class SimpleJaormLogger implements JaormLogger {
         try {
             foundHandler = ServiceFinder.loadService(JaormLoggerHandler.class);
         } catch (Exception | ServiceConfigurationError ex) {
-            foundHandler = JaormLoggerHandler.NoOp.INSTANCE;
+            foundHandler = new StandardLoggerHandler(klass);
         }
-        this.handler = Optional.ofNullable(foundHandler).orElse(JaormLoggerHandler.NoOp.INSTANCE);
+        this.handler = Optional.ofNullable(foundHandler).orElse(new StandardLoggerHandler(klass));
     }
 
     @Override

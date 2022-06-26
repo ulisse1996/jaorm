@@ -337,10 +337,17 @@ public class QueryGenerator extends Generator {
                 );
             }
         } else if (definition.isCollection()) {
-            return new AbstractMap.SimpleImmutableEntry<>(
-                    "return $T.getInstance($T.class).readAll($T.class, $S, params)",
-                    stmParams
-            );
+            if (definition.isTableRow()) {
+                return new AbstractMap.SimpleImmutableEntry<>(
+                        "return $T.getSimple().readStream($S, params).collect($T.toList())",
+                        new Object[] {QueryRunner.class, sql, Collectors.class}
+                );
+            } else {
+                return new AbstractMap.SimpleImmutableEntry<>(
+                        "return $T.getInstance($T.class).readAll($T.class, $S, params)",
+                        stmParams
+                );
+            }
         } else if (definition.isStream()) {
             if (!definition.isStreamTableRow()) {
                 return new AbstractMap.SimpleImmutableEntry<>(

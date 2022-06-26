@@ -19,6 +19,7 @@ class ReturnTypeDefinitionTest {
 
     @Mock private ProcessingEnvironment environment;
     @Mock private TypeMirror mirror;
+    @Mock private TypeMirror otherMirror;
     @Mock private Types types;
     @Mock private Elements elements;
 
@@ -87,6 +88,9 @@ class ReturnTypeDefinitionTest {
                 .thenReturn(elements);
         Mockito.when(elements.getTypeElement("io.test.User"))
                 .thenReturn(element);
+        Mockito.when(element.asType())
+                .thenReturn(otherMirror);
+        Mockito.when(otherMirror.toString()).thenReturn("io.test.User");
         ReturnTypeDefinition definition = new ReturnTypeDefinition(environment, mirror);
         Assertions.assertTrue(definition.isCollection());
         Assertions.assertEquals(element, definition.getRealClass());
