@@ -9,6 +9,6 @@ import java.util.Optional;
 @Dao
 public interface CustomUserDao {
 
-    @Query(sql = "/mySql.sql")
+    @Query(sql = "mySql.sql")
     Optional<User> getUserOpt(int userId);
 }

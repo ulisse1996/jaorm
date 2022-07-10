@@ -20,6 +20,7 @@
         <module>jaorm-sql-specific</module>
         <module>jaorm-tools</module>
         <module>jaorm-validation</module>
+        <module>jaorm-extensions</module>
     </modules>
 
     <properties>
