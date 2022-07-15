@@ -106,8 +106,9 @@ public class GenerationInfo {
 
     protected String getSqlLock(String where) {
         try {
+            // We also need keyColumn for Postgre update lock that needs primary key in select
             return VendorSpecific.getSpecific(LockSpecific.class)
-                    .selectWithLock(tableName, where, valueColumn);
+                    .selectWithLock(tableName, where, valueColumn, keyColumn);
         } catch (Exception ex) {
             logger.info("Can't find specific for lock type , please contact author"::toString);
         }

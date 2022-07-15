@@ -2,6 +2,8 @@ package io.github.ulisse1996.jaorm.dsl.query;
 
 import io.github.ulisse1996.jaorm.dsl.query.impl.SelectedImpl;
 import io.github.ulisse1996.jaorm.entity.Page;
+import io.github.ulisse1996.jaorm.vendor.VendorSpecific;
+import io.github.ulisse1996.jaorm.vendor.specific.LimitOffsetSpecific;
 
 import java.util.List;
 import java.util.Optional;
@@ -37,6 +39,10 @@ public class DslPage<T> extends Page<T> {
                 this.selected.setOffset(fetchSize * pageNumber);
             }
             this.selected.setLimit(fetchSize);
+            LimitOffsetSpecific specific = VendorSpecific.getSpecific(LimitOffsetSpecific.class);
+            if (specific.requiredOrder() && !this.selected.hasOrders()) {
+                throw new IllegalArgumentException("Order is required for fetch page !");
+            }
             this.data = this.selected.readAll();
         }
 

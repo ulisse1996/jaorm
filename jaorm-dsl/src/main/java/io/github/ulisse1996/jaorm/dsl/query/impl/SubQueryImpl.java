@@ -21,6 +21,6 @@ public class SubQueryImpl<T, R> extends SelectedImpl<T, R> implements WithSubQue
                 .append(colum)
                 .append(" FROM ")
                 .append(this.table);
-        return buildExtraSql(builder);
+        return buildExtraSql(false, builder);
     }
 }

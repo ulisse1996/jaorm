@@ -884,6 +884,11 @@ class QueryBuilderTest extends AbstractQueryBuilderTest {
         public String convertToAlias(String name) {
             return String.format(" AS %s", name);
         }
+
+        @Override
+        public boolean isUpdateAliasRequired() {
+            return true;
+        }
     }
 
     private static final class CastFunction implements VendorFunction<String> {

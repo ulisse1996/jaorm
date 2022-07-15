@@ -1,5 +1,7 @@
 package io.github.ulisse1996.jaorm.processor;
 
+import io.github.ulisse1996.jaorm.ServiceFinder;
+import io.github.ulisse1996.jaorm.extension.api.ValidatorExtension;
 import io.github.ulisse1996.jaorm.processor.config.ConfigHolder;
 import io.github.ulisse1996.jaorm.processor.exception.ProcessorException;
 import io.github.ulisse1996.jaorm.processor.generation.GenerationType;
@@ -14,10 +16,12 @@ import javax.lang.model.element.TypeElement;
 import javax.tools.FileObject;
 import javax.tools.StandardLocation;
 import java.io.IOException;
+import java.lang.annotation.Annotation;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -96,6 +100,9 @@ public class JaormProcessor extends AbstractProcessor {
     }
 
     private void validate(RoundEnvironment roundEnv) {
+        for (ValidatorExtension extension : ServiceFinder.loadServices(ValidatorExtension.class)) {
+            extension.validate(getElements(extension.getSupported(), roundEnv), processingEnv);
+        }
         for (ValidatorType type : ValidatorType.values()) {
             List<? extends Element> annotated = type.getSupported()
                     .stream()
@@ -104,5 +111,14 @@ public class JaormProcessor extends AbstractProcessor {
             Validator.forType(type, processingEnv)
                     .validate(annotated);
         }
+    }
+
+    private Set<Element> getElements(Set<Class<? extends Annotation>> supported, RoundEnvironment roundEnv) {
+        Set<Element> elements = new HashSet<>();
+        for (Class<? extends Annotation> ann : supported) {
+            elements.addAll(roundEnv.getElementsAnnotatedWith(ann));
+        }
+
+        return elements;
     }
 }

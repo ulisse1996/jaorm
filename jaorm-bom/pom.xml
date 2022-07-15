@@ -1,0 +1,241 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>jaorm-pom</artifactId>
+        <groupId>io.github.ulisse1996</groupId>
+        <version>1.7.0</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+    <packaging>pom</packaging>
+
+    <artifactId>jaorm-bom</artifactId>
+    <name>JAORM (Bill Of Materials)</name>
+
+    <properties>
+        <maven.compiler.source>8</maven.compiler.source>
+        <maven.compiler.target>8</maven.compiler.target>
+        <jaorm.version>1.7.0</jaorm.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <sonar.coverage.jacoco.xmlReportPaths>${project.basedir}/../${aggregate.report.dir}</sonar.coverage.jacoco.xmlReportPaths>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>io.github.ulisse1996</groupId>
+            <artifactId>jaorm</artifactId>
+            <version>${jaorm.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.ulisse1996</groupId>
+            <artifactId>jaorm-core</artifactId>
+            <version>${jaorm.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.ulisse1996</groupId>
+            <artifactId>jaorm-dsl</artifactId>
+            <version>${jaorm.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.ulisse1996</groupId>
+            <artifactId>jaorm-cache</artifactId>
+            <version>${jaorm.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.ulisse1996</groupId>
+            <artifactId>jaorm-transaction</artifactId>
+            <version>${jaorm.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.ulisse1996</groupId>
+            <artifactId>jaorm-lombok</artifactId>
+            <version>${jaorm.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.ulisse1996</groupId>
+            <artifactId>jaorm-validation</artifactId>
+            <version>${jaorm.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.ulisse1996</groupId>
+            <artifactId>jaorm-processor</artifactId>
+            <version>${jaorm.version}</version>
+        </dependency>
+
+        <!-- Sql Specific -->
+
+        <dependency>
+            <groupId>io.github.ulisse1996</groupId>
+            <artifactId>jaorm-sql-specific</artifactId>
+            <version>${jaorm.version}</version>
+            <type>pom</type>
+        </dependency>
+        <dependency>
+            <groupId>io.github.ulisse1996</groupId>
+            <artifactId>jaorm-sql-specific-oracle</artifactId>
+            <version>${jaorm.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.ulisse1996</groupId>
+            <artifactId>jaorm-sql-specific-postgre</artifactId>
+            <version>${jaorm.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.ulisse1996</groupId>
+            <artifactId>jaorm-sql-specific-sql-server</artifactId>
+            <version>${jaorm.version}</version>
+        </dependency>
+
+        <!-- Processor Extensions -->
+        <dependency>
+            <groupId>io.github.ulisse1996</groupId>
+            <artifactId>jaorm-extensions</artifactId>
+            <version>${jaorm.version}</version>
+            <type>pom</type>
+        </dependency>
+        <dependency>
+            <groupId>io.github.ulisse1996</groupId>
+            <artifactId>jaorm-extension-api</artifactId>
+            <version>${jaorm.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.ulisse1996</groupId>
+            <artifactId>jaorm-ansi-sql-extension</artifactId>
+            <version>${jaorm.version}</version>
+        </dependency>
+
+        <!-- Tools -->
+        <dependency>
+            <groupId>io.github.ulisse1996</groupId>
+            <artifactId>jaorm-tools-core</artifactId>
+            <version>${jaorm.version}</version>
+        </dependency>
+    </dependencies>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>io.github.ulisse1996</groupId>
+                <artifactId>jaorm</artifactId>
+                <version>${jaorm.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.ulisse1996</groupId>
+                <artifactId>jaorm-core</artifactId>
+                <version>${jaorm.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.ulisse1996</groupId>
+                <artifactId>jaorm-dsl</artifactId>
+                <version>${jaorm.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.ulisse1996</groupId>
+                <artifactId>jaorm-cache</artifactId>
+                <version>${jaorm.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.ulisse1996</groupId>
+                <artifactId>jaorm-transaction</artifactId>
+                <version>${jaorm.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.ulisse1996</groupId>
+                <artifactId>jaorm-lombok</artifactId>
+                <version>${jaorm.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.ulisse1996</groupId>
+                <artifactId>jaorm-validation</artifactId>
+                <version>${jaorm.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.ulisse1996</groupId>
+                <artifactId>jaorm-processor</artifactId>
+                <version>${jaorm.version}</version>
+            </dependency>
+
+            <!-- Sql Specific -->
+
+            <dependency>
+                <groupId>io.github.ulisse1996</groupId>
+                <artifactId>jaorm-sql-specific</artifactId>
+                <version>${jaorm.version}</version>
+                <type>pom</type>
+            </dependency>
+            <dependency>
+                <groupId>io.github.ulisse1996</groupId>
+                <artifactId>jaorm-sql-specific-oracle</artifactId>
+                <version>${jaorm.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.ulisse1996</groupId>
+                <artifactId>jaorm-sql-specific-postgre</artifactId>
+                <version>${jaorm.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.ulisse1996</groupId>
+                <artifactId>jaorm-sql-specific-sql-server</artifactId>
+                <version>${jaorm.version}</version>
+            </dependency>
+
+            <!-- Processor Extensions -->
+            <dependency>
+                <groupId>io.github.ulisse1996</groupId>
+                <artifactId>jaorm-extensions</artifactId>
+                <version>${jaorm.version}</version>
+                <type>pom</type>
+            </dependency>
+            <dependency>
+                <groupId>io.github.ulisse1996</groupId>
+                <artifactId>jaorm-extension-api</artifactId>
+                <version>${jaorm.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.ulisse1996</groupId>
+                <artifactId>jaorm-ansi-sql-extension</artifactId>
+                <version>${jaorm.version}</version>
+            </dependency>
+
+            <!-- Tools -->
+            <dependency>
+                <groupId>io.github.ulisse1996</groupId>
+                <artifactId>jaorm-tools-core</artifactId>
+                <version>${jaorm.version}</version>
+            </dependency>
+
+        </dependencies>
+    </dependencyManagement>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.0.0-M7</version>
+            </plugin>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>${jacoco-maven-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>prepare-agent</id>
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <goals>
+                            <goal>report-aggregate</goal>
+                        </goals>
+                        <phase>verify</phase>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

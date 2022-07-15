@@ -620,8 +620,6 @@ class EntityQueryRunnerTest {
                     .thenReturn(connection);
             Mockito.when(connection.prepareStatement(Mockito.anyString()))
                     .thenReturn(preparedStatement);
-            Mockito.when(preparedStatement.getGeneratedKeys())
-                    .thenReturn(resultSet);
             testSubject.insertWithBatch(DelegatesMock.MyEntity.class, "INSERT", entities);
             Mockito.verify(preparedStatement, Mockito.times(2))
                     .addBatch();

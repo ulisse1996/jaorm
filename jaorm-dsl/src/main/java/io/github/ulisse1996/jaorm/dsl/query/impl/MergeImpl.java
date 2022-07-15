@@ -5,7 +5,7 @@ import io.github.ulisse1996.jaorm.dsl.query.common.MergeEndMatching;
 import io.github.ulisse1996.jaorm.dsl.query.common.MergeEndNotMatching;
 import io.github.ulisse1996.jaorm.dsl.query.common.intermediate.MergeUsing;
 import io.github.ulisse1996.jaorm.dsl.query.common.intermediate.MergedOn;
-import io.github.ulisse1996.jaorm.dsl.specific.MergeSpecific;
+import io.github.ulisse1996.jaorm.vendor.specific.MergeSpecific;
 import io.github.ulisse1996.jaorm.dsl.util.Checker;
 import io.github.ulisse1996.jaorm.entity.SqlColumn;
 import io.github.ulisse1996.jaorm.vendor.VendorFunction;
@@ -48,7 +48,7 @@ public class MergeImpl<T> implements Merge<T>, MergeUsing<T>, MergedOn<T>, Merge
     }
 
     @Override
-    public MergedOn<T> on(SqlColumn<T, ?> column) {
+    public MergedOn<T> onEquals(SqlColumn<T, ?> column) {
         Checker.assertNotNull(column, COLUMN);
         this.onColumns.add(column);
         return this;
@@ -65,7 +65,7 @@ public class MergeImpl<T> implements Merge<T>, MergeUsing<T>, MergedOn<T>, Merge
     public MergeEndMatching<T> matchUpdate(T entity) {
         Checker.assertNotNull(entity, "entity");
         this.updateEntity = entity;
-        return null;
+        return this;
     }
 
     @Override

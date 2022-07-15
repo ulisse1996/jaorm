@@ -53,6 +53,10 @@ public class QueryAnsiVisitor extends LanguageVisitor {
     }
 
     private void visitCriteria(Criteria criteria) {
+        if (criteria == null) {
+            return;
+        }
+
         if (criteria instanceof CompareCriteria) {
             visit(((CompareCriteria) criteria));
         } else if (criteria instanceof CompoundCriteria) {

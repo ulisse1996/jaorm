@@ -1,7 +1,9 @@
 package io.github.ulisse1996.jaorm.extension.ansi;
 
+import io.github.ulisse1996.jaorm.annotation.Query;
 import io.github.ulisse1996.jaorm.extension.api.exception.ProcessorValidationException;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -10,6 +12,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import javax.annotation.processing.ProcessingEnvironment;
+import java.util.Collections;
 import java.util.stream.Stream;
 
 @ExtendWith(MockitoExtension.class)
@@ -30,6 +33,14 @@ class QueryAnsiValidatorTest {
         QueryAnsiValidator validator = new QueryAnsiValidator();
         Assertions.assertThrows(ProcessorValidationException.class,
                 () -> validator.validateSql(sql, processingEnvironment));
+    }
+
+    @Test
+    void should_return_only_query_annotation() {
+        Assertions.assertEquals(
+                Collections.singleton(Query.class),
+                new QueryAnsiValidator().getSupported()
+        );
     }
 
     public static Stream<Arguments> getInvalidSql() {

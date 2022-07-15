@@ -48,8 +48,6 @@ public class StandardLoggerHandler implements JaormLoggerHandler {
     public void handleSqlLog(Class<?> klass, String sql, List<SqlParameter> sqlParameters) {
         if (logger.isDebugEnabled()) {
             logger.debug(asSqlString(sql, sqlParameters));
-        } else {
-            logger.info(sql);
         }
     }
 
@@ -57,8 +55,6 @@ public class StandardLoggerHandler implements JaormLoggerHandler {
     public void handleSqlBatchLog(Class<?> klass, String sql, List<List<SqlParameter>> sqlParameters) {
         if (logger.isDebugEnabled()) {
             logger.debug(asSqlStringBatch(sql, sqlParameters));
-        } else {
-            logger.info(sql);
         }
     }
 

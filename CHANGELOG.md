@@ -6,6 +6,9 @@
 - Feature: Merge DSL
 - Feature: Extension API for Jaorm Processor validation
 - Feature: Default ANSI Sql Query Validator
+- Feature: Merge, Count and GeneratedKeys vendor specifics
+- Rework: IT Rework using Test Containers
+- Bugfix: Missing node name on Graph read
 
 ## 1.6.0
 - Refactor: Move generation bundle SPI to SPI Provider for Single Feature

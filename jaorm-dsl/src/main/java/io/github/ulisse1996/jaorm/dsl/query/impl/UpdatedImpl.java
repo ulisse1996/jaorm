@@ -11,6 +11,8 @@ import io.github.ulisse1996.jaorm.entity.sql.SqlParameter;
 import io.github.ulisse1996.jaorm.spi.DelegatesService;
 import io.github.ulisse1996.jaorm.spi.QueryRunner;
 import io.github.ulisse1996.jaorm.vendor.VendorFunction;
+import io.github.ulisse1996.jaorm.vendor.VendorSpecific;
+import io.github.ulisse1996.jaorm.vendor.specific.AliasesSpecific;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -76,13 +78,21 @@ public class UpdatedImpl<T> implements Updated<T>, UpdatedExecutable<T>, Updated
     }
 
     private String formatSettings() {
+        AliasesSpecific specific = VendorSpecific.getSpecific(AliasesSpecific.class);
         return this.setters
                 .stream()
-                .map(s -> String.format("%s.%s = %s",
-                        this.table,
-                        s.getColumn().getName(),
-                        Optional.ofNullable(s.getFunction()).map(v -> v.apply(this.table)).orElse("?")
-                ))
+                .map(s -> {
+                    if (specific.isUpdateAliasRequired()) {
+                        return String.format("%s.%s = %s",
+                                this.table,
+                                s.getColumn().getName(),
+                                Optional.ofNullable(s.getFunction()).map(v -> v.apply(this.table)).orElse("?"));
+                    } else {
+                        return String.format("%s = %s",
+                                s.getColumn().getName(),
+                                Optional.ofNullable(s.getFunction()).map(v -> v.apply(this.table)).orElse("?"));
+                    }
+                })
                 .collect(Collectors.joining(", "));
     }
 

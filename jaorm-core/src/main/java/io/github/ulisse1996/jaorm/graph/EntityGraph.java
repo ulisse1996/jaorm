@@ -137,7 +137,7 @@ public class EntityGraph<T> {
                 EntityDelegate<Object> nodeDelegate = (EntityDelegate<Object>) DelegatesService.getInstance().searchDelegate(node.klass).get();
                 EntityMapper<Object> nodeMapper = nodeDelegate.getEntityMapper();
                 List<Object> list = (List<Object>) setList(node, entity);
-                list.add(nodeMapper.mapForGraph(nodeDelegate.getEntityInstance(), resultSet, nodeDelegate.getTable()));
+                list.add(nodeMapper.mapForGraph(nodeDelegate.getEntityInstance(), resultSet, node.nodeName));
             }
         } while (resultSet.next());
         return entity;

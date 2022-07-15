@@ -217,7 +217,7 @@ public class EntityGenerator extends Generator {
 
     private FieldSpec addDeleteSql() {
         return FieldSpec.builder(String.class, "DELETE_SQL", Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
-                .initializer("$S + $L + $L", "DELETE ", "TABLE", KEYS_WHERE)
+                .initializer("$S + $L + $L", "DELETE FROM ", "TABLE", KEYS_WHERE)
                 .build();
     }
 

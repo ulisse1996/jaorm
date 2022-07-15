@@ -12,7 +12,7 @@ class UpdateExecutorTest {
     @Test
     void should_do_nothing() throws SQLException {
         PreparedStatement preparedStatement = Mockito.mock(PreparedStatement.class);
-        try (UpdateExecutor ignored = new UpdateExecutor(preparedStatement, Collections.emptyList())) {
+        try (UpdateExecutor ignored = new UpdateExecutor(preparedStatement, Collections.emptyList(), Collections.emptySet())) {
             Mockito.verify(preparedStatement, Mockito.times(1))
                     .executeUpdate();
         }

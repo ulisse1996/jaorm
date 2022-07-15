@@ -1,8 +1,10 @@
 package io.github.ulisse1996.jaorm.processor.validation.impl;
 
+import io.github.ulisse1996.jaorm.ServiceFinder;
 import io.github.ulisse1996.jaorm.annotation.Dao;
 import io.github.ulisse1996.jaorm.annotation.Id;
 import io.github.ulisse1996.jaorm.annotation.Query;
+import io.github.ulisse1996.jaorm.extension.api.ValidatorExtension;
 import io.github.ulisse1996.jaorm.processor.exception.ProcessorException;
 import io.github.ulisse1996.jaorm.processor.strategy.QueryStrategy;
 import io.github.ulisse1996.jaorm.processor.util.ProcessorUtils;
@@ -20,6 +22,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 public class QueryValidator extends Validator {
 
@@ -28,9 +31,13 @@ public class QueryValidator extends Validator {
             new SpecializationSpecific(DoubleKeyDao.class, 2),
             new SpecializationSpecific(TripleKeyDao.class, 3)
     );
+    private final List<ValidatorExtension> extensions;
 
     public QueryValidator(ProcessingEnvironment processingEnvironment) {
         super(processingEnvironment);
+        this.extensions = StreamSupport.stream(ServiceFinder.loadServices(ValidatorExtension.class).spliterator(), false)
+                .filter(ex -> ex.getSupported().contains(Query.class))
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -87,6 +94,9 @@ public class QueryValidator extends Validator {
                     throw new ProcessorException("Mismatch between parameters and query parameters for method " + executableElement.getSimpleName());
                 }
                 checkSpecs(sql, executableElement);
+                for (ValidatorExtension extension : extensions) {
+                    extension.validateSql(sql, processingEnvironment);
+                }
                 return;
             }
         }

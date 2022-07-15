@@ -10,10 +10,9 @@ import io.github.ulisse1996.jaorm.spi.DelegatesService;
 import io.github.ulisse1996.jaorm.spi.QueryRunner;
 import io.github.ulisse1996.jaorm.vendor.VendorFunction;
 import io.github.ulisse1996.jaorm.vendor.VendorSpecific;
+import io.github.ulisse1996.jaorm.vendor.specific.AliasesSpecific;
 import io.github.ulisse1996.jaorm.vendor.specific.LikeSpecific;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -33,17 +32,6 @@ class UpdatedImplTest {
     private static final SqlColumn<Object, String> COL3 = SqlColumn.instance(Object.class, "COL3", String.class);
     private static final SqlColumn<Object, Integer> COL4 = SqlColumn.instance(Object.class, "COL4", Integer.class);
     private final EntityMapper<Object> mapper;
-    private MockedStatic<VendorSpecific> mkVendor;
-
-    @BeforeEach
-    void beforeEach() {
-        this.mkVendor = Mockito.mockStatic(VendorSpecific.class);
-    }
-
-    @AfterEach
-    void afterEach() {
-        this.mkVendor.close();
-    }
 
     UpdatedImplTest() {
         EntityMapper.Builder<Object> builder = new EntityMapper.Builder<>();
@@ -58,9 +46,12 @@ class UpdatedImplTest {
     void should_create_simple_update() throws Throwable {
         withinMock(() -> {
             QueryRunner runner = Mockito.mock(QueryRunner.class);
-            try (MockedStatic<QueryRunner> mkRunner = Mockito.mockStatic(QueryRunner.class)) {
+            try (MockedStatic<QueryRunner> mkRunner = Mockito.mockStatic(QueryRunner.class);
+                MockedStatic<VendorSpecific> mkVendor = Mockito.mockStatic(VendorSpecific.class)) {
                 mkRunner.when(QueryRunner::getSimple)
                         .thenReturn(runner);
+                mkVendor.when(() -> VendorSpecific.getSpecific(AliasesSpecific.class))
+                        .thenReturn(new Aliases());
 
                 QueryBuilder.update(Object.class)
                         .setting(COL1).toValue(1)
@@ -76,9 +67,12 @@ class UpdatedImplTest {
     void should_create_update_with_multiple_setters() throws Throwable {
         withinMock(() -> {
             QueryRunner runner = Mockito.mock(QueryRunner.class);
-            try (MockedStatic<QueryRunner> mkRunner = Mockito.mockStatic(QueryRunner.class)) {
+            try (MockedStatic<QueryRunner> mkRunner = Mockito.mockStatic(QueryRunner.class);
+                MockedStatic<VendorSpecific> mkVendor = Mockito.mockStatic(VendorSpecific.class)) {
                 mkRunner.when(QueryRunner::getSimple)
                         .thenReturn(runner);
+                mkVendor.when(() -> VendorSpecific.getSpecific(AliasesSpecific.class))
+                        .thenReturn(new Aliases());
 
                 QueryBuilder.update(Object.class)
                         .setting(COL1).toValue(1)
@@ -95,9 +89,13 @@ class UpdatedImplTest {
     @MethodSource("getSql")
     void should_create_update_with_where(Supplier<UpdatedImpl<?>> updated, String sql) throws Throwable {
         withinMock(() -> {
-            mkVendor.when(() -> VendorSpecific.getSpecific(LikeSpecific.class))
-                    .thenThrow(IllegalArgumentException.class);
-            Assertions.assertEquals(sql, updated.get().asString());
+            try (MockedStatic<VendorSpecific> mkVendor = Mockito.mockStatic(VendorSpecific.class)) {
+                mkVendor.when(() -> VendorSpecific.getSpecific(LikeSpecific.class))
+                        .thenThrow(IllegalArgumentException.class);
+                mkVendor.when(() -> VendorSpecific.getSpecific(AliasesSpecific.class))
+                        .thenReturn(new Aliases());
+                Assertions.assertEquals(sql, updated.get().asString());
+            }
         });
     }
 
@@ -105,9 +103,13 @@ class UpdatedImplTest {
     @MethodSource("getSqlVendorFunctions")
     void should_create_update_with_function_where(Supplier<UpdatedImpl<?>> updated, String sql) throws Throwable {
         withinMock(() -> {
-            mkVendor.when(() -> VendorSpecific.getSpecific(LikeSpecific.class))
-                    .thenThrow(IllegalArgumentException.class);
-            Assertions.assertEquals(sql, updated.get().asString());
+            try (MockedStatic<VendorSpecific> mkVendor = Mockito.mockStatic(VendorSpecific.class)) {
+                mkVendor.when(() -> VendorSpecific.getSpecific(LikeSpecific.class))
+                        .thenThrow(IllegalArgumentException.class);
+                mkVendor.when(() -> VendorSpecific.getSpecific(AliasesSpecific.class))
+                        .thenReturn(new Aliases());
+                Assertions.assertEquals(sql, updated.get().asString());
+            }
         });
     }
 
@@ -337,6 +339,19 @@ class UpdatedImplTest {
         @Override
         public boolean isString() {
             return this.column.getType().equals(String.class);
+        }
+    }
+
+    private static class Aliases implements AliasesSpecific {
+
+        @Override
+        public String convertToAlias(String name) {
+            return " " + name;
+        }
+
+        @Override
+        public boolean isUpdateAliasRequired() {
+            return true;
         }
     }
 }

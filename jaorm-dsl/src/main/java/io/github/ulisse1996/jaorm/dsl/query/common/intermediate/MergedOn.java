@@ -6,7 +6,7 @@ import io.github.ulisse1996.jaorm.entity.SqlColumn;
 
 public interface MergedOn<T> {
 
-    MergedOn<T> on(SqlColumn<T, ?> column);
+    MergedOn<T> onEquals(SqlColumn<T, ?> column);
 
     MergeEndNotMatching<T> notMatchInsert(T entity);
     MergeEndMatching<T> matchUpdate(T entity);

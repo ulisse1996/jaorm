@@ -8,5 +8,5 @@ public interface MergeUsing<T> {
     <R> MergeUsing<T> using(SqlColumn<T, R> column, R value);
     <R> MergeUsing<T> using(SqlColumn<T, R> column, VendorFunction<R> function);
 
-    MergedOn<T> on(SqlColumn<T, ?> column);
+    MergedOn<T> onEquals(SqlColumn<T, ?> column);
 }
