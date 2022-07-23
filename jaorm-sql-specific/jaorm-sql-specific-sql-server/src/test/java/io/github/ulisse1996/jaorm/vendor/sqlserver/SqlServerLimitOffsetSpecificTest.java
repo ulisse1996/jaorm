@@ -21,4 +21,9 @@ class SqlServerLimitOffsetSpecificTest {
     void should_return_offset() {
         Assertions.assertEquals(" OFFSET 10 ROWS ", testSubject.convertOffsetSupport(10));
     }
+
+    @Test
+    void should_required_order_for_limit_offset() {
+        Assertions.assertTrue(testSubject.requiredOrder());
+    }
 }

@@ -1,4 +1,4 @@
-package io.github.ulisse1996.jaorm.integration.test.spring;
+package io.github.ulisse1996.jaorm.integration.test.spring.entity;
 
 import io.github.ulisse1996.jaorm.annotation.Column;
 import io.github.ulisse1996.jaorm.annotation.Id;

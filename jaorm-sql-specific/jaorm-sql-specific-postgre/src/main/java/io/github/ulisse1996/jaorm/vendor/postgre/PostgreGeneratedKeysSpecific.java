@@ -3,7 +3,6 @@ package io.github.ulisse1996.jaorm.vendor.postgre;
 import io.github.ulisse1996.jaorm.vendor.specific.GeneratedKeysSpecific;
 
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.Map;
 import java.util.Set;
 
@@ -11,7 +10,7 @@ public class PostgreGeneratedKeysSpecific implements GeneratedKeysSpecific {
 
     @Override
     public String getReturningKeys(Set<String> keys) {
-        return String.format("RETURNING %s ", String.join(",", keys));
+        return String.format("RETURNING %s ", String.join(", ", keys));
     }
 
     @Override

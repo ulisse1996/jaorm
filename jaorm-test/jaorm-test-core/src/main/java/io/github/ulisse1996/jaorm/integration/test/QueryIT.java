@@ -1,6 +1,8 @@
 package io.github.ulisse1996.jaorm.integration.test;
 
 import io.github.ulisse1996.jaorm.Sort;
+import io.github.ulisse1996.jaorm.dsl.query.QueryBuilder;
+import io.github.ulisse1996.jaorm.dsl.query.common.MergeEnd;
 import io.github.ulisse1996.jaorm.entity.EntityComparator;
 import io.github.ulisse1996.jaorm.entity.EntityDelegate;
 import io.github.ulisse1996.jaorm.entity.Page;

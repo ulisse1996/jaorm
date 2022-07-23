@@ -14,6 +14,7 @@ import io.github.ulisse1996.jaorm.vendor.VendorSpecific;
 import io.github.ulisse1996.jaorm.vendor.specific.AliasesSpecific;
 import io.github.ulisse1996.jaorm.vendor.specific.LikeSpecific;
 import io.github.ulisse1996.jaorm.vendor.specific.LimitOffsetSpecific;
+import io.github.ulisse1996.jaorm.vendor.specific.MergeSpecific;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,7 +23,8 @@ import org.junit.jupiter.api.function.Executable;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.mockito.ArgumentMatcher;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
@@ -30,6 +32,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -37,6 +40,8 @@ import java.util.stream.Stream;
 class QueryBuilderTest extends AbstractQueryBuilderTest {
 
     private MockedStatic<VendorSpecific> mkVendor;
+
+    @Mock private MergeSpecific mergeSpecific;
 
     @BeforeEach
     void beforeEach() {
@@ -432,6 +437,89 @@ class QueryBuilderTest extends AbstractQueryBuilderTest {
             Mockito.verify(queryRunner, Mockito.times(1))
                     .read(Mockito.eq(MyEntity.class), Mockito.eq(sql), Mockito.argThat(matcherList(4)));
         });
+    }
+
+    @Test
+    void should_throw_exception_for_null_class_in_merge() {
+        Assertions.assertThrows(
+                NullPointerException.class,
+                () -> QueryBuilder.merge(null)
+        );
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    void should_create_merge_using_simple_values() {
+        mkVendor.when(() -> VendorSpecific.getSpecific(MergeSpecific.class))
+                .thenReturn(mergeSpecific);
+        ArgumentCaptor<Map<SqlColumn<MyEntity, ?>, ?>> usingCaptor = ArgumentCaptor.forClass(Map.class);
+        ArgumentCaptor<List<SqlColumn<MyEntity, ?>>> onCaptor = ArgumentCaptor.forClass(List.class);
+
+        QueryBuilder.merge(MyEntity.class)
+                .using(COL_1, 1)
+                .onEquals(COL_1)
+                .matchUpdate(new MyEntity())
+                .execute();
+
+        Mockito.verify(mergeSpecific)
+                .executeMerge(
+                        Mockito.eq(MyEntity.class),
+                        usingCaptor.capture(),
+                        onCaptor.capture(),
+                        Mockito.notNull(),
+                        Mockito.isNull()
+                );
+
+        Map<SqlColumn<MyEntity, ?>, ?> using = usingCaptor.getValue();
+        List<SqlColumn<MyEntity, ?>> ons = onCaptor.getValue();
+
+        Assertions.assertFalse(using.isEmpty());
+        Assertions.assertEquals(1, using.get(COL_1));
+        Assertions.assertFalse(ons.isEmpty());
+        Assertions.assertEquals(COL_1, ons.get(0));
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    void should_create_merge_using_function() {
+        VendorFunction<Integer> function = new VendorFunction<Integer>() {
+            @Override
+            public String apply(String alias) {
+                return "1";
+            }
+
+            @Override
+            public boolean isString() {
+                return false;
+            }
+        };
+        mkVendor.when(() -> VendorSpecific.getSpecific(MergeSpecific.class))
+                .thenReturn(mergeSpecific);
+        ArgumentCaptor<Map<SqlColumn<MyEntity, ?>, ?>> usingCaptor = ArgumentCaptor.forClass(Map.class);
+        ArgumentCaptor<List<SqlColumn<MyEntity, ?>>> onCaptor = ArgumentCaptor.forClass(List.class);
+
+        QueryBuilder.merge(MyEntity.class)
+                .using(COL_1, function)
+                .onEquals(COL_1)
+                .notMatchInsert(new MyEntity())
+                .execute();
+
+        Mockito.verify(mergeSpecific)
+                .executeMerge(
+                        Mockito.eq(MyEntity.class),
+                        usingCaptor.capture(),
+                        onCaptor.capture(),
+                        Mockito.isNull(),
+                        Mockito.notNull()
+                );
+
+        Map<SqlColumn<MyEntity, ?>, ?> using = usingCaptor.getValue();
+        List<SqlColumn<MyEntity, ?>> ons = onCaptor.getValue();
+
+        Assertions.assertFalse(using.isEmpty());
+        Assertions.assertEquals(function, using.get(COL_1));
+        Assertions.assertFalse(ons.isEmpty());
+        Assertions.assertEquals(COL_1, ons.get(0));
     }
 
     private void withDelegateAndJoin(Executable executable) throws Throwable {
@@ -835,7 +923,7 @@ class QueryBuilderTest extends AbstractQueryBuilderTest {
         return Stream.of(
                 Arguments.of(
                         (Supplier<Object>)() -> QueryBuilder.select(MyEntity.class).where(COL_1).in(
-                                QueryBuilder.subQuery(COL_1)
+                                QueryBuilder.subQuery(COL_1, QueryConfig.builder().build())
                         ),
                         "SELECT MY_TABLE.COL1, MY_TABLE.COL2 FROM MY_TABLE WHERE (MY_TABLE.COL1 IN (SELECT MY_TABLE.COL1 FROM MY_TABLE))"
                 ),

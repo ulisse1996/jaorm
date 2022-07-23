@@ -549,7 +549,7 @@ public class EntityGenerator extends Generator {
                 .endControlFlow()
                 .addStatement("builder.append(column.colName).append($S)", " = ?")
                 .beginControlFlow("if (i != values().length - 1)")
-                .addStatement(BUILDER_SIMPLE_APPEND, ",")
+                .addStatement(BUILDER_SIMPLE_APPEND, ", ")
                 .endControlFlow()
                 .endControlFlow()
                 .addStatement("UPDATE_SQL = builder.toString()")

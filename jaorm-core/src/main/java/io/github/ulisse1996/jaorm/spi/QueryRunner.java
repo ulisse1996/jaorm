@@ -204,7 +204,7 @@ public abstract class QueryRunner {
         UPDATED_ROWS_LOCAL.get().put(object, rows);
     }
 
-    public int getUpdatedRows(Object object) {
+    public Integer getUpdatedRows(Object object) {
         return UPDATED_ROWS_LOCAL.get().get(object);
     }
 

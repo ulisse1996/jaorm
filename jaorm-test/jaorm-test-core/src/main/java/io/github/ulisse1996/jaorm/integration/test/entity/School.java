@@ -22,6 +22,20 @@ public class School {
     })
     private List<Student> students;
 
+    @Cascade(CascadeType.ALL)
+    @Relationship(columns = {
+            @Relationship.RelationshipColumn(targetColumn = "SCHOOL_ID", sourceColumn = "SCHOOL_ID")
+    })
+    private List<Student> allStudents;
+
+    public List<Student> getAllStudents() {
+        return allStudents;
+    }
+
+    public void setAllStudents(List<Student> allStudents) {
+        this.allStudents = allStudents;
+    }
+
     public List<Student> getStudents() {
         return students;
     }

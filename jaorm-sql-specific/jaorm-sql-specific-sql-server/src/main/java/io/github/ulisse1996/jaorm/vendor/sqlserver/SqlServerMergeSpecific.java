@@ -6,11 +6,16 @@ import io.github.ulisse1996.jaorm.vendor.specific.MergeSpecific;
 import java.util.List;
 import java.util.Map;
 
-public class SqlServerMergeSpecific implements MergeSpecific {
+public class SqlServerMergeSpecific extends MergeSpecific {
 
     @Override
     public String fromUsing() {
         return "";
+    }
+
+    @Override
+    public String appendAdditionalSql() {
+        return ";"; // Sql Server required semicolon at merge end
     }
 
     @Override

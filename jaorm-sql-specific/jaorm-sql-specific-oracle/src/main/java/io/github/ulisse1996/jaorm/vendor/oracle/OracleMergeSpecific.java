@@ -6,11 +6,16 @@ import io.github.ulisse1996.jaorm.vendor.specific.MergeSpecific;
 import java.util.List;
 import java.util.Map;
 
-public class OracleMergeSpecific implements MergeSpecific {
+public class OracleMergeSpecific extends MergeSpecific {
 
     @Override
     public String fromUsing() {
         return "FROM DUAL";
+    }
+
+    @Override
+    public String appendAdditionalSql() {
+        return "";
     }
 
     @Override

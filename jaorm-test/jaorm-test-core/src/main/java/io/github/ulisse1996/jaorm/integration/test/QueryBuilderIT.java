@@ -2,6 +2,7 @@ package io.github.ulisse1996.jaorm.integration.test;
 
 import io.github.ulisse1996.jaorm.dsl.config.QueryConfig;
 import io.github.ulisse1996.jaorm.dsl.query.QueryBuilder;
+import io.github.ulisse1996.jaorm.dsl.query.common.MergeEnd;
 import io.github.ulisse1996.jaorm.dsl.query.common.SelectedWhere;
 import io.github.ulisse1996.jaorm.dsl.query.enums.LikeType;
 import io.github.ulisse1996.jaorm.dsl.query.enums.OrderType;
@@ -24,7 +25,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-public class QueryBuilderIT extends AbstractIT {
+public abstract class QueryBuilderIT extends AbstractIT {
 
     @Test
     void should_not_found_user() {
@@ -368,6 +369,45 @@ public class QueryBuilderIT extends AbstractIT {
         Optional<User> optUser = userDAO.readOpt(user);
         Assertions.assertTrue(optUser.isPresent());
         Assertions.assertEquals(user.getName().toUpperCase(), optUser.get().getName()); //NOSONAR
+    }
+
+
+    @Test
+    void should_merge_entity() {
+
+        UserDAO userDAO = QueriesService.getInstance().getQuery(UserDAO.class);
+
+        User user = new User();
+        user.setId(10);
+        user.setName("NAME");
+
+        User updateUser = new User();
+        updateUser.setId(10);
+        updateUser.setName("NAME_NEW");
+
+        MergeEnd<User> merge = QueryBuilder.merge(User.class)
+                .using(UserColumns.USER_ID, 10)
+                .onEquals(UserColumns.USER_ID)
+                .notMatchInsert(user)
+                .matchUpdate(updateUser);
+
+        Assertions.assertFalse(userDAO.readOptByKey(10).isPresent());
+
+        merge.execute(); // Should do insert
+
+        Optional<User> opt = userDAO.readOptByKey(10);
+        Assertions.assertTrue(opt.isPresent());
+
+        User optF = opt.get();
+        Assertions.assertEquals(user.getName(), optF.getName());
+
+        merge.execute(); // Should do update
+
+        opt = userDAO.readOptByKey(10);
+        Assertions.assertTrue(opt.isPresent());
+
+        optF = opt.get();
+        Assertions.assertEquals(updateUser.getName(), optF.getName());
     }
 
     private User createUser(int i) {

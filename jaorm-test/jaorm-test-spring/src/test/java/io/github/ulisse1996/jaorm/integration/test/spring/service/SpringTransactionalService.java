@@ -1,5 +1,7 @@
-package io.github.ulisse1996.jaorm.integration.test.spring;
+package io.github.ulisse1996.jaorm.integration.test.spring.service;
 
+import io.github.ulisse1996.jaorm.integration.test.spring.entity.SpringEntity;
+import io.github.ulisse1996.jaorm.integration.test.spring.repository.SpringPrototypeDAO;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -9,9 +11,9 @@ import java.util.Optional;
 @Service
 public class SpringTransactionalService {
 
-    private final SpringSingletonDAO dao;
+    private final SpringPrototypeDAO dao;
 
-    public SpringTransactionalService(SpringSingletonDAO dao) {
+    public SpringTransactionalService(SpringPrototypeDAO dao) {
         this.dao = dao;
     }
 

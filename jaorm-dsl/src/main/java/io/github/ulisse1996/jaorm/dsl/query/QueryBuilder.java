@@ -33,7 +33,11 @@ public class QueryBuilder {
     }
 
     public static <T, R> Selected<T> subQuery(SqlColumn<T, R> column) {
-        return new SubQueryImpl<>(column);
+        return subQuery(column, QueryConfig.builder().build());
+    }
+
+    public static <T, R> Selected<T> subQuery(SqlColumn<T, R> column, QueryConfig config) {
+        return new SubQueryImpl<>(column, config);
     }
 
     public static <T> Inserted<T> insertInto(Class<T> klass) {

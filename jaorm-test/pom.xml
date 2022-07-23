@@ -24,6 +24,7 @@
         <module>jaorm-test-cdi</module>
         <module>jaorm-test-oracle</module>
         <module>jaorm-test-sql-server</module>
+        <module>jaorm-test-spring</module>
     </modules>
 
     <dependencies>

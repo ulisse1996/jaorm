@@ -83,13 +83,6 @@ public class StandardLoggerHandler implements JaormLoggerHandler {
     private String toString(List<SqlParameter> sqlParameters) {
         return "[" + sqlParameters.stream()
                 .map(SqlParameter::getVal)
-                .map(val -> {
-                    if (val instanceof Enum<?>) {
-                        return ((Enum<?>) val).name();
-                    }
-
-                    return val;
-                })
                 .map(val -> val instanceof String ? String.format("\"%s\"", val) : String.valueOf(val))
                 .collect(Collectors.joining(", ")) + "]";
     }

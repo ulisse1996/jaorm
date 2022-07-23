@@ -82,6 +82,7 @@ public interface BaseDao<R> {
             }
             ListenersService.getInstance().fireEvent(entity, GlobalEventType.PRE_UPDATE);
             UpdateEvent.updateEntity(entity);
+            checkUpsert(entity);
             if (entity instanceof PostUpdate) {
                 try {
                     ((PostUpdate<?>) entity).postUpdate();
@@ -92,6 +93,16 @@ public interface BaseDao<R> {
         }
         ListenersService.getInstance().fireEvent(entity, GlobalEventType.POST_UPDATE);
         return entity;
+    }
+
+    default void checkUpsert(R entity) {
+        if (FeatureConfigurator.getInstance().isInsertAfterFailedUpdateEnabled()) {
+            // We check for updated row for upsert
+            Integer updatedRows = QueryRunner.getInstance(entity.getClass()).getUpdatedRows(entity);
+            if (updatedRows != null && updatedRows == 0) {
+                insert(entity);
+            }
+        }
     }
 
     default R insert(R entity) {

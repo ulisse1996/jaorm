@@ -21,6 +21,7 @@ import java.util.Optional;
 class DslPageTest {
 
     @Mock private SelectedImpl<Object, ?> selected;
+    @Mock private LimitOffsetSpecific specific;
 
     @Test
     void should_return_next_page() {
@@ -91,6 +92,21 @@ class DslPageTest {
                     .setOffset(Mockito.anyInt());
             Mockito.verify(selected)
                     .setLimit(Mockito.anyInt());
+        }
+    }
+
+    @Test
+    void should_throw_exception_for_missing_order_with_required_option() {
+        Page<Object> page = new DslPage<>(1, 10, 15, selected);
+        try (MockedStatic<VendorSpecific> mk = Mockito.mockStatic(VendorSpecific.class)) {
+            mk.when(() -> VendorSpecific.getSpecific(LimitOffsetSpecific.class))
+                    .thenReturn(specific);
+            Mockito.when(selected.hasOrders()).thenReturn(false);
+            Mockito.when(specific.requiredOrder()).thenReturn(true);
+            Assertions.assertThrows(
+                    IllegalArgumentException.class,
+                    page::getData
+            );
         }
     }
 

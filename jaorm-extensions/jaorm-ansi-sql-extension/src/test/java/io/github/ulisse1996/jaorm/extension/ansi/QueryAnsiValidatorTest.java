@@ -43,6 +43,14 @@ class QueryAnsiValidatorTest {
         );
     }
 
+    @Test
+    void should_throw_exception_for_parsing_error() {
+        Assertions.assertThrows(
+                ProcessorValidationException.class,
+                () -> new QueryAnsiValidator().validateSql("SELECT ", processingEnvironment)
+        );
+    }
+
     public static Stream<Arguments> getInvalidSql() {
         return Stream.of(
                 Arguments.of("SELECT NVL(COL, 'null') FROM MY_TABLE"),

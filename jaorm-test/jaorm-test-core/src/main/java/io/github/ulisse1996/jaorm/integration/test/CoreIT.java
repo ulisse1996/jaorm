@@ -446,6 +446,36 @@ public abstract class CoreIT extends AbstractIT {
         );
     }
 
+    @Test
+    void should_delete_school_with_all_students() {
+        School school = new School();
+        school.setSchoolId(BigDecimal.TEN);
+        school.setAllStudents(
+                Arrays.asList(
+                        createStudent(1, "ST_NAME_1"),
+                        createStudent(2, "ST_NAME_2")
+                )
+        );
+
+        SchoolDao dao = QueriesService.getInstance().getQuery(SchoolDao.class);
+        StudentDao studentDao = QueriesService.getInstance().getQuery(StudentDao.class);
+        school = dao.insert(school);
+
+        Assertions.assertEquals(2, studentDao.readAll().size());
+
+        dao.delete(school);
+
+        Assertions.assertEquals(0, dao.readAll().size());
+        Assertions.assertEquals(0, studentDao.readAll().size());
+    }
+
+    private Student createStudent(int index, String name) {
+        Student student = new Student();
+        student.setName(name);
+        student.setStudentId(BigDecimal.valueOf(index));
+        return student;
+    }
+
     private List<UserRole> createRoles(int times, int ref) {
         return IntStream.range(0, times)
                 .mapToObj(i -> {

@@ -99,6 +99,14 @@ public class EntityMapper<T> {
                 .toArray(Object[]::new));
     }
 
+    public Arguments getValues(T updateEntity, List<ColumnMapper<T>> mappers) {
+        return Arguments.values(
+                mappers.stream()
+                        .map(c -> c.getter.apply(updateEntity))
+                        .toArray(Object[]::new)
+        );
+    }
+
     public Arguments getKeys(final T entity) {
         return Arguments.values(mappers.stream()
             .filter(c -> c.key)

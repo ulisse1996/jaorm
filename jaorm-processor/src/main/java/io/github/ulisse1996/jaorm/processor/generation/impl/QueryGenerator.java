@@ -325,41 +325,11 @@ public class QueryGenerator extends Generator {
                 QueryRunner.class, definition.getRealClass(), definition.getRealClass(), sql
         };
         if (definition.isOptional()) {
-            if (definition.isTableRow()) {
-                return new AbstractMap.SimpleImmutableEntry<>(
-                        "return $T.getSimple().readOpt($S, params)",
-                        new Object[] {QueryRunner.class, sql}
-                );
-            } else {
-                return new AbstractMap.SimpleImmutableEntry<>(
-                        "return $T.getInstance($T.class).readOpt($T.class, $S, params).toOptional()",
-                        stmParams
-                );
-            }
+            return checkOptional(sql, definition, stmParams);
         } else if (definition.isCollection()) {
-            if (definition.isTableRow()) {
-                return new AbstractMap.SimpleImmutableEntry<>(
-                        "return $T.getSimple().readStream($S, params).collect($T.toList())",
-                        new Object[] {QueryRunner.class, sql, Collectors.class}
-                );
-            } else {
-                return new AbstractMap.SimpleImmutableEntry<>(
-                        "return $T.getInstance($T.class).readAll($T.class, $S, params)",
-                        stmParams
-                );
-            }
+            return checkCollection(sql, definition, stmParams);
         } else if (definition.isStream()) {
-            if (!definition.isStreamTableRow()) {
-                return new AbstractMap.SimpleImmutableEntry<>(
-                        "return $T.getInstance($T.class).readStream($T.class, $S, params)",
-                        new Object[] {QueryRunner.class, definition.getRealClass(), definition.getRealClass(), sql}
-                );
-            } else {
-                return new AbstractMap.SimpleImmutableEntry<>(
-                        "return $T.getSimple().readStream($S, params)",
-                        new Object[] {QueryRunner.class, sql}
-                );
-            }
+            return checkStream(sql, definition);
         } else if (definition.isTableRow()) {
             return new AbstractMap.SimpleImmutableEntry<>(
                     "return $T.getSimple().read($S, params)",
@@ -374,6 +344,48 @@ public class QueryGenerator extends Generator {
             return new AbstractMap.SimpleImmutableEntry<>(
                     "return $T.getSimple().read($T.class, $S, params)",
                     new Object[] {QueryRunner.class, definition.getRealClass(), sql}
+            );
+        }
+    }
+
+    private static AbstractMap.SimpleImmutableEntry<String, Object[]> checkStream(String sql, ReturnTypeDefinition definition) {
+        if (!definition.isStreamTableRow()) {
+            return new AbstractMap.SimpleImmutableEntry<>(
+                    "return $T.getInstance($T.class).readStream($T.class, $S, params)",
+                    new Object[]{QueryRunner.class, definition.getRealClass(), definition.getRealClass(), sql}
+            );
+        } else {
+            return new AbstractMap.SimpleImmutableEntry<>(
+                    "return $T.getSimple().readStream($S, params)",
+                    new Object[]{QueryRunner.class, sql}
+            );
+        }
+    }
+
+    private static AbstractMap.SimpleImmutableEntry<String, Object[]> checkCollection(String sql, ReturnTypeDefinition definition, Object[] stmParams) {
+        if (definition.isTableRow()) {
+            return new AbstractMap.SimpleImmutableEntry<>(
+                    "return $T.getSimple().readStream($S, params).collect($T.toList())",
+                    new Object[]{QueryRunner.class, sql, Collectors.class}
+            );
+        } else {
+            return new AbstractMap.SimpleImmutableEntry<>(
+                    "return $T.getInstance($T.class).readAll($T.class, $S, params)",
+                    stmParams
+            );
+        }
+    }
+
+    private static AbstractMap.SimpleImmutableEntry<String, Object[]> checkOptional(String sql, ReturnTypeDefinition definition, Object[] stmParams) {
+        if (definition.isTableRow()) {
+            return new AbstractMap.SimpleImmutableEntry<>(
+                    "return $T.getSimple().readOpt($S, params)",
+                    new Object[]{QueryRunner.class, sql}
+            );
+        } else {
+            return new AbstractMap.SimpleImmutableEntry<>(
+                    "return $T.getInstance($T.class).readOpt($T.class, $S, params).toOptional()",
+                    stmParams
             );
         }
     }
