@@ -11,7 +11,7 @@ class OracleMergeSpecificTest {
 
     @Test
     void should_return_dual_from() {
-        Assertions.assertEquals("FROM DUAL", testSubject.fromUsing());
+        Assertions.assertEquals(" FROM DUAL", testSubject.fromUsing());
     }
 
     @Test

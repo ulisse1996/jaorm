@@ -10,7 +10,7 @@ public class OracleMergeSpecific extends MergeSpecific {
 
     @Override
     public String fromUsing() {
-        return "FROM DUAL";
+        return " FROM DUAL";
     }
 
     @Override
