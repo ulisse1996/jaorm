@@ -2,10 +2,13 @@ package io.github.ulisse1996.jaorm.dsl.query;
 
 import io.github.ulisse1996.jaorm.dsl.query.impl.SelectedImpl;
 import io.github.ulisse1996.jaorm.entity.Page;
+import io.github.ulisse1996.jaorm.vendor.VendorSpecific;
+import io.github.ulisse1996.jaorm.vendor.specific.LimitOffsetSpecific;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -18,6 +21,7 @@ import java.util.Optional;
 class DslPageTest {
 
     @Mock private SelectedImpl<Object, ?> selected;
+    @Mock private LimitOffsetSpecific specific;
 
     @Test
     void should_return_next_page() {
@@ -62,11 +66,15 @@ class DslPageTest {
         Mockito.when(selected.readAll())
                 .thenReturn(data);
 
-        Assertions.assertEquals(data, page.getData());
-        Mockito.verify(selected, Mockito.never())
-                .setOffset(Mockito.anyInt());
-        Mockito.verify(selected)
-                .setLimit(Mockito.anyInt());
+        try (MockedStatic<VendorSpecific> mk = Mockito.mockStatic(VendorSpecific.class)) {
+            mk.when(() -> VendorSpecific.getSpecific(LimitOffsetSpecific.class))
+                    .thenReturn(new LimitOffset());
+            Assertions.assertEquals(data, page.getData());
+            Mockito.verify(selected, Mockito.never())
+                    .setOffset(Mockito.anyInt());
+            Mockito.verify(selected)
+                    .setLimit(Mockito.anyInt());
+        }
     }
 
     @Test
@@ -76,11 +84,30 @@ class DslPageTest {
         Mockito.when(selected.readAll())
                 .thenReturn(data);
 
-        Assertions.assertEquals(data, page.getData());
-        Mockito.verify(selected)
-                .setOffset(Mockito.anyInt());
-        Mockito.verify(selected)
-                .setLimit(Mockito.anyInt());
+        try (MockedStatic<VendorSpecific> mk = Mockito.mockStatic(VendorSpecific.class)) {
+            mk.when(() -> VendorSpecific.getSpecific(LimitOffsetSpecific.class))
+                    .thenReturn(new LimitOffset());
+            Assertions.assertEquals(data, page.getData());
+            Mockito.verify(selected)
+                    .setOffset(Mockito.anyInt());
+            Mockito.verify(selected)
+                    .setLimit(Mockito.anyInt());
+        }
+    }
+
+    @Test
+    void should_throw_exception_for_missing_order_with_required_option() {
+        Page<Object> page = new DslPage<>(1, 10, 15, selected);
+        try (MockedStatic<VendorSpecific> mk = Mockito.mockStatic(VendorSpecific.class)) {
+            mk.when(() -> VendorSpecific.getSpecific(LimitOffsetSpecific.class))
+                    .thenReturn(specific);
+            Mockito.when(selected.hasOrders()).thenReturn(false);
+            Mockito.when(specific.requiredOrder()).thenReturn(true);
+            Assertions.assertThrows(
+                    IllegalArgumentException.class,
+                    page::getData
+            );
+        }
     }
 
     private void setData(Page<Object> page, List<Object> data) {
@@ -90,6 +117,24 @@ class DslPageTest {
             f.set(page, data);
         } catch (Exception ex) {
             Assertions.fail(ex);
+        }
+    }
+
+    private static class LimitOffset implements LimitOffsetSpecific {
+
+        @Override
+        public String convertOffSetLimitSupport(int limitRow) {
+            return String.format(" LIMIT %d", limitRow);
+        }
+
+        @Override
+        public String convertOffsetSupport(int offset) {
+            return String.format(" OFFSET %d ", offset);
+        }
+
+        @Override
+        public String convertOffSetLimitSupport(int limitRow, int offsetRow) {
+            return String.format(" LIMIT %d OFFSET %d", limitRow, offsetRow);
         }
     }
 }

@@ -217,7 +217,7 @@ public class EntityGenerator extends Generator {
 
     private FieldSpec addDeleteSql() {
         return FieldSpec.builder(String.class, "DELETE_SQL", Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
-                .initializer("$S + $L + $L", "DELETE ", "TABLE", KEYS_WHERE)
+                .initializer("$S + $L + $L", "DELETE FROM ", "TABLE", KEYS_WHERE)
                 .build();
     }
 
@@ -549,7 +549,7 @@ public class EntityGenerator extends Generator {
                 .endControlFlow()
                 .addStatement("builder.append(column.colName).append($S)", " = ?")
                 .beginControlFlow("if (i != values().length - 1)")
-                .addStatement(BUILDER_SIMPLE_APPEND, ",")
+                .addStatement(BUILDER_SIMPLE_APPEND, ", ")
                 .endControlFlow()
                 .endControlFlow()
                 .addStatement("UPDATE_SQL = builder.toString()")

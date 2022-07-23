@@ -153,6 +153,7 @@ class BaseDaoTest {
                     .thenReturn(Arguments.empty());
             Mockito.doThrow(IllegalArgumentException.class)
                     .when(entity).postUpdate();
+            Mockito.when(runner.getUpdatedRows(Mockito.any())).thenReturn(1);
             Assertions.assertThrows(UpdateEventException.class, () -> dao.update(entity));
         }
     }
@@ -297,8 +298,48 @@ class BaseDaoTest {
                     .thenReturn(Arguments.empty());
             Mockito.when(delegates.asWhere(Mockito.any()))
                     .thenReturn(Arguments.empty());
+            Mockito.when(runner.getUpdatedRows(Mockito.any())).thenReturn(1);
+
+
             dao.update(Collections.singletonList(entity));
             Mockito.verify(dao).update(Mockito.any(DelegatesMock.MyEntity.class));
+        }
+    }
+
+    @Test
+    void should_do_insert_after_empty_update() {
+        final MyDao dao = Mockito.spy(new MyDao());
+        final DelegatesMock.MyEntity entity = new DelegatesMock.MyEntity();
+        QueryRunner runner = Mockito.mock(QueryRunner.class);
+        DelegatesService delegates = Mockito.mock(DelegatesService.class);
+        RelationshipService relationshipService = Mockito.mock(RelationshipService.class);
+        try (MockedStatic<QueryRunner> mkRunner = Mockito.mockStatic(QueryRunner.class);
+             MockedStatic<DelegatesService> mkDelegates = Mockito.mockStatic(DelegatesService.class);
+             MockedStatic<RelationshipService> mkRelationship = Mockito.mockStatic(RelationshipService.class);
+             MockedStatic<ListenersService> mkList = Mockito.mockStatic(ListenersService.class)) {
+            mkList.when(ListenersService::getInstance).thenReturn(Mockito.mock(ListenersService.class));
+            mkRunner.when(() -> QueryRunner.getInstance(Mockito.any()))
+                    .thenReturn(runner);
+            mkDelegates.when(DelegatesService::getInstance)
+                    .thenReturn(delegates);
+            mkRelationship.when(RelationshipService::getInstance)
+                    .thenReturn(relationshipService);
+            Mockito.when(delegates.getUpdateSql(Mockito.any()))
+                    .thenReturn("TEST");
+            Mockito.when(delegates.getInsertSql(Mockito.any()))
+                    .thenReturn("INSERT");
+            Mockito.when(delegates.asArguments(Mockito.any()))
+                    .thenReturn(Arguments.empty());
+            Mockito.when(delegates.asWhere(Mockito.any()))
+                    .thenReturn(Arguments.empty());
+            Mockito.when(delegates.asInsert(Mockito.any()))
+                    .thenReturn(Arguments.empty());
+            Mockito.when(runner.getUpdatedRows(Mockito.any())).thenReturn(0);
+
+
+            dao.update(entity);
+            Mockito.verify(dao).update(Mockito.any(DelegatesMock.MyEntity.class));
+            Mockito.verify(dao).insert(Mockito.any(DelegatesMock.MyEntity.class));
         }
     }
 
@@ -328,6 +369,7 @@ class BaseDaoTest {
                     .thenReturn(Arguments.empty());
             Mockito.when(runner.update(Mockito.anyString(), Mockito.any()))
                     .thenReturn(1);
+            Mockito.when(runner.getUpdatedRows(Mockito.any())).thenReturn(1);
             
             dao.update(Collections.singletonList(entity));
 
@@ -668,7 +710,7 @@ class BaseDaoTest {
     }
 
     @Test
-    void should_throw_exception_for_validation_errors_during_updare() {
+    void should_throw_exception_for_validation_errors_during_update() {
         final MyDao dao = Mockito.spy(new MyDao());
 
         try (MockedStatic<EntityValidator> mk = Mockito.mockStatic(EntityValidator.class)) {

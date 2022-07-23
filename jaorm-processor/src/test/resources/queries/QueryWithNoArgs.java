@@ -6,6 +6,6 @@ import io.test.SimpleEntity;
 
 public interface QueryWithNoArgs extends BaseDao<io.test.SimpleEntity> {
 
-    @Query(sql = "DELETE E", noArgs = true)
+    @Query(sql = "DELETE FROM MY_TABLE", noArgs = true)
     void deleteAll();
 }

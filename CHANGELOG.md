@@ -1,5 +1,17 @@
 # CHANGELOG
 
+## 1.7.0
+- Feature: SL4J support for standard Logging with custom fallback on SPI JaormLoggerHandler
+- Feature: List\<TableRow> support for @Query
+- Feature: Merge DSL
+- Feature: Extension API for Jaorm Processor validation
+- Feature: Default ANSI Sql Query Validator
+- Feature: Merge, Count and GeneratedKeys vendor specifics
+- Rework: IT Rework using Test Containers
+- Bugfix: Missing node name on Graph read
+- Bugfix: Missing upsert on single Entity update
+- Bugfix: Missing QueryConfig on SubQuery creation
+
 ## 1.6.0
 - Refactor: Move generation bundle SPI to SPI Provider for Single Feature
 - Bugfix: Fix quarkus dev reload for class checks

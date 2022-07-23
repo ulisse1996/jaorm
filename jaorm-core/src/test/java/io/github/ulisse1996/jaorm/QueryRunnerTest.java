@@ -8,6 +8,8 @@ import io.github.ulisse1996.jaorm.spi.DelegatesService;
 import io.github.ulisse1996.jaorm.spi.QueryRunner;
 import io.github.ulisse1996.jaorm.spi.TransactionManager;
 import io.github.ulisse1996.jaorm.spi.common.Singleton;
+import io.github.ulisse1996.jaorm.vendor.VendorSpecific;
+import io.github.ulisse1996.jaorm.vendor.specific.GeneratedKeysSpecific;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -173,7 +175,10 @@ class QueryRunnerTest {
                 return connection;
             }
         };
-        try (MockedStatic<DelegatesService> mk = Mockito.mockStatic(DelegatesService.class)) {
+        try (MockedStatic<DelegatesService> mk = Mockito.mockStatic(DelegatesService.class);
+             MockedStatic<VendorSpecific> mkVendor = Mockito.mockStatic(VendorSpecific.class)) {
+            mkVendor.when(() -> VendorSpecific.getSpecific(GeneratedKeysSpecific.class, GeneratedKeysSpecific.NO_OP))
+                    .thenReturn(new Generated());
             mk.when(DelegatesService::getInstance)
                     .thenReturn(delegatesService);
             Mockito.when(delegatesService.getTableInfo(Mockito.any()))
@@ -309,7 +314,10 @@ class QueryRunnerTest {
                 return connection;
             }
         };
-        try (MockedStatic<DelegatesService> mk = Mockito.mockStatic(DelegatesService.class)) {
+        try (MockedStatic<DelegatesService> mk = Mockito.mockStatic(DelegatesService.class);
+             MockedStatic<VendorSpecific> mkVendor = Mockito.mockStatic(VendorSpecific.class)) {
+            mkVendor.when(() -> VendorSpecific.getSpecific(GeneratedKeysSpecific.class, GeneratedKeysSpecific.NO_OP))
+                    .thenReturn(new Generated());
             mk.when(DelegatesService::getInstance)
                     .thenReturn(delegatesService);
             Mockito.when(delegatesService.getTableInfo(Mockito.any()))
@@ -358,7 +366,10 @@ class QueryRunnerTest {
                 return connection;
             }
         };
-        try (MockedStatic<DelegatesService> mk = Mockito.mockStatic(DelegatesService.class)) {
+        try (MockedStatic<DelegatesService> mk = Mockito.mockStatic(DelegatesService.class);
+             MockedStatic<VendorSpecific> mkVendor = Mockito.mockStatic(VendorSpecific.class)) {
+            mkVendor.when(() -> VendorSpecific.getSpecific(GeneratedKeysSpecific.class, GeneratedKeysSpecific.NO_OP))
+                    .thenReturn(new Generated());
             mk.when(DelegatesService::getInstance)
                     .thenReturn(delegatesService);
             Mockito.when(delegatesService.getTableInfo(Mockito.any()))
@@ -379,5 +390,23 @@ class QueryRunnerTest {
                 return 0;
             }
         };
+    }
+
+    private static class Generated implements GeneratedKeysSpecific {
+
+        @Override
+        public String getReturningKeys(Set<String> keys) {
+            return "";
+        }
+
+        @Override
+        public boolean isCustomReturnKey() {
+            return false;
+        }
+
+        @Override
+        public <T> T getReturningKey(ResultSet rs, Map.Entry<String, Class<?>> entry) throws SQLException {
+            return null;
+        }
     }
 }

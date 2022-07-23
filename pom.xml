@@ -7,7 +7,7 @@
     <groupId>io.github.ulisse1996</groupId>
     <artifactId>jaorm-pom</artifactId>
     <packaging>pom</packaging>
-    <version>1.6.0</version>
+    <version>1.7.0</version>
     <modules>
         <module>jaorm-processor</module>
         <module>jaorm-core</module>
@@ -20,6 +20,8 @@
         <module>jaorm-sql-specific</module>
         <module>jaorm-tools</module>
         <module>jaorm-validation</module>
+        <module>jaorm-extensions</module>
+        <module>jaorm-bom</module>
     </modules>
 
     <properties>
@@ -33,8 +35,8 @@
         <sonar.organization>ulisse1996</sonar.organization>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
         <jacoco-maven-plugin.version>0.8.6</jacoco-maven-plugin.version>
-        <sonar.coverage.jacoco.xmlReportPaths>jaorm-test/target/site/jacoco-aggregate/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
-        <aggregate.report.dir>jaorm-test/target/site/jacoco-aggregate/jacoco.xml</aggregate.report.dir>
+        <sonar.coverage.jacoco.xmlReportPaths>jaorm-bom/target/site/jacoco-aggregate/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
+        <aggregate.report.dir>jaorm-bom/target/site/jacoco-aggregate/jacoco.xml</aggregate.report.dir>
     </properties>
 
     <name>JAORM (Parent)</name>
@@ -101,6 +103,7 @@
             <groupId>org.junit.vintage</groupId>
             <artifactId>junit-vintage-engine</artifactId>
             <version>${junit.version}</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>

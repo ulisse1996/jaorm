@@ -162,7 +162,7 @@ class QueryValidatorTest {
         Mockito.when(method.getAnnotation(Query.class))
                 .thenReturn(query);
         Mockito.when(query.sql())
-                .thenReturn("UPDATE TABLE SET COL1 = ? WHERE COL = ?");
+                .thenReturn("UPDATE MY_TABLE SET COL1 = ? WHERE COL = ?");
         Mockito.when(method.getSimpleName())
                 .thenReturn(new CustomName("NAME"));
         Mockito.when(method.getParameters())
@@ -210,7 +210,7 @@ class QueryValidatorTest {
         Mockito.when(method.getAnnotation(Query.class))
                 .thenReturn(query);
         Mockito.when(query.sql())
-                .thenReturn("SELECT * FROM TABLE WHERE COL = ?");
+                .thenReturn("SELECT * FROM MY_TABLE WHERE COL = ?");
         Mockito.when(method.getSimpleName())
                 .thenReturn(new CustomName("NAME"));
         Mockito.when(method.getParameters())
@@ -275,7 +275,7 @@ class QueryValidatorTest {
         Mockito.when(method.getAnnotation(Query.class))
                 .thenReturn(query);
         Mockito.when(query.sql())
-                .thenReturn("SELECT * FROM TABLE WHERE COL = ?");
+                .thenReturn("SELECT * FROM MY_TABLE WHERE COL = ?");
         Mockito.when(method.getSimpleName())
                 .thenReturn(new CustomName("NAME"));
         Mockito.when(method.getParameters())

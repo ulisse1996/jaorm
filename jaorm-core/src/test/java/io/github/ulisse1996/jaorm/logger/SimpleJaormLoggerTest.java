@@ -18,14 +18,14 @@ class SimpleJaormLoggerTest {
     private static final JaormLogger logger = JaormLogger.getLogger(SimpleJaormLoggerTest.class);
 
     @Test
-    void should_return_no_op_handler() throws NoSuchFieldException, IllegalAccessException {
+    void should_return_standard_handler() throws NoSuchFieldException, IllegalAccessException {
         try (MockedStatic<ServiceFinder> mk = Mockito.mockStatic(ServiceFinder.class)) {
             mk.when(() -> ServiceFinder.loadService(Mockito.any()))
                     .thenThrow(ServiceConfigurationError.class);
             SimpleJaormLogger simpleJaormLogger = new SimpleJaormLogger(Object.class);
             Field handler = SimpleJaormLogger.class.getDeclaredField("handler");
             handler.setAccessible(true);
-            Assertions.assertTrue(handler.get(simpleJaormLogger) instanceof JaormLoggerHandler.NoOp);
+            Assertions.assertTrue(handler.get(simpleJaormLogger) instanceof StandardLoggerHandler);
         }
     }
 

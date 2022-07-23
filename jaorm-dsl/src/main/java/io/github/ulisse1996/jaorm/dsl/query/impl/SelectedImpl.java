@@ -19,6 +19,7 @@ import io.github.ulisse1996.jaorm.spi.DelegatesService;
 import io.github.ulisse1996.jaorm.spi.QueryRunner;
 import io.github.ulisse1996.jaorm.vendor.VendorFunction;
 import io.github.ulisse1996.jaorm.vendor.VendorSpecific;
+import io.github.ulisse1996.jaorm.vendor.specific.CountSpecific;
 import io.github.ulisse1996.jaorm.vendor.specific.LimitOffsetSpecific;
 
 import java.util.ArrayList;
@@ -59,6 +60,10 @@ public class SelectedImpl<T, N> implements Selected<T>, SelectedWhere<T>, Select
         this.joins = new ArrayList<>();
         this.orders = new ArrayList<>();
         this.checker = new DefaultWhereChecker();
+    }
+
+    public boolean hasOrders() {
+        return !this.orders.isEmpty();
     }
 
     public WhereChecker getChecker() {
@@ -327,13 +332,22 @@ public class SelectedImpl<T, N> implements Selected<T>, SelectedWhere<T>, Select
 
     public String asString(boolean count) {
         StringBuilder builder = new StringBuilder("SELECT ")
-                .append(count ? "COUNT(*) " : asSelectColumns())
+                .append(count ? createCount() : asSelectColumns())
                 .append("FROM ")
                 .append(this.table);
-        return buildExtraSql(builder);
+        return buildExtraSql(count, builder);
     }
 
-    protected String buildExtraSql(StringBuilder builder) {
+    private String createCount() {
+        CountSpecific specific = VendorSpecific.getSpecific(CountSpecific.class, CountSpecific.NO_OP);
+        if (this.orders.isEmpty() || !specific.isNamedCountRequired()) {
+            return "COUNT(*) ";
+        } else {
+            return "COUNT(*) AS ROW_COUNTS ";
+        }
+    }
+
+    protected String buildExtraSql(boolean count, StringBuilder builder) {
         for (JoinImpl<T, ?, ?> j : this.joins) {
             builder.append(j.asString(caseInsensitiveLike));
         }
@@ -350,7 +364,7 @@ public class SelectedImpl<T, N> implements Selected<T>, SelectedWhere<T>, Select
             }
         }
         if (!this.orders.isEmpty()) {
-            buildOrder(builder);
+            buildOrder(count, builder);
         }
         if (offset > 0 && limit > 0) {
             builder.append(VendorSpecific.getSpecific(LimitOffsetSpecific.class).convertOffSetLimitSupport(limit, offset));
@@ -362,7 +376,13 @@ public class SelectedImpl<T, N> implements Selected<T>, SelectedWhere<T>, Select
         return builder.toString();
     }
 
-    private void buildOrder(StringBuilder builder) {
+    private void buildOrder(boolean count, StringBuilder builder) {
+        CountSpecific specific = VendorSpecific.getSpecific(CountSpecific.class, CountSpecific.NO_OP);
+        if (count && specific.isNamedCountRequired()) {
+            builder.append(" ORDER BY ROW_COUNTS ");
+            return;
+        }
+
         builder.append(" ORDER BY");
         for (int i = 0; i < this.orders.size(); i++) {
             builder.append(this.orders.get(i).asString());

@@ -60,6 +60,9 @@ public class ReturnTypeDefinition {
         } else if (regex.contains("List")) {
             this.realClass = asElement(processingEnvironment, regex, typeName);
             this.collection = true;
+            if (realClass.asType().toString().contains(SUPPORTED[4])) {
+                this.tableRow = true;
+            }
         } else if (regex.contains("Stream")) {
             this.realClass = asElement(processingEnvironment, regex, typeName);
             this.stream = true;

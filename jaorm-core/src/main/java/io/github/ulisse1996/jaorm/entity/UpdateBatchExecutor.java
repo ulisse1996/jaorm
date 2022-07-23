@@ -7,15 +7,22 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Set;
 
 public class UpdateBatchExecutor implements SqlExecutor {
     private final ResultSet resultSet;
 
-    public UpdateBatchExecutor(PreparedStatement pr, List<List<SqlParameter>> params) throws SQLException {
+    public UpdateBatchExecutor(PreparedStatement pr, List<List<SqlParameter>> params,
+                               Set<String> autoGenKeys) throws SQLException {
         this.prepareBatch(pr, params);
 
         pr.executeBatch();
-        this.resultSet = pr.getGeneratedKeys();
+
+        if (autoGenKeys != null && !autoGenKeys.isEmpty()) {
+            this.resultSet = pr.getGeneratedKeys();
+        } else {
+            this.resultSet = null;
+        }
     }
 
     private void prepareBatch(PreparedStatement pr, List<List<SqlParameter>> params) throws SQLException {

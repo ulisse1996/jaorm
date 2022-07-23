@@ -8,4 +8,9 @@ public class PostgreAliasesSpecific implements AliasesSpecific {
     public String convertToAlias(String name) {
         return " " + name;
     }
+
+    @Override
+    public boolean isUpdateAliasRequired() {
+        return false;
+    }
 }

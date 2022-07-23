@@ -1,10 +1,7 @@
 package io.github.ulisse1996.jaorm.dsl.query;
 
 import io.github.ulisse1996.jaorm.dsl.config.QueryConfig;
-import io.github.ulisse1996.jaorm.dsl.query.common.Case;
-import io.github.ulisse1996.jaorm.dsl.query.common.Inserted;
-import io.github.ulisse1996.jaorm.dsl.query.common.Selected;
-import io.github.ulisse1996.jaorm.dsl.query.common.Updated;
+import io.github.ulisse1996.jaorm.dsl.query.common.*;
 import io.github.ulisse1996.jaorm.dsl.query.impl.*;
 import io.github.ulisse1996.jaorm.entity.SqlColumn;
 
@@ -36,7 +33,11 @@ public class QueryBuilder {
     }
 
     public static <T, R> Selected<T> subQuery(SqlColumn<T, R> column) {
-        return new SubQueryImpl<>(column);
+        return subQuery(column, QueryConfig.builder().build());
+    }
+
+    public static <T, R> Selected<T> subQuery(SqlColumn<T, R> column, QueryConfig config) {
+        return new SubQueryImpl<>(column, config);
     }
 
     public static <T> Inserted<T> insertInto(Class<T> klass) {
@@ -51,6 +52,11 @@ public class QueryBuilder {
     public static <T> Updated<T> update(Class<T> klass, QueryConfig queryConfig) {
         Objects.requireNonNull(klass, ENTITY_CLASS_CAN_T_BE_NULL);
         return new UpdatedImpl<>(klass, queryConfig);
+    }
+
+    public static <T> Merge<T> merge(Class<T> klass) {
+        Objects.requireNonNull(klass, ENTITY_CLASS_CAN_T_BE_NULL);
+        return new MergeImpl<>(klass);
     }
 
     public static <R> Case<R> usingCase() {
