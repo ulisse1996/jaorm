@@ -45,7 +45,7 @@ class QueryAnsiValidatorTest {
 
     @Test
     void should_throw_exception_for_parsing_error() {
-        Assertions.assertThrows(
+        Assertions.assertThrows( //NOSONAR
                 ProcessorValidationException.class,
                 () -> new QueryAnsiValidator().validateSql("SELECT ", processingEnvironment)
         );

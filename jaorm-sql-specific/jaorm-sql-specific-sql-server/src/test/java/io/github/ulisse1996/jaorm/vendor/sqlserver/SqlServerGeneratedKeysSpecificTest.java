@@ -25,7 +25,7 @@ class SqlServerGeneratedKeysSpecificTest {
 
     @Test
     void should_throw_exception_for_more_than_1_gen_key() {
-        Assertions.assertThrows(
+        Assertions.assertThrows( //NOSONAR
                 UnsupportedOperationException.class,
                 () -> testSubject.getReturningKeys(new HashSet<>(Arrays.asList("KEY1", "KEY2")))
         );

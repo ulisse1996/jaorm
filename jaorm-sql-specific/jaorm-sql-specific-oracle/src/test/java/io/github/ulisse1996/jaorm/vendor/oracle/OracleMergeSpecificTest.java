@@ -26,7 +26,7 @@ class OracleMergeSpecificTest {
 
     @Test
     void should_throw_unsupported_exception_for_alternative_merge() {
-        Assertions.assertThrows(UnsupportedOperationException.class,
+        Assertions.assertThrows(UnsupportedOperationException.class, //NOSONAR
                 () -> testSubject.executeAlternativeMerge(Object.class, Collections.emptyMap(), Collections.emptyList(), null, null));
     }
 }

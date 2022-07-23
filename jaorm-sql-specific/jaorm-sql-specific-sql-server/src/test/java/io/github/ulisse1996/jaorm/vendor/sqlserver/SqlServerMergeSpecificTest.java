@@ -26,7 +26,7 @@ class SqlServerMergeSpecificTest {
 
     @Test
     void should_throw_unsupported_exception_for_alternative_merge() {
-        Assertions.assertThrows(
+        Assertions.assertThrows( //NOSONAR
                 UnsupportedOperationException.class,
                 () -> testSubject.executeAlternativeMerge(Object.class, Collections.emptyMap(), Collections.emptyList(), null, null)
         );
