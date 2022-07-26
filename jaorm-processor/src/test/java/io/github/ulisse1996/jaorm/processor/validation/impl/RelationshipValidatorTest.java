@@ -6,8 +6,12 @@ import io.github.ulisse1996.jaorm.processor.util.ProcessorUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
@@ -17,20 +21,16 @@ import javax.lang.model.element.VariableElement;
 import java.util.Collections;
 import java.util.Optional;
 
+@ExtendWith(MockitoExtension.class)
 class RelationshipValidatorTest {
 
-    private RelationshipValidator testSubject;
-
-    @BeforeEach
-    void init() {
-        ProcessingEnvironment processingEnvironment = Mockito.mock(ProcessingEnvironment.class);
-        Mockito.when(processingEnvironment.getMessager())
-                .thenReturn(Mockito.mock(Messager.class));
-        testSubject = new RelationshipValidator(processingEnvironment);
-    }
+    @Mock private ProcessingEnvironment processingEnvironment;
+    @Mock private Messager messager;
+    @InjectMocks private RelationshipValidator testSubject;
 
     @Test
     void should_not_found_opt_column() {
+        Mockito.when(processingEnvironment.getMessager()).thenReturn(messager);
         try (MockedStatic<ProcessorUtils> mk = Mockito.mockStatic(ProcessorUtils.class)) {
             TypeElement fieldType = Mockito.mock(TypeElement.class);
             TypeElement entityType = Mockito.mock(TypeElement.class);
@@ -61,6 +61,7 @@ class RelationshipValidatorTest {
 
     @Test
     void should_throw_exception_for_missing_source_column_and_default_value() {
+        Mockito.when(processingEnvironment.getMessager()).thenReturn(messager);
         try (MockedStatic<ProcessorUtils> mk = Mockito.mockStatic(ProcessorUtils.class)) {
             TypeElement fieldType = Mockito.mock(TypeElement.class);
             TypeElement entityType = Mockito.mock(TypeElement.class);
@@ -95,6 +96,7 @@ class RelationshipValidatorTest {
 
     @Test
     void should_throw_exception_for_missing_source_column_in_entity() {
+        Mockito.when(processingEnvironment.getMessager()).thenReturn(messager);
         try (MockedStatic<ProcessorUtils> mk = Mockito.mockStatic(ProcessorUtils.class)) {
             TypeElement fieldType = Mockito.mock(TypeElement.class);
             TypeElement entityType = Mockito.mock(TypeElement.class);
@@ -129,6 +131,7 @@ class RelationshipValidatorTest {
 
     @Test
     void should_complete_validate_without_error() {
+        Mockito.when(processingEnvironment.getMessager()).thenReturn(messager);
         try (MockedStatic<ProcessorUtils> mk = Mockito.mockStatic(ProcessorUtils.class)) {
             TypeElement fieldType = Mockito.mock(TypeElement.class);
             TypeElement entityType = Mockito.mock(TypeElement.class);
@@ -147,8 +150,6 @@ class RelationshipValidatorTest {
                     .thenReturn("TARGET");
             Mockito.when(column.sourceColumn())
                     .thenReturn("SOURCE");
-            Mockito.when(entityType.getQualifiedName())
-                    .thenReturn(nameOf("entity"));
             Mockito.when(variableElement.getSimpleName())
                     .thenReturn(nameOf("simple"));
             mk.when(() -> ProcessorUtils.getFieldWithColumnNameOpt(Mockito.any(), Mockito.any(), Mockito.eq("TARGET")))

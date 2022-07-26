@@ -34,7 +34,8 @@ public class QueryValidator extends Validator {
 
     public QueryValidator(ProcessingEnvironment processingEnvironment) {
         super(processingEnvironment);
-        this.extensions = ExtensionLoader.loadValidationExtensions(processingEnvironment);
+        this.extensions = ExtensionLoader.getInstance(Thread.currentThread().getContextClassLoader())
+                .loadValidationExtensions(processingEnvironment);
     }
 
     @Override

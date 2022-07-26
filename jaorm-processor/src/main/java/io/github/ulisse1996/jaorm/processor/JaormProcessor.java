@@ -98,7 +98,8 @@ public class JaormProcessor extends AbstractProcessor {
     }
 
     private void validate(RoundEnvironment roundEnv) {
-        for (ExtensionLoader.ExtensionManager extension : ExtensionLoader.loadValidationExtensions(processingEnv)) {
+        ExtensionLoader loader = ExtensionLoader.getInstance(Thread.currentThread().getContextClassLoader());
+        for (ExtensionLoader.ExtensionManager extension : loader.loadValidationExtensions(processingEnv)) {
             extension.executeValidation(getElements(extension.getSupported(), roundEnv), processingEnv);
         }
         for (ValidatorType type : ValidatorType.values()) {

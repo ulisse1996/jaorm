@@ -15,32 +15,39 @@ import java.util.stream.StreamSupport;
 
 public class ExtensionLoader {
 
-    private ExtensionLoader() {}
+    private final ClassLoader loader;
 
-    public static List<ExtensionManager> loadValidationExtensions(ProcessingEnvironment environment) {
+    private ExtensionLoader(ClassLoader loader) {
+        this.loader = loader;
+    }
+
+    public static ExtensionLoader getInstance(ClassLoader loader) {
+        return new ExtensionLoader(loader);
+    }
+
+    public List<ExtensionManager> loadValidationExtensions(ProcessingEnvironment environment) {
         // Compiler use a custom classloader, we need to load klass in different mode
-        ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
         try {
-            Optional<Class<?>> aClass = tryLoad(contextClassLoader, "io.github.ulisse1996.jaorm.extension.api.ValidatorExtension");
+            Optional<Class<?>> aClass = tryLoad(loader, "io.github.ulisse1996.jaorm.extension.api.ValidatorExtension");
             if (!aClass.isPresent()) {
-                environment.getMessager().printMessage(
-                        Diagnostic.Kind.NOTE,
-                        "Skipping custom validation for missing ValidatorExtension"
-                );
+                Optional.ofNullable(environment.getMessager()).ifPresent(m ->
+                        m.printMessage(
+                                Diagnostic.Kind.NOTE,
+                                "Skipping custom validation for missing ValidatorExtension"
+                        ));
                 return Collections.emptyList();
             }
             return StreamSupport.stream(
-                    ServiceLoader.load(aClass.get(), contextClassLoader).spliterator(), false
+                    ServiceLoader.load(aClass.get(), loader).spliterator(), false
             ).map(ExtensionManager::new)
             .collect(Collectors.toList());
         } catch (Exception ex) {
-            ex.printStackTrace();
             throw new ProcessorException(ex.getMessage(), ex);
         }
     }
 
     @SuppressWarnings("SameParameterValue")
-    private static Optional<Class<?>> tryLoad(ClassLoader contextClassLoader, String name) {
+    private Optional<Class<?>> tryLoad(ClassLoader contextClassLoader, String name) {
         try {
             return Optional.of(contextClassLoader.loadClass(name));
         } catch (ClassNotFoundException ex) {
@@ -53,7 +60,7 @@ public class ExtensionLoader {
         private final Object delegate;
         private final Map<String, Method> cache;
 
-        private ExtensionManager(Object o) {
+        ExtensionManager(Object o) {
             this.delegate = o;
             this.cache = new ConcurrentHashMap<>();
         }

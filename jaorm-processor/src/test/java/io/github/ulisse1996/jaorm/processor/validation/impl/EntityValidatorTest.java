@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
@@ -28,18 +29,13 @@ class EntityValidatorTest {
     @Mock private DefaultTemporal temporal;
     @Mock private DefaultString string;
     @Mock private DefaultNumeric numeric;
-    private EntityValidator testSubject;
-
-    @BeforeEach
-    void init() {
-        ProcessingEnvironment processingEnvironment = Mockito.mock(ProcessingEnvironment.class);
-        Mockito.when(processingEnvironment.getMessager())
-                .thenReturn(Mockito.mock(Messager.class));
-        testSubject = new EntityValidator(processingEnvironment);
-    }
+    @Mock private ProcessingEnvironment processingEnvironment;
+    @Mock private Messager messager;
+    @InjectMocks private EntityValidator testSubject;
 
     @Test
     void should_throw_exception_for_missing_constructor() {
+        Mockito.when(processingEnvironment.getMessager()).thenReturn(messager);
         try (MockedStatic<ProcessorUtils> mk = Mockito.mockStatic(ProcessorUtils.class)) {
             mk.when(() -> ProcessorUtils.getConstructors(Mockito.any(), Mockito.any()))
                     .thenReturn(Collections.emptyList());
@@ -53,6 +49,7 @@ class EntityValidatorTest {
 
     @Test
     void should_throw_exception_for_missing_public_constructor() {
+        Mockito.when(processingEnvironment.getMessager()).thenReturn(messager);
         try (MockedStatic<ProcessorUtils> mk = Mockito.mockStatic(ProcessorUtils.class)) {
             mockConstructor(mk, Modifier.PRIVATE);
             Mockito.when(entity.getQualifiedName())
@@ -65,6 +62,7 @@ class EntityValidatorTest {
 
     @Test
     void should_throw_exception_for_final_class() {
+        Mockito.when(processingEnvironment.getMessager()).thenReturn(messager);
         try (MockedStatic<ProcessorUtils> mk = Mockito.mockStatic(ProcessorUtils.class)) {
             mockConstructor(mk, Modifier.PUBLIC);
             mockEntityType(entity.getModifiers(), Modifier.FINAL);
@@ -78,6 +76,7 @@ class EntityValidatorTest {
 
     @Test
     void should_throw_exception_for_abstract_class() {
+        Mockito.when(processingEnvironment.getMessager()).thenReturn(messager);
         try (MockedStatic<ProcessorUtils> mk = Mockito.mockStatic(ProcessorUtils.class)) {
             mockConstructor(mk, Modifier.PUBLIC);
             mockEntityType(entity.getModifiers(), Modifier.ABSTRACT);
@@ -91,6 +90,7 @@ class EntityValidatorTest {
 
     @Test
     void should_throw_exception_for_entity_with_final_methods() {
+        Mockito.when(processingEnvironment.getMessager()).thenReturn(messager);
         try (MockedStatic<ProcessorUtils> mk = Mockito.mockStatic(ProcessorUtils.class)) {
             mockConstructor(mk, Modifier.PUBLIC);
             mockEntityType(entity.getModifiers(), Modifier.PUBLIC);
@@ -111,6 +111,7 @@ class EntityValidatorTest {
 
     @Test
     void should_throw_exception_for_entity_with_native_methods() {
+        Mockito.when(processingEnvironment.getMessager()).thenReturn(messager);
         try (MockedStatic<ProcessorUtils> mk = Mockito.mockStatic(ProcessorUtils.class)) {
             mockConstructor(mk, Modifier.PUBLIC);
             mockEntityType(entity.getModifiers(), Modifier.PUBLIC);
@@ -131,6 +132,7 @@ class EntityValidatorTest {
 
     @Test
     void should_throw_exception_for_missing_getter() {
+        Mockito.when(processingEnvironment.getMessager()).thenReturn(messager);
         try (MockedStatic<ProcessorUtils> mk = Mockito.mockStatic(ProcessorUtils.class)) {
             mockConstructor(mk, Modifier.PUBLIC);
             mockEntityType(entity.getModifiers(), Modifier.PUBLIC);
@@ -154,6 +156,7 @@ class EntityValidatorTest {
 
     @Test
     void should_throw_exception_for_missing_setter() {
+        Mockito.when(processingEnvironment.getMessager()).thenReturn(messager);
         try (MockedStatic<ProcessorUtils> mk = Mockito.mockStatic(ProcessorUtils.class)) {
             mockConstructor(mk, Modifier.PUBLIC);
             mockEntityType(entity.getModifiers(), Modifier.PUBLIC);
@@ -179,6 +182,7 @@ class EntityValidatorTest {
 
     @Test
     void should_validate_entity_with_valid_columns() {
+        Mockito.when(processingEnvironment.getMessager()).thenReturn(messager);
         try (MockedStatic<ProcessorUtils> mk = Mockito.mockStatic(ProcessorUtils.class)) {
             mockConstructor(mk, Modifier.PUBLIC);
             mockEntityType(entity.getModifiers(), Modifier.PUBLIC);
@@ -198,6 +202,7 @@ class EntityValidatorTest {
 
     @Test
     void should_throw_exception_for_missing_table_annotation_on_relationship_entity() {
+        Mockito.when(processingEnvironment.getMessager()).thenReturn(messager);
         try (MockedStatic<ProcessorUtils> mk = Mockito.mockStatic(ProcessorUtils.class)) {
             mockConstructor(mk, Modifier.PUBLIC);
             mockEntityType(entity.getModifiers(), Modifier.PUBLIC);
@@ -228,6 +233,7 @@ class EntityValidatorTest {
 
     @Test
     void should_validate_entity_with_a_valid_relationship_entity() {
+        Mockito.when(processingEnvironment.getMessager()).thenReturn(messager);
         try (MockedStatic<ProcessorUtils> mk = Mockito.mockStatic(ProcessorUtils.class)) {
             mockConstructor(mk, Modifier.PUBLIC);
             mockEntityType(entity.getModifiers(), Modifier.PUBLIC);
@@ -254,6 +260,7 @@ class EntityValidatorTest {
 
     @Test
     void should_throw_exception_for_wrong_converter_type() {
+        Mockito.when(processingEnvironment.getMessager()).thenReturn(messager);
         try (MockedStatic<ProcessorUtils> mk = Mockito.mockStatic(ProcessorUtils.class)) {
             mockConstructor(mk, Modifier.PUBLIC);
             mockEntityType(entity.getModifiers(), Modifier.PUBLIC);
@@ -295,6 +302,7 @@ class EntityValidatorTest {
 
     @Test
     void should_validate_field_with_valid_converter_type() {
+        Mockito.when(processingEnvironment.getMessager()).thenReturn(messager);
         try (MockedStatic<ProcessorUtils> mk = Mockito.mockStatic(ProcessorUtils.class)) {
             mockConstructor(mk, Modifier.PUBLIC);
             mockEntityType(entity.getModifiers(), Modifier.PUBLIC);
@@ -331,6 +339,7 @@ class EntityValidatorTest {
 
     @Test
     void should_throw_exception_for_default_temporal_with_a_wrong_type() {
+        Mockito.when(processingEnvironment.getMessager()).thenReturn(messager);
         try (MockedStatic<ProcessorUtils> mk = Mockito.mockStatic(ProcessorUtils.class)) {
             mockConstructor(mk, Modifier.PUBLIC);
             mockEntityType(entity.getModifiers(), Modifier.PUBLIC);
@@ -370,6 +379,7 @@ class EntityValidatorTest {
 
     @Test
     void should_throw_exception_for_default_temporal_with_format_and_with_a_wrong_type() {
+        Mockito.when(processingEnvironment.getMessager()).thenReturn(messager);
         try (MockedStatic<ProcessorUtils> mk = Mockito.mockStatic(ProcessorUtils.class)) {
             mockConstructor(mk, Modifier.PUBLIC);
             mockEntityType(entity.getModifiers(), Modifier.PUBLIC);
@@ -411,6 +421,7 @@ class EntityValidatorTest {
 
     @Test
     void should_throw_exception_for_default_temporal_with_format_and_empty_value() {
+        Mockito.when(processingEnvironment.getMessager()).thenReturn(messager);
         try (MockedStatic<ProcessorUtils> mk = Mockito.mockStatic(ProcessorUtils.class)) {
             mockConstructor(mk, Modifier.PUBLIC);
             mockEntityType(entity.getModifiers(), Modifier.PUBLIC);
@@ -454,6 +465,7 @@ class EntityValidatorTest {
 
     @Test
     void should_validate_entity_with_default_temporal() {
+        Mockito.when(processingEnvironment.getMessager()).thenReturn(messager);
         try (MockedStatic<ProcessorUtils> mk = Mockito.mockStatic(ProcessorUtils.class)) {
             mockConstructor(mk, Modifier.PUBLIC);
             mockEntityType(entity.getModifiers(), Modifier.PUBLIC);
@@ -495,6 +507,7 @@ class EntityValidatorTest {
 
     @Test
     void should_throw_exception_for_default_temporal_with_format_and_bad_value() {
+        Mockito.when(processingEnvironment.getMessager()).thenReturn(messager);
         try (MockedStatic<ProcessorUtils> mk = Mockito.mockStatic(ProcessorUtils.class)) {
             mockConstructor(mk, Modifier.PUBLIC);
             mockEntityType(entity.getModifiers(), Modifier.PUBLIC);
@@ -538,6 +551,7 @@ class EntityValidatorTest {
 
     @Test
     void should_throw_exception_for_default_string_and_wrong_type() {
+        Mockito.when(processingEnvironment.getMessager()).thenReturn(messager);
         try (MockedStatic<ProcessorUtils> mk = Mockito.mockStatic(ProcessorUtils.class)) {
             mockConstructor(mk, Modifier.PUBLIC);
             mockEntityType(entity.getModifiers(), Modifier.PUBLIC);
@@ -577,6 +591,7 @@ class EntityValidatorTest {
 
     @Test
     void should_throw_exception_for_default_numeric_and_wrong_type() {
+        Mockito.when(processingEnvironment.getMessager()).thenReturn(messager);
         try (MockedStatic<ProcessorUtils> mk = Mockito.mockStatic(ProcessorUtils.class)) {
             mockConstructor(mk, Modifier.PUBLIC);
             mockEntityType(entity.getModifiers(), Modifier.PUBLIC);
@@ -616,6 +631,7 @@ class EntityValidatorTest {
 
     @Test
     void should_validate_entity_with_default_string() {
+        Mockito.when(processingEnvironment.getMessager()).thenReturn(messager);
         try (MockedStatic<ProcessorUtils> mk = Mockito.mockStatic(ProcessorUtils.class)) {
             mockConstructor(mk, Modifier.PUBLIC);
             mockEntityType(entity.getModifiers(), Modifier.PUBLIC);
@@ -653,6 +669,7 @@ class EntityValidatorTest {
 
     @Test
     void should_validate_entity_with_default_numeric() {
+        Mockito.when(processingEnvironment.getMessager()).thenReturn(messager);
         try (MockedStatic<ProcessorUtils> mk = Mockito.mockStatic(ProcessorUtils.class)) {
             mockConstructor(mk, Modifier.PUBLIC);
             mockEntityType(entity.getModifiers(), Modifier.PUBLIC);
