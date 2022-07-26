@@ -9,8 +9,10 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
 import java.util.Collections;
 import java.util.stream.Stream;
@@ -19,10 +21,13 @@ import java.util.stream.Stream;
 class QueryAnsiValidatorTest {
 
     @Mock private ProcessingEnvironment processingEnvironment;
+    @Mock private Messager messager;
 
     @ParameterizedTest
     @MethodSource("getValidSql")
     void should_validate_sql(String sql) {
+        Mockito.when(processingEnvironment.getMessager())
+                .thenReturn(messager);
         QueryAnsiValidator validator = new QueryAnsiValidator();
         validator.validateSql(sql, processingEnvironment);
     }
@@ -30,6 +35,8 @@ class QueryAnsiValidatorTest {
     @ParameterizedTest
     @MethodSource("getInvalidSql")
     void should_throw_exception_for_unsupported_sql(String sql) {
+        Mockito.when(processingEnvironment.getMessager())
+                .thenReturn(messager);
         QueryAnsiValidator validator = new QueryAnsiValidator();
         Assertions.assertThrows(ProcessorValidationException.class,
                 () -> validator.validateSql(sql, processingEnvironment));
@@ -45,6 +52,8 @@ class QueryAnsiValidatorTest {
 
     @Test
     void should_throw_exception_for_parsing_error() {
+        Mockito.when(processingEnvironment.getMessager())
+                .thenReturn(messager);
         Assertions.assertThrows( //NOSONAR
                 ProcessorValidationException.class,
                 () -> new QueryAnsiValidator().validateSql("SELECT ", processingEnvironment)

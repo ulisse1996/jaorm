@@ -7,8 +7,11 @@ import io.github.ulisse1996.jaorm.annotation.TableGenerated;
 import io.github.ulisse1996.jaorm.processor.exception.ProcessorException;
 import io.github.ulisse1996.jaorm.processor.util.ProcessorUtils;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -24,7 +27,8 @@ import java.util.Collections;
 @ExtendWith(MockitoExtension.class)
 class GeneratedValidatorTest {
 
-    private final GeneratedValidator validator = new GeneratedValidator(Mockito.mock(ProcessingEnvironment.class));
+    @Mock private ProcessingEnvironment environment;
+    @InjectMocks private GeneratedValidator validator;
 
     @Test
     void should_throw_exception_for_missing_column_and_id_with_table() {

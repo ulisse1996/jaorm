@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -26,12 +27,7 @@ class GraphsValidatorTest {
     @Mock private Graph g1;
     @Mock private Graph g2;
 
-    private GraphsValidator validator;
-
-    @BeforeEach
-    void init() {
-        validator = new GraphsValidator(environment);
-    }
+    @InjectMocks private GraphsValidator validator;
 
     @Test
     void should_throw_exception_for_not_unique_name() {

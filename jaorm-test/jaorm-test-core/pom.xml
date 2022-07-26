@@ -5,7 +5,7 @@
     <parent>
         <artifactId>jaorm-test</artifactId>
         <groupId>io.github.ulisse1996</groupId>
-        <version>1.7.0</version>
+        <version>1.7.2</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -19,7 +19,7 @@
         <spring-web.version>5.3.20</spring-web.version>
         <spring-boot-starter-test.version>2.7.0</spring-boot-starter-test.version>
         <weld-junit5.version>2.0.2.Final</weld-junit5.version>
-        <jaorm.version>1.7.0</jaorm.version>
+        <jaorm.version>1.7.2</jaorm.version>
         <sonar.skip>true</sonar.skip>
         <maven.deploy.skip>true</maven.deploy.skip>
     </properties>
@@ -28,27 +28,27 @@
         <dependency>
             <groupId>io.github.ulisse1996</groupId>
             <artifactId>jaorm</artifactId>
-            <version>1.7.0</version>
+            <version>1.7.2</version>
         </dependency>
         <dependency>
             <groupId>io.github.ulisse1996</groupId>
             <artifactId>jaorm-core</artifactId>
-            <version>1.7.0</version>
+            <version>1.7.2</version>
         </dependency>
         <dependency>
             <groupId>io.github.ulisse1996</groupId>
             <artifactId>jaorm-dsl</artifactId>
-            <version>1.7.0</version>
+            <version>1.7.2</version>
         </dependency>
         <dependency>
             <groupId>io.github.ulisse1996</groupId>
             <artifactId>jaorm-transaction</artifactId>
-            <version>1.7.0</version>
+            <version>1.7.2</version>
         </dependency>
         <dependency>
             <groupId>io.github.ulisse1996</groupId>
             <artifactId>jaorm-validation</artifactId>
-            <version>1.7.0</version>
+            <version>1.7.2</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>

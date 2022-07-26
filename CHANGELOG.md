@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 1.7.2
+- Bugfix: Add missing ANSI SQL Functions
+
+## 1.7.1
+- Bugfix: Fix validation class mismatch for compiler classloader
+
 ## 1.7.0
 - Feature: SL4J support for standard Logging with custom fallback on SPI JaormLoggerHandler
 - Feature: List\<TableRow> support for @Query
