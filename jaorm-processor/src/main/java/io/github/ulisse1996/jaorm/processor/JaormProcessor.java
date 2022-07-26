@@ -1,7 +1,5 @@
 package io.github.ulisse1996.jaorm.processor;
 
-import io.github.ulisse1996.jaorm.ServiceFinder;
-import io.github.ulisse1996.jaorm.extension.api.ValidatorExtension;
 import io.github.ulisse1996.jaorm.processor.config.ConfigHolder;
 import io.github.ulisse1996.jaorm.processor.exception.ProcessorException;
 import io.github.ulisse1996.jaorm.processor.generation.GenerationType;
@@ -100,8 +98,8 @@ public class JaormProcessor extends AbstractProcessor {
     }
 
     private void validate(RoundEnvironment roundEnv) {
-        for (ValidatorExtension extension : ServiceFinder.loadServices(ValidatorExtension.class)) {
-            extension.validate(getElements(extension.getSupported(), roundEnv), processingEnv);
+        for (ExtensionLoader.ExtensionManager extension : ExtensionLoader.loadValidationExtensions(processingEnv)) {
+            extension.executeValidation(getElements(extension.getSupported(), roundEnv), processingEnv);
         }
         for (ValidatorType type : ValidatorType.values()) {
             List<? extends Element> annotated = type.getSupported()

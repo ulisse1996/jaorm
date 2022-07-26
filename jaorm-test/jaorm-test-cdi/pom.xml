@@ -5,7 +5,7 @@
     <parent>
         <artifactId>jaorm-test</artifactId>
         <groupId>io.github.ulisse1996</groupId>
-        <version>1.7.0</version>
+        <version>1.7.2</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -16,7 +16,7 @@
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
         <weld-junit5.version>2.0.2.Final</weld-junit5.version>
-        <jaorm.version>1.7.0</jaorm.version>
+        <jaorm.version>1.7.2</jaorm.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.deploy.skip>true</maven.deploy.skip>
         <sonar.skip>true</sonar.skip>
@@ -26,7 +26,7 @@
         <dependency>
             <groupId>io.github.ulisse1996</groupId>
             <artifactId>jaorm-core</artifactId>
-            <version>1.7.0</version>
+            <version>1.7.2</version>
         </dependency>
         <dependency>
             <groupId>io.github.ulisse1996</groupId>
