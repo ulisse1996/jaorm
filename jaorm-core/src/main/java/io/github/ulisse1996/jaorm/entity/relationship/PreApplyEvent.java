@@ -25,8 +25,8 @@ public abstract class PreApplyEvent implements EntityEvent {
                 node.getAsCollection(entity).forEach(i -> {
                     Objects.requireNonNull(i, "Collection can't contains null values !");
                     BaseDao<Object> baseDao = (BaseDao<Object>) QueriesService.getInstance().getBaseDao(i.getClass());
-                    int res = function.apply(baseDao, i);
-                    if (res == 0 && update) {
+                    Integer res = function.apply(baseDao, i);
+                    if (shouldTryInsert(res, update)) {
                         tryInsert(baseDao, node, i, entity);
                     }
                 });
@@ -42,8 +42,8 @@ public abstract class PreApplyEvent implements EntityEvent {
         Object i = node.get(entity);
         if (i != null) {
             BaseDao<Object> baseDao = (BaseDao<Object>) QueriesService.getInstance().getBaseDao(i.getClass());
-            int res = function.apply(baseDao, i);
-            if (res == 0 && update) {
+            Integer res = function.apply(baseDao, i);
+            if (shouldTryInsert(res, update)) {
                 tryInsert(baseDao, node, i, entity);
             }
         }
@@ -54,11 +54,15 @@ public abstract class PreApplyEvent implements EntityEvent {
         if (optional.isPresent()) {
             Object i = optional.get();
             BaseDao<Object> baseDao = (BaseDao<Object>) QueriesService.getInstance().getBaseDao(i.getClass());
-            int res = function.apply(baseDao, i);
-            if (res == 0 && update) {
+            Integer res = function.apply(baseDao, i);
+            if (shouldTryInsert(res, update)) {
                 tryInsert(baseDao, node, i, entity);
             }
         }
+    }
+
+    private boolean shouldTryInsert(Integer res, boolean update) {
+        return res != null && res == 0 && update;
     }
 
     private <T> void tryInsert(BaseDao<Object> baseDao, Relationship.Node<T> node, Object i, T entity) {
