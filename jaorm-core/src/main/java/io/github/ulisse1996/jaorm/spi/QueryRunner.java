@@ -13,6 +13,7 @@ import io.github.ulisse1996.jaorm.entity.sql.SqlParameter;
 import io.github.ulisse1996.jaorm.exception.JaormSqlException;
 import io.github.ulisse1996.jaorm.logger.JaormLogger;
 import io.github.ulisse1996.jaorm.logger.SqlJaormLogger;
+import io.github.ulisse1996.jaorm.mapping.Cursor;
 import io.github.ulisse1996.jaorm.mapping.TableRow;
 import io.github.ulisse1996.jaorm.schema.TableInfo;
 import io.github.ulisse1996.jaorm.spi.common.Singleton;
@@ -215,6 +216,7 @@ public abstract class QueryRunner {
     public abstract <R> Result<R> readOpt(Class<R> klass, String query, List<SqlParameter> params);
     public abstract <R> List<R> readAll(Class<R> klass, String query, List<SqlParameter> params);
     public abstract <R> Stream<R> readStream(Class<R> klass, String query, List<SqlParameter> params);
+    public abstract <R> Cursor<R> readCursor(Class<R> klass, String query, List<SqlParameter> parameters);
 
     public abstract TableRow read(String query, List<SqlParameter> params);
     public abstract Optional<TableRow> readOpt(String query, List<SqlParameter> params);

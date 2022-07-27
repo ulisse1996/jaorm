@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 1.8.0
+- Feature: Cursor for read large relationships
+
 ## 1.7.0
 - Feature: SL4J support for standard Logging with custom fallback on SPI JaormLoggerHandler
 - Feature: List\<TableRow> support for @Query

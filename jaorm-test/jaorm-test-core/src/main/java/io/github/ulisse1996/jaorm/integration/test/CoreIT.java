@@ -469,6 +469,11 @@ public abstract class CoreIT extends AbstractIT {
         Assertions.assertEquals(0, studentDao.readAll().size());
     }
 
+    @Test
+    void should_create_and_read_entity_with_clob() {
+
+    }
+
     private Student createStudent(int index, String name) {
         Student student = new Student();
         student.setName(name);
