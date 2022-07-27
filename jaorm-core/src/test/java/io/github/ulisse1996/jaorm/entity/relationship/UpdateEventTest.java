@@ -18,9 +18,6 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Supplier;
-
 class UpdateEventTest extends EventTest {
 
     private final UpdateEvent testSubject = new UpdateEvent();
@@ -96,7 +93,7 @@ class UpdateEventTest extends EventTest {
             Mockito.when(relationshipService.getRelationships(Mockito.any()))
                     .then(onMock -> fakeRel);
             Mockito.doNothing()
-                    .when(subject).doPreApply(Mockito.any(), Mockito.any(), Mockito.anyBoolean());
+                    .when(subject).doPreApply(Mockito.any(), Mockito.any());
             subject.apply(mock);
             Mockito.verify(mock).preUpdate();
         }
@@ -126,7 +123,7 @@ class UpdateEventTest extends EventTest {
             Mockito.when(relationshipService.getRelationships(Mockito.any()))
                     .then(onMock -> fakeRel);
             Mockito.doNothing()
-                    .when(subject).doPreApply(Mockito.any(), Mockito.any(), Mockito.anyBoolean());
+                    .when(subject).doPreApply(Mockito.any(), Mockito.any());
             subject.apply(mock);
             Mockito.verify(mock).postUpdate();
         }
@@ -158,54 +155,8 @@ class UpdateEventTest extends EventTest {
             Mockito.doThrow(Exception.class)
                     .when(mock).preUpdate();
             Mockito.doNothing()
-                    .when(subject).doPreApply(Mockito.any(), Mockito.any(), Mockito.anyBoolean());
+                    .when(subject).doPreApply(Mockito.any(), Mockito.any());
             Assertions.assertThrows(PersistEventException.class, () -> subject.apply(mock));
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    @Test
-    void should_do_insert_for_update_with_0_rows() {
-        Relationship<Entity> relationship = new Relationship<>(Entity.class);
-        relationship.add(new Relationship.Node<>(RelEntity.class, Entity::getRelEntity, false, false, EntityEventType.values()));
-        relationship.add(new Relationship.Node<>(RelEntity.class, Entity::getRelEntityOpt, true, false, EntityEventType.values()));
-        relationship.add(new Relationship.Node<>(RelEntity.class, Entity::getRelEntityColl, false, true, EntityEventType.values()));
-        MyEntityDelegate delegate = new MyEntityDelegate();
-        DelegatesService delegatedMock = Mockito.mock(DelegatesService.class);
-        QueryRunner mockRunner = Mockito.mock(QueryRunner.class);
-        RelationshipService relService = Mockito.mock(RelationshipService.class);
-        QueriesService queryService = Mockito.mock(QueriesService.class);
-        BaseDao<Object> mockDao = Mockito.mock(BaseDao.class);
-        try (MockedStatic<QueryRunner> runnerMk = Mockito.mockStatic(QueryRunner.class);
-            MockedStatic<DelegatesService> delMk = Mockito.mockStatic(DelegatesService.class);
-            MockedStatic<RelationshipService> relMk = Mockito.mockStatic(RelationshipService.class);
-            MockedStatic<QueriesService> queryMk = Mockito.mockStatic(QueriesService.class)) {
-            runnerMk.when(() -> QueryRunner.getInstance(Mockito.any()))
-                    .thenReturn(mockRunner);
-            delMk.when(DelegatesService::getInstance)
-                    .thenReturn(delegatedMock);
-            relMk.when(RelationshipService::getInstance)
-                    .thenReturn(relService);
-            queryMk.when(QueriesService::getInstance)
-                    .thenReturn(queryService);
-
-            Mockito.when(delegatedMock.asArguments(Mockito.any()))
-                    .thenReturn(Arguments.empty());
-            Mockito.when(delegatedMock.asWhere(Mockito.any()))
-                    .thenReturn(Arguments.empty());
-            Mockito.when(delegatedMock.getUpdateSql(Mockito.any()))
-                    .thenReturn("");
-            Mockito.when(delegatedMock.getEntityClass(Mockito.any()))
-                    .then(onMock -> Entity.class);
-            Mockito.when(relService.getRelationships(Mockito.any()))
-                    .then(onMock -> relationship);
-            Mockito.when(queryService.getBaseDao(Mockito.any()))
-                    .then(onMock -> mockDao);
-            Mockito.when(mockDao.update(Mockito.any(Object.class)))
-                    .thenReturn(delegate);
-
-            testSubject.apply(new Entity());
-            Mockito.verify(mockDao, Mockito.atLeastOnce()).insert(Mockito.any(Object.class));
         }
     }
 
@@ -254,15 +205,8 @@ class UpdateEventTest extends EventTest {
             Mockito.when(mockDao.update(Mockito.any(Object.class)))
                     .thenReturn(delegate);
 
-            AtomicReference<Supplier<String>> val = new AtomicReference<>();
-            Mockito.doAnswer(onMock -> {
-                val.set(onMock.getArgument(1));
-                return null;
-            }).when(handler).handleLog(Mockito.any(), Mockito.any(), Mockito.any());
-
             testSubject.apply(new Entity());
             Mockito.verify(mockDao, Mockito.never()).insert(Mockito.any(Object.class));
-            Assertions.assertNotNull(val.get().get());
         }
     }
 
@@ -292,7 +236,7 @@ class UpdateEventTest extends EventTest {
             Mockito.doThrow(Exception.class)
                     .when(mock).postUpdate();
             Mockito.doNothing()
-                    .when(subject).doPreApply(Mockito.any(), Mockito.any(), Mockito.anyBoolean());
+                    .when(subject).doPreApply(Mockito.any(), Mockito.any());
             Assertions.assertThrows(PersistEventException.class, () -> subject.apply(mock));
         }
     }

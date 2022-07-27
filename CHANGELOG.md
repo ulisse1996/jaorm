@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 1.7.3
+- Bugfix: Remove duplicate insert on upsert
+
 ## 1.7.2
 - Bugfix: Add missing ANSI SQL Functions
 

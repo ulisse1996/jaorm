@@ -25,7 +25,7 @@ public class UpdateEvent extends PreApplyEvent {
         doPreApply(entity, (dao, i) -> {
             dao.update(i);
             return QueryRunner.getInstance(i.getClass()).getUpdatedRows(i);
-        }, true);
+        });
         updateEntity(entity);
         if (entity instanceof PostUpdate<?>) {
             try {
