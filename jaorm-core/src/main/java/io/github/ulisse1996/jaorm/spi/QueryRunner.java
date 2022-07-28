@@ -206,7 +206,7 @@ public abstract class QueryRunner {
     }
 
     public Integer getUpdatedRows(Object object) {
-        return UPDATED_ROWS_LOCAL.get().get(object);
+        return UPDATED_ROWS_LOCAL.get().remove(object);
     }
 
     public abstract boolean isCompatible(Class<?> klass);

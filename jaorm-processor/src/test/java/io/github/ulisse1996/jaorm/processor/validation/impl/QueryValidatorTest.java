@@ -10,14 +10,13 @@ import io.github.ulisse1996.jaorm.processor.util.ProcessorUtils;
 import io.github.ulisse1996.jaorm.processor.util.ReturnTypeDefinition;
 import io.github.ulisse1996.jaorm.specialization.SingleKeyDao;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.mockito.MockedConstruction;
-import org.mockito.MockedStatic;
-import org.mockito.Mockito;
+import org.mockito.*;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
@@ -31,21 +30,16 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.stream.Stream;
 
+@ExtendWith(MockitoExtension.class)
 class QueryValidatorTest {
 
-    private QueryValidator testSubject;
-    ProcessingEnvironment environment;
-
-    @BeforeEach
-    void init() {
-        environment = Mockito.mock(ProcessingEnvironment.class);
-        Mockito.when(environment.getMessager())
-                .thenReturn(Mockito.mock(Messager.class));
-        testSubject = new QueryValidator(environment);
-    }
+    @Mock private ProcessingEnvironment environment;
+    @Mock private Messager messager;
+    @InjectMocks private QueryValidator testSubject;
 
     @Test
     void should_throw_exception_for_unsupported_sql() {
+        Mockito.when(environment.getMessager()).thenReturn(messager);
         Query query = Mockito.mock(Query.class);
         ExecutableElement method = Mockito.mock(ExecutableElement.class);
         Mockito.when(method.getAnnotation(Query.class))
@@ -63,6 +57,7 @@ class QueryValidatorTest {
 
     @Test
     void should_throw_exception_for_parameters_mismatch() {
+        Mockito.when(environment.getMessager()).thenReturn(messager);
         Query query = Mockito.mock(Query.class);
         ExecutableElement method = Mockito.mock(ExecutableElement.class);
         Mockito.when(method.getAnnotation(Query.class))
@@ -82,6 +77,7 @@ class QueryValidatorTest {
 
     @Test
     void should_throw_exception_for_select_with_void() {
+        Mockito.when(environment.getMessager()).thenReturn(messager);
         TypeMirror voidReturn = Mockito.mock(TypeMirror.class);
         Query query = Mockito.mock(Query.class);
         ExecutableElement method = Mockito.mock(ExecutableElement.class);
@@ -106,6 +102,7 @@ class QueryValidatorTest {
 
     @Test
     void should_throw_exception_for_delete_without_void() {
+        Mockito.when(environment.getMessager()).thenReturn(messager);
         TypeMirror returnType = Mockito.mock(TypeMirror.class);
         Query query = Mockito.mock(Query.class);
         ExecutableElement method = Mockito.mock(ExecutableElement.class);
@@ -130,6 +127,7 @@ class QueryValidatorTest {
 
     @Test
     void should_throw_exception_for_update_without_void() {
+        Mockito.when(environment.getMessager()).thenReturn(messager);
         TypeMirror returnType = Mockito.mock(TypeMirror.class);
         Query query = Mockito.mock(Query.class);
         ExecutableElement method = Mockito.mock(ExecutableElement.class);
@@ -154,6 +152,7 @@ class QueryValidatorTest {
 
     @Test
     void should_pass_for_update_with_void() {
+        Mockito.when(environment.getMessager()).thenReturn(messager);
         TypeMirror returnType = Mockito.mock(TypeMirror.class);
         Query query = Mockito.mock(Query.class);
         ExecutableElement method = Mockito.mock(ExecutableElement.class);
@@ -178,11 +177,10 @@ class QueryValidatorTest {
 
     @Test
     void should_throw_exception_for_missing_sql_query_case() {
+        Mockito.when(environment.getMessager()).thenReturn(messager);
         TypeMirror returnType = Mockito.mock(TypeMirror.class);
         Query query = Mockito.mock(Query.class);
         ExecutableElement method = Mockito.mock(ExecutableElement.class);
-        Mockito.when(returnType.getKind())
-                .thenReturn(TypeKind.VOID);
         Mockito.when(method.getAnnotation(Query.class))
                 .thenReturn(query);
         Mockito.when(query.sql())
@@ -191,8 +189,6 @@ class QueryValidatorTest {
                 .thenReturn(new CustomName("NAME"));
         Mockito.when(method.getParameters())
                 .then(invocation -> Collections.nCopies(2, Mockito.mock(VariableElement.class)));
-        Mockito.when(method.getReturnType())
-                .thenReturn(returnType);
         try {
             testSubject.validate(Collections.singletonList(method));
         } catch (ProcessorException ex) {
@@ -202,6 +198,7 @@ class QueryValidatorTest {
 
     @Test
     void should_find_correct_return_type_for_select() {
+        Mockito.when(environment.getMessager()).thenReturn(messager);
         TypeMirror voidReturn = Mockito.mock(TypeMirror.class);
         Query query = Mockito.mock(Query.class);
         ExecutableElement method = Mockito.mock(ExecutableElement.class);
@@ -227,6 +224,7 @@ class QueryValidatorTest {
 
     @Test
     void should_throw_exception_for_mismatch_between_keys_and_dao() {
+        Mockito.when(environment.getMessager()).thenReturn(messager);
         try (MockedStatic<ProcessorUtils> mk = Mockito.mockStatic(ProcessorUtils.class)) {
             VariableElement v1 = Mockito.mock(VariableElement.class);
             VariableElement v2 = Mockito.mock(VariableElement.class);
@@ -235,6 +233,7 @@ class QueryValidatorTest {
             Mockito.when(typeElement.getSimpleName()).thenReturn(new MockName("name"));
             Mockito.when(typeElement.getAnnotation(Dao.class))
                     .thenReturn(Mockito.mock(Dao.class));
+            Mockito.when(typeElement.getAnnotation(Query.class)).thenReturn(null);
             mk.when(() -> ProcessorUtils.getAllValidElements(environment, typeElement))
                     .thenReturn(Arrays.asList(v1, v2));
             mk.when(() -> ProcessorUtils.isSubType(Mockito.any(), Mockito.any(), Mockito.any()))
@@ -267,6 +266,7 @@ class QueryValidatorTest {
     @ParameterizedTest
     @MethodSource("getCases")
     void should_throw_exception_for_missing_entity(boolean optional, boolean collection , boolean stream) {
+        Mockito.when(environment.getMessager()).thenReturn(messager);
         TypeMirror voidReturn = Mockito.mock(TypeMirror.class);
         Query query = Mockito.mock(Query.class);
         ExecutableElement method = Mockito.mock(ExecutableElement.class);
