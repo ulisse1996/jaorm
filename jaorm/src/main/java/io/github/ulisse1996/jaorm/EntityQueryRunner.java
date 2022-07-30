@@ -56,7 +56,7 @@ public class EntityQueryRunner extends QueryRunner {
                 return (R) delegate;
             }
         } catch (SQLException ex) {
-            logger.error(String.format("Error during read for entity %s", entity)::toString, ex);
+            logger.error(String.format("Error during read for entity %s ", entity)::toString, ex);
             throw new JaormSqlException(ex);
         }
     }
@@ -103,7 +103,7 @@ public class EntityQueryRunner extends QueryRunner {
                 return Result.empty();
             }
         } catch (SQLException ex) {
-            logger.error(String.format("Error during readOpt for entity %s", entity)::toString, ex);
+            logger.error(String.format("Error during readOpt for entity %s ", entity)::toString, ex);
             throw new JaormSqlException(ex);
         }
     }
@@ -135,13 +135,22 @@ public class EntityQueryRunner extends QueryRunner {
 
             return values;
         } catch (SQLException ex) {
-            logger.error(String.format("Error during readAll for entity %s", entity)::toString, ex);
+            logger.error(String.format("Error during readAll for entity %s ", entity)::toString, ex);
             throw new JaormSqlException(ex);
         }
     }
 
     @Override
     public <R> Stream<R> readStream(Class<R> entity, String query, List<SqlParameter> params) {
+        return produceIterableResult(entity, query, params, ResultSetStream::new).getStream();
+    }
+
+    @Override
+    public <R> Cursor<R> readCursor(Class<R> klass, String query, List<SqlParameter> parameters) {
+        return produceIterableResult(klass, query, parameters, JaormCursor::new);
+    }
+
+    private <T, R> T produceIterableResult(Class<R> entity, String query, List<SqlParameter> params, JaormIterableResultProducer<T, R> producer) {
         logger.logSql(query, params);
         Connection connection = EmptyClosable.instance(Connection.class);
         PreparedStatement preparedStatement = EmptyClosable.instance(PreparedStatement.class);
@@ -155,10 +164,10 @@ public class EntityQueryRunner extends QueryRunner {
             );
             preparedStatement = connection.prepareStatement(query);
             executor = new ResultSetExecutor(preparedStatement, params);
-            return new ResultSetStream<R>(connection, preparedStatement, executor, getMapper(supplierPair)).getStream();
+            return producer.produce(connection, preparedStatement, executor, getMapper(supplierPair));
         } catch (SQLException ex) {
             SqlUtil.silentClose(executor, preparedStatement, connection);
-            logger.error(String.format("Error during readStream for entity %s", entity)::toString, ex);
+            logger.error(String.format("Error during readStream for entity %s ", entity)::toString, ex);
             throw new JaormSqlException(ex);
         }
     }

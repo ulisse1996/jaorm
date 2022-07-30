@@ -2,6 +2,8 @@
 
 ## 1.8.0
 - Feature: Cursor for read large relationships
+- Feature: Cursor for Simple/Entity Queries
+- Feature: EL/Standard/Like support for simple Join with wildcard value instead of columns
 
 ## 1.7.3
 - Bugfix: Fix duplicate upsert event

@@ -85,7 +85,7 @@ public abstract class QueryRunner {
              UpdateExecutor executor = new UpdateExecutor(preparedStatement, params, null)) {
             return executor.getUpdateRow();
         } catch (SQLException ex) {
-            logger.error("Error during update/insert/delete"::toString, ex);
+            logger.error("Error during update/insert/delete "::toString, ex);
             throw new JaormSqlException(ex);
         }
     }
@@ -115,7 +115,7 @@ public abstract class QueryRunner {
                     return new ArrayList<>();
                 }
         } catch (SQLException ex) {
-            logger.error("Error during update/insert/delete batch"::toString, ex);
+            logger.error("Error during update/insert/delete batch "::toString, ex);
             throw new JaormSqlException(ex);
         }
     }
@@ -141,7 +141,7 @@ public abstract class QueryRunner {
                 return Collections.emptyMap();
             }
         } catch (SQLException ex) {
-            logger.error("Error during update/insert/delete"::toString, ex);
+            logger.error("Error during update/insert/delete "::toString, ex);
             throw new JaormSqlException(ex);
         }
     }

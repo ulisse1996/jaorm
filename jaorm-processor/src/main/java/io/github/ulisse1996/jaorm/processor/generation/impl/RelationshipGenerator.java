@@ -30,7 +30,7 @@ import java.util.stream.Stream;
 
 public class RelationshipGenerator extends Generator {
 
-    private static final List<String> INCREMENTALS = Collections.singletonList("org.jetbrains.jps.incremental");
+    private static final List<String> INCREMENTAL_JPS = Collections.singletonList("org.jetbrains.jps.incremental");
 
     public RelationshipGenerator(ProcessingEnvironment processingEnvironment) {
         super(processingEnvironment);
@@ -109,6 +109,10 @@ public class RelationshipGenerator extends Generator {
                 .addStatement("$T rel = new $T<>($T.class)", Relationship.class, Relationship.class, info.entity);
 
         for (RelationshipAccessor relationship : info.annotated) {
+            if (relationship.returnTypeDefinition.isCursor()) {
+                continue;
+            }
+
             String events;
             EntityEventType[] values = getEvents(relationship);
             events = asVarArgs(values);
@@ -235,7 +239,7 @@ public class RelationshipGenerator extends Generator {
     }
 
     private boolean isIncremental(String className) {
-        return INCREMENTALS.stream()
+        return INCREMENTAL_JPS.stream()
                 .anyMatch(className::contains);
     }
 

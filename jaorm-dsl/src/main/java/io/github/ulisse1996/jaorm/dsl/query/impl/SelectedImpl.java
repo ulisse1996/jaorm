@@ -27,6 +27,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class SelectedImpl<T, N> implements Selected<T>, SelectedWhere<T>, SelectedOn<T, N>,
         SelectedLimit<T>, SelectedOffset<T>, SelectedOrder<T> {
@@ -60,6 +61,10 @@ public class SelectedImpl<T, N> implements Selected<T>, SelectedWhere<T>, Select
         this.joins = new ArrayList<>();
         this.orders = new ArrayList<>();
         this.checker = new DefaultWhereChecker();
+    }
+
+    public boolean isCaseInsensitiveLike() {
+        return caseInsensitiveLike;
     }
 
     public boolean hasOrders() {
@@ -98,8 +103,9 @@ public class SelectedImpl<T, N> implements Selected<T>, SelectedWhere<T>, Select
     }
 
     public List<SqlParameter> getParameters() {
-        return this.wheres.stream().flatMap(m -> m.getParameters(this.caseInsensitiveLike))
-                .collect(Collectors.toList());
+        Stream<SqlParameter> joinParams = this.joins.stream().flatMap(JoinImpl::getParameters);
+        Stream<SqlParameter> wheresParams = this.wheres.stream().flatMap(m -> m.getParameters(this.caseInsensitiveLike));
+        return Stream.concat(joinParams, wheresParams).collect(Collectors.toList());
     }
 
     @Override

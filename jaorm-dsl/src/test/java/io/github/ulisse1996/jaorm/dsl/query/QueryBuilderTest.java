@@ -15,11 +15,8 @@ import io.github.ulisse1996.jaorm.vendor.specific.AliasesSpecific;
 import io.github.ulisse1996.jaorm.vendor.specific.LikeSpecific;
 import io.github.ulisse1996.jaorm.vendor.specific.LimitOffsetSpecific;
 import io.github.ulisse1996.jaorm.vendor.specific.MergeSpecific;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.function.Executable;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -34,24 +31,13 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 class QueryBuilderTest extends AbstractQueryBuilderTest {
 
-    private MockedStatic<VendorSpecific> mkVendor;
-
     @Mock private MergeSpecific mergeSpecific;
-
-    @BeforeEach
-    void beforeEach() {
-        this.mkVendor = Mockito.mockStatic(VendorSpecific.class);
-    }
-
-    @AfterEach
-    void afterEach() {
-        this.mkVendor.close();
-    }
 
     @Test
     void should_throw_exception_for_new_instance() {
@@ -69,30 +55,30 @@ class QueryBuilderTest extends AbstractQueryBuilderTest {
     @Test
     void should_throw_exception_for_wrong_like_type() {
         Assertions.assertThrows(IllegalArgumentException.class, () ->
-                withSimpleDelegate(() -> QueryBuilder.select(MyEntity.class).where(COL_1).like(LikeType.FULL, "2")));
+                withSimpleDelegate((v) -> QueryBuilder.select(MyEntity.class).where(COL_1).like(LikeType.FULL, "2")));
     }
 
     @Test
     void should_throw_exception_for_wrong_like_type_with_function() {
         Assertions.assertThrows(IllegalArgumentException.class, () ->
-                withSimpleDelegate(() -> QueryBuilder.select(MyEntity.class).where(new CastFunction(COL_1)).like(LikeType.FULL, "2")));
+                withSimpleDelegate((v) -> QueryBuilder.select(MyEntity.class).where(new CastFunction(COL_1)).like(LikeType.FULL, "2")));
     }
 
     @Test
     void should_throw_exception_for_wrong_offset() {
         Assertions.assertThrows(IllegalArgumentException.class, () ->
-                withSimpleDelegate(() -> QueryBuilder.select(MyEntity.class).offset(-1)));
+                withSimpleDelegate((v) -> QueryBuilder.select(MyEntity.class).offset(-1)));
     }
 
     @Test
     void should_throw_exception_for_wrong_limit() {
         Assertions.assertThrows(IllegalArgumentException.class, () ->
-                withSimpleDelegate(() -> QueryBuilder.select(MyEntity.class).limit(-1)));
+                withSimpleDelegate((v) -> QueryBuilder.select(MyEntity.class).limit(-1)));
     }
 
     @Test
     void should_create_simple_select() throws Throwable {
-        withSimpleDelegate(() -> {
+        withSimpleDelegate((v) -> {
 
             Mockito.when(queryRunner.readOpt(Mockito.any(), Mockito.any(), Mockito.any()))
                     .thenReturn(Result.empty());
@@ -127,7 +113,7 @@ class QueryBuilderTest extends AbstractQueryBuilderTest {
 
     @Test
     void should_create_select_with_order() throws Throwable {
-        withDelegateAndJoin(() -> {
+        withDelegateAndJoin((v) -> {
 
             QueryBuilder.select(MyEntity.class)
                     .orderBy(OrderType.DESC, COL_1)
@@ -151,8 +137,8 @@ class QueryBuilderTest extends AbstractQueryBuilderTest {
 
     @Test
     void should_create_select_with_limit_and_offset() throws Throwable {
-        withSimpleDelegate(() -> {
-            mkVendor.when(() -> VendorSpecific.getSpecific(LimitOffsetSpecific.class))
+        withSimpleDelegate((v) -> {
+            v.when(() -> VendorSpecific.getSpecific(LimitOffsetSpecific.class))
                     .thenReturn(new LimitOffsetStandard());
 
             QueryBuilder.select(MyEntity.class)
@@ -183,7 +169,7 @@ class QueryBuilderTest extends AbstractQueryBuilderTest {
 
     @Test
     void should_create_a_custom_dsl_with_config() throws Throwable {
-        withSimpleDelegate(() -> {
+        withSimpleDelegate((v) -> {
             QueryBuilder.select(MyEntity.class, QueryConfig.builder().withWhereChecker((column, operation, value) -> false).build())
                     .where(COL_1).eq(2)
                     .read();
@@ -197,7 +183,7 @@ class QueryBuilderTest extends AbstractQueryBuilderTest {
 
     @Test
     void should_throw_exception_for_bad_sub_query_instance() throws Throwable {
-        withSimpleDelegate(() -> {
+        withSimpleDelegate((v) -> {
 
             try {
                 QueryBuilder.select(MyEntity.class)
@@ -214,14 +200,14 @@ class QueryBuilderTest extends AbstractQueryBuilderTest {
     @ParameterizedTest
     @MethodSource("getSubQuerySql")
     void should_create_matched_sql_with_sub_query(Supplier<SelectedImpl<?, ?>> selected, String sql) throws Throwable {
-        withSimpleDelegate(() -> Assertions.assertEquals(sql, selected.get().asString(false)));
+        withSimpleDelegate((v) -> Assertions.assertEquals(sql, selected.get().asString(false)));
     }
 
     @ParameterizedTest
     @MethodSource("getSql")
     void should_create_matched_sql_where(Supplier<SelectedImpl<?, ?>> selected, String sql) throws Throwable {
-        withSimpleDelegate(() -> {
-            mkVendor.when(() -> VendorSpecific.getSpecific(LikeSpecific.class))
+        withSimpleDelegate((v) -> {
+            v.when(() -> VendorSpecific.getSpecific(LikeSpecific.class))
                 .thenThrow(IllegalArgumentException.class);
             Assertions.assertEquals(sql, selected.get().asString(false));
         });
@@ -229,9 +215,19 @@ class QueryBuilderTest extends AbstractQueryBuilderTest {
 
     @ParameterizedTest
     @MethodSource("getJoinSql")
-    void should_create_matched_sql_join(Supplier<SelectedImpl<?, ?>> selected, String sql) throws Throwable {
-        withDelegateAndDoubleJoin(() -> {
-            mkVendor.when(() -> VendorSpecific.getSpecific(LikeSpecific.class))
+    void should_create_matched_sql_join(Supplier<SelectedImpl<?, ?>> selected, String sql) {
+        withDelegateAndDoubleJoin((v) -> {
+            v.when(() -> VendorSpecific.getSpecific(LikeSpecific.class))
+                    .thenThrow(IllegalArgumentException.class);
+            Assertions.assertEquals(sql, selected.get().asString(false));
+        });
+    }
+
+    @ParameterizedTest
+    @MethodSource("getSimpleJoinSql")
+    void should_create_matched_simple_sql_join(Supplier<SelectedImpl<?, ?>> selected, String sql) {
+        withDelegateAndJoin((v) -> {
+            v.when(() -> VendorSpecific.getSpecific(LikeSpecific.class))
                     .thenThrow(IllegalArgumentException.class);
             Assertions.assertEquals(sql, selected.get().asString(false));
         });
@@ -239,7 +235,7 @@ class QueryBuilderTest extends AbstractQueryBuilderTest {
 
     @Test
     void should_create_select_with_custom_checks() throws Throwable {
-        withDelegateAndJoin(() -> {
+        withDelegateAndJoin((v) -> {
             QueryConfig config = QueryConfig.builder()
                     .caseInsensitive()
                     .withWhereChecker((sqlColumn, operation, o) -> {
@@ -265,7 +261,7 @@ class QueryBuilderTest extends AbstractQueryBuilderTest {
 
     @Test
     void should_create_select_with_where() throws Throwable {
-        withSimpleDelegate(() -> {
+        withSimpleDelegate((v) -> {
 
             QueryBuilder.select(MyEntity.class)
                     .where(COL_1).eq(1)
@@ -326,12 +322,12 @@ class QueryBuilderTest extends AbstractQueryBuilderTest {
     @ParameterizedTest
     @MethodSource("getSqlVendorFunctions")
     void should_create_where_with_vendor_functions(Supplier<SelectedImpl<?, ?>> selected, String sql) throws Throwable {
-        withSimpleDelegate(() -> Assertions.assertEquals(sql, selected.get().asString(false)));
+        withSimpleDelegate((v) -> Assertions.assertEquals(sql, selected.get().asString(false)));
     }
 
     @Test
     void should_create_select_with_join() throws Throwable {
-        withDelegateAndJoin(() -> {
+        withDelegateAndJoin((v) -> {
 
             QueryBuilder.select(MyEntity.class)
                     .join(MyEntityJoin.class).on(COL_3).eq(COL_1)
@@ -406,7 +402,7 @@ class QueryBuilderTest extends AbstractQueryBuilderTest {
 
     @Test
     void should_create_complex_query_with_nested_join() throws Throwable {
-        withDelegateAndDoubleJoin(() -> {
+        withDelegateAndDoubleJoin((v) -> {
 
             QueryBuilder.select(MyEntity.class)
                     .join(MyEntityJoin.class, "A").on(COL_3).eq(COL_1).orOn(COL_4).ne(COL_2)
@@ -423,7 +419,7 @@ class QueryBuilderTest extends AbstractQueryBuilderTest {
 
     @Test
     void should_create_select_with_where_case() throws Throwable {
-        withSimpleDelegate(() -> {
+        withSimpleDelegate((v) -> {
             QueryBuilder.select(MyEntity.class)
                     .where(COL_1).eq(
                             QueryBuilder.<Integer>usingCase()
@@ -450,33 +446,35 @@ class QueryBuilderTest extends AbstractQueryBuilderTest {
     @SuppressWarnings("unchecked")
     @Test
     void should_create_merge_using_simple_values() {
-        mkVendor.when(() -> VendorSpecific.getSpecific(MergeSpecific.class))
-                .thenReturn(mergeSpecific);
-        ArgumentCaptor<Map<SqlColumn<MyEntity, ?>, ?>> usingCaptor = ArgumentCaptor.forClass(Map.class);
-        ArgumentCaptor<List<SqlColumn<MyEntity, ?>>> onCaptor = ArgumentCaptor.forClass(List.class);
+        try (MockedStatic<VendorSpecific> mkVendor = Mockito.mockStatic(VendorSpecific.class)) {
+            mkVendor.when(() -> VendorSpecific.getSpecific(MergeSpecific.class))
+                    .thenReturn(mergeSpecific);
+            ArgumentCaptor<Map<SqlColumn<MyEntity, ?>, ?>> usingCaptor = ArgumentCaptor.forClass(Map.class);
+            ArgumentCaptor<List<SqlColumn<MyEntity, ?>>> onCaptor = ArgumentCaptor.forClass(List.class);
 
-        QueryBuilder.merge(MyEntity.class)
-                .using(COL_1, 1)
-                .onEquals(COL_1)
-                .matchUpdate(new MyEntity())
-                .execute();
+            QueryBuilder.merge(MyEntity.class)
+                    .using(COL_1, 1)
+                    .onEquals(COL_1)
+                    .matchUpdate(new MyEntity())
+                    .execute();
 
-        Mockito.verify(mergeSpecific)
-                .executeMerge(
-                        Mockito.eq(MyEntity.class),
-                        usingCaptor.capture(),
-                        onCaptor.capture(),
-                        Mockito.notNull(),
-                        Mockito.isNull()
-                );
+            Mockito.verify(mergeSpecific)
+                    .executeMerge(
+                            Mockito.eq(MyEntity.class),
+                            usingCaptor.capture(),
+                            onCaptor.capture(),
+                            Mockito.notNull(),
+                            Mockito.isNull()
+                    );
 
-        Map<SqlColumn<MyEntity, ?>, ?> using = usingCaptor.getValue();
-        List<SqlColumn<MyEntity, ?>> ons = onCaptor.getValue();
+            Map<SqlColumn<MyEntity, ?>, ?> using = usingCaptor.getValue();
+            List<SqlColumn<MyEntity, ?>> ons = onCaptor.getValue();
 
-        Assertions.assertFalse(using.isEmpty());
-        Assertions.assertEquals(1, using.get(COL_1));
-        Assertions.assertFalse(ons.isEmpty());
-        Assertions.assertEquals(COL_1, ons.get(0));
+            Assertions.assertFalse(using.isEmpty());
+            Assertions.assertEquals(1, using.get(COL_1));
+            Assertions.assertFalse(ons.isEmpty());
+            Assertions.assertEquals(COL_1, ons.get(0));
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -493,38 +491,41 @@ class QueryBuilderTest extends AbstractQueryBuilderTest {
                 return false;
             }
         };
-        mkVendor.when(() -> VendorSpecific.getSpecific(MergeSpecific.class))
-                .thenReturn(mergeSpecific);
-        ArgumentCaptor<Map<SqlColumn<MyEntity, ?>, ?>> usingCaptor = ArgumentCaptor.forClass(Map.class);
-        ArgumentCaptor<List<SqlColumn<MyEntity, ?>>> onCaptor = ArgumentCaptor.forClass(List.class);
+        try (MockedStatic<VendorSpecific> mkVendor = Mockito.mockStatic(VendorSpecific.class)) {
+            mkVendor.when(() -> VendorSpecific.getSpecific(MergeSpecific.class))
+                    .thenReturn(mergeSpecific);
+            ArgumentCaptor<Map<SqlColumn<MyEntity, ?>, ?>> usingCaptor = ArgumentCaptor.forClass(Map.class);
+            ArgumentCaptor<List<SqlColumn<MyEntity, ?>>> onCaptor = ArgumentCaptor.forClass(List.class);
 
-        QueryBuilder.merge(MyEntity.class)
-                .using(COL_1, function)
-                .onEquals(COL_1)
-                .notMatchInsert(new MyEntity())
-                .execute();
+            QueryBuilder.merge(MyEntity.class)
+                    .using(COL_1, function)
+                    .onEquals(COL_1)
+                    .notMatchInsert(new MyEntity())
+                    .execute();
 
-        Mockito.verify(mergeSpecific)
-                .executeMerge(
-                        Mockito.eq(MyEntity.class),
-                        usingCaptor.capture(),
-                        onCaptor.capture(),
-                        Mockito.isNull(),
-                        Mockito.notNull()
-                );
+            Mockito.verify(mergeSpecific)
+                    .executeMerge(
+                            Mockito.eq(MyEntity.class),
+                            usingCaptor.capture(),
+                            onCaptor.capture(),
+                            Mockito.isNull(),
+                            Mockito.notNull()
+                    );
 
-        Map<SqlColumn<MyEntity, ?>, ?> using = usingCaptor.getValue();
-        List<SqlColumn<MyEntity, ?>> ons = onCaptor.getValue();
+            Map<SqlColumn<MyEntity, ?>, ?> using = usingCaptor.getValue();
+            List<SqlColumn<MyEntity, ?>> ons = onCaptor.getValue();
 
-        Assertions.assertFalse(using.isEmpty());
-        Assertions.assertEquals(function, using.get(COL_1));
-        Assertions.assertFalse(ons.isEmpty());
-        Assertions.assertEquals(COL_1, ons.get(0));
+            Assertions.assertFalse(using.isEmpty());
+            Assertions.assertEquals(function, using.get(COL_1));
+            Assertions.assertFalse(ons.isEmpty());
+            Assertions.assertEquals(COL_1, ons.get(0));
+        }
     }
 
-    private void withDelegateAndJoin(Executable executable) throws Throwable {
+    private void withDelegateAndJoin(Consumer<MockedStatic<VendorSpecific>> consumer) {
         try (MockedStatic<DelegatesService> mk = Mockito.mockStatic(DelegatesService.class);
-            MockedStatic<QueryRunner> mkQuery = Mockito.mockStatic(QueryRunner.class)) {
+            MockedStatic<QueryRunner> mkQuery = Mockito.mockStatic(QueryRunner.class);
+            MockedStatic<VendorSpecific> mkVendor = Mockito.mockStatic(VendorSpecific.class)) {
             EntityDelegate<?> delegate = Mockito.mock(EntityDelegate.class);
             EntityDelegate<?> joinDelegate = Mockito.mock(EntityDelegate.class);
             DelegatesService delegatesService = Mockito.mock(DelegatesService.class);
@@ -544,13 +545,14 @@ class QueryBuilderTest extends AbstractQueryBuilderTest {
                     .thenReturn(new String[] { "COL1", "COL2" });
             Mockito.when(joinDelegate.getTable())
                     .thenReturn("MY_TABLE_JOIN");
-            executable.execute();
+            consumer.accept(mkVendor);
         }
     }
 
-    private void withDelegateAndDoubleJoin(Executable executable) throws Throwable {
+    private void withDelegateAndDoubleJoin(Consumer<MockedStatic<VendorSpecific>> consumer) {
         try (MockedStatic<DelegatesService> mk = Mockito.mockStatic(DelegatesService.class);
-             MockedStatic<QueryRunner> mkQuery = Mockito.mockStatic(QueryRunner.class)) {
+             MockedStatic<QueryRunner> mkQuery = Mockito.mockStatic(QueryRunner.class);
+             MockedStatic<VendorSpecific> mkVendor = Mockito.mockStatic(VendorSpecific.class)) {
             EntityDelegate<?> delegate = Mockito.mock(EntityDelegate.class);
             EntityDelegate<?> joinDelegate = Mockito.mock(EntityDelegate.class);
             EntityDelegate<?> secondJoinDelegate = Mockito.mock(EntityDelegate.class);
@@ -575,8 +577,75 @@ class QueryBuilderTest extends AbstractQueryBuilderTest {
                     .thenReturn("MY_TABLE_JOIN");
             Mockito.when(secondJoinDelegate.getTable())
                     .thenReturn("MY_SECOND_TABLE_JOIN");
-            executable.execute();
+            consumer.accept(mkVendor);
         }
+    }
+
+    private static Stream<Arguments> getSimpleJoinSql() {
+        return Stream.of(
+                // Simple Join EL
+
+                Arguments.of(
+                        (Supplier<Object>)() -> QueryBuilder.select(MyEntity.class).join(MyEntityJoin.class, "A").on(COL_3).eq(1),
+                        "SELECT MY_TABLE.COL1, MY_TABLE.COL2 FROM MY_TABLE JOIN MY_TABLE_JOIN AS A ON (A.COL3 = ?)"
+                ),
+                Arguments.of(
+                        (Supplier<Object>)() -> QueryBuilder.select(MyEntity.class).join(MyEntityJoin.class, "A").on(COL_3).ne(1),
+                        "SELECT MY_TABLE.COL1, MY_TABLE.COL2 FROM MY_TABLE JOIN MY_TABLE_JOIN AS A ON (A.COL3 <> ?)"
+                ),
+                Arguments.of(
+                        (Supplier<Object>)() -> QueryBuilder.select(MyEntity.class).join(MyEntityJoin.class, "A").on(COL_3).lt(1),
+                        "SELECT MY_TABLE.COL1, MY_TABLE.COL2 FROM MY_TABLE JOIN MY_TABLE_JOIN AS A ON (A.COL3 < ?)"
+                ),
+                Arguments.of(
+                        (Supplier<Object>)() -> QueryBuilder.select(MyEntity.class).join(MyEntityJoin.class, "A").on(COL_3).gt(1),
+                        "SELECT MY_TABLE.COL1, MY_TABLE.COL2 FROM MY_TABLE JOIN MY_TABLE_JOIN AS A ON (A.COL3 > ?)"
+                ),
+                Arguments.of(
+                        (Supplier<Object>)() -> QueryBuilder.select(MyEntity.class).join(MyEntityJoin.class, "A").on(COL_3).le(1),
+                        "SELECT MY_TABLE.COL1, MY_TABLE.COL2 FROM MY_TABLE JOIN MY_TABLE_JOIN AS A ON (A.COL3 <= ?)"
+                ),
+                Arguments.of(
+                        (Supplier<Object>)() -> QueryBuilder.select(MyEntity.class).join(MyEntityJoin.class, "A").on(COL_3).ge(1),
+                        "SELECT MY_TABLE.COL1, MY_TABLE.COL2 FROM MY_TABLE JOIN MY_TABLE_JOIN AS A ON (A.COL3 >= ?)"
+                ),
+
+                // Simple Join Standard
+                Arguments.of(
+                        (Supplier<Object>)() -> QueryBuilder.select(MyEntity.class).join(MyEntityJoin.class, "A").on(COL_3).equalsTo(1),
+                        "SELECT MY_TABLE.COL1, MY_TABLE.COL2 FROM MY_TABLE JOIN MY_TABLE_JOIN AS A ON (A.COL3 = ?)"
+                ),
+                Arguments.of(
+                        (Supplier<Object>)() -> QueryBuilder.select(MyEntity.class).join(MyEntityJoin.class, "A").on(COL_3).notEqualsTo(1),
+                        "SELECT MY_TABLE.COL1, MY_TABLE.COL2 FROM MY_TABLE JOIN MY_TABLE_JOIN AS A ON (A.COL3 <> ?)"
+                ),
+                Arguments.of(
+                        (Supplier<Object>)() -> QueryBuilder.select(MyEntity.class).join(MyEntityJoin.class, "A").on(COL_3).lessThan(1),
+                        "SELECT MY_TABLE.COL1, MY_TABLE.COL2 FROM MY_TABLE JOIN MY_TABLE_JOIN AS A ON (A.COL3 < ?)"
+                ),
+                Arguments.of(
+                        (Supplier<Object>)() -> QueryBuilder.select(MyEntity.class).join(MyEntityJoin.class, "A").on(COL_3).greaterThan(1),
+                        "SELECT MY_TABLE.COL1, MY_TABLE.COL2 FROM MY_TABLE JOIN MY_TABLE_JOIN AS A ON (A.COL3 > ?)"
+                ),
+                Arguments.of(
+                        (Supplier<Object>)() -> QueryBuilder.select(MyEntity.class).join(MyEntityJoin.class, "A").on(COL_3).lessOrEqualsTo(1),
+                        "SELECT MY_TABLE.COL1, MY_TABLE.COL2 FROM MY_TABLE JOIN MY_TABLE_JOIN AS A ON (A.COL3 <= ?)"
+                ),
+                Arguments.of(
+                        (Supplier<Object>)() -> QueryBuilder.select(MyEntity.class).join(MyEntityJoin.class, "A").on(COL_3).greaterOrEqualsTo(1),
+                        "SELECT MY_TABLE.COL1, MY_TABLE.COL2 FROM MY_TABLE JOIN MY_TABLE_JOIN AS A ON (A.COL3 >= ?)"
+                ),
+
+                // Simple Join Like
+                Arguments.of(
+                        (Supplier<Object>)() -> QueryBuilder.select(MyEntity.class).join(MyEntityJoin.class, "A").on(COL_4).like(LikeType.START, "EL"),
+                        "SELECT MY_TABLE.COL1, MY_TABLE.COL2 FROM MY_TABLE JOIN MY_TABLE_JOIN AS A ON (A.COL4 LIKE CONCAT('%',?))"
+                ),
+                Arguments.of(
+                        (Supplier<Object>)() -> QueryBuilder.select(MyEntity.class).join(MyEntityJoin.class, "A").on(COL_4).notLike(LikeType.END, "EL"),
+                        "SELECT MY_TABLE.COL1, MY_TABLE.COL2 FROM MY_TABLE JOIN MY_TABLE_JOIN AS A ON (A.COL4 NOT LIKE CONCAT(?,'%'))"
+                )
+        );
     }
 
     private static Stream<Arguments> getJoinSql() {

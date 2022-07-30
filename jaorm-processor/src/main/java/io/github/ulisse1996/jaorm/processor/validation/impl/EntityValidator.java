@@ -183,6 +183,9 @@ public class EntityValidator extends Validator {
 
     private void checkRelationshipEntity(VariableElement variableElement) {
         TypeElement relEntity = ProcessorUtils.getFieldType(processingEnvironment, variableElement);
+        if (relEntity == null) {
+            throw new ProcessorException(String.format("Unsupported Relationship Type %s found at field %s", variableElement.asType().toString(), variableElement.getSimpleName()));
+        }
         if (relEntity.getAnnotation(Table.class) == null) {
             throw new ProcessorException(String.format("Type %s is not a valid Entity at field %s in Entity %s",
                     relEntity.getQualifiedName(), variableElement.getSimpleName(), ((TypeElement)variableElement.getEnclosingElement()).getQualifiedName()));

@@ -19,7 +19,7 @@ class QueryBuilderCaseTest extends AbstractQueryBuilderTest {
 
     @Test
     void should_create_select_with_where_case() throws Throwable {
-        withSimpleDelegate(() -> {
+        withSimpleDelegate((v) -> {
             QueryBuilder.select(QueryBuilderTest.MyEntity.class)
                     .where(COL_1).eq(
                             QueryBuilder.<Integer>usingCase()
@@ -38,7 +38,7 @@ class QueryBuilderCaseTest extends AbstractQueryBuilderTest {
     @ParameterizedTest
     @MethodSource("getSql")
     void should_create_sql_with_custom_case(Supplier<WithResult<MyEntity>> withResult, String sql) throws Throwable {
-        withSimpleDelegate(() -> {
+        withSimpleDelegate((v) -> {
             withResult.get().read();
 
             Mockito.verify(queryRunner, Mockito.times(1))

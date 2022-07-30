@@ -3,6 +3,7 @@ package io.github.ulisse1996.jaorm.integration.test.entity;
 import io.github.ulisse1996.jaorm.annotation.*;
 import io.github.ulisse1996.jaorm.entity.Result;
 import io.github.ulisse1996.jaorm.graph.EntityGraphFetcher;
+import io.github.ulisse1996.jaorm.mapping.Cursor;
 
 import java.util.List;
 import java.util.Objects;
@@ -13,7 +14,6 @@ import java.util.Objects;
 public class User {
 
     public static final EntityGraphFetcher<User> USER_FULL = EntityGraphFetcher.of(User.class, "UserFull");
-    public static final EntityGraphFetcher<User> USER_FULL_WITH_ROLES = EntityGraphFetcher.of(User.class, "UserFullWithRoles");
 
     @Id
     @Column(name = "USER_ID")
@@ -33,7 +33,20 @@ public class User {
     @Relationship(
             columns = @Relationship.RelationshipColumn(targetColumn = "USER_ID", sourceColumn = "USER_ID")
     )
+    private Cursor<UserRole> rolesCursor;
+
+    @Relationship(
+            columns = @Relationship.RelationshipColumn(targetColumn = "USER_ID", sourceColumn = "USER_ID")
+    )
     private Result<UserSpecific> userSpecific;
+
+    public Cursor<UserRole> getRolesCursor() {
+        return rolesCursor;
+    }
+
+    public void setRolesCursor(Cursor<UserRole> rolesCursor) {
+        this.rolesCursor = rolesCursor;
+    }
 
     public Result<UserSpecific> getUserSpecific() {
         return userSpecific;

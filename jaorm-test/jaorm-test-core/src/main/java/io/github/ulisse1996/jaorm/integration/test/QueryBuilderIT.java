@@ -25,6 +25,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+@SuppressWarnings("java:S100")
 public abstract class QueryBuilderIT extends AbstractIT {
 
     @Test
@@ -410,10 +411,33 @@ public abstract class QueryBuilderIT extends AbstractIT {
         Assertions.assertEquals(updateUser.getName(), optF.getName());
     }
 
+    @Test
+    void should_read_using_simple_join() {
+        UserDAO userDAO = QueriesService.getInstance().getQuery(UserDAO.class);
+        UserRoleDAO userRoleDAO = QueriesService.getInstance().getQuery(UserRoleDAO.class);
+
+        User user = createUser(1);
+        UserRole role = new UserRole();
+        role.setRoleId(3);
+        role.setUserId(1);
+
+        userDAO.insert(user);
+        userRoleDAO.insert(role);
+
+        Optional<User> optUser = QueryBuilder.select(User.class)
+                .join(UserRole.class, "B").on(UserRoleColumns.USER_ID).eq(1)
+                .where(UserRoleColumns.ROLE_ID, "B").eq(3)
+                .readOpt();
+
+        Assertions.assertTrue(optUser.isPresent());
+        Assertions.assertEquals(1, optUser.get().getId());
+        Assertions.assertEquals("NAME_1", optUser.get().getName());
+    }
+
     private User createUser(int i) {
         User user = new User();
         user.setId(i);
-        user.setName("NAME_i");
+        user.setName(String.format("NAME_%d", i));
         return user;
     }
 }

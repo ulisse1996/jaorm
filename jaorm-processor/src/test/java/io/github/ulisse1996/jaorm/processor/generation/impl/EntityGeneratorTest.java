@@ -57,6 +57,18 @@ class EntityGeneratorTest extends CompilerTest {
     }
 
     @Test
+    void should_generate_entity_with_cursor_relationship() {
+        checkCompilation(
+                Compiler.javac()
+                        .withProcessors(new JaormProcessor())
+                        .compile(
+                                getFile("entity", "EntityWithRelationshipCursor.java"),
+                                getFile("entity", "RelEntity.java")
+                        )
+        );
+    }
+
+    @Test
     void should_generate_entity_with_converter() {
         checkCompilation(
                 Compiler.javac()

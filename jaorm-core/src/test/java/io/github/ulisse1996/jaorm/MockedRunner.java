@@ -2,6 +2,7 @@ package io.github.ulisse1996.jaorm;
 
 import io.github.ulisse1996.jaorm.entity.Result;
 import io.github.ulisse1996.jaorm.entity.sql.SqlParameter;
+import io.github.ulisse1996.jaorm.mapping.Cursor;
 import io.github.ulisse1996.jaorm.mapping.TableRow;
 import io.github.ulisse1996.jaorm.spi.QueryRunner;
 
@@ -38,6 +39,11 @@ public class MockedRunner extends QueryRunner {
 
     @Override
     public <R> Stream<R> readStream(Class<R> klass, String query, List<SqlParameter> params) {
+        return null;
+    }
+
+    @Override
+    public <R> Cursor<R> readCursor(Class<R> klass, String query, List<SqlParameter> parameters) {
         return null;
     }
 

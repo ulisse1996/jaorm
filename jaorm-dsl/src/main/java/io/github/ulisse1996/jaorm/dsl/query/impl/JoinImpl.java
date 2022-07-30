@@ -8,6 +8,7 @@ import io.github.ulisse1996.jaorm.dsl.query.enums.LikeType;
 import io.github.ulisse1996.jaorm.dsl.query.enums.Operation;
 import io.github.ulisse1996.jaorm.entity.EntityDelegate;
 import io.github.ulisse1996.jaorm.entity.SqlColumn;
+import io.github.ulisse1996.jaorm.entity.sql.SqlParameter;
 import io.github.ulisse1996.jaorm.spi.DelegatesService;
 import io.github.ulisse1996.jaorm.vendor.VendorSpecific;
 import io.github.ulisse1996.jaorm.vendor.specific.AliasesSpecific;
@@ -15,6 +16,7 @@ import io.github.ulisse1996.jaorm.vendor.specific.AliasesSpecific;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Stream;
 
 public class JoinImpl<T, R, L> implements On<T, R>, IntermediateJoin<T, R, L> {
 
@@ -22,6 +24,7 @@ public class JoinImpl<T, R, L> implements On<T, R>, IntermediateJoin<T, R, L> {
     private static final String AND = " AND ";
     private static final String COLUMN_CAN_T_BE_NULL = "Column can't be null";
     private static final String ALIAS_COLUMN = "%s.%s";
+    private static final String VALUE_CAN_T_BE_NULL = "Value can't be null !";
     private final JoinType joinType;
     private final SelectedImpl<T, ?> parent;
     private final String alias;
@@ -76,6 +79,36 @@ public class JoinImpl<T, R, L> implements On<T, R>, IntermediateJoin<T, R, L> {
     @Override
     public SelectedOn<T, R> ge(SqlColumn<?, L> column) {
         return operation(Operation.GREATER_EQUALS, column, null);
+    }
+
+    @Override
+    public SelectedOn<T, R> eq(L value) {
+        return operation(Operation.EQUALS, value);
+    }
+
+    @Override
+    public SelectedOn<T, R> ne(L value) {
+        return operation(Operation.NOT_EQUALS, value);
+    }
+
+    @Override
+    public SelectedOn<T, R> lt(L value) {
+        return operation(Operation.LESS_THAN, value);
+    }
+
+    @Override
+    public SelectedOn<T, R> gt(L value) {
+        return operation(Operation.GREATER_THAN, value);
+    }
+
+    @Override
+    public SelectedOn<T, R> le(L value) {
+        return operation(Operation.LESS_EQUALS, value);
+    }
+
+    @Override
+    public SelectedOn<T, R> ge(L value) {
+        return operation(Operation.GREATER_EQUALS, value);
     }
 
     @Override
@@ -139,6 +172,36 @@ public class JoinImpl<T, R, L> implements On<T, R>, IntermediateJoin<T, R, L> {
     }
 
     @Override
+    public SelectedOn<T, R> equalsTo(L value) {
+        return operation(Operation.EQUALS, value);
+    }
+
+    @Override
+    public SelectedOn<T, R> notEqualsTo(L value) {
+        return operation(Operation.NOT_EQUALS, value);
+    }
+
+    @Override
+    public SelectedOn<T, R> lessThan(L value) {
+        return operation(Operation.LESS_THAN, value);
+    }
+
+    @Override
+    public SelectedOn<T, R> greaterThan(L value) {
+        return operation(Operation.GREATER_THAN, value);
+    }
+
+    @Override
+    public SelectedOn<T, R> lessOrEqualsTo(L value) {
+        return operation(Operation.LESS_EQUALS, value);
+    }
+
+    @Override
+    public SelectedOn<T, R> greaterOrEqualsTo(L value) {
+        return operation(Operation.GREATER_EQUALS, value);
+    }
+
+    @Override
     public SelectedOn<T, R> equalsTo(SqlColumn<?, L> column, String alias) {
         return operation(Operation.EQUALS, column, alias);
     }
@@ -190,6 +253,26 @@ public class JoinImpl<T, R, L> implements On<T, R>, IntermediateJoin<T, R, L> {
 
     @Override
     @SuppressWarnings("unchecked")
+    public SelectedOn<T, R> like(LikeType type, String value) {
+        Objects.requireNonNull(value, VALUE_CAN_T_BE_NULL);
+        this.lastOn.likeType = type;
+        this.lastOn.operation = Operation.LIKE;
+        this.lastOn.value = value;
+        return (SelectedOn<T, R>) this.parent;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public SelectedOn<T, R> notLike(LikeType type, String value) {
+        Objects.requireNonNull(value, VALUE_CAN_T_BE_NULL);
+        this.lastOn.likeType = type;
+        this.lastOn.operation = Operation.NOT_LIKE;
+        this.lastOn.value = value;
+        return (SelectedOn<T, R>) this.parent;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
     public SelectedOn<T, R> like(LikeType type, SqlColumn<?, String> column, String alias) {
         Objects.requireNonNull(column, COLUMN_CAN_T_BE_NULL);
         this.lastOn.targetColumn = column;
@@ -210,12 +293,25 @@ public class JoinImpl<T, R, L> implements On<T, R>, IntermediateJoin<T, R, L> {
         return (SelectedOn<T, R>) this.parent;
     }
 
-    @SuppressWarnings("unchecked")
     private SelectedOn<T,R> operation(Operation operation, SqlColumn<?,L> column, String alias) {
-        Objects.requireNonNull(column, COLUMN_CAN_T_BE_NULL);
+        return operation(operation, column, alias, null);
+    }
+
+    private SelectedOn<T,R> operation(Operation operation, Object value) {
+        return operation(operation, null, null, value);
+    }
+
+    @SuppressWarnings("unchecked")
+    private SelectedOn<T,R> operation(Operation operation, SqlColumn<?,L> column, String alias, Object value) {
+        if (value == null) {
+            Objects.requireNonNull(column, COLUMN_CAN_T_BE_NULL);
+        } else {
+            Objects.requireNonNull(value, VALUE_CAN_T_BE_NULL);
+        }
         this.lastOn.operation = operation;
         this.lastOn.targetColumn = column;
         this.lastOn.targetAlias = alias;
+        this.lastOn.value = value;
         return (SelectedOn<T, R>) this.parent;
     }
 
@@ -261,11 +357,23 @@ public class JoinImpl<T, R, L> implements On<T, R>, IntermediateJoin<T, R, L> {
             case GREATER_THAN:
             case LESS_EQUALS:
             case GREATER_EQUALS:
-                return clause.operation.getValue() + String.format(ALIAS_COLUMN, fromOrAlias(clause), clause.targetColumn.getName());
+                if (clause.value == null) {
+                    return clause.operation.getValue() + String.format(ALIAS_COLUMN, fromOrAlias(clause), clause.targetColumn.getName());
+                } else {
+                    return clause.operation.getValue() + "?";
+                }
             case NOT_LIKE:
-                return " NOT LIKE" + clause.likeType.format(fromOrAlias(clause), clause.targetColumn.getName(), caseInsensitiveLike);
+                if (clause.value == null) {
+                    return " NOT LIKE" + clause.likeType.format(fromOrAlias(clause), clause.targetColumn.getName(), caseInsensitiveLike);
+                } else {
+                    return " NOT LIKE" + clause.likeType.getValue(this.parent.isCaseInsensitiveLike());
+                }
             case LIKE:
-                return " LIKE" + clause.likeType.format(fromOrAlias(clause), clause.targetColumn.getName(), caseInsensitiveLike);
+                if (clause.value == null) {
+                    return " LIKE" + clause.likeType.format(fromOrAlias(clause), clause.targetColumn.getName(), caseInsensitiveLike);
+                } else {
+                    return " LIKE" + clause.likeType.getValue(this.parent.isCaseInsensitiveLike());
+                }
             case IN:
             case NOT_IN:
             case IS_NULL:
@@ -283,6 +391,12 @@ public class JoinImpl<T, R, L> implements On<T, R>, IntermediateJoin<T, R, L> {
         return alias != null ? VendorSpecific.getSpecific(AliasesSpecific.class).convertToAlias(alias) : "";
     }
 
+    public Stream<? extends SqlParameter> getParameters() {
+        return this.ons.stream()
+                .filter(o -> o.value != null)
+                .map(SqlParameter::new);
+    }
+
     private static class OnImpl {
 
         private final SqlColumn<?, ?> column;
@@ -291,6 +405,7 @@ public class JoinImpl<T, R, L> implements On<T, R>, IntermediateJoin<T, R, L> {
         private String targetAlias;
         private Operation operation;
         private SqlColumn<?, ?> targetColumn;
+        private Object value;
 
         private OnImpl(boolean or, SqlColumn<?, ?> column) {
             Objects.requireNonNull(column, COLUMN_CAN_T_BE_NULL);

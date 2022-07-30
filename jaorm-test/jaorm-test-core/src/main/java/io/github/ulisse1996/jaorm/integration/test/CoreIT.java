@@ -10,6 +10,7 @@ import io.github.ulisse1996.jaorm.integration.test.entity.*;
 import io.github.ulisse1996.jaorm.integration.test.projection.MyProjection;
 import io.github.ulisse1996.jaorm.integration.test.projection.ProjectionDao;
 import io.github.ulisse1996.jaorm.integration.test.query.*;
+import io.github.ulisse1996.jaorm.mapping.Cursor;
 import io.github.ulisse1996.jaorm.spi.QueriesService;
 import io.github.ulisse1996.jaorm.spi.QueryRunner;
 import org.junit.jupiter.api.Assertions;
@@ -470,8 +471,30 @@ public abstract class CoreIT extends AbstractIT {
     }
 
     @Test
-    void should_create_and_read_entity_with_clob() {
+    void should_read_using_cursor() {
+        User user = new User();
+        user.setId(1);
+        user.setName("NAME");
+        user.setRoles(createRoles(10, 1));
 
+        UserDAO userDAO = QueriesService.getInstance().getQuery(UserDAO.class);
+        UserRoleDAO roleDAO = QueriesService.getInstance().getQuery(UserRoleDAO.class);
+
+        userDAO.insert(user);
+        roleDAO.insert(user.getRoles());
+
+        User fetched = userDAO.readByKey(1);
+        Cursor<UserRole> rolesCursor = fetched.getRolesCursor();
+
+        boolean found = false;
+        for (UserRole role : rolesCursor) {
+            if (role.getRoleId() == 5) {
+                found = true;
+                break;
+            }
+        }
+
+        Assertions.assertTrue(found);
     }
 
     private Student createStudent(int index, String name) {
