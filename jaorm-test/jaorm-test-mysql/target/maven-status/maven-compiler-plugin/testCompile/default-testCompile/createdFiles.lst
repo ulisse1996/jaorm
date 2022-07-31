@@ -1,0 +1,5 @@
+io/github/ulisse1996/jaorm/integration/test/mysql/MySqlInitializer.class
+io/github/ulisse1996/jaorm/integration/test/mysql/MySqlTransactionalIT.class
+io/github/ulisse1996/jaorm/integration/test/mysql/MySqlQueryBuilderIT.class
+io/github/ulisse1996/jaorm/integration/test/mysql/MySqlQueryIT.class
+io/github/ulisse1996/jaorm/integration/test/mysql/MySqlCoreIT.class

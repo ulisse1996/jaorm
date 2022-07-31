@@ -25,6 +25,7 @@
         <module>jaorm-test-oracle</module>
         <module>jaorm-test-sql-server</module>
         <module>jaorm-test-spring</module>
+        <module>jaorm-test-mysql</module>
     </modules>
 
     <dependencies>

@@ -88,7 +88,7 @@ class JaormCursorTest {
                 executor,
                 FN
         );
-        Assertions.assertThrows(
+        Assertions.assertThrows( //NOSONAR
                 NoSuchElementException.class,
                 () -> cursor.iterator().next()
         );
