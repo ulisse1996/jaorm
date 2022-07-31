@@ -139,6 +139,8 @@ public class EntityGenerator extends Generator {
             runnerMethod = "readAll";
         } else if (definition.isOptional()) {
             runnerMethod = "readOpt";
+        } else if (definition.isCursor()) {
+            runnerMethod = "readCursor";
         } else {
             runnerMethod = "read";
         }

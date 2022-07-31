@@ -5,7 +5,7 @@
     <parent>
         <artifactId>jaorm-pom</artifactId>
         <groupId>io.github.ulisse1996</groupId>
-        <version>1.7.3</version>
+        <version>1.8.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <packaging>pom</packaging>
@@ -13,6 +13,7 @@
         <module>jaorm-sql-specific-oracle</module>
         <module>jaorm-sql-specific-postgre</module>
         <module>jaorm-sql-specific-sql-server</module>
+        <module>jaorm-sql-specific-mysql</module>
     </modules>
 
     <artifactId>jaorm-sql-specific</artifactId>

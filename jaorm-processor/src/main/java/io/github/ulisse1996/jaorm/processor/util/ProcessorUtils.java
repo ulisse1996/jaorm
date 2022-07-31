@@ -12,6 +12,7 @@ import io.github.ulisse1996.jaorm.entity.Result;
 import io.github.ulisse1996.jaorm.entity.converter.ValueConverter;
 import io.github.ulisse1996.jaorm.external.LombokMock;
 import io.github.ulisse1996.jaorm.external.LombokSupport;
+import io.github.ulisse1996.jaorm.mapping.Cursor;
 import io.github.ulisse1996.jaorm.processor.config.ConfigHolder;
 import io.github.ulisse1996.jaorm.processor.exception.ProcessorException;
 
@@ -51,10 +52,11 @@ public class ProcessorUtils {
     private static final List<String> SUPPORTED_RELATIONSHIP_TYPES = Arrays.asList(
             java.util.List.class.getName(),
             java.util.Optional.class.getName(),
-            Result.class.getName()
+            Result.class.getName(),
+            Cursor.class.getName()
     );
     private static final String STARTING_GENERIC = "<";
-    private static final String ENDING_GENERING = ">";
+    private static final String ENDING_GENERIC = ">";
 
     static {
         Map<Class<?>,Class<?>> map = new HashMap<>(16);
@@ -179,7 +181,7 @@ public class ProcessorUtils {
         for (String regex : SUPPORTED_RELATIONSHIP_TYPES) {
             if (typeMirror.toString().startsWith(regex)) {
                 return typeMirror.toString().replace(regex, "")
-                        .replace(STARTING_GENERIC, "").replace(ENDING_GENERING, "");
+                        .replace(STARTING_GENERIC, "").replace(ENDING_GENERIC, "");
             }
         }
 
@@ -202,7 +204,7 @@ public class ProcessorUtils {
 
     private static List<TypeElement> getParameters(ProcessingEnvironment processingEnvironment, TypeMirror mirror, String name) {
         String[] param = mirror.toString().replace(name, "")
-                .replace(STARTING_GENERIC, "").replace(ENDING_GENERING, "")
+                .replace(STARTING_GENERIC, "").replace(ENDING_GENERIC, "")
                 .split(",");
         return Stream.of(param)
                 .map(String::trim)
@@ -354,7 +356,7 @@ public class ProcessorUtils {
             if (typeMirror.toString().contains(BaseDao.class.getName())) {
                 return typeMirror.toString().replace(BaseDao.class.getName(), "")
                         .replace(STARTING_GENERIC, "")
-                        .replace(ENDING_GENERING, "");
+                        .replace(ENDING_GENERIC, "");
             }
 
             if (!Object.class.getName().equalsIgnoreCase(typeMirror.toString())) {

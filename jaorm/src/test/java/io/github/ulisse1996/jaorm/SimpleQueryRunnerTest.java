@@ -4,6 +4,7 @@ import io.github.ulisse1996.jaorm.entity.Result;
 import io.github.ulisse1996.jaorm.entity.sql.DataSourceProvider;
 import io.github.ulisse1996.jaorm.entity.sql.SqlParameter;
 import io.github.ulisse1996.jaorm.exception.JaormSqlException;
+import io.github.ulisse1996.jaorm.mapping.Cursor;
 import io.github.ulisse1996.jaorm.mapping.TableRow;
 import io.github.ulisse1996.jaorm.spi.ConverterService;
 import org.junit.jupiter.api.Assertions;
@@ -21,6 +22,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 @ExtendWith(MockitoExtension.class)
 class SimpleQueryRunnerTest {
@@ -80,6 +82,31 @@ class SimpleQueryRunnerTest {
                 .collect(Collectors.toList());
         Assertions.assertEquals(expected, result);
         assertClosed(connection, preparedStatement, resultSet);
+    }
+
+    @Test
+    void should_read_cursor_of_simple_object() throws Exception {
+        List<String> expected = Arrays.asList("1", "2", "3");
+        DataSource dataSource = DataSourceProvider.getCurrent().getDataSource();
+        Mockito.when(dataSource.getConnection())
+                .thenReturn(connection);
+        Mockito.when(connection.prepareStatement(Mockito.anyString()))
+                .thenReturn(preparedStatement);
+        Mockito.when(preparedStatement.executeQuery())
+                .thenReturn(resultSet);
+        Mockito.when(resultSet.next())
+                .thenReturn(true, true, true, false);
+        Mockito.when(resultSet.getString("COL1"))
+                .thenReturn("1", "2", "3");
+        Mockito.when(resultSet.getMetaData())
+                .thenReturn(metaData);
+        Mockito.when(metaData.getColumnName(1))
+                .thenReturn("COL1");
+        try (Cursor<String> cursor = testSubject.readCursor(String.class, "", Collections.emptyList())) {
+            List<String> result = StreamSupport.stream(cursor.spliterator(), false)
+                    .collect(Collectors.toList());
+            Assertions.assertEquals(expected, result);
+        }
     }
 
     @Test

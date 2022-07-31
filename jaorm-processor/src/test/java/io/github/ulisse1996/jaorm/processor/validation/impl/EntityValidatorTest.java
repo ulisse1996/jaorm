@@ -5,7 +5,6 @@ import io.github.ulisse1996.jaorm.processor.CustomName;
 import io.github.ulisse1996.jaorm.processor.exception.ProcessorException;
 import io.github.ulisse1996.jaorm.processor.util.ProcessorUtils;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

@@ -4,8 +4,8 @@ import io.github.ulisse1996.jaorm.entity.EntityDelegate;
 import io.github.ulisse1996.jaorm.entity.SqlColumn;
 import io.github.ulisse1996.jaorm.spi.DelegatesService;
 import io.github.ulisse1996.jaorm.spi.QueryRunner;
+import io.github.ulisse1996.jaorm.vendor.VendorSpecific;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.api.function.Executable;
 import org.mockito.ArgumentMatcher;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
@@ -13,6 +13,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
+import java.util.function.Consumer;
 
 @ExtendWith(MockitoExtension.class)
 public abstract class AbstractQueryBuilderTest {
@@ -27,9 +28,10 @@ public abstract class AbstractQueryBuilderTest {
     protected static final SqlColumn<MySecondEntityJoin, Integer> COL_5 = SqlColumn.instance(MySecondEntityJoin.class, "COL5", Integer.class);
     protected static final SqlColumn<MySecondEntityJoin, String> COL_6 = SqlColumn.instance(MySecondEntityJoin.class, "COL6", String.class);
 
-    protected void withSimpleDelegate(Executable executable) throws Throwable {
+    protected void withSimpleDelegate(Consumer<MockedStatic<VendorSpecific>> consumer) throws Throwable {
         try (MockedStatic<DelegatesService> mk = Mockito.mockStatic(DelegatesService.class);
-             MockedStatic<QueryRunner> mkQuery = Mockito.mockStatic(QueryRunner.class)) {
+             MockedStatic<QueryRunner> mkQuery = Mockito.mockStatic(QueryRunner.class);
+             MockedStatic<VendorSpecific> mkVendor = Mockito.mockStatic(VendorSpecific.class)) {
             EntityDelegate<?> delegate = Mockito.mock(EntityDelegate.class);
             DelegatesService delegatesService = Mockito.mock(DelegatesService.class);
             mk.when(DelegatesService::getInstance)
@@ -44,7 +46,7 @@ public abstract class AbstractQueryBuilderTest {
                     .thenReturn("MY_TABLE");
             Mockito.when(delegate.getSelectables())
                     .thenReturn(new String[] { "COL1", "COL2" });
-            executable.execute();
+            consumer.accept(mkVendor);
         }
     }
 

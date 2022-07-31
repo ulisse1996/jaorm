@@ -5,7 +5,7 @@
     <parent>
         <artifactId>jaorm-pom</artifactId>
         <groupId>io.github.ulisse1996</groupId>
-        <version>1.7.3</version>
+        <version>1.8.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -25,6 +25,7 @@
         <module>jaorm-test-oracle</module>
         <module>jaorm-test-sql-server</module>
         <module>jaorm-test-spring</module>
+        <module>jaorm-test-mysql</module>
     </modules>
 
     <dependencies>

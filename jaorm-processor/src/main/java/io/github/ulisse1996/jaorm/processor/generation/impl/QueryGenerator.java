@@ -330,6 +330,8 @@ public class QueryGenerator extends Generator {
             return checkCollection(sql, definition, stmParams);
         } else if (definition.isStream()) {
             return checkStream(sql, definition);
+        } else if (definition.isCursor()) {
+            return checkCursor(sql, definition);
         } else if (definition.isTableRow()) {
             return new AbstractMap.SimpleImmutableEntry<>(
                     "return $T.getSimple().read($S, params)",
@@ -346,6 +348,13 @@ public class QueryGenerator extends Generator {
                     new Object[] {QueryRunner.class, definition.getRealClass(), sql}
             );
         }
+    }
+
+    private Map.Entry<String, Object[]> checkCursor(String sql, ReturnTypeDefinition definition) {
+        return new AbstractMap.SimpleImmutableEntry<>(
+                "return $T.getInstance($T.class).readCursor($T.class, $S, params)",
+                new Object[]{QueryRunner.class, definition.getRealClass(), definition.getRealClass(), sql}
+        );
     }
 
     private static AbstractMap.SimpleImmutableEntry<String, Object[]> checkStream(String sql, ReturnTypeDefinition definition) {

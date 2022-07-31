@@ -1,6 +1,7 @@
 package io.github.ulisse1996.jaorm.processor.util;
 
 import io.github.ulisse1996.jaorm.entity.Result;
+import io.github.ulisse1996.jaorm.mapping.Cursor;
 import io.github.ulisse1996.jaorm.mapping.TableRow;
 
 import javax.annotation.processing.ProcessingEnvironment;
@@ -10,12 +11,14 @@ import javax.lang.model.type.TypeMirror;
 
 public class ReturnTypeDefinition {
 
+    private static final String LIST_TYPE = java.util.List.class.getName();
+    private static final String RESULT_TYPE = Result.class.getName();
+    private static final String OPTIONAL_TYPE = java.util.Optional.class.getName();
+    private static final String STREAM_TYPE = java.util.stream.Stream.class.getName();
+    private static final String TABLE_ROW_TYPE = TableRow.class.getName();
+    private static final String CURSOR_TYPE = Cursor.class.getName();
     private static final String[] SUPPORTED = new String[] {
-            java.util.List.class.getName(),
-            Result.class.getName(),
-            java.util.Optional.class.getName(),
-            java.util.stream.Stream.class.getName(),
-            TableRow.class.getName()
+            LIST_TYPE, RESULT_TYPE, OPTIONAL_TYPE, STREAM_TYPE, TABLE_ROW_TYPE, CURSOR_TYPE
     };
 
     private boolean simple;
@@ -24,6 +27,7 @@ public class ReturnTypeDefinition {
     private boolean stream;
     private boolean tableRow;
     private boolean streamTableRow;
+    private boolean cursor;
     private TypeElement realClass;
 
     public ReturnTypeDefinition(ProcessingEnvironment processingEnvironment, TypeMirror typeMirror) {
@@ -38,7 +42,7 @@ public class ReturnTypeDefinition {
                 checkType(processingEnvironment, typeName, regex);
             }
         }
-        boolean plain = !optional && !collection && !stream && !streamTableRow && !tableRow;
+        boolean plain = !optional && !collection && !stream && !streamTableRow && !tableRow && !cursor;
         if (plain) {
             this.simple = true;
             this.realClass = (TypeElement) processingEnvironment.getTypeUtils().asElement(typeMirror);
@@ -54,21 +58,24 @@ public class ReturnTypeDefinition {
         if (regex.contains("Result") || regex.contains("Optional")) {
             this.optional = true;
             this.realClass = asElement(processingEnvironment, regex, typeName);
-            if (realClass.asType().toString().contains(SUPPORTED[4])) {
+            if (realClass.asType().toString().contains(TABLE_ROW_TYPE)) {
                 this.tableRow = true;
             }
         } else if (regex.contains("List")) {
             this.realClass = asElement(processingEnvironment, regex, typeName);
             this.collection = true;
-            if (realClass.asType().toString().contains(SUPPORTED[4])) {
+            if (realClass.asType().toString().contains(TABLE_ROW_TYPE)) {
                 this.tableRow = true;
             }
         } else if (regex.contains("Stream")) {
             this.realClass = asElement(processingEnvironment, regex, typeName);
             this.stream = true;
-            if (realClass.asType().toString().contains(SUPPORTED[4])) {
+            if (realClass.asType().toString().contains(TABLE_ROW_TYPE)) {
                 this.streamTableRow = true;
             }
+        } else if (regex.contains("Cursor")) {
+            this.realClass = asElement(processingEnvironment, regex, typeName);
+            this.cursor = true;
         } else {
             this.tableRow = true;
         }
@@ -105,5 +112,9 @@ public class ReturnTypeDefinition {
 
     public boolean isSimple() {
         return simple;
+    }
+
+    public boolean isCursor() {
+        return cursor;
     }
 }

@@ -5,6 +5,7 @@ import io.github.ulisse1996.jaorm.entity.Result;
 import io.github.ulisse1996.jaorm.entity.sql.DataSourceProvider;
 import io.github.ulisse1996.jaorm.entity.sql.SqlParameter;
 import io.github.ulisse1996.jaorm.exception.JaormSqlException;
+import io.github.ulisse1996.jaorm.mapping.Cursor;
 import io.github.ulisse1996.jaorm.mapping.ProjectionDelegate;
 import io.github.ulisse1996.jaorm.schema.TableInfo;
 import io.github.ulisse1996.jaorm.spi.DelegatesService;
@@ -66,6 +67,24 @@ class EntityQueryRunnerTest {
                     .thenReturn(false);
             Stream<DelegatesMock.MyEntity> myEntityStream = testSubject.readStream(DelegatesMock.MyEntity.class, "", Collections.emptyList());
             Assertions.assertEquals(0, myEntityStream.count());
+        });
+    }
+
+    @Test
+    void should_return_cursor() throws Throwable {
+        withMockedSchemaSupport(() -> {
+            DataSource dataSource = DataSourceProvider.getCurrent().getDataSource();
+            Mockito.when(dataSource.getConnection())
+                    .thenReturn(connection);
+            Mockito.when(connection.prepareStatement(Mockito.anyString()))
+                    .thenReturn(preparedStatement);
+            Mockito.when(preparedStatement.executeQuery())
+                    .thenReturn(resultSet);
+            Mockito.when(resultSet.next())
+                    .thenReturn(false);
+            try (Cursor<DelegatesMock.MyEntity> cursor = testSubject.readCursor(DelegatesMock.MyEntity.class, "", Collections.emptyList())) {
+                Assertions.assertFalse(cursor.iterator().hasNext());
+            }
         });
     }
 

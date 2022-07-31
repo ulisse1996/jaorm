@@ -5,9 +5,7 @@ import io.github.ulisse1996.jaorm.entity.sql.DataSourceProvider;
 import io.github.ulisse1996.jaorm.entity.sql.SqlAccessor;
 import io.github.ulisse1996.jaorm.entity.sql.SqlParameter;
 import io.github.ulisse1996.jaorm.exception.JaormSqlException;
-import io.github.ulisse1996.jaorm.mapping.EmptyClosable;
-import io.github.ulisse1996.jaorm.mapping.ResultSetStream;
-import io.github.ulisse1996.jaorm.mapping.TableRow;
+import io.github.ulisse1996.jaorm.mapping.*;
 import io.github.ulisse1996.jaorm.schema.TableInfo;
 import io.github.ulisse1996.jaorm.spi.QueryRunner;
 
@@ -86,8 +84,20 @@ public class SimpleQueryRunner extends QueryRunner {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public <R> Stream<R> readStream(Class<R> klass, String query, List<SqlParameter> params) {
+        return produceIterableResult(klass, query, params, ResultSetStream::new).getStream();
+    }
+
+    @Override
+    public <R> Cursor<R> readCursor(Class<R> klass, String query, List<SqlParameter> params) {
+        return produceIterableResult(klass, query, params, JaormCursor::new);
+    }
+
+    @SuppressWarnings("unchecked")
+    private <T, R> T produceIterableResult(Class<R> klass, String query, List<SqlParameter> params,
+                                         JaormIterableResultProducer<T, R> producer) {
+        ThrowingFunction<ResultSet, R, SQLException> mapper =
+                rs -> (R) SqlAccessor.find(klass).getGetter().get(rs, rs.getMetaData().getColumnName(1));
         logger.logSql(query, params);
         Connection connection = EmptyClosable.instance(Connection.class);
         PreparedStatement preparedStatement = EmptyClosable.instance(PreparedStatement.class);
@@ -96,9 +106,7 @@ public class SimpleQueryRunner extends QueryRunner {
             connection = getConnection(TableInfo.EMPTY);
             preparedStatement = connection.prepareStatement(query);
             executor = new ResultSetExecutor(preparedStatement, params);
-            return new ResultSetStream<>(connection, preparedStatement, executor,
-                    rs -> (R) SqlAccessor.find(klass).getGetter().get(rs, rs.getMetaData().getColumnName(1)))
-                    .getStream();
+            return producer.produce(connection, preparedStatement, executor, mapper);
         } catch (SQLException ex) {
             SqlUtil.silentClose(executor, preparedStatement, connection);
             throw new JaormSqlException(ex);
