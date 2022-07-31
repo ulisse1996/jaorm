@@ -15,10 +15,11 @@ import java.util.NoSuchElementException;
 public class JaormCursor<T> implements Cursor<T> {
 
     private final ThrowingFunction<ResultSet, T, SQLException> mapper;
-    private final boolean fetched;
+    private boolean fetched;
     private final Connection connection;
     private final PreparedStatement preparedStatement;
     private final ResultSetExecutor executor;
+    private boolean closed;
 
     public JaormCursor(Connection connection, PreparedStatement preparedStatement,
                        SqlExecutor executor, ThrowingFunction<ResultSet, T, SQLException> mapper) {
@@ -37,11 +38,13 @@ public class JaormCursor<T> implements Cursor<T> {
     @Override
     public void close() {
         SqlUtil.silentClose(this.executor, this.preparedStatement, this.connection);
+        this.closed = true;
     }
 
     @Override
     public Iterator<T> iterator() {
-        if (!this.fetched) {
+        if (!this.closed && !this.fetched) {
+            this.fetched = true;
             return new CursorIterator<>(
                     this.executor.getResultSet(),
                     this.mapper,
@@ -61,10 +64,10 @@ public class JaormCursor<T> implements Cursor<T> {
 
         CursorIterator(ResultSet rs, ThrowingFunction<ResultSet, T, SQLException> mapper,
                        Runnable onClose) {
+            this.onClose = onClose;
             this.resultSet = rs;
             this.hasNext = canGoNext(rs);
             this.mapper = mapper;
-            this.onClose = onClose;
         }
 
         @Override
@@ -79,7 +82,7 @@ public class JaormCursor<T> implements Cursor<T> {
             }
 
             T next = mapNext();
-            this.hasNext = hasNext();
+            this.hasNext = canGoNext(resultSet);
             return next;
         }
 

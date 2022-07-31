@@ -484,17 +484,19 @@ public abstract class CoreIT extends AbstractIT {
         roleDAO.insert(user.getRoles());
 
         User fetched = userDAO.readByKey(1);
-        Cursor<UserRole> rolesCursor = fetched.getRolesCursor();
-
-        boolean found = false;
-        for (UserRole role : rolesCursor) {
-            if (role.getRoleId() == 5) {
-                found = true;
-                break;
+        try (Cursor<UserRole> rolesCursor = fetched.getRolesCursor()) {
+            boolean found = false;
+            for (UserRole role : rolesCursor) {
+                if (role.getRoleId() == 5) {
+                    found = true;
+                    break;
+                }
             }
-        }
 
-        Assertions.assertTrue(found);
+            Assertions.assertTrue(found);
+        } catch (Exception ex) {
+            Assertions.fail(ex);
+        }
     }
 
     private Student createStudent(int index, String name) {
