@@ -1,8 +1,0 @@
-/Users/donatoleone/progetti/jaorm/jaorm-sql-specific/jaorm-sql-specific-mysql/src/main/java/io/github/ulisse1996/jaorm/vendor/mysql/MySqlLikeSpecific.java
-/Users/donatoleone/progetti/jaorm/jaorm-sql-specific/jaorm-sql-specific-mysql/src/main/java/io/github/ulisse1996/jaorm/vendor/mysql/functions/CurrentTimestampFunction.java
-/Users/donatoleone/progetti/jaorm/jaorm-sql-specific/jaorm-sql-specific-mysql/src/main/java/io/github/ulisse1996/jaorm/vendor/mysql/functions/CurrentTimeFunction.java
-/Users/donatoleone/progetti/jaorm/jaorm-sql-specific/jaorm-sql-specific-mysql/src/main/java/io/github/ulisse1996/jaorm/vendor/mysql/functions/CurrentDateFunction.java
-/Users/donatoleone/progetti/jaorm/jaorm-sql-specific/jaorm-sql-specific-mysql/src/main/java/io/github/ulisse1996/jaorm/vendor/mysql/MySqlLimitOffsetSpecific.java
-/Users/donatoleone/progetti/jaorm/jaorm-sql-specific/jaorm-sql-specific-mysql/src/main/java/io/github/ulisse1996/jaorm/vendor/mysql/MySqlLockSpecific.java
-/Users/donatoleone/progetti/jaorm/jaorm-sql-specific/jaorm-sql-specific-mysql/src/main/java/io/github/ulisse1996/jaorm/vendor/mysql/MySqlMergeSpecific.java
-/Users/donatoleone/progetti/jaorm/jaorm-sql-specific/jaorm-sql-specific-mysql/src/main/java/io/github/ulisse1996/jaorm/vendor/mysql/MySqlAliasesSpecific.java

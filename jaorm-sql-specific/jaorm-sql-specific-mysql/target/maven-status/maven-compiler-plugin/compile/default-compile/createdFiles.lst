@@ -1,9 +1,0 @@
-io/github/ulisse1996/jaorm/vendor/mysql/functions/CurrentTimestampFunction.class
-io/github/ulisse1996/jaorm/vendor/mysql/functions/CurrentTimeFunction.class
-io/github/ulisse1996/jaorm/vendor/mysql/MySqlMergeSpecific.class
-io/github/ulisse1996/jaorm/vendor/mysql/MySqlAliasesSpecific.class
-io/github/ulisse1996/jaorm/vendor/mysql/MySqlLikeSpecific$1.class
-io/github/ulisse1996/jaorm/vendor/mysql/functions/CurrentDateFunction.class
-io/github/ulisse1996/jaorm/vendor/mysql/MySqlLikeSpecific.class
-io/github/ulisse1996/jaorm/vendor/mysql/MySqlLimitOffsetSpecific.class
-io/github/ulisse1996/jaorm/vendor/mysql/MySqlLockSpecific.class
