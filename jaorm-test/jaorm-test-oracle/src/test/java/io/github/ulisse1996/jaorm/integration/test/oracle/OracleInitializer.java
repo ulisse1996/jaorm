@@ -1,4 +1,4 @@
-package io.github.ulisse1996.jaorm.integration.test.mysql;
+package io.github.ulisse1996.jaorm.integration.test.oracle;
 
 import com.zaxxer.hikari.HikariDataSource;
 import io.github.ulisse1996.jaorm.entity.sql.DataSourceProvider;
