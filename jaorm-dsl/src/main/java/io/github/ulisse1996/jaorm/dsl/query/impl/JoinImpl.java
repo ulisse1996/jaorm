@@ -391,9 +391,10 @@ public class JoinImpl<T, R, L> implements On<T, R>, IntermediateJoin<T, R, L> {
         return alias != null ? VendorSpecific.getSpecific(AliasesSpecific.class).convertToAlias(alias) : "";
     }
 
-    public Stream<? extends SqlParameter> getParameters() {
+    public Stream<SqlParameter> getParameters() {
         return this.ons.stream()
                 .filter(o -> o.value != null)
+                .map(o -> o.value)
                 .map(SqlParameter::new);
     }
 
