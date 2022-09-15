@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 1.8.1
+- Dependency: Bump Postgre JDBC to 42.4.1
+
 ## 1.8.0
 - Feature: Cursor for read large relationships
 - Feature: Cursor for Simple/Entity Queries

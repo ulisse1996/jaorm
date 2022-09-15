@@ -5,7 +5,7 @@
     <parent>
         <artifactId>jaorm-extensions</artifactId>
         <groupId>io.github.ulisse1996</groupId>
-        <version>1.8.0</version>
+        <version>1.8.1</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -23,12 +23,12 @@
         <dependency>
             <groupId>io.github.ulisse1996</groupId>
             <artifactId>jaorm-extension-api</artifactId>
-            <version>1.8.0</version>
+            <version>1.8.1</version>
         </dependency>
         <dependency>
             <groupId>io.github.ulisse1996</groupId>
             <artifactId>jaorm-core</artifactId>
-            <version>1.8.0</version>
+            <version>1.8.1</version>
         </dependency>
         <dependency>
             <groupId>org.teiid</groupId>
