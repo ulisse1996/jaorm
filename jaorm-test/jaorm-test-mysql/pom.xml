@@ -5,7 +5,7 @@
     <parent>
         <artifactId>jaorm-test</artifactId>
         <groupId>io.github.ulisse1996</groupId>
-        <version>1.8.1</version>
+        <version>1.8.2</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -15,7 +15,7 @@
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
-        <jaorm.version>1.8.1</jaorm.version>
+        <jaorm.version>1.8.2</jaorm.version>
         <sonar.skip>true</sonar.skip>
         <maven.deploy.skip>true</maven.deploy.skip>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -25,13 +25,13 @@
         <dependency>
             <groupId>io.github.ulisse1996</groupId>
             <artifactId>jaorm-test-core</artifactId>
-            <version>1.8.1</version>
+            <version>1.8.2</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>io.github.ulisse1996</groupId>
             <artifactId>jaorm-sql-specific-mysql</artifactId>
-            <version>1.8.1</version>
+            <version>1.8.2</version>
             <scope>test</scope>
         </dependency>
         <dependency>

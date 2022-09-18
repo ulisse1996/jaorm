@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 1.8.2
+- Dependency: Bump Caffeine to 2.9.3
+- Dependency: Bump Lombok to 1.18.24
+
 ## 1.8.1
 - Dependency: Bump Postgre JDBC to 42.4.1
 
