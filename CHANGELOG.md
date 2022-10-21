@@ -1,5 +1,18 @@
 # CHANGELOG
 
+## 1.9.0
+- Feature: Simple DSL for Select with Projections
+- Feature: Union for DSL
+- Feature: Union for Simple DSL
+- Feature: Length ANSI Function
+- Feature: Coalesce ANSI Function
+- Feature: Vendor Trim Function
+- Feature: Vendor Concat Function
+- Feature: Vendor Substring Function
+- Feature: Compound Function for Vendor Function
+- Feature: Inline variabile for Vendor Function
+- Dependency: Bump Mockito to 4.8.0
+
 ## 1.8.2
 - Dependency: Bump Caffeine to 2.9.3
 - Dependency: Bump Lombok to 1.18.24

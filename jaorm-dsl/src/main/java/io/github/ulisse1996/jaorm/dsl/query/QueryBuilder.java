@@ -1,11 +1,20 @@
 package io.github.ulisse1996.jaorm.dsl.query;
 
+import io.github.ulisse1996.jaorm.Selectable;
 import io.github.ulisse1996.jaorm.dsl.config.QueryConfig;
 import io.github.ulisse1996.jaorm.dsl.query.common.*;
 import io.github.ulisse1996.jaorm.dsl.query.impl.*;
+import io.github.ulisse1996.jaorm.dsl.query.impl.simple.AliasColumn;
+import io.github.ulisse1996.jaorm.dsl.query.impl.simple.SimpleSelectedImpl;
+import io.github.ulisse1996.jaorm.dsl.query.simple.FromSimpleSelected;
+import io.github.ulisse1996.jaorm.dsl.query.simple.SimpleSelected;
 import io.github.ulisse1996.jaorm.entity.SqlColumn;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class QueryBuilder {
 
@@ -61,5 +70,57 @@ public class QueryBuilder {
 
     public static <R> Case<R> usingCase() {
         return new CaseImpl<>();
+    }
+
+    public static SimpleSelected select(Selectable<?>... selectables) {
+        return new SimpleSelectedImpl(
+                Arrays.stream(selectables)
+                        .map(el -> new AliasColumn(el, null))
+                        .collect(Collectors.toList())
+        );
+    }
+
+    public static IntermediateSelected select(Selectable<?> selectable) {
+        return new IntermediateSelected(selectable, null);
+    }
+
+    public static IntermediateSelected select(Selectable<?> selectable, String alias) {
+        return new IntermediateSelected(selectable, alias);
+    }
+
+    public static class IntermediateSelected implements SimpleSelected {
+
+        private final List<AliasColumn> selectables;
+
+        private IntermediateSelected(Selectable<?> selectable, String alias) {
+            this.selectables = new ArrayList<>();
+            this.selectables.add(new AliasColumn(selectable, alias));
+        }
+
+        public IntermediateSelected select(Selectable<?> selectable, String alias) {
+            this.selectables.add(new AliasColumn(selectable, alias));
+            return this;
+        }
+
+        public IntermediateSelected select(Selectable<?> selectable) {
+            return this.select(selectable, null);
+        }
+
+        @Override
+        public SimpleSelected withConfiguration(QueryConfig config) {
+            SimpleSelected selected = new SimpleSelectedImpl(this.selectables);
+            return selected.withConfiguration(config);
+        }
+
+        @Override
+        public FromSimpleSelected from(String table) {
+            return from(table, null);
+        }
+
+        @Override
+        public FromSimpleSelected from(String table, String alias) {
+            SimpleSelected selected = new SimpleSelectedImpl(this.selectables);
+            return selected.from(table, alias);
+        }
     }
 }

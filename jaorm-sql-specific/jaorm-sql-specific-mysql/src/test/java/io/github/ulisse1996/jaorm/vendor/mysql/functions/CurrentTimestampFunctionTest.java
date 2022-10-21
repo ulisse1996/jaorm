@@ -9,4 +9,9 @@ class CurrentTimestampFunctionTest {
     void should_return_current_timestamp_function() {
         Assertions.assertEquals("CURRENT_TIMESTAMP", CurrentTimestampFunction.INSTANCE.apply(""));
     }
+
+    @Test
+    void should_return_false_for_string_function() {
+        Assertions.assertFalse(CurrentTimestampFunction.INSTANCE.isString());
+    }
 }

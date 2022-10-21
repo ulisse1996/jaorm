@@ -112,7 +112,7 @@ class QueryBuilderTest extends AbstractQueryBuilderTest {
     }
 
     @Test
-    void should_create_select_with_order() throws Throwable {
+    void should_create_select_with_order() {
         withDelegateAndJoin((v) -> {
 
             QueryBuilder.select(MyEntity.class)
@@ -234,7 +234,7 @@ class QueryBuilderTest extends AbstractQueryBuilderTest {
     }
 
     @Test
-    void should_create_select_with_custom_checks() throws Throwable {
+    void should_create_select_with_custom_checks() {
         withDelegateAndJoin((v) -> {
             QueryConfig config = QueryConfig.builder()
                     .caseInsensitive()
@@ -326,7 +326,32 @@ class QueryBuilderTest extends AbstractQueryBuilderTest {
     }
 
     @Test
-    void should_create_select_with_join() throws Throwable {
+    void should_create_select_with_unions() throws Throwable {
+        withSimpleDelegate((v) -> {
+
+            QueryBuilder.select(MyEntity.class)
+                    .where(COL_1).eq(2)
+                    .union(
+                        QueryBuilder.select(MyEntity.class)
+                                .where(COL_2).eq("3")
+                    )
+                    .union(
+                        QueryBuilder.select(MyEntity.class)
+                                .where(COL_3).eq(3)
+                    )
+                    .readAll();
+
+            String sql = "SELECT MY_TABLE.COL1, MY_TABLE.COL2 FROM MY_TABLE WHERE (MY_TABLE.COL1 = ?) " +
+                    "UNION SELECT MY_TABLE.COL1, MY_TABLE.COL2 FROM MY_TABLE WHERE (MY_TABLE.COL2 = ?) " +
+                    "UNION SELECT MY_TABLE.COL1, MY_TABLE.COL2 FROM MY_TABLE WHERE (MY_TABLE.COL3 = ?)";
+
+            Mockito.verify(queryRunner, Mockito.times(1))
+                    .readAll(Mockito.any(), Mockito.eq(sql), Mockito.argThat(matcherList(3)));
+        });
+    }
+
+    @Test
+    void should_create_select_with_join() {
         withDelegateAndJoin((v) -> {
 
             QueryBuilder.select(MyEntity.class)
@@ -401,7 +426,7 @@ class QueryBuilderTest extends AbstractQueryBuilderTest {
     }
 
     @Test
-    void should_create_complex_query_with_nested_join() throws Throwable {
+    void should_create_complex_query_with_nested_join() {
         withDelegateAndDoubleJoin((v) -> {
 
             QueryBuilder.select(MyEntity.class)

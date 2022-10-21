@@ -76,6 +76,13 @@ public class DslColumnsGenerator extends Generator {
         Set<EntityColumn> columns = getEntityColumns(entity);
         TypeSpec.Builder typeSpecBuilder = TypeSpec.classBuilder(entity.getSimpleName() + "Columns")
                 .addModifiers(Modifier.PUBLIC, Modifier.FINAL);
+        if (entity.getAnnotation(Projection.class) == null) {
+            typeSpecBuilder.addField(
+                    FieldSpec.builder(String.class, "TABLE_NAME", Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
+                            .initializer("$S", Optional.ofNullable(entity.getAnnotation(Table.class)).map(Table::name).orElse(""))
+                            .build()
+            );
+        }
         columns.forEach(col -> {
             ParameterizedTypeName sqlColumnType = ParameterizedTypeName.get(
                     ClassName.get(SqlColumn.class),

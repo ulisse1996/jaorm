@@ -1,13 +1,22 @@
 package io.github.ulisse1996.jaorm.entity;
 
+import io.github.ulisse1996.jaorm.Selectable;
 import io.github.ulisse1996.jaorm.entity.converter.ValueConverter;
 
-public interface SqlColumn<T, R> {
+public interface SqlColumn<T, R> extends Selectable<R> {
 
     Class<T> getEntity();
     String getName();
     Class<R> getType();
     ValueConverter<?, R> getConverter(); //NOSONAR
+
+    static <R> SimpleSqlColumn<R> simple(String name, Class<R> klass) {
+        return new SimpleSqlColumn<>(name, klass);
+    }
+
+    default SqlColumnWithAlias<T, R> as(String alias) {
+        return SqlColumnWithAlias.instance(this, alias);
+    }
 
     static <T,R> SqlColumn<T, R> instance(Class<T> entityClass, String name, Class<R> klass, ValueConverter<?, R> valueConverter) {
         return new SqlColumn<T, R>() {

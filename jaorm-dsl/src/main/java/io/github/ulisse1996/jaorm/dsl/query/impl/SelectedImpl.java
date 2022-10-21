@@ -8,6 +8,7 @@ import io.github.ulisse1996.jaorm.dsl.query.common.*;
 import io.github.ulisse1996.jaorm.dsl.query.common.intermediate.IntermediateJoin;
 import io.github.ulisse1996.jaorm.dsl.query.common.intermediate.IntermediateWhere;
 import io.github.ulisse1996.jaorm.dsl.query.common.intermediate.On;
+import io.github.ulisse1996.jaorm.dsl.query.common.trait.WithResult;
 import io.github.ulisse1996.jaorm.dsl.query.enums.JoinType;
 import io.github.ulisse1996.jaorm.dsl.query.enums.OrderType;
 import io.github.ulisse1996.jaorm.dsl.util.Pair;
@@ -39,6 +40,7 @@ public class SelectedImpl<T, N> implements Selected<T>, SelectedWhere<T>, Select
     private final List<JoinImpl<T, ?, ?>> joins;
     private final List<OrderImpl> orders;
     private final boolean caseInsensitiveLike;
+    private final List<WithResult<T>> unions;
     private WhereChecker checker;
     private WhereImpl<T, ?> lastWhere;
     private JoinImpl<T, ?, ?> lastJoin;
@@ -60,6 +62,7 @@ public class SelectedImpl<T, N> implements Selected<T>, SelectedWhere<T>, Select
         this.wheres = new ArrayList<>();
         this.joins = new ArrayList<>();
         this.orders = new ArrayList<>();
+        this.unions = new ArrayList<>();
         this.checker = new DefaultWhereChecker();
     }
 
@@ -97,6 +100,15 @@ public class SelectedImpl<T, N> implements Selected<T>, SelectedWhere<T>, Select
     }
 
     @Override
+    public WithResult<T> union(WithResult<T> union) {
+        if (!(union instanceof SelectedImpl)) {
+            throw new IllegalArgumentException("Invalid union type !");
+        }
+        this.unions.add(union);
+        return this;
+    }
+
+    @Override
     public long count() {
         Pair<String, List<SqlParameter>> pair = doBuild(true);
         return QueryRunner.getSimple().read(long.class, pair.getKey(), pair.getValue());
@@ -105,7 +117,11 @@ public class SelectedImpl<T, N> implements Selected<T>, SelectedWhere<T>, Select
     public List<SqlParameter> getParameters() {
         Stream<SqlParameter> joinParams = this.joins.stream().flatMap(JoinImpl::getParameters);
         Stream<SqlParameter> wheresParams = this.wheres.stream().flatMap(m -> m.getParameters(this.caseInsensitiveLike));
-        return Stream.concat(joinParams, wheresParams).collect(Collectors.toList());
+        Stream<SqlParameter> unionParams = this.unions.stream().flatMap(m -> {
+            SelectedImpl<T, ?> s = (SelectedImpl<T, ?>) m;
+            return s.doBuild(false).getValue().stream();
+        });
+        return Stream.concat(joinParams, Stream.concat(wheresParams, unionParams)).collect(Collectors.toList());
     }
 
     @Override
@@ -379,7 +395,16 @@ public class SelectedImpl<T, N> implements Selected<T>, SelectedWhere<T>, Select
         } else if (offset > 0) {
             builder.append(VendorSpecific.getSpecific(LimitOffsetSpecific.class).convertOffsetSupport(offset));
         }
+        buildUnions(count, builder);
         return builder.toString();
+    }
+
+    private void buildUnions(boolean count, StringBuilder builder) {
+        for (WithResult<T> union : unions) {
+            SelectedImpl<T, ?> u = (SelectedImpl<T, ?>) union;
+            Pair<String, List<SqlParameter>> pair = u.doBuild(count);
+            builder.append(" UNION ").append(pair.getKey());
+        }
     }
 
     private void buildOrder(boolean count, StringBuilder builder) {
