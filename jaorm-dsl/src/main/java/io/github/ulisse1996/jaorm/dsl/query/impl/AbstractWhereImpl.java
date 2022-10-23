@@ -211,9 +211,6 @@ public abstract class AbstractWhereImpl<T, R> {
         );
     }
 
-    protected String getTable() {
-        return "";
-    }
-
+    protected abstract String getTable();
     protected abstract WhereChecker getChecker();
 }
