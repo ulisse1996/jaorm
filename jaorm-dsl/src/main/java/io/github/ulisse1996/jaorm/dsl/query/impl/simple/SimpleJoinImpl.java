@@ -4,13 +4,13 @@ import io.github.ulisse1996.jaorm.dsl.config.QueryConfig;
 import io.github.ulisse1996.jaorm.dsl.query.enums.JoinType;
 import io.github.ulisse1996.jaorm.dsl.query.enums.LikeType;
 import io.github.ulisse1996.jaorm.dsl.query.enums.Operation;
-import io.github.ulisse1996.jaorm.dsl.query.simple.intermediate.IntermediateSimpleJoin;
-import io.github.ulisse1996.jaorm.dsl.query.simple.intermediate.SimpleOn;
-import io.github.ulisse1996.jaorm.dsl.query.simple.intermediate.SimpleSelectedOn;
+import io.github.ulisse1996.jaorm.dsl.query.enums.OrderType;
+import io.github.ulisse1996.jaorm.dsl.query.simple.intermediate.*;
 import io.github.ulisse1996.jaorm.dsl.query.simple.trait.WithProjectionResult;
 import io.github.ulisse1996.jaorm.dsl.util.Pair;
 import io.github.ulisse1996.jaorm.entity.SqlColumn;
 import io.github.ulisse1996.jaorm.entity.sql.SqlParameter;
+import io.github.ulisse1996.jaorm.vendor.VendorFunction;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,6 +30,10 @@ public class SimpleJoinImpl implements SimpleOn, SimpleSelectedOn {
         this.parent = parent;
         this.type = type;
         this.ons = new ArrayList<>();
+    }
+
+    SimpleSelectedImpl getParent() {
+        return parent;
     }
 
     @Override
@@ -207,6 +211,36 @@ public class SimpleJoinImpl implements SimpleOn, SimpleSelectedOn {
     public SimpleSelectedOn withConfiguration(QueryConfig config) {
         this.parent.setConfiguration(config);
         return this;
+    }
+
+    @Override
+    public SimpleOrder orderBy(OrderType type, SqlColumn<?, ?> column, String alias) {
+        return this.parent.orderBy(type, column, alias);
+    }
+
+    @Override
+    public SimpleOrder orderBy(OrderType type, SqlColumn<?, ?> column) {
+        return orderBy(type, column, null);
+    }
+
+    @Override
+    public <R> IntermediateSimpleWhere<R> where(SqlColumn<?, R> column) {
+        return where(column, null);
+    }
+
+    @Override
+    public <R> IntermediateSimpleWhere<R> where(SqlColumn<?, R> column, String alias) {
+        return this.parent.where(column, alias);
+    }
+
+    @Override
+    public <R> IntermediateSimpleWhere<R> where(VendorFunction<R> function) {
+        return where(function, null);
+    }
+
+    @Override
+    public <R> IntermediateSimpleWhere<R> where(VendorFunction<R> function, String alias) {
+        return this.parent.where(function, alias);
     }
 
     private static class SimpleOnImpl<L> implements IntermediateSimpleJoin<L> {

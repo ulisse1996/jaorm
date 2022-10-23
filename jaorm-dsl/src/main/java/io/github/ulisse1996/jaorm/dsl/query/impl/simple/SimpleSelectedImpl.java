@@ -2,16 +2,22 @@ package io.github.ulisse1996.jaorm.dsl.query.impl.simple;
 
 import io.github.ulisse1996.jaorm.dsl.config.QueryConfig;
 import io.github.ulisse1996.jaorm.dsl.query.enums.JoinType;
+import io.github.ulisse1996.jaorm.dsl.query.enums.OrderType;
 import io.github.ulisse1996.jaorm.dsl.query.simple.FromSimpleSelected;
 import io.github.ulisse1996.jaorm.dsl.query.simple.SimpleSelected;
+import io.github.ulisse1996.jaorm.dsl.query.simple.intermediate.IntermediateSimpleWhere;
 import io.github.ulisse1996.jaorm.dsl.query.simple.intermediate.SimpleOn;
+import io.github.ulisse1996.jaorm.dsl.query.simple.intermediate.SimpleOrder;
+import io.github.ulisse1996.jaorm.dsl.query.simple.intermediate.SimpleSelectedWhere;
 import io.github.ulisse1996.jaorm.dsl.query.simple.trait.WithProjectionResult;
 import io.github.ulisse1996.jaorm.dsl.util.Checker;
 import io.github.ulisse1996.jaorm.dsl.util.Pair;
+import io.github.ulisse1996.jaorm.entity.SqlColumn;
 import io.github.ulisse1996.jaorm.entity.SqlColumnWithAlias;
 import io.github.ulisse1996.jaorm.entity.sql.SqlParameter;
 import io.github.ulisse1996.jaorm.spi.ProjectionsService;
 import io.github.ulisse1996.jaorm.spi.QueryRunner;
+import io.github.ulisse1996.jaorm.vendor.VendorFunction;
 import io.github.ulisse1996.jaorm.vendor.VendorFunctionWithAlias;
 import io.github.ulisse1996.jaorm.vendor.VendorFunctionWithParams;
 import io.github.ulisse1996.jaorm.vendor.VendorSpecific;
@@ -23,12 +29,15 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public class SimpleSelectedImpl implements SimpleSelected, FromSimpleSelected {
+public class SimpleSelectedImpl implements SimpleSelected, FromSimpleSelected, SimpleOrder, SimpleSelectedWhere {
 
     private static final String SPACE = " ";
     private final List<AliasColumn> columns;
     private final List<SimpleJoinImpl> joins;
     private final List<SimpleSelectedImpl> unions;
+    private final List<OrderImpl> orders;
+    private final List<SimpleWhereImpl<?>> wheres;
+    private SimpleWhereImpl<?> lastWhere;
     private String table;
     private String alias;
     private QueryConfig configuration = QueryConfig.builder().build();
@@ -39,6 +48,8 @@ public class SimpleSelectedImpl implements SimpleSelected, FromSimpleSelected {
         );
         this.joins = new ArrayList<>();
         this.unions = new ArrayList<>();
+        this.orders = new ArrayList<>();
+        this.wheres = new ArrayList<>();
     }
 
     @Override
@@ -71,8 +82,13 @@ public class SimpleSelectedImpl implements SimpleSelected, FromSimpleSelected {
 
     @Override
     public WithProjectionResult union(WithProjectionResult union) {
-        SimpleSelectedImpl impl = (SimpleSelectedImpl) union;
-        this.unions.add(impl);
+        SimpleSelectedImpl selected;
+        if (union instanceof SimpleJoinImpl) {
+            selected = ((SimpleJoinImpl) union).getParent();
+        } else {
+            selected = (SimpleSelectedImpl) union;
+        }
+        this.unions.add(selected);
         return this;
     }
 
@@ -99,12 +115,42 @@ public class SimpleSelectedImpl implements SimpleSelected, FromSimpleSelected {
             parameters.addAll(build.getValue());
             builder.append(build.getKey()).append(SPACE);
         }
+        String where = buildWheres(getConfiguration().isCaseInsensitive());
+        builder.append(this.joins.isEmpty() ? where : where.trim());
+        parameters.addAll(
+                this.wheres.stream()
+                        .flatMap(m -> m.getParameters(getConfiguration().isCaseInsensitive()))
+                        .collect(Collectors.toList())
+        );
+        for (OrderImpl order : this.orders) {
+            builder.append(this.joins.isEmpty() ? SPACE : "")
+                    .append("ORDER BY ")
+                    .append(order.asString());
+        }
         for (SimpleSelectedImpl union : this.unions) {
             Pair<String, List<SqlParameter>> build = union.doBuild();
             parameters.addAll(build.getValue());
-            builder.append(" UNION ").append(build.getKey());
+            builder.append(this.joins.isEmpty() ? SPACE : "")
+                    .append("UNION ").append(build.getKey());
         }
         return new Pair<>(builder.toString(), parameters);
+    }
+
+    private String buildWheres(boolean caseInsensitiveLike) {
+        StringBuilder builder = new StringBuilder();
+        boolean first = true;
+        for (SimpleWhereImpl<?> where : wheres) {
+            if (first) {
+                String gen = where.asString(true, caseInsensitiveLike);
+                builder.append(gen);
+                if (!gen.trim().isEmpty()) {
+                    first = false;
+                }
+            } else {
+                builder.append(where.asString(false, caseInsensitiveLike));
+            }
+        }
+        return builder.toString();
     }
 
     private String asSelectColumns(AliasesSpecific aliasesSpecific, List<SqlParameter> parameters) {
@@ -216,5 +262,175 @@ public class SimpleSelectedImpl implements SimpleSelected, FromSimpleSelected {
 
     void setConfiguration(QueryConfig config) {
         this.configuration = config;
+    }
+
+    @Override
+    public SimpleOrder orderBy(OrderType type, SqlColumn<?, ?> column, String alias) {
+        this.orders.add(new OrderImpl(type, alias, column));
+        return this;
+    }
+
+    @Override
+    public SimpleOrder orderBy(OrderType type, SqlColumn<?, ?> column) {
+        return orderBy(type, column, null);
+    }
+
+    @Override
+    public <R> IntermediateSimpleWhere<R> where(SqlColumn<?, R> column) {
+        return where(column, null);
+    }
+
+    @Override
+    public <R> IntermediateSimpleWhere<R> where(SqlColumn<?, R> column, String alias) {
+        return addAndReturnLast(column, false, alias);
+    }
+
+    @Override
+    public <R> IntermediateSimpleWhere<R> where(VendorFunction<R> column) {
+        return where(column, null);
+    }
+
+    @Override
+    public <R> IntermediateSimpleWhere<R> where(VendorFunction<R> column, String alias) {
+        return addAndReturnLast(column, false, alias);
+    }
+
+    @Override
+    public <R> IntermediateSimpleWhere<R> andWhere(SqlColumn<?, R> column) {
+        return where(column);
+    }
+
+    @Override
+    public <R> IntermediateSimpleWhere<R> orWhere(SqlColumn<?, R> column) {
+        return addAndReturnLast(column, true, null);
+    }
+
+    @Override
+    public <R> IntermediateSimpleWhere<R> and(SqlColumn<?, R> column) {
+        return addAndReturnLinked(column, false, null);
+    }
+
+    @Override
+    public <R> IntermediateSimpleWhere<R> or(SqlColumn<?, R> column) {
+        return addAndReturnLinked(column, true, null);
+    }
+
+    @Override
+    public <R> IntermediateSimpleWhere<R> andWhere(SqlColumn<?, R> column, String alias) {
+        return where(column, alias);
+    }
+
+    @Override
+    public <R> IntermediateSimpleWhere<R> orWhere(SqlColumn<?, R> column, String alias) {
+        return addAndReturnLast(column, true, alias);
+    }
+
+    @Override
+    public <R> IntermediateSimpleWhere<R> and(SqlColumn<?, R> column, String alias) {
+        return addAndReturnLinked(column, false, alias);
+    }
+
+    @Override
+    public <R> IntermediateSimpleWhere<R> or(SqlColumn<?, R> column, String alias) {
+        return addAndReturnLinked(column, true, alias);
+    }
+
+    @Override
+    public <R> IntermediateSimpleWhere<R> andWhere(VendorFunction<R> function) {
+        return where(function);
+    }
+
+    @Override
+    public <R> IntermediateSimpleWhere<R> orWhere(VendorFunction<R> function) {
+        return addAndReturnLast(function, true, null);
+    }
+
+    @Override
+    public <R> IntermediateSimpleWhere<R> and(VendorFunction<R> function) {
+        return addAndReturnLinked(function, false, null);
+    }
+
+    @Override
+    public <R> IntermediateSimpleWhere<R> or(VendorFunction<R> function) {
+        return addAndReturnLinked(function, true, null);
+    }
+
+    @Override
+    public <R> IntermediateSimpleWhere<R> andWhere(VendorFunction<R> function, String alias) {
+        return where(function, alias);
+    }
+
+    @Override
+    public <R> IntermediateSimpleWhere<R> orWhere(VendorFunction<R> function, String alias) {
+        return addAndReturnLast(function, true, alias);
+    }
+
+    @Override
+    public <R> IntermediateSimpleWhere<R> and(VendorFunction<R> function, String alias) {
+        return addAndReturnLinked(function, false, alias);
+    }
+
+    @Override
+    public <R> IntermediateSimpleWhere<R> or(VendorFunction<R> function, String alias) {
+        return addAndReturnLinked(function, true, alias);
+    }
+
+    private <R> IntermediateSimpleWhere<R> addAndReturnLinked(VendorFunction<R> function, boolean or, String alias) {
+        SimpleWhereImpl<R> where = new SimpleSelectedWhereFunctionImpl<>(function, this, or, alias);
+        this.lastWhere.addLinked(where);
+        return where;
+    }
+
+    @SuppressWarnings("unchecked")
+    private <R> IntermediateSimpleWhere<R> addAndReturnLast(VendorFunction<R> function, boolean or, String alias) {
+        SimpleWhereImpl<R> where = new SimpleSelectedWhereFunctionImpl<>(function, this, or, alias);
+        this.wheres.add(where);
+        this.lastWhere = where;
+        return (IntermediateSimpleWhere<R>) this.lastWhere;
+    }
+
+    private <R> IntermediateSimpleWhere<R> addAndReturnLinked(SqlColumn<?, R> column, boolean or, String alias) {
+        SimpleWhereImpl<R> where = new SimpleWhereImpl<>(column, this, or, alias);
+        this.lastWhere.addLinked(where);
+        return where;
+    }
+
+    @SuppressWarnings("unchecked")
+    private <R> IntermediateSimpleWhere<R> addAndReturnLast(SqlColumn<?, R> column, boolean or, String alias) {
+        SimpleWhereImpl<R> where = new SimpleWhereImpl<>(column, this, or, alias);
+        this.wheres.add(where);
+        this.lastWhere = where;
+        return (IntermediateSimpleWhere<R>) this.lastWhere;
+    }
+
+    @Override
+    public String getSql() {
+        return doBuild().getKey();
+    }
+
+    @Override
+    public List<SqlParameter> getParameters() {
+        return doBuild().getValue();
+    }
+
+    private static class OrderImpl {
+
+        private final OrderType type;
+        private final String alias;
+        private final SqlColumn<?, ?> column;
+
+        private OrderImpl(OrderType type, String alias, SqlColumn<?, ?> column) {
+            this.type = type;
+            this.alias = alias;
+            this.column = column;
+        }
+
+        private String asString() {
+            if (this.alias != null) {
+                return String.format("%s.%s %s", this.alias, this.column.getName(), type.name());
+            } else {
+                return String.format("%s %s", this.column.getName(), type.name());
+            }
+        }
     }
 }

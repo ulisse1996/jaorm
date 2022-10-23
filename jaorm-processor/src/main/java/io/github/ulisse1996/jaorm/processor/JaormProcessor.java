@@ -26,8 +26,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @SupportedAnnotationTypes("io.github.ulisse1996.jaorm.annotation.*")
-@SupportedSourceVersion(SourceVersion.RELEASE_8)
-@SupportedOptions("jaorm.tables.suffix")
 public class JaormProcessor extends AbstractProcessor {
 
     @Override
@@ -45,7 +43,7 @@ public class JaormProcessor extends AbstractProcessor {
             Optional<FileObject> resource = getOrCreateGenerated();
             if (resource.isPresent()) {
                 URI uri = resource.get().toUri();
-                // For test we use memory filesystem, so we need to skip this set
+                // For tests, we use memory filesystem, so we need to skip this set
                 if (isTestInMemory(uri.toString())) {
                     return;
                 }
@@ -119,5 +117,10 @@ public class JaormProcessor extends AbstractProcessor {
         }
 
         return elements;
+    }
+
+    @Override
+    public SourceVersion getSupportedSourceVersion() {
+        return SourceVersion.latestSupported();
     }
 }

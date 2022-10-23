@@ -10,8 +10,11 @@
 - Feature: Vendor Concat Function
 - Feature: Vendor Substring Function
 - Feature: Compound Function for Vendor Function
-- Feature: Inline variabile for Vendor Function
+- Feature: Inline variable for Vendor Function
 - Dependency: Bump Mockito to 4.8.0
+- Dependency: Bump Logback to 1.3.4
+- Bugfix: Move supported source version to latest for Jaorm Processor
+- Removal: Removed old unused options supports for Jaorm Processor
 
 ## 1.8.2
 - Dependency: Bump Caffeine to 2.9.3
@@ -166,7 +169,7 @@
 - Bugfix: Fix README logo
 
 ## 0.20.1
-- Feature: Move Documento to Jaorm Docs
+- Feature: Move Documents to Jaorm Docs
 
 ## 0.20.0
 - Feature: Move SQL Specific Syntax to Jaorm Sql Specific Parent Project

@@ -17,10 +17,6 @@ public class OrderImpl {
         this.parent = parent;
     }
 
-    public String asSimpleString() {
-        return String.format(" %s.%s", fromOrAlias(), this.column);
-    }
-
     public String asString() {
         return String.format(" %s.%s %s", fromOrAlias(), this.column, this.type);
     }
