@@ -12,7 +12,6 @@
 - Feature: Compound Function for Vendor Function
 - Feature: Inline variable for Vendor Function
 - Dependency: Bump Mockito to 4.8.0
-- Dependency: Bump Logback to 1.3.4
 - Bugfix: Move supported source version to latest for Jaorm Processor
 - Removal: Removed old unused options supports for Jaorm Processor
 
