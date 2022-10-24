@@ -156,6 +156,6 @@ public class SimpleWhereImpl<R> extends AbstractWhereImpl<Object, R> implements 
 
     @Override
     protected String getTable() {
-        return "";
+        return null;
     }
 }
