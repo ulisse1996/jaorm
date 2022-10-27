@@ -3,12 +3,10 @@ package io.github.ulisse1996.jaorm.dsl.query.impl.simple;
 import io.github.ulisse1996.jaorm.dsl.config.QueryConfig;
 import io.github.ulisse1996.jaorm.dsl.query.enums.JoinType;
 import io.github.ulisse1996.jaorm.dsl.query.enums.OrderType;
+import io.github.ulisse1996.jaorm.dsl.query.impl.AbstractLimitOffsetImpl;
 import io.github.ulisse1996.jaorm.dsl.query.simple.FromSimpleSelected;
 import io.github.ulisse1996.jaorm.dsl.query.simple.SimpleSelected;
-import io.github.ulisse1996.jaorm.dsl.query.simple.intermediate.IntermediateSimpleWhere;
-import io.github.ulisse1996.jaorm.dsl.query.simple.intermediate.SimpleOn;
-import io.github.ulisse1996.jaorm.dsl.query.simple.intermediate.SimpleOrder;
-import io.github.ulisse1996.jaorm.dsl.query.simple.intermediate.SimpleSelectedWhere;
+import io.github.ulisse1996.jaorm.dsl.query.simple.intermediate.*;
 import io.github.ulisse1996.jaorm.dsl.query.simple.trait.WithProjectionResult;
 import io.github.ulisse1996.jaorm.dsl.util.Checker;
 import io.github.ulisse1996.jaorm.dsl.util.Pair;
@@ -29,7 +27,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public class SimpleSelectedImpl implements SimpleSelected, FromSimpleSelected, SimpleOrder, SimpleSelectedWhere {
+public class SimpleSelectedImpl extends AbstractLimitOffsetImpl implements SimpleSelected, FromSimpleSelected,
+        SimpleOrder, SimpleSelectedWhere, SimpleSelectedLimit, SimpleSelectedOffset {
 
     private static final String SPACE = " ";
     private final List<AliasColumn> columns;
@@ -41,6 +40,8 @@ public class SimpleSelectedImpl implements SimpleSelected, FromSimpleSelected, S
     private String table;
     private String alias;
     private QueryConfig configuration = QueryConfig.builder().build();
+    private int limit;
+    private int offset;
 
     public SimpleSelectedImpl(List<AliasColumn> columns) {
         this.columns = Collections.unmodifiableList(
@@ -127,6 +128,7 @@ public class SimpleSelectedImpl implements SimpleSelected, FromSimpleSelected, S
                     .append("ORDER BY ")
                     .append(order.asString());
         }
+        buildLimitOffset(builder, limit, offset);
         for (SimpleSelectedImpl union : this.unions) {
             Pair<String, List<SqlParameter>> build = union.doBuild();
             parameters.addAll(build.getValue());
@@ -411,6 +413,24 @@ public class SimpleSelectedImpl implements SimpleSelected, FromSimpleSelected, S
     @Override
     public List<SqlParameter> getParameters() {
         return doBuild().getValue();
+    }
+
+    @Override
+    public SimpleSelectedLimit limit(int rows) {
+        if (rows <= 0) {
+            throw new IllegalArgumentException("Limit can't be <= 0");
+        }
+        this.limit = rows;
+        return this;
+    }
+
+    @Override
+    public SimpleSelectedOffset offset(int rows) {
+        if (rows <= 0) {
+            throw new IllegalArgumentException("Offset can't be <= 0");
+        }
+        this.offset = rows;
+        return this;
     }
 
     private static class OrderImpl {

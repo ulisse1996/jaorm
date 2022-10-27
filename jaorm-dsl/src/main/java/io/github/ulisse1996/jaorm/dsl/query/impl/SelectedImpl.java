@@ -21,7 +21,6 @@ import io.github.ulisse1996.jaorm.spi.QueryRunner;
 import io.github.ulisse1996.jaorm.vendor.VendorFunction;
 import io.github.ulisse1996.jaorm.vendor.VendorSpecific;
 import io.github.ulisse1996.jaorm.vendor.specific.CountSpecific;
-import io.github.ulisse1996.jaorm.vendor.specific.LimitOffsetSpecific;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -30,7 +29,8 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class SelectedImpl<T, N> implements Selected<T>, SelectedWhere<T>, SelectedOn<T, N>,
+public class SelectedImpl<T, N> extends AbstractLimitOffsetImpl
+        implements Selected<T>, SelectedWhere<T>, SelectedOn<T, N>,
         SelectedLimit<T>, SelectedOffset<T>, SelectedOrder<T> {
 
     private final List<String> columns;
@@ -388,13 +388,7 @@ public class SelectedImpl<T, N> implements Selected<T>, SelectedWhere<T>, Select
         if (!this.orders.isEmpty()) {
             buildOrder(count, builder);
         }
-        if (offset > 0 && limit > 0) {
-            builder.append(VendorSpecific.getSpecific(LimitOffsetSpecific.class).convertOffSetLimitSupport(limit, offset));
-        } else if (limit > 0) {
-            builder.append(VendorSpecific.getSpecific(LimitOffsetSpecific.class).convertOffSetLimitSupport(limit));
-        } else if (offset > 0) {
-            builder.append(VendorSpecific.getSpecific(LimitOffsetSpecific.class).convertOffsetSupport(offset));
-        }
+        buildLimitOffset(builder, limit, offset);
         buildUnions(count, builder);
         return builder.toString();
     }

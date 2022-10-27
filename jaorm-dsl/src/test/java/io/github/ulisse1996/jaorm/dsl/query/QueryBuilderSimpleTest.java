@@ -20,6 +20,7 @@ import io.github.ulisse1996.jaorm.vendor.VendorFunction;
 import io.github.ulisse1996.jaorm.vendor.VendorFunctionWithParams;
 import io.github.ulisse1996.jaorm.vendor.VendorSpecific;
 import io.github.ulisse1996.jaorm.vendor.specific.AliasesSpecific;
+import io.github.ulisse1996.jaorm.vendor.specific.LimitOffsetSpecific;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -823,6 +824,90 @@ class QueryBuilderSimpleTest extends AbstractQueryBuilderTest {
         });
     }
 
+    @ParameterizedTest
+    @MethodSource("getLimitOffset")
+    void should_generate_limit_offset(WithProjectionResult result, String sql) {
+        withProjectionRunner((runner, service) -> {
+            ArgumentCaptor<String> sqlCapture = ArgumentCaptor.forClass(String.class);
+
+            Mockito.when(projectionsService.searchDelegate(MyProjection.class))
+                    .thenReturn(() -> delegate);
+            Mockito.when(runner.readAll(Mockito.any(), Mockito.anyString(), Mockito.any()))
+                    .thenReturn(Collections.emptyList());
+
+            result.readAll(MyProjection.class);
+
+            Mockito.verify(runner)
+                    .readAll(Mockito.eq(MyProjection.class), sqlCapture.capture(), Mockito.any());
+
+            Assertions.assertEquals(
+                    sql, sqlCapture.getValue().trim()
+            );
+        });
+    }
+
+    @Test
+    void should_throw_exception_for_invalid_offset() {
+        Assertions.assertThrows(
+                IllegalArgumentException.class,
+                () -> QueryBuilder.select(COL_1).from("TAB1").offset(-1)
+        );
+    }
+
+    @Test
+    void should_throw_exception_for_invalid_limit() {
+        Assertions.assertThrows(
+                IllegalArgumentException.class,
+                () -> QueryBuilder.select(COL_1).from("TAB1").limit(-1)
+        );
+    }
+
+    private static Stream<Arguments> getLimitOffset() {
+        return Stream.of(
+                Arguments.of(
+                        QueryBuilder.select(COL_1)
+                                .from("TAB1")
+                                .offset(10),
+                        "SELECT COL1 FROM TAB1 OFFSET 10"
+                ),
+                Arguments.of(
+                        QueryBuilder.select(COL_1)
+                                .from("TAB1")
+                                .offset(10)
+                                .limit(5),
+                        "SELECT COL1 FROM TAB1 LIMIT 5 OFFSET 10"
+                ),
+                Arguments.of(
+                        QueryBuilder.select(COL_1)
+                                .from("TAB1")
+                                .limit(10),
+                        "SELECT COL1 FROM TAB1 LIMIT 10"
+                ),
+                Arguments.of(
+                        QueryBuilder.select(COL_1)
+                                .from("TAB1")
+                                .orderBy(OrderType.DESC, COL_2)
+                                .limit(10),
+                        "SELECT COL1 FROM TAB1 ORDER BY COL2 DESC LIMIT 10"
+                ),
+                Arguments.of(
+                        QueryBuilder.select(COL_1)
+                                .from("TAB1")
+                                .orderBy(OrderType.DESC, COL_2)
+                                .offset(5)
+                                .limit(10),
+                        "SELECT COL1 FROM TAB1 ORDER BY COL2 DESC LIMIT 10 OFFSET 5"
+                ),
+                Arguments.of(
+                        QueryBuilder.select(COL_1)
+                                .from("TAB1")
+                                .orderBy(OrderType.DESC, COL_2)
+                                .offset(5),
+                        "SELECT COL1 FROM TAB1 ORDER BY COL2 DESC OFFSET 5"
+                )
+        );
+    }
+
     private static Stream<Arguments> getWheres() {
         return Stream.of(
 
@@ -1206,6 +1291,8 @@ class QueryBuilderSimpleTest extends AbstractQueryBuilderTest {
             mkRunner.when(() -> QueryRunner.getInstance(Mockito.any())).thenReturn(queryRunner);
             mkVendor.when(() -> VendorSpecific.getSpecific(AliasesSpecific.class))
                     .thenReturn(new CustomAliases());
+            mkVendor.when(() -> VendorSpecific.getSpecific(LimitOffsetSpecific.class))
+                    .thenReturn(new CustomLimitOffset());
             mkProj.when(ProjectionsService::getInstance).thenReturn(projectionsService);
 
             runnerConsumer.accept(queryRunner, projectionsService);
@@ -1385,6 +1472,24 @@ class QueryBuilderSimpleTest extends AbstractQueryBuilderTest {
 
         public void setCol2(String col2) {
             this.col2 = col2;
+        }
+    }
+
+    private static class CustomLimitOffset implements LimitOffsetSpecific {
+
+        @Override
+        public String convertOffSetLimitSupport(int limitRow) {
+            return String.format(" LIMIT %d", limitRow);
+        }
+
+        @Override
+        public String convertOffsetSupport(int offset) {
+            return String.format(" OFFSET %d ", offset);
+        }
+
+        @Override
+        public String convertOffSetLimitSupport(int limitRow, int offsetRow) {
+            return String.format(" LIMIT %d OFFSET %d", limitRow, offsetRow);
         }
     }
 
