@@ -17,22 +17,14 @@ class ReplaceFunctionTest {
 
     @ParameterizedTest
     @MethodSource("getNoReplacement")
-    void should_create_replace_fn_without_replacement(Selectable<String> selectable, String expected) {
+    void should_create_replace(Selectable<String> selectable, String expected) {
         Assertions.assertEquals(
                 expected,
-                AnsiFunctions.replace(selectable, "TERM").apply("MY_TABLE")
+                AnsiFunctions.replace(selectable, "TERM", "OTHER").apply("MY_TABLE")
         );
     }
 
     private static Stream<Arguments> getNoReplacement() {
-        return Stream.of(
-                Arguments.of(COL_1, "REPLACE(MY_TABLE.COL_1, ?)"),
-                Arguments.of(AnsiFunctions.upper(COL_1), "REPLACE(UPPER(MY_TABLE.COL_1), ?)"),
-                Arguments.of(InlineValue.inline("3_TERM"), "REPLACE(?, ?)")
-        );
-    }
-
-    private static Stream<Arguments> getReplacement() {
         return Stream.of(
                 Arguments.of(COL_1, "REPLACE(MY_TABLE.COL_1, ?, ?)"),
                 Arguments.of(AnsiFunctions.upper(COL_1), "REPLACE(UPPER(MY_TABLE.COL_1), ?, ?)"),

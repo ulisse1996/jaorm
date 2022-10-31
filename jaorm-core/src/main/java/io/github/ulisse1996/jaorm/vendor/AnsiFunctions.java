@@ -28,10 +28,6 @@ public class AnsiFunctions {
         return new CoalesceFunction<>(Arrays.asList(selectables));
     }
 
-    public static ReplaceFunction replace(Selectable<String> selectable, String search) {
-        return replace(selectable, search, null);
-    }
-
     public static ReplaceFunction replace(Selectable<String> selectable, String search, String replacement) {
         return new ReplaceFunction(selectable, search, replacement);
     }

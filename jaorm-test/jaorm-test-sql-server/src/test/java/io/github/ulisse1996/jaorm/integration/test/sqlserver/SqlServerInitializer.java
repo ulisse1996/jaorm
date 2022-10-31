@@ -91,7 +91,7 @@ public class SqlServerInitializer implements DatabaseInitializer {
     private void ensureInit() {
         synchronized (this) {
             if (!INSTANCE.isPresent()) {
-                INSTANCE.set(new MSSQLServerContainer<>(DockerImageName.parse("mcr.microsoft.com/mssql/server:2017-CU12")));
+                INSTANCE.set(new MSSQLServerContainer<>(DockerImageName.parse("mcr.microsoft.com/mssql/server:latest")));
                 INSTANCE.get().acceptLicense();
             }
         }

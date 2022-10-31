@@ -848,7 +848,7 @@ class QueryBuilderSimpleTest extends AbstractQueryBuilderTest {
 
     @Test
     void should_throw_exception_for_invalid_offset() {
-        Assertions.assertThrows(
+        Assertions.assertThrows( //NOSONAR
                 IllegalArgumentException.class,
                 () -> QueryBuilder.select(COL_1).from("TAB1").offset(-1)
         );
@@ -856,7 +856,7 @@ class QueryBuilderSimpleTest extends AbstractQueryBuilderTest {
 
     @Test
     void should_throw_exception_for_invalid_limit() {
-        Assertions.assertThrows(
+        Assertions.assertThrows( //NOSONAR
                 IllegalArgumentException.class,
                 () -> QueryBuilder.select(COL_1).from("TAB1").limit(-1)
         );
