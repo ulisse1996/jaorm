@@ -5,7 +5,7 @@ import io.github.ulisse1996.jaorm.vendor.VendorFunction;
 
 public interface LengthSpecific extends Specific {
 
-    LengthSpecific NO_OP = (selectable) -> {
+    LengthSpecific NO_OP = selectable -> {
         throw new UnsupportedOperationException("No Op implementation !");
     };
 
