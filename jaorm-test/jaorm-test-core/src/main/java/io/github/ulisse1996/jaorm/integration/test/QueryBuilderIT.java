@@ -11,6 +11,7 @@ import io.github.ulisse1996.jaorm.entity.EntityComparator;
 import io.github.ulisse1996.jaorm.entity.Page;
 import io.github.ulisse1996.jaorm.exception.JaormSqlException;
 import io.github.ulisse1996.jaorm.integration.test.entity.*;
+import io.github.ulisse1996.jaorm.integration.test.projection.UsernameProjection;
 import io.github.ulisse1996.jaorm.integration.test.query.RoleDAO;
 import io.github.ulisse1996.jaorm.integration.test.query.UserDAO;
 import io.github.ulisse1996.jaorm.integration.test.query.UserRoleDAO;
@@ -432,6 +433,38 @@ public abstract class QueryBuilderIT extends AbstractIT {
         Assertions.assertTrue(optUser.isPresent());
         Assertions.assertEquals(1, optUser.get().getId());
         Assertions.assertEquals("NAME_1", optUser.get().getName());
+    }
+
+    @Test
+    void should_read_upper_user_name() {
+        UserDAO userDAO = QueriesService.getInstance().getQuery(UserDAO.class);
+        User user = createUser(1);
+
+        userDAO.insert(user);
+
+        Optional<UsernameProjection> projection = QueryBuilder.select(UserColumns.USER_NAME)
+                .from(UserColumns.TABLE_NAME)
+                .where(AnsiFunctions.upper(UserColumns.USER_NAME)).eq("NAME_1")
+                .readOpt(UsernameProjection.class);
+
+        Assertions.assertTrue(projection.isPresent());
+        Assertions.assertEquals("NAME_1", projection.get().getName());
+    }
+
+    @Test
+    void should_search_upper_name_returning_lower_name() {
+        UserDAO userDAO = QueriesService.getInstance().getQuery(UserDAO.class);
+        User user = createUser(1);
+
+        userDAO.insert(user);
+
+        Optional<UsernameProjection> projection = QueryBuilder.select(AnsiFunctions.lower(UserColumns.USER_NAME).as("USER_NAME"))
+                .from(UserColumns.TABLE_NAME)
+                .where(AnsiFunctions.upper(UserColumns.USER_NAME)).eq("NAME_1")
+                .readOpt(UsernameProjection.class);
+
+        Assertions.assertTrue(projection.isPresent());
+        Assertions.assertEquals("name_1", projection.get().getName());
     }
 
     private User createUser(int i) {

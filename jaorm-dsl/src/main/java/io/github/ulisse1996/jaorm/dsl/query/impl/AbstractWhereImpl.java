@@ -89,9 +89,15 @@ public abstract class AbstractWhereImpl<T, R> {
 
     protected void buildClause(StringBuilder builder, boolean caseInsensitiveLike) {
         String format = caseInsensitiveLike && this.likeType != null ? "UPPER(%s.%s)" : "%s.%s";
+        String simpleFormat = caseInsensitiveLike && this.likeType != null ? "UPPER(%s)" : "%s";
         String val;
         if (this.column != null) {
-            val = String.format(format, getFrom(this), this.column.getName());
+            String from = getFrom(this);
+            if (from == null || from.isEmpty()) {
+                val = String.format(simpleFormat, this.column.getName());
+            } else {
+                val = String.format(format, from, this.column.getName());
+            }
         } else {
             val = getFunctionFormat(caseInsensitiveLike);
         }
@@ -114,9 +120,15 @@ public abstract class AbstractWhereImpl<T, R> {
 
     protected void buildInner(StringBuilder builder, boolean caseInsensitiveLike, AbstractWhereImpl<?, ?> inner) {
         String innerFormat = caseInsensitiveLike && inner.likeType != null ? "UPPER(%s.%s)" : "%s.%s";
+        String simpleInnerFormat = caseInsensitiveLike && inner.likeType != null ? "UPPER(%s)" : "%s";
         String format;
         if (inner.column != null) {
-            format = String.format(innerFormat, getFrom(inner), inner.column.getName());
+            String from = getFrom(inner);
+            if (from == null || from.isEmpty()) {
+                format = String.format(simpleInnerFormat, inner.column.getName());
+            } else {
+                format = String.format(innerFormat, from, inner.column.getName());
+            }
         } else {
             WhereFunctionImpl<?> func = (WhereFunctionImpl<?>) inner;
             format = func.getFormat(func.getFunction(), caseInsensitiveLike, inner);
@@ -199,6 +211,6 @@ public abstract class AbstractWhereImpl<T, R> {
         );
     }
 
-    protected abstract WhereChecker getChecker();
     protected abstract String getTable();
+    protected abstract WhereChecker getChecker();
 }

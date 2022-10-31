@@ -4,9 +4,10 @@ public class Checker {
 
     private Checker() {}
 
-    public static void assertNotNull(Object o, String name) {
+    public static <T> T assertNotNull(T o, String name) {
         if (o == null) {
             throw new IllegalArgumentException(String.format("%s can't be null !", name));
         }
+        return o;
     }
 }

@@ -8,5 +8,5 @@ public interface WithResult<T> {
     T read();
     Optional<T> readOpt();
     List<T> readAll();
-    long count();
+    WithResult<T> union(WithResult<T> union);
 }

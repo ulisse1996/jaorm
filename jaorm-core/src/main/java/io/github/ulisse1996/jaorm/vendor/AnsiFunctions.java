@@ -1,6 +1,9 @@
 package io.github.ulisse1996.jaorm.vendor;
 
-import io.github.ulisse1996.jaorm.entity.SqlColumn;
+import io.github.ulisse1996.jaorm.Selectable;
+import io.github.ulisse1996.jaorm.vendor.ansi.*;
+
+import java.util.Arrays;
 
 public class AnsiFunctions {
 
@@ -8,49 +11,24 @@ public class AnsiFunctions {
         throw new UnsupportedOperationException("No instance for utility class !");
     }
 
-    public static <T> VendorFunction<String> upper(SqlColumn<T, String> column) {
-        return new UpperFunction(column);
+    public static UpperFunction upper(Selectable<String> selectable) {
+        return new UpperFunction(selectable);
     }
 
-    public static <T> VendorFunction<String> lower(SqlColumn<T, String> column) {
-        return new LowerFunction(column);
+    public static LowerFunction lower(Selectable<String> selectable) {
+        return new LowerFunction(selectable);
     }
 
-    private static class UpperFunction implements VendorFunction<String> {
-
-        private final SqlColumn<?, String> column;
-
-        private UpperFunction(SqlColumn<?, String> column) {
-            this.column = column;
-        }
-
-        @Override
-        public String apply(String alias) {
-            return String.format("UPPER(%s.%s)", alias, column.getName());
-        }
-
-        @Override
-        public boolean isString() {
-            return true;
-        }
+    public static LengthFunction length(Selectable<String> selectable) {
+        return new LengthFunction(selectable);
     }
 
-    private static class LowerFunction implements VendorFunction<String> {
+    @SafeVarargs
+    public static <R> CoalesceFunction<R> coalesce(Selectable<R>... selectables) {
+        return new CoalesceFunction<>(Arrays.asList(selectables));
+    }
 
-        private final SqlColumn<?, String> column;
-
-        private LowerFunction(SqlColumn<?, String> column) {
-            this.column = column;
-        }
-
-        @Override
-        public String apply(String alias) {
-            return String.format("LOWER(%s.%s)", alias, column.getName());
-        }
-
-        @Override
-        public boolean isString() {
-            return true;
-        }
+    public static ReplaceFunction replace(Selectable<String> selectable, String search, String replacement) {
+        return new ReplaceFunction(selectable, search, replacement);
     }
 }

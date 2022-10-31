@@ -9,4 +9,9 @@ class CurrentDateFunctionTest {
     void should_return_current_date_function() {
         Assertions.assertEquals("CURRENT_DATE", CurrentDateFunction.INSTANCE.apply(""));
     }
+
+    @Test
+    void should_return_false_for_string_function() {
+        Assertions.assertFalse(CurrentDateFunction.INSTANCE.isString());
+    }
 }

@@ -5,7 +5,7 @@
     <parent>
         <artifactId>jaorm-pom</artifactId>
         <groupId>io.github.ulisse1996</groupId>
-        <version>1.8.2</version>
+        <version>1.9.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -16,6 +16,7 @@
     <properties>
         <sonar.skip>true</sonar.skip>
         <maven.deploy.skip>true</maven.deploy.skip>
+        <testcontainers.version>1.17.5</testcontainers.version>
     </properties>
 
     <modules>

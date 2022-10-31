@@ -31,7 +31,12 @@ public enum LikeType {
     }
 
     public String format(String joinTable, String joinedColumn, boolean caseInsensitiveLike) {
-        String sel = caseInsensitiveLike ? this.caseInsensitiveValue : this.value;
+        String sel = getValue(caseInsensitiveLike);
         return sel.replace("?", String.format("%s.%s",joinTable, joinedColumn));
+    }
+
+    public String format(String joinColumn, boolean caseInsensitiveLike) {
+        String sel = getValue(caseInsensitiveLike);
+        return sel.replace("?", joinColumn);
     }
 }
