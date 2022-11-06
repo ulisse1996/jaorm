@@ -2,7 +2,6 @@ package io.github.ulisse1996.jaorm.extension.cdi;
 
 import io.github.ulisse1996.jaorm.spi.BeanProvider;
 
-import javax.enterprise.inject.Instance;
 import javax.enterprise.inject.spi.CDI;
 import java.util.List;
 import java.util.Optional;

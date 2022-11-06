@@ -9,6 +9,8 @@ public class ContextHolder {
 
     private static final Singleton<BeanContext> HOLDER = Singleton.instance();
 
+    private ContextHolder() {}
+
     public static BeanContext getContext() {
         return Objects.requireNonNull(HOLDER.get());
     }
