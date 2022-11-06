@@ -1,6 +1,7 @@
 package io.github.ulisse1996.jaorm.logger;
 
 import io.github.ulisse1996.jaorm.ServiceFinder;
+import io.github.ulisse1996.jaorm.spi.BeanProvider;
 
 import java.util.Optional;
 import java.util.ServiceConfigurationError;
@@ -16,7 +17,14 @@ class SimpleJaormLogger implements JaormLogger {
         this.klass = klass;
         JaormLoggerHandler foundHandler;
         try {
-            foundHandler = ServiceFinder.loadService(JaormLoggerHandler.class);
+            BeanProvider provider = BeanProvider.getInstance();
+
+            if (provider.isActive()) {
+                foundHandler = provider.getOptBean(JaormLoggerHandler.class)
+                        .orElse(null);
+            } else {
+                foundHandler = ServiceFinder.loadService(JaormLoggerHandler.class);
+            }
         } catch (Exception | ServiceConfigurationError ex) {
             foundHandler = new StandardLoggerHandler(klass);
         }

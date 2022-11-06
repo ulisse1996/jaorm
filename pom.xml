@@ -7,7 +7,7 @@
     <groupId>io.github.ulisse1996</groupId>
     <artifactId>jaorm-pom</artifactId>
     <packaging>pom</packaging>
-    <version>1.9.0</version>
+    <version>1.10.0</version>
     <modules>
         <module>jaorm-processor</module>
         <module>jaorm-core</module>
@@ -28,15 +28,66 @@
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <junit.version>5.8.2</junit.version>
-        <mockito.version>4.8.0</mockito.version>
         <sonar.projectKey>ulisse1996_JAORM</sonar.projectKey>
         <sonar.moduleKey>${project.groupId}:${project.artifactId}</sonar.moduleKey>
         <sonar.organization>ulisse1996</sonar.organization>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
-        <jacoco-maven-plugin.version>0.8.6</jacoco-maven-plugin.version>
         <sonar.coverage.jacoco.xmlReportPaths>jaorm-bom/target/site/jacoco-aggregate/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
         <aggregate.report.dir>jaorm-bom/target/site/jacoco-aggregate/jacoco.xml</aggregate.report.dir>
+
+        <!-- Dependencies -->
+        <caffeine.version>2.9.3</caffeine.version>
+        <sl4j.version>1.7.36</sl4j.version>
+        <teiid.version>16.0.0</teiid.version>
+        <jakarta.cdi.version>3.0.0</jakarta.cdi.version>
+        <javax.cdi.version>2.0</javax.cdi.version>
+        <spring.version>5.3.23</spring.version>
+        <spring.boot.version>2.7.5</spring.boot.version>
+        <micronaut.version>3.7.3</micronaut.version>
+        <javapoet.version>1.13.0</javapoet.version>
+        <lombok.version>1.18.24</lombok.version>
+        <compile.testing.version>0.19</compile.testing.version>
+        <javax.validation.api.version>2.0.1.Final</javax.validation.api.version>
+
+        <!-- Tests -->
+        <junit.version>5.8.2</junit.version>
+        <mockito.version>4.8.0</mockito.version>
+        <testcontainers.version>1.17.5</testcontainers.version>
+        <logback.version>1.2.11</logback.version>
+        <weld.junit5.version>2.0.2.Final</weld.junit5.version>
+        <weld.junit5.jakarta.version>3.1.0.Final</weld.junit5.jakarta.version>
+        <spring.data.version>2.4.0</spring.data.version>
+        <hibernate.version>6.0.21.Final</hibernate.version>
+        <javax.el.version>3.0.0</javax.el.version>
+        <hikari.version>4.0.3</hikari.version>
+        <h2.version>2.1.214</h2.version>
+        <micronaut.data.version>3.8.1</micronaut.data.version>
+        <micronaut.jdbc.version>4.7.2</micronaut.jdbc.version>
+        <micronaut.test.version>3.7.0</micronaut.test.version>
+        <mysql.jdbc.version>8.0.30</mysql.jdbc.version>
+        <oracle.jdbc.version>19.15.0.0.1</oracle.jdbc.version>
+        <postgre.jdbc.version>42.4.1</postgre.jdbc.version>
+        <mssql.jdbc.version>10.2.1.jre8</mssql.jdbc.version>
+
+        <!-- Maven Plugins -->
+        <jaxb.version>2.3.1</jaxb.version>
+        <jacoco.version>0.8.6</jacoco.version>
+        <sonar.version>3.7.0.1746</sonar.version>
+        <maven.install.version>2.5.2</maven.install.version>
+        <maven.source.version>2.2.1</maven.source.version>
+        <maven.javadoc.version>2.9.1</maven.javadoc.version>
+        <maven.gpg.version>1.6</maven.gpg.version>
+        <maven.compiler.version>3.8.1</maven.compiler.version>
+        <maven.surefire.version>3.0.0-M5</maven.surefire.version>
+        <maven.failsafe.version>3.0.0-M5</maven.failsafe.version>
+        <micronaut.maven.version>3.4.0</micronaut.maven.version>
+        <maven.plugin.api.version>3.0.3</maven.plugin.api.version>
+        <maven.plugin.annotations.version>3.4</maven.plugin.annotations.version>
+        <maven.compact.version>3.0.3</maven.compact.version>
+        <maven.plugin.version>3.6.1</maven.plugin.version>
+        <maven.jar.version>3.2.0</maven.jar.version>
+        <java.parser.version>3.23.1</java.parser.version>
+        <jsql.parser.version>4.2</jsql.parser.version>
     </properties>
 
     <name>JAORM (Parent)</name>
@@ -137,12 +188,12 @@
                 <plugin>
                     <groupId>org.sonarsource.scanner.maven</groupId>
                     <artifactId>sonar-maven-plugin</artifactId>
-                    <version>3.7.0.1746</version>
+                    <version>${sonar.version}</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-install-plugin</artifactId>
-                    <version>2.5.2</version>
+                    <version>${maven.install.version}</version>
                     <configuration>
                         <createChecksum>true</createChecksum>
                     </configuration>
@@ -171,7 +222,7 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-source-plugin</artifactId>
-                        <version>2.2.1</version>
+                        <version>${maven.source.version}</version>
                         <executions>
                             <execution>
                                 <id>attach-sources</id>
@@ -184,7 +235,7 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-javadoc-plugin</artifactId>
-                        <version>2.9.1</version>
+                        <version>${maven.javadoc.version}</version>
                         <executions>
                             <execution>
                                 <id>attach-javadocs</id>
@@ -197,7 +248,7 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-gpg-plugin</artifactId>
-                        <version>1.6</version>
+                        <version>${maven.gpg.version}</version>
                         <executions>
                             <execution>
                                 <id>sign-artifacts</id>
@@ -225,7 +276,7 @@
                 <dependency>
                     <groupId>javax.xml.bind</groupId>
                     <artifactId>jaxb-api</artifactId>
-                    <version>2.3.1</version>
+                    <version>${jaxb.version}</version>
                 </dependency>
             </dependencies>
         </profile>

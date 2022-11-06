@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 1.10.0
+- Feature: BeanProvider for Dependency Injection Extensions
+- Feature: CDI Jakarta Extension
+- Feature: CDI Javax Extension
+- Feature: Spring DI Extension
+- Feature: Micronaut DI Extension
+- Refactor: Move dependencies version to base pom
+
 ## 1.9.0
 - Feature: Simple DSL for Select with Projections
 - Feature: Union for DSL

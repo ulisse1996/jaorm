@@ -6,7 +6,10 @@ import io.github.ulisse1996.jaorm.entity.sql.SqlParameter;
 import io.github.ulisse1996.jaorm.exception.JaormSqlException;
 import io.github.ulisse1996.jaorm.mapping.Cursor;
 import io.github.ulisse1996.jaorm.mapping.TableRow;
+import io.github.ulisse1996.jaorm.spi.BeanProvider;
 import io.github.ulisse1996.jaorm.spi.ConverterService;
+import io.github.ulisse1996.jaorm.spi.common.Singleton;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -17,6 +20,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import javax.sql.DataSource;
+import java.lang.reflect.Field;
 import java.sql.*;
 import java.util.Arrays;
 import java.util.Collections;
@@ -39,6 +43,27 @@ class SimpleQueryRunnerTest {
     @BeforeEach
     public void beforeEach() {
         DatasourceProviderImpl.DATA_SOURCE_THREAD_LOCAL.remove();
+        try {
+            getProvider().set(Mockito.mock(BeanProvider.class));
+        } catch (Exception ex) {
+            Assertions.fail(ex);
+        }
+    }
+
+    @AfterEach
+    void reset() {
+        try {
+            getProvider().set(null);
+        } catch (Exception ex) {
+            Assertions.fail(ex);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private Singleton<BeanProvider> getProvider() throws NoSuchFieldException, IllegalAccessException {
+        Field field = BeanProvider.class.getDeclaredField("INSTANCE");
+        field.setAccessible(true);
+        return (Singleton<BeanProvider>) field.get(null);
     }
 
     @Test
@@ -109,6 +134,7 @@ class SimpleQueryRunnerTest {
         }
     }
 
+    @SuppressWarnings("resource")
     @Test
     void should_read_table_row() throws Exception {
         String expected = "EXPECTED";
@@ -219,6 +245,7 @@ class SimpleQueryRunnerTest {
         }
     }
 
+    @SuppressWarnings("resource")
     @Test
     void should_throw_sql_exception_for_read_with_table_row() {
         try {

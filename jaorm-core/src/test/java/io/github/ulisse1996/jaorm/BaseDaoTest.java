@@ -30,8 +30,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-@ExtendWith(ExceptionLogger.class)
-@ExtendWith(MockitoExtension.class)
+@ExtendWith({MockitoExtension.class, ExceptionLogger.class, MockedProvider.class})
 class BaseDaoTest {
 
     @Mock private EntityValidator validator;

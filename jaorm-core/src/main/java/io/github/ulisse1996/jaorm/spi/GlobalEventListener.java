@@ -12,6 +12,13 @@ public abstract class GlobalEventListener {
     private static final Singleton<GlobalEventListener> INSTANCE = Singleton.instance();
 
     public static synchronized GlobalEventListener getInstance() {
+        BeanProvider provider = BeanProvider.getInstance();
+
+        if (provider.isActive()) {
+            return provider.getOptBean(GlobalEventListener.class)
+                    .orElse(NoOp.INSTANCE);
+        }
+
         if (!INSTANCE.isPresent()) {
             try {
                 INSTANCE.set(ServiceFinder.loadService(GlobalEventListener.class));

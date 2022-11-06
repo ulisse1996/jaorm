@@ -1,5 +1,6 @@
 package io.github.ulisse1996.jaorm.spi;
 
+import io.github.ulisse1996.jaorm.MockedProvider;
 import io.github.ulisse1996.jaorm.ServiceFinder;
 import io.github.ulisse1996.jaorm.spi.common.Singleton;
 import org.junit.jupiter.api.Assertions;
@@ -12,8 +13,9 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.lang.reflect.Field;
+import java.util.Optional;
 
-@ExtendWith(MockitoExtension.class)
+@ExtendWith({MockitoExtension.class, MockedProvider.class})
 class GlobalEventListenerTest {
 
     @Mock private GlobalEventListener mock;
@@ -51,5 +53,13 @@ class GlobalEventListenerTest {
             Assertions.assertTrue(instance.getClass().getName().contains("NoOp"));
             Assertions.assertThrows(UnsupportedOperationException.class, () -> instance.handleEvent(null, null));
         }
+    }
+
+    @Test
+    void should_return_bean_provider_global_events_listener() throws NoSuchFieldException, IllegalAccessException {
+        Singleton<BeanProvider> singleton = MockedProvider.getSingleton();
+        Mockito.when(singleton.get().isActive()).thenReturn(true);
+        Mockito.when(singleton.get().getOptBean(GlobalEventListener.class)).thenReturn(Optional.of(mock));
+        Assertions.assertEquals(mock, GlobalEventListener.getInstance());
     }
 }

@@ -1,0 +1,2 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+io.github.ulisse1996.jaorm.extension.spring.JAORMSpringConfiguration

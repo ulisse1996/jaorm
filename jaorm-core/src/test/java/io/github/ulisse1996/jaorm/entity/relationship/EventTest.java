@@ -1,10 +1,12 @@
 package io.github.ulisse1996.jaorm.entity.relationship;
 
+import io.github.ulisse1996.jaorm.MockedProvider;
 import io.github.ulisse1996.jaorm.entity.EntityDelegate;
 import io.github.ulisse1996.jaorm.entity.EntityMapper;
 import io.github.ulisse1996.jaorm.entity.Result;
 import io.github.ulisse1996.jaorm.entity.SqlColumn;
 import io.github.ulisse1996.jaorm.schema.TableInfo;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.provider.Arguments;
 
 import java.sql.ResultSet;
@@ -15,6 +17,7 @@ import java.util.Map;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
+@ExtendWith(MockedProvider.class)
 public abstract class EventTest {
 
     protected static class Entity {

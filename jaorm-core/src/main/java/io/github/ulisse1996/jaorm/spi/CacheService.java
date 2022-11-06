@@ -21,6 +21,13 @@ public abstract class CacheService {
 
     public static synchronized CacheService getInstance() {
         try {
+            BeanProvider provider = BeanProvider.getInstance();
+
+            if (provider.isActive()) {
+                List<CacheService> cacheServices = provider.getBeans(CacheService.class);
+                return new CombinedCaches(cacheServices);
+            }
+
             if (!INSTANCE.isPresent()) {
                 Iterable<CacheService> services = ServiceFinder.loadServices(CacheService.class);
 
