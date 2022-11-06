@@ -5,7 +5,7 @@
     <parent>
         <artifactId>jaorm-pom</artifactId>
         <groupId>io.github.ulisse1996</groupId>
-        <version>1.9.0</version>
+        <version>1.10.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -16,12 +16,17 @@
     <modules>
         <module>jaorm-extension-api</module>
         <module>jaorm-ansi-sql-extension</module>
+        <module>jaorm-micronaut-extension</module>
+        <module>jaorm-cdi-jakarta-extension</module>
+        <module>jaorm-cdi-javax-extension</module>
+        <module>jaorm-di-spring-extension</module>
     </modules>
 
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <sonar.cpd.exclusions>**/jaorm/extension/cdi/**</sonar.cpd.exclusions>
     </properties>
 
     <build>
@@ -30,7 +35,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-install-plugin</artifactId>
-                    <version>2.5.2</version>
+                    <version>${maven.install.version}</version>
                     <configuration>
                         <createChecksum>true</createChecksum>
                     </configuration>

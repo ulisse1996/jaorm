@@ -9,6 +9,7 @@ import io.github.ulisse1996.jaorm.dsl.query.impl.simple.SimpleJoinImpl;
 import io.github.ulisse1996.jaorm.dsl.query.simple.intermediate.SimpleOrder;
 import io.github.ulisse1996.jaorm.dsl.query.simple.trait.WithProjectionResult;
 import io.github.ulisse1996.jaorm.entity.Result;
+import io.github.ulisse1996.jaorm.entity.SqlColumn;
 import io.github.ulisse1996.jaorm.entity.sql.SqlParameter;
 import io.github.ulisse1996.jaorm.mapping.ProjectionDelegate;
 import io.github.ulisse1996.jaorm.spi.DelegatesService;
@@ -20,7 +21,9 @@ import io.github.ulisse1996.jaorm.vendor.VendorFunction;
 import io.github.ulisse1996.jaorm.vendor.VendorFunctionWithParams;
 import io.github.ulisse1996.jaorm.vendor.VendorSpecific;
 import io.github.ulisse1996.jaorm.vendor.specific.AliasesSpecific;
+import io.github.ulisse1996.jaorm.vendor.specific.LengthSpecific;
 import io.github.ulisse1996.jaorm.vendor.specific.LimitOffsetSpecific;
+import io.github.ulisse1996.jaorm.vendor.util.ArgumentsUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -50,6 +53,10 @@ class QueryBuilderSimpleTest extends AbstractQueryBuilderTest {
             instance.setAccessible(true);
             Singleton<?> singleton = (Singleton<?>) instance.get(null);
             singleton.set(null);
+
+            Field map = VendorSpecific.class.getDeclaredField("SPECIFIC_MAP");
+            map.setAccessible(true);
+            ((Map<?, ?>) map.get(null)).clear();
         } catch (Exception ex) {
             Assertions.fail(ex);
         }
@@ -1091,14 +1098,14 @@ class QueryBuilderSimpleTest extends AbstractQueryBuilderTest {
                 Arguments.of(
                         QueryBuilder.select(COL_1)
                                 .from("TAB1")
-                                .where(AnsiFunctions.upper(COL_2)).eq("EL").or(AnsiFunctions.length(COL_2)).eq(3L),
-                        "SELECT COL1 FROM TAB1 WHERE (UPPER(COL2) = ? OR LENGTH(COL2) = ?)"
+                                .where(AnsiFunctions.upper(COL_2)).eq("EL").or(new CustomLongFn(COL_2)).eq(3L),
+                        "SELECT COL1 FROM TAB1 WHERE (UPPER(COL2) = ? OR CUSTOM(COL2) = ?)"
                 ),
                 Arguments.of(
                         QueryBuilder.select(COL_1, "A")
                                 .from("TAB1", "A")
-                                .where(AnsiFunctions.upper(COL_2), "A").eq("EL").or(AnsiFunctions.length(COL_2), "A").eq(3L),
-                        "SELECT A.COL1 FROM TAB1 A WHERE (UPPER(A.COL2) = ? OR LENGTH(A.COL2) = ?)"
+                                .where(AnsiFunctions.upper(COL_2), "A").eq("EL").or(new CustomLongFn(COL_2), "A").eq(3L),
+                        "SELECT A.COL1 FROM TAB1 A WHERE (UPPER(A.COL2) = ? OR CUSTOM(A.COL2) = ?)"
                 ),
                 Arguments.of(
                         QueryBuilder.select(COL_1, "A")
@@ -1293,6 +1300,8 @@ class QueryBuilderSimpleTest extends AbstractQueryBuilderTest {
                     .thenReturn(new CustomAliases());
             mkVendor.when(() -> VendorSpecific.getSpecific(LimitOffsetSpecific.class))
                     .thenReturn(new CustomLimitOffset());
+            mkVendor.when(() -> VendorSpecific.getSpecific(LengthSpecific.class, LengthSpecific.NO_OP))
+                    .thenReturn(LengthSpecific.NO_OP);
             mkProj.when(ProjectionsService::getInstance).thenReturn(projectionsService);
 
             runnerConsumer.accept(queryRunner, projectionsService);
@@ -1508,6 +1517,31 @@ class QueryBuilderSimpleTest extends AbstractQueryBuilderTest {
         @Override
         public List<String> getParams() {
             return Arrays.asList("1", "2");
+        }
+    }
+
+    private static class CustomLongFn implements VendorFunctionWithParams<Long> {
+
+        private final SqlColumn<?, String> column;
+
+        public CustomLongFn(SqlColumn<?, String> column) {
+            this.column = column;
+        }
+
+        @Override
+        public String apply(String alias) {
+            String columnName = ArgumentsUtils.getColumnName(this.column, alias);
+            return String.format("CUSTOM(%s)", columnName);
+        }
+
+        @Override
+        public boolean isString() {
+            return false;
+        }
+
+        @Override
+        public List<?> getParams() {
+            return ArgumentsUtils.getParams(this.column);
         }
     }
 }

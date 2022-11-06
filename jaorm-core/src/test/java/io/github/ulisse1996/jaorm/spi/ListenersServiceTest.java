@@ -22,6 +22,7 @@ import java.util.Set;
 @ExtendWith(MockitoExtension.class)
 class ListenersServiceTest {
 
+    @Mock private BeanProvider provider;
     @Mock private ListenersService mock;
     @Mock private GlobalEventListener listener;
 
@@ -62,7 +63,9 @@ class ListenersServiceTest {
                 return Collections.singleton(Object.class);
             }
         };
-        try (MockedStatic<ServiceFinder> mk = Mockito.mockStatic(ServiceFinder.class)) {
+        try (MockedStatic<ServiceFinder> mk = Mockito.mockStatic(ServiceFinder.class);
+            MockedStatic<BeanProvider> mkProvider = Mockito.mockStatic(BeanProvider.class)) {
+            mkProvider.when(BeanProvider::getInstance).thenReturn(provider);
             mk.when(() -> ServiceFinder.loadService(GlobalEventListener.class))
                     .thenReturn(listener);
             mk.when(() -> ServiceFinder.loadService(ListenersService.class))

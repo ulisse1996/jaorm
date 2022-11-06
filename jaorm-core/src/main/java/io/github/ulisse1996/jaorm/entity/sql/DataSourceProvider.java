@@ -2,6 +2,7 @@ package io.github.ulisse1996.jaorm.entity.sql;
 
 import io.github.ulisse1996.jaorm.ServiceFinder;
 import io.github.ulisse1996.jaorm.schema.TableInfo;
+import io.github.ulisse1996.jaorm.spi.BeanProvider;
 import io.github.ulisse1996.jaorm.spi.common.Singleton;
 
 import javax.sql.DataSource;
@@ -14,6 +15,12 @@ public abstract class DataSourceProvider {
     private static final ThreadLocal<DataSourceProvider> TRANSACTION_INSTANCE = new InheritableThreadLocal<>();
 
     public static synchronized DataSourceProvider getCurrent() {
+        BeanProvider provider = BeanProvider.getInstance();
+
+        if (provider.isActive()) {
+            return provider.getBean(DataSourceProvider.class);
+        }
+
         if (!INSTANCE.isPresent()) {
             INSTANCE.set(ServiceFinder.loadService(DataSourceProvider.class));
         }

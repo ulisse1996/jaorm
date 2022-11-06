@@ -5,7 +5,7 @@
     <parent>
         <artifactId>jaorm-test</artifactId>
         <groupId>io.github.ulisse1996</groupId>
-        <version>1.9.0</version>
+        <version>1.10.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -15,7 +15,6 @@
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
-        <jaorm.version>1.9.0</jaorm.version>
         <sonar.skip>true</sonar.skip>
         <maven.deploy.skip>true</maven.deploy.skip>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -25,13 +24,13 @@
         <dependency>
             <groupId>io.github.ulisse1996</groupId>
             <artifactId>jaorm-test-core</artifactId>
-            <version>1.9.0</version>
+            <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>io.github.ulisse1996</groupId>
             <artifactId>jaorm-sql-specific-oracle</artifactId>
-            <version>1.9.0</version>
+            <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -49,7 +48,7 @@
         <dependency>
             <groupId>com.oracle.database.jdbc</groupId>
             <artifactId>ojdbc8</artifactId>
-            <version>19.15.0.0.1</version>
+            <version>${oracle.jdbc.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -68,7 +67,7 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-failsafe-plugin</artifactId>
-                        <version>3.0.0-M5</version>
+                        <version>${maven.failsafe.version}</version>
                         <executions>
                             <execution>
                                 <goals>
@@ -88,7 +87,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.6.1</version>
+                <version>${maven.compiler.version}</version>
                 <configuration>
                     <compilerArgs>
                         <arg>-parameters</arg>
@@ -97,7 +96,7 @@
                         <path>
                             <groupId>io.github.ulisse1996</groupId>
                             <artifactId>jaorm-processor</artifactId>
-                            <version>${jaorm.version}</version>
+                            <version>${project.version}</version>
                         </path>
                     </annotationProcessorPaths>
                 </configuration>
@@ -115,7 +114,7 @@
                                 <path>
                                     <groupId>io.github.ulisse1996</groupId>
                                     <artifactId>jaorm-processor</artifactId>
-                                    <version>${jaorm.version}</version>
+                                    <version>${project.version}</version>
                                 </path>
                             </annotationProcessorPaths>
                         </configuration>
@@ -125,7 +124,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.0.0-M7</version>
+                <version>${maven.surefire.version}</version>
             </plugin>
         </plugins>
     </build>

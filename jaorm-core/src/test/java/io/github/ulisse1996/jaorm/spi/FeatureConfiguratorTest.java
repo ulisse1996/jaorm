@@ -1,5 +1,6 @@
 package io.github.ulisse1996.jaorm.spi;
 
+import io.github.ulisse1996.jaorm.MockedProvider;
 import io.github.ulisse1996.jaorm.ServiceFinder;
 import io.github.ulisse1996.jaorm.spi.common.Singleton;
 import org.junit.jupiter.api.Assertions;
@@ -12,8 +13,9 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.lang.reflect.Field;
+import java.util.Optional;
 
-@ExtendWith(MockitoExtension.class)
+@ExtendWith({MockitoExtension.class, MockedProvider.class})
 class FeatureConfiguratorTest {
 
     @Mock private FeatureConfigurator mock;
@@ -59,5 +61,14 @@ class FeatureConfiguratorTest {
             FeatureConfigurator instance = FeatureConfigurator.getInstance();
             Assertions.assertTrue(instance.isInsertAfterFailedUpdateEnabled());
         }
+    }
+
+    @Test
+    void should_return_bean_provider_feature_configurator() throws NoSuchFieldException, IllegalAccessException {
+        Singleton<BeanProvider> singleton = MockedProvider.getSingleton();
+        Mockito.when(singleton.get().isActive()).thenReturn(true);
+        Mockito.when(singleton.get().getOptBean(FeatureConfigurator.class)).thenReturn(Optional.of(mock));
+
+        Assertions.assertEquals(mock, FeatureConfigurator.getInstance());
     }
 }

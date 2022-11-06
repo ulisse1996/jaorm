@@ -37,10 +37,14 @@ class LengthFunctionTest {
     @ParameterizedTest
     @MethodSource("getTests")
     void should_create_length(Selectable<String> selectable, String expected) {
-        Assertions.assertEquals(
-                expected,
-                AnsiFunctions.length(selectable).apply("MY_TABLE")
-        );
+        try (MockedStatic<VendorSpecific> mkVendor = Mockito.mockStatic(VendorSpecific.class)) {
+            mkVendor.when(() -> VendorSpecific.getSpecific(LengthSpecific.class, LengthSpecific.NO_OP))
+                    .thenReturn(LengthSpecific.NO_OP);
+            Assertions.assertEquals(
+                    expected,
+                    AnsiFunctions.length(selectable).apply("MY_TABLE")
+            );
+        }
     }
 
     @Test

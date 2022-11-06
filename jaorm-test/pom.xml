@@ -5,7 +5,7 @@
     <parent>
         <artifactId>jaorm-pom</artifactId>
         <groupId>io.github.ulisse1996</groupId>
-        <version>1.9.0</version>
+        <version>1.10.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -16,7 +16,6 @@
     <properties>
         <sonar.skip>true</sonar.skip>
         <maven.deploy.skip>true</maven.deploy.skip>
-        <testcontainers.version>1.17.5</testcontainers.version>
     </properties>
 
     <modules>
@@ -27,18 +26,19 @@
         <module>jaorm-test-sql-server</module>
         <module>jaorm-test-spring</module>
         <module>jaorm-test-mysql</module>
+        <module>jaorm-test-micronaut</module>
     </modules>
 
     <dependencies>
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-core</artifactId>
-            <version>1.2.11</version>
+            <version>${logback.version}</version>
         </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
-            <version>1.2.11</version>
+            <version>${logback.version}</version>
         </dependency>
     </dependencies>
 </project>

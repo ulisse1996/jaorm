@@ -1,6 +1,7 @@
 package io.github.ulisse1996.jaorm.entity;
 
 import io.github.ulisse1996.jaorm.Arguments;
+import io.github.ulisse1996.jaorm.MockedProvider;
 import io.github.ulisse1996.jaorm.spi.DelegatesService;
 import io.github.ulisse1996.jaorm.spi.QueryRunner;
 import org.junit.jupiter.api.Assertions;
@@ -14,7 +15,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.Collections;
 import java.util.Optional;
 
-@ExtendWith(MockitoExtension.class)
+@ExtendWith({MockitoExtension.class, MockedProvider.class})
 class EntityRecordDaoTest {
 
     @Mock private DelegatesService delegatesService;

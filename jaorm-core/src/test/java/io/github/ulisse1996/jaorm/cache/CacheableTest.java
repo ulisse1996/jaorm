@@ -1,9 +1,11 @@
 package io.github.ulisse1996.jaorm.cache;
 
 import io.github.ulisse1996.jaorm.Arguments;
+import io.github.ulisse1996.jaorm.MockedProvider;
 import io.github.ulisse1996.jaorm.spi.CacheService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
@@ -11,6 +13,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+@ExtendWith(MockedProvider.class)
 class CacheableTest {
 
     @Test

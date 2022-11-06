@@ -8,6 +8,13 @@ public abstract class FeatureConfigurator {
     private static final Singleton<FeatureConfigurator> INSTANCE = Singleton.instance();
 
     public static synchronized FeatureConfigurator getInstance() {
+        BeanProvider provider = BeanProvider.getInstance();
+
+        if (provider.isActive()) {
+            return provider.getOptBean(FeatureConfigurator.class)
+                    .orElse(DefaultConfiguration.INSTANCE);
+        }
+
         if (!INSTANCE.isPresent()) {
             try {
                 INSTANCE.set(ServiceFinder.loadService(FeatureConfigurator.class));
