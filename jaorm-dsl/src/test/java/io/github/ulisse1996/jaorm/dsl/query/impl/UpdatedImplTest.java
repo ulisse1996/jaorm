@@ -186,11 +186,11 @@ class UpdatedImplTest {
 
                 // Like
                 Arguments.of(
-                        (Supplier<Object>)() -> QueryBuilder.update(Object.class).setting(COL1).toValue(1).where(COL2).startsWith("2"),
+                        (Supplier<Object>)() -> QueryBuilder.update(Object.class).setting(COL1).toValue(1).where(COL2).endsWith("2"),
                         "UPDATE MY_TABLE SET MY_TABLE.COL1 = ? WHERE (MY_TABLE.COL2 LIKE CONCAT('%',?))"
                 ),
                 Arguments.of(
-                        (Supplier<Object>)() -> QueryBuilder.update(Object.class).setting(COL1).toValue(1).where(COL2).endsWith("2"),
+                        (Supplier<Object>)() -> QueryBuilder.update(Object.class).setting(COL1).toValue(1).where(COL2).startsWith("2"),
                         "UPDATE MY_TABLE SET MY_TABLE.COL1 = ? WHERE (MY_TABLE.COL2 LIKE CONCAT(?,'%'))"
                 ),
                 Arguments.of(
@@ -198,11 +198,11 @@ class UpdatedImplTest {
                         "UPDATE MY_TABLE SET MY_TABLE.COL1 = ? WHERE (MY_TABLE.COL2 LIKE CONCAT('%',?,'%'))"
                 ),
                 Arguments.of(
-                        (Supplier<Object>)() -> QueryBuilder.update(Object.class).setting(COL1).toValue(1).where(COL2).notStartsWith("2"),
+                        (Supplier<Object>)() -> QueryBuilder.update(Object.class).setting(COL1).toValue(1).where(COL2).notEndsWith("2"),
                         "UPDATE MY_TABLE SET MY_TABLE.COL1 = ? WHERE (MY_TABLE.COL2 NOT LIKE CONCAT('%',?))"
                 ),
                 Arguments.of(
-                        (Supplier<Object>)() -> QueryBuilder.update(Object.class).setting(COL1).toValue(1).where(COL2).notEndsWith("2"),
+                        (Supplier<Object>)() -> QueryBuilder.update(Object.class).setting(COL1).toValue(1).where(COL2).notStartsWith("2"),
                         "UPDATE MY_TABLE SET MY_TABLE.COL1 = ? WHERE (MY_TABLE.COL2 NOT LIKE CONCAT(?,'%'))"
                 ),
                 Arguments.of(
@@ -213,11 +213,11 @@ class UpdatedImplTest {
                 // Case Insensitive
 
                 Arguments.of(
-                        (Supplier<Object>)() -> QueryBuilder.update(Object.class, QueryConfig.builder().caseInsensitive().build()).setting(COL1).toValue(1).where(COL2).startsWith("2"),
+                        (Supplier<Object>)() -> QueryBuilder.update(Object.class, QueryConfig.builder().caseInsensitive().build()).setting(COL1).toValue(1).where(COL2).endsWith("2"),
                         "UPDATE MY_TABLE SET MY_TABLE.COL1 = ? WHERE (UPPER(MY_TABLE.COL2) LIKE CONCAT('%',UPPER(?)))"
                 ),
                 Arguments.of(
-                        (Supplier<Object>)() -> QueryBuilder.update(Object.class, QueryConfig.builder().caseInsensitive().build()).setting(COL1).toValue(1).where(COL2).endsWith("2"),
+                        (Supplier<Object>)() -> QueryBuilder.update(Object.class, QueryConfig.builder().caseInsensitive().build()).setting(COL1).toValue(1).where(COL2).startsWith("2"),
                         "UPDATE MY_TABLE SET MY_TABLE.COL1 = ? WHERE (UPPER(MY_TABLE.COL2) LIKE CONCAT(UPPER(?),'%'))"
                 ),
                 Arguments.of(
@@ -225,11 +225,11 @@ class UpdatedImplTest {
                         "UPDATE MY_TABLE SET MY_TABLE.COL1 = ? WHERE (UPPER(MY_TABLE.COL2) LIKE CONCAT('%',UPPER(?),'%'))"
                 ),
                 Arguments.of(
-                        (Supplier<Object>)() -> QueryBuilder.update(Object.class, QueryConfig.builder().caseInsensitive().build()).setting(COL1).toValue(1).where(COL2).notStartsWith("2"),
+                        (Supplier<Object>)() -> QueryBuilder.update(Object.class, QueryConfig.builder().caseInsensitive().build()).setting(COL1).toValue(1).where(COL2).notEndsWith("2"),
                         "UPDATE MY_TABLE SET MY_TABLE.COL1 = ? WHERE (UPPER(MY_TABLE.COL2) NOT LIKE CONCAT('%',UPPER(?)))"
                 ),
                 Arguments.of(
-                        (Supplier<Object>)() -> QueryBuilder.update(Object.class, QueryConfig.builder().caseInsensitive().build()).setting(COL1).toValue(1).where(COL2).notEndsWith("2"),
+                        (Supplier<Object>)() -> QueryBuilder.update(Object.class, QueryConfig.builder().caseInsensitive().build()).setting(COL1).toValue(1).where(COL2).notStartsWith("2"),
                         "UPDATE MY_TABLE SET MY_TABLE.COL1 = ? WHERE (UPPER(MY_TABLE.COL2) NOT LIKE CONCAT(UPPER(?),'%'))"
                 ),
                 Arguments.of(

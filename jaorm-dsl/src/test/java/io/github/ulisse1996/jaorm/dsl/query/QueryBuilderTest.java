@@ -663,11 +663,11 @@ class QueryBuilderTest extends AbstractQueryBuilderTest {
 
                 // Simple Join Like
                 Arguments.of(
-                        (Supplier<Object>)() -> QueryBuilder.select(MyEntity.class).join(MyEntityJoin.class, "A").on(COL_4).startsWith("EL"),
+                        (Supplier<Object>)() -> QueryBuilder.select(MyEntity.class).join(MyEntityJoin.class, "A").on(COL_4).endsWith("EL"),
                         "SELECT MY_TABLE.COL1, MY_TABLE.COL2 FROM MY_TABLE JOIN MY_TABLE_JOIN AS A ON (A.COL4 LIKE CONCAT('%',?))"
                 ),
                 Arguments.of(
-                        (Supplier<Object>)() -> QueryBuilder.select(MyEntity.class).join(MyEntityJoin.class, "A").on(COL_4).notEndsWith("EL"),
+                        (Supplier<Object>)() -> QueryBuilder.select(MyEntity.class).join(MyEntityJoin.class, "A").on(COL_4).notStartsWith("EL"),
                         "SELECT MY_TABLE.COL1, MY_TABLE.COL2 FROM MY_TABLE JOIN MY_TABLE_JOIN AS A ON (A.COL4 NOT LIKE CONCAT(?,'%'))"
                 )
         );
@@ -736,11 +736,11 @@ class QueryBuilderTest extends AbstractQueryBuilderTest {
                         "SELECT MY_TABLE.COL1, MY_TABLE.COL2 FROM MY_TABLE JOIN MY_TABLE_JOIN AS A ON (A.COL4 LIKE CONCAT('%',MY_TABLE.COL2,'%')) JOIN MY_SECOND_TABLE_JOIN AS B ON (B.COL6 LIKE CONCAT('%',A.COL4,'%'))"
                 ),
                 Arguments.of(
-                        (Supplier<Object>)() -> QueryBuilder.select(MyEntity.class).join(MyEntityJoin.class, "A").on(COL_4).startsWith(COL_2).join(MySecondEntityJoin.class, "B").on(COL_6).startsWith(COL_4, "A"),
+                        (Supplier<Object>)() -> QueryBuilder.select(MyEntity.class).join(MyEntityJoin.class, "A").on(COL_4).endsWith(COL_2).join(MySecondEntityJoin.class, "B").on(COL_6).endsWith(COL_4, "A"),
                         "SELECT MY_TABLE.COL1, MY_TABLE.COL2 FROM MY_TABLE JOIN MY_TABLE_JOIN AS A ON (A.COL4 LIKE CONCAT('%',MY_TABLE.COL2)) JOIN MY_SECOND_TABLE_JOIN AS B ON (B.COL6 LIKE CONCAT('%',A.COL4))"
                 ),
                 Arguments.of(
-                        (Supplier<Object>)() -> QueryBuilder.select(MyEntity.class).join(MyEntityJoin.class, "A").on(COL_4).endsWith(COL_2).join(MySecondEntityJoin.class, "B").on(COL_6).endsWith(COL_4, "A"),
+                        (Supplier<Object>)() -> QueryBuilder.select(MyEntity.class).join(MyEntityJoin.class, "A").on(COL_4).startsWith(COL_2).join(MySecondEntityJoin.class, "B").on(COL_6).startsWith(COL_4, "A"),
                         "SELECT MY_TABLE.COL1, MY_TABLE.COL2 FROM MY_TABLE JOIN MY_TABLE_JOIN AS A ON (A.COL4 LIKE CONCAT(MY_TABLE.COL2,'%')) JOIN MY_SECOND_TABLE_JOIN AS B ON (B.COL6 LIKE CONCAT(A.COL4,'%'))"
                 ),
                 Arguments.of(
@@ -748,11 +748,11 @@ class QueryBuilderTest extends AbstractQueryBuilderTest {
                         "SELECT MY_TABLE.COL1, MY_TABLE.COL2 FROM MY_TABLE JOIN MY_TABLE_JOIN AS A ON (A.COL4 NOT LIKE CONCAT('%',MY_TABLE.COL2,'%')) JOIN MY_SECOND_TABLE_JOIN AS B ON (B.COL6 NOT LIKE CONCAT('%',A.COL4,'%'))"
                 ),
                 Arguments.of(
-                        (Supplier<Object>)() -> QueryBuilder.select(MyEntity.class).join(MyEntityJoin.class, "A").on(COL_4).notStartsWith(COL_2).join(MySecondEntityJoin.class, "B").on(COL_6).notStartsWith(COL_4, "A"),
+                        (Supplier<Object>)() -> QueryBuilder.select(MyEntity.class).join(MyEntityJoin.class, "A").on(COL_4).notEndsWith(COL_2).join(MySecondEntityJoin.class, "B").on(COL_6).notEndsWith(COL_4, "A"),
                         "SELECT MY_TABLE.COL1, MY_TABLE.COL2 FROM MY_TABLE JOIN MY_TABLE_JOIN AS A ON (A.COL4 NOT LIKE CONCAT('%',MY_TABLE.COL2)) JOIN MY_SECOND_TABLE_JOIN AS B ON (B.COL6 NOT LIKE CONCAT('%',A.COL4))"
                 ),
                 Arguments.of(
-                        (Supplier<Object>)() -> QueryBuilder.select(MyEntity.class).join(MyEntityJoin.class, "A").on(COL_4).notEndsWith(COL_2).join(MySecondEntityJoin.class, "B").on(COL_6).notEndsWith(COL_4, "A"),
+                        (Supplier<Object>)() -> QueryBuilder.select(MyEntity.class).join(MyEntityJoin.class, "A").on(COL_4).notStartsWith(COL_2).join(MySecondEntityJoin.class, "B").on(COL_6).notStartsWith(COL_4, "A"),
                         "SELECT MY_TABLE.COL1, MY_TABLE.COL2 FROM MY_TABLE JOIN MY_TABLE_JOIN AS A ON (A.COL4 NOT LIKE CONCAT(MY_TABLE.COL2,'%')) JOIN MY_SECOND_TABLE_JOIN AS B ON (B.COL6 NOT LIKE CONCAT(A.COL4,'%'))"
                 )
         );
@@ -817,11 +817,11 @@ class QueryBuilderTest extends AbstractQueryBuilderTest {
 
                 // Like
                 Arguments.of(
-                        (Supplier<Object>)() -> QueryBuilder.select(MyEntity.class).where(COL_2).startsWith("2"),
+                        (Supplier<Object>)() -> QueryBuilder.select(MyEntity.class).where(COL_2).endsWith("2"),
                         "SELECT MY_TABLE.COL1, MY_TABLE.COL2 FROM MY_TABLE WHERE (MY_TABLE.COL2 LIKE CONCAT('%',?))"
                 ),
                 Arguments.of(
-                        (Supplier<Object>)() -> QueryBuilder.select(MyEntity.class).where(COL_2).endsWith("2"),
+                        (Supplier<Object>)() -> QueryBuilder.select(MyEntity.class).where(COL_2).startsWith("2"),
                         "SELECT MY_TABLE.COL1, MY_TABLE.COL2 FROM MY_TABLE WHERE (MY_TABLE.COL2 LIKE CONCAT(?,'%'))"
                 ),
                 Arguments.of(
@@ -829,11 +829,11 @@ class QueryBuilderTest extends AbstractQueryBuilderTest {
                         "SELECT MY_TABLE.COL1, MY_TABLE.COL2 FROM MY_TABLE WHERE (MY_TABLE.COL2 LIKE CONCAT('%',?,'%'))"
                 ),
                 Arguments.of(
-                        (Supplier<Object>)() -> QueryBuilder.select(MyEntity.class).where(COL_2).notStartsWith("2"),
+                        (Supplier<Object>)() -> QueryBuilder.select(MyEntity.class).where(COL_2).notEndsWith("2"),
                         "SELECT MY_TABLE.COL1, MY_TABLE.COL2 FROM MY_TABLE WHERE (MY_TABLE.COL2 NOT LIKE CONCAT('%',?))"
                 ),
                 Arguments.of(
-                        (Supplier<Object>)() -> QueryBuilder.select(MyEntity.class).where(COL_2).notEndsWith("2"),
+                        (Supplier<Object>)() -> QueryBuilder.select(MyEntity.class).where(COL_2).notStartsWith("2"),
                         "SELECT MY_TABLE.COL1, MY_TABLE.COL2 FROM MY_TABLE WHERE (MY_TABLE.COL2 NOT LIKE CONCAT(?,'%'))"
                 ),
                 Arguments.of(
@@ -844,11 +844,11 @@ class QueryBuilderTest extends AbstractQueryBuilderTest {
                 // Case Insensitive
 
                 Arguments.of(
-                        (Supplier<Object>)() -> QueryBuilder.select(MyEntity.class, true).where(COL_2).startsWith("2"),
+                        (Supplier<Object>)() -> QueryBuilder.select(MyEntity.class, true).where(COL_2).endsWith("2"),
                         "SELECT MY_TABLE.COL1, MY_TABLE.COL2 FROM MY_TABLE WHERE (UPPER(MY_TABLE.COL2) LIKE CONCAT('%',UPPER(?)))"
                 ),
                 Arguments.of(
-                        (Supplier<Object>)() -> QueryBuilder.select(MyEntity.class, true).where(COL_2).endsWith("2"),
+                        (Supplier<Object>)() -> QueryBuilder.select(MyEntity.class, true).where(COL_2).startsWith("2"),
                         "SELECT MY_TABLE.COL1, MY_TABLE.COL2 FROM MY_TABLE WHERE (UPPER(MY_TABLE.COL2) LIKE CONCAT(UPPER(?),'%'))"
                 ),
                 Arguments.of(
@@ -856,11 +856,11 @@ class QueryBuilderTest extends AbstractQueryBuilderTest {
                         "SELECT MY_TABLE.COL1, MY_TABLE.COL2 FROM MY_TABLE WHERE (UPPER(MY_TABLE.COL2) LIKE CONCAT('%',UPPER(?),'%'))"
                 ),
                 Arguments.of(
-                        (Supplier<Object>)() -> QueryBuilder.select(MyEntity.class, true).where(COL_2).notStartsWith("2"),
+                        (Supplier<Object>)() -> QueryBuilder.select(MyEntity.class, true).where(COL_2).notEndsWith("2"),
                         "SELECT MY_TABLE.COL1, MY_TABLE.COL2 FROM MY_TABLE WHERE (UPPER(MY_TABLE.COL2) NOT LIKE CONCAT('%',UPPER(?)))"
                 ),
                 Arguments.of(
-                        (Supplier<Object>)() -> QueryBuilder.select(MyEntity.class, true).where(COL_2).notEndsWith("2"),
+                        (Supplier<Object>)() -> QueryBuilder.select(MyEntity.class, true).where(COL_2).notStartsWith("2"),
                         "SELECT MY_TABLE.COL1, MY_TABLE.COL2 FROM MY_TABLE WHERE (UPPER(MY_TABLE.COL2) NOT LIKE CONCAT(UPPER(?),'%'))"
                 ),
                 Arguments.of(

@@ -233,7 +233,7 @@ public class JoinImpl<T, R, L> implements On<T, R>, IntermediateJoin<T, R, L> {
 
     @Override
     public SelectedOn<T, R> startsWith(SqlColumn<?, String> column) {
-        return like(LikeType.START, column);
+        return like(LikeType.END, column);
     }
 
     @Override
@@ -243,12 +243,12 @@ public class JoinImpl<T, R, L> implements On<T, R>, IntermediateJoin<T, R, L> {
 
     @Override
     public SelectedOn<T, R> endsWith(SqlColumn<?, String> column) {
-        return like(LikeType.END, column);
+        return like(LikeType.START, column);
     }
 
     @Override
     public SelectedOn<T, R> notStartsWith(SqlColumn<?, String> column) {
-        return notLike(LikeType.START, column);
+        return notLike(LikeType.END, column);
     }
 
     @Override
@@ -258,12 +258,12 @@ public class JoinImpl<T, R, L> implements On<T, R>, IntermediateJoin<T, R, L> {
 
     @Override
     public SelectedOn<T, R> notEndsWith(SqlColumn<?, String> column) {
-        return notLike(LikeType.END, column);
+        return notLike(LikeType.START, column);
     }
 
     @Override
     public SelectedOn<T, R> startsWith(String val) {
-        return like(LikeType.START, val);
+        return like(LikeType.END, val);
     }
 
     @Override
@@ -273,12 +273,12 @@ public class JoinImpl<T, R, L> implements On<T, R>, IntermediateJoin<T, R, L> {
 
     @Override
     public SelectedOn<T, R> endsWith(String val) {
-        return like(LikeType.END, val);
+        return like(LikeType.START, val);
     }
 
     @Override
     public SelectedOn<T, R> notStartsWith(String val) {
-        return notLike(LikeType.START, val);
+        return notLike(LikeType.END, val);
     }
 
     @Override
@@ -288,12 +288,12 @@ public class JoinImpl<T, R, L> implements On<T, R>, IntermediateJoin<T, R, L> {
 
     @Override
     public SelectedOn<T, R> notEndsWith(String val) {
-        return notLike(LikeType.END, val);
+        return notLike(LikeType.START, val);
     }
 
     @Override
     public SelectedOn<T, R> startsWith(SqlColumn<?, String> column, String alias) {
-        return like(LikeType.START, column, alias);
+        return like(LikeType.END, column, alias);
     }
 
     @Override
@@ -303,12 +303,12 @@ public class JoinImpl<T, R, L> implements On<T, R>, IntermediateJoin<T, R, L> {
 
     @Override
     public SelectedOn<T, R> endsWith(SqlColumn<?, String> column, String alias) {
-        return like(LikeType.END, column, alias);
+        return like(LikeType.START, column, alias);
     }
 
     @Override
     public SelectedOn<T, R> notStartsWith(SqlColumn<?, String> column, String alias) {
-        return notLike(LikeType.START, column, alias);
+        return notLike(LikeType.END, column, alias);
     }
 
     @Override
@@ -318,7 +318,7 @@ public class JoinImpl<T, R, L> implements On<T, R>, IntermediateJoin<T, R, L> {
 
     @Override
     public SelectedOn<T, R> notEndsWith(SqlColumn<?, String> column, String alias) {
-        return notLike(LikeType.END, column, alias);
+        return notLike(LikeType.START, column, alias);
     }
 
     @SuppressWarnings("unchecked")

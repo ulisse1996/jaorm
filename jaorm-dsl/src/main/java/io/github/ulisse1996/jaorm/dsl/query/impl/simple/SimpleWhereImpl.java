@@ -135,7 +135,7 @@ public class SimpleWhereImpl<R> extends AbstractWhereImpl<Object, R> implements 
 
     @Override
     public SimpleSelectedWhere startsWith(String val) {
-        return like(LikeType.START, val);
+        return like(LikeType.END, val);
     }
 
     @Override
@@ -145,12 +145,12 @@ public class SimpleWhereImpl<R> extends AbstractWhereImpl<Object, R> implements 
 
     @Override
     public SimpleSelectedWhere endsWith(String val) {
-        return like(LikeType.END, val);
+        return like(LikeType.START, val);
     }
 
     @Override
     public SimpleSelectedWhere notStartsWith(String val) {
-        return notLike(LikeType.START, val);
+        return notLike(LikeType.END, val);
     }
 
     @Override
@@ -160,7 +160,7 @@ public class SimpleWhereImpl<R> extends AbstractWhereImpl<Object, R> implements 
 
     @Override
     public SimpleSelectedWhere notEndsWith(String val) {
-        return notLike(LikeType.END, val);
+        return notLike(LikeType.START, val);
     }
 
     @SuppressWarnings("unchecked")

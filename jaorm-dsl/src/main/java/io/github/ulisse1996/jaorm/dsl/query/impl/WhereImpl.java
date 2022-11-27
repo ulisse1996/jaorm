@@ -145,7 +145,7 @@ public class WhereImpl<T, R> extends AbstractWhereImpl<T, R> implements Intermed
 
     @Override
     public SelectedWhere<T> startsWith(String val) {
-        return like(LikeType.START, val);
+        return like(LikeType.END, val);
     }
 
     @Override
@@ -155,12 +155,12 @@ public class WhereImpl<T, R> extends AbstractWhereImpl<T, R> implements Intermed
 
     @Override
     public SelectedWhere<T> endsWith(String val) {
-        return like(LikeType.END, val);
+        return like(LikeType.START, val);
     }
 
     @Override
     public SelectedWhere<T> notStartsWith(String val) {
-        return notLike(LikeType.START, val);
+        return notLike(LikeType.END, val);
     }
 
     @Override
@@ -170,7 +170,7 @@ public class WhereImpl<T, R> extends AbstractWhereImpl<T, R> implements Intermed
 
     @Override
     public SelectedWhere<T> notEndsWith(String val) {
-        return notLike(LikeType.END, val);
+        return notLike(LikeType.START, val);
     }
 
     @SuppressWarnings("unchecked")
