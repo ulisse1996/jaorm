@@ -99,6 +99,9 @@
                                 </goals>
                             </execution>
                         </executions>
+                        <configuration>
+                            <classesDirectory>${project.build.testOutputDirectory}</classesDirectory>
+                        </configuration>
                     </plugin>
                 </plugins>
             </build>
