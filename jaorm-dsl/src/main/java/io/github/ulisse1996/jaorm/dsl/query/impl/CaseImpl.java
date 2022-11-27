@@ -222,7 +222,36 @@ public class CaseImpl<L, R> implements Case<R>, CaseElse<R>, CaseEnd<R>, CaseThe
     }
 
     @Override
-    public CaseThen<R> like(LikeType type, String val) {
+    public CaseThen<R> startsWith(String val) {
+        return like(LikeType.START, val);
+    }
+
+    @Override
+    public CaseThen<R> contains(String val) {
+        return like(LikeType.FULL, val);
+    }
+
+    @Override
+    public CaseThen<R> endsWith(String val) {
+        return like(LikeType.END, val);
+    }
+
+    @Override
+    public CaseThen<R> notStartsWith(String val) {
+        return notLike(LikeType.START, val);
+    }
+
+    @Override
+    public CaseThen<R> notContains(String val) {
+        return notLike(LikeType.FULL, val);
+    }
+
+    @Override
+    public CaseThen<R> notEndsWith(String val) {
+        return notLike(LikeType.END, val);
+    }
+
+    private CaseThen<R> like(LikeType type, String val) {
         Checker.assertNotNull(type, "likeType");
         Checker.assertNotNull(val, VALUE);
         setOperation(Operation.LIKE, val, null);
@@ -230,8 +259,7 @@ public class CaseImpl<L, R> implements Case<R>, CaseElse<R>, CaseEnd<R>, CaseThe
         return this;
     }
 
-    @Override
-    public CaseThen<R> notLike(LikeType type, String val) {
+    private CaseThen<R> notLike(LikeType type, String val) {
         Checker.assertNotNull(type, "likeType");
         Checker.assertNotNull(val, VALUE);
         setOperation(Operation.NOT_LIKE, val, null);

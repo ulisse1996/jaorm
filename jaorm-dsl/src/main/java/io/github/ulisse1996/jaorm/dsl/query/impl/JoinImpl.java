@@ -232,8 +232,97 @@ public class JoinImpl<T, R, L> implements On<T, R>, IntermediateJoin<T, R, L> {
     }
 
     @Override
+    public SelectedOn<T, R> startsWith(SqlColumn<?, String> column) {
+        return like(LikeType.START, column);
+    }
+
+    @Override
+    public SelectedOn<T, R> contains(SqlColumn<?, String> column) {
+        return like(LikeType.FULL, column);
+    }
+
+    @Override
+    public SelectedOn<T, R> endsWith(SqlColumn<?, String> column) {
+        return like(LikeType.END, column);
+    }
+
+    @Override
+    public SelectedOn<T, R> notStartsWith(SqlColumn<?, String> column) {
+        return notLike(LikeType.START, column);
+    }
+
+    @Override
+    public SelectedOn<T, R> notContains(SqlColumn<?, String> column) {
+        return notLike(LikeType.FULL, column);
+    }
+
+    @Override
+    public SelectedOn<T, R> notEndsWith(SqlColumn<?, String> column) {
+        return notLike(LikeType.END, column);
+    }
+
+    @Override
+    public SelectedOn<T, R> startsWith(String val) {
+        return like(LikeType.START, val);
+    }
+
+    @Override
+    public SelectedOn<T, R> contains(String val) {
+        return like(LikeType.FULL, val);
+    }
+
+    @Override
+    public SelectedOn<T, R> endsWith(String val) {
+        return like(LikeType.END, val);
+    }
+
+    @Override
+    public SelectedOn<T, R> notStartsWith(String val) {
+        return notLike(LikeType.START, val);
+    }
+
+    @Override
+    public SelectedOn<T, R> notContains(String val) {
+        return notLike(LikeType.FULL, val);
+    }
+
+    @Override
+    public SelectedOn<T, R> notEndsWith(String val) {
+        return notLike(LikeType.END, val);
+    }
+
+    @Override
+    public SelectedOn<T, R> startsWith(SqlColumn<?, String> column, String alias) {
+        return like(LikeType.START, column, alias);
+    }
+
+    @Override
+    public SelectedOn<T, R> contains(SqlColumn<?, String> column, String alias) {
+        return like(LikeType.FULL, column, alias);
+    }
+
+    @Override
+    public SelectedOn<T, R> endsWith(SqlColumn<?, String> column, String alias) {
+        return like(LikeType.END, column, alias);
+    }
+
+    @Override
+    public SelectedOn<T, R> notStartsWith(SqlColumn<?, String> column, String alias) {
+        return notLike(LikeType.START, column, alias);
+    }
+
+    @Override
+    public SelectedOn<T, R> notContains(SqlColumn<?, String> column, String alias) {
+        return notLike(LikeType.FULL, column, alias);
+    }
+
+    @Override
+    public SelectedOn<T, R> notEndsWith(SqlColumn<?, String> column, String alias) {
+        return notLike(LikeType.END, column, alias);
+    }
+
     @SuppressWarnings("unchecked")
-    public SelectedOn<T, R> like(LikeType type, SqlColumn<?, String> column) {
+    private SelectedOn<T, R> like(LikeType type, SqlColumn<?, String> column) {
         Objects.requireNonNull(column, COLUMN_CAN_T_BE_NULL);
         this.lastOn.targetColumn = column;
         this.lastOn.likeType = type;
@@ -241,9 +330,8 @@ public class JoinImpl<T, R, L> implements On<T, R>, IntermediateJoin<T, R, L> {
         return (SelectedOn<T, R>) this.parent;
     }
 
-    @Override
     @SuppressWarnings("unchecked")
-    public SelectedOn<T, R> notLike(LikeType type, SqlColumn<?, String> column) {
+    private SelectedOn<T, R> notLike(LikeType type, SqlColumn<?, String> column) {
         Objects.requireNonNull(column, COLUMN_CAN_T_BE_NULL);
         this.lastOn.targetColumn = column;
         this.lastOn.likeType = type;
@@ -251,9 +339,8 @@ public class JoinImpl<T, R, L> implements On<T, R>, IntermediateJoin<T, R, L> {
         return (SelectedOn<T, R>) this.parent;
     }
 
-    @Override
     @SuppressWarnings("unchecked")
-    public SelectedOn<T, R> like(LikeType type, String value) {
+    private SelectedOn<T, R> like(LikeType type, String value) {
         Objects.requireNonNull(value, VALUE_CAN_T_BE_NULL);
         this.lastOn.likeType = type;
         this.lastOn.operation = Operation.LIKE;
@@ -261,9 +348,8 @@ public class JoinImpl<T, R, L> implements On<T, R>, IntermediateJoin<T, R, L> {
         return (SelectedOn<T, R>) this.parent;
     }
 
-    @Override
     @SuppressWarnings("unchecked")
-    public SelectedOn<T, R> notLike(LikeType type, String value) {
+    private SelectedOn<T, R> notLike(LikeType type, String value) {
         Objects.requireNonNull(value, VALUE_CAN_T_BE_NULL);
         this.lastOn.likeType = type;
         this.lastOn.operation = Operation.NOT_LIKE;
@@ -271,9 +357,8 @@ public class JoinImpl<T, R, L> implements On<T, R>, IntermediateJoin<T, R, L> {
         return (SelectedOn<T, R>) this.parent;
     }
 
-    @Override
     @SuppressWarnings("unchecked")
-    public SelectedOn<T, R> like(LikeType type, SqlColumn<?, String> column, String alias) {
+    private SelectedOn<T, R> like(LikeType type, SqlColumn<?, String> column, String alias) {
         Objects.requireNonNull(column, COLUMN_CAN_T_BE_NULL);
         this.lastOn.targetColumn = column;
         this.lastOn.likeType = type;
@@ -282,9 +367,8 @@ public class JoinImpl<T, R, L> implements On<T, R>, IntermediateJoin<T, R, L> {
         return (SelectedOn<T, R>) this.parent;
     }
 
-    @Override
     @SuppressWarnings("unchecked")
-    public SelectedOn<T, R> notLike(LikeType type, SqlColumn<?, String> column, String alias) {
+    private SelectedOn<T, R> notLike(LikeType type, SqlColumn<?, String> column, String alias) {
         Objects.requireNonNull(column, COLUMN_CAN_T_BE_NULL);
         this.lastOn.targetColumn = column;
         this.lastOn.likeType = type;

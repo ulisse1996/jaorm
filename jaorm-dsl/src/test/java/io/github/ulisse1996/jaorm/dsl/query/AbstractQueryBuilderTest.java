@@ -28,7 +28,7 @@ public abstract class AbstractQueryBuilderTest {
     protected static final SqlColumn<MySecondEntityJoin, Integer> COL_5 = SqlColumn.instance(MySecondEntityJoin.class, "COL5", Integer.class);
     protected static final SqlColumn<MySecondEntityJoin, String> COL_6 = SqlColumn.instance(MySecondEntityJoin.class, "COL6", String.class);
 
-    protected void withSimpleDelegate(Consumer<MockedStatic<VendorSpecific>> consumer) throws Throwable {
+    protected void withSimpleDelegate(Consumer<MockedStatic<VendorSpecific>> consumer) {
         try (MockedStatic<DelegatesService> mk = Mockito.mockStatic(DelegatesService.class);
              MockedStatic<QueryRunner> mkQuery = Mockito.mockStatic(QueryRunner.class);
              MockedStatic<VendorSpecific> mkVendor = Mockito.mockStatic(VendorSpecific.class)) {
@@ -51,7 +51,7 @@ public abstract class AbstractQueryBuilderTest {
     }
 
     protected <T> ArgumentMatcher<T> matcherList(int size) {
-        return new ArgumentMatcher<T>() {
+        return new ArgumentMatcher<>() {
             @Override
             public boolean matches(T argument) {
                 return argument instanceof List && ((List<?>) argument).size() == size;

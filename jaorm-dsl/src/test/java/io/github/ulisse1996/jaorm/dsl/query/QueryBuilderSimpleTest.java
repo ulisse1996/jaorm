@@ -1044,13 +1044,13 @@ class QueryBuilderSimpleTest extends AbstractQueryBuilderTest {
                 Arguments.of(
                         QueryBuilder.select(COL_1)
                                 .from("TAB1")
-                                .where(COL_2).like(LikeType.FULL, "3"),
+                                .where(COL_2).contains("3"),
                         "SELECT COL1 FROM TAB1 WHERE (COL2 LIKE CONCAT('%',?,'%'))"
                 ),
                 Arguments.of(
                         QueryBuilder.select(COL_1)
                                 .from("TAB1")
-                                .where(COL_2).notLike(LikeType.FULL, "3"),
+                                .where(COL_2).notContains("3"),
                         "SELECT COL1 FROM TAB1 WHERE (COL2 NOT LIKE CONCAT('%',?,'%'))"
                 ),
 
@@ -1086,7 +1086,7 @@ class QueryBuilderSimpleTest extends AbstractQueryBuilderTest {
                         QueryBuilder.select(COL_1)
                                 .from("TAB1")
                                 .where(COL_1).eq(3).or(COL_3).eq(4)
-                                .andWhere(COL_2).isNull().or(COL_2).like(LikeType.FULL, "3"),
+                                .andWhere(COL_2).isNull().or(COL_2).contains("3"),
                         "SELECT COL1 FROM TAB1 WHERE (COL1 = ? OR COL3 = ?) AND (COL2 IS NULL OR COL2 LIKE CONCAT('%',?,'%'))"
                 ),
                 Arguments.of(

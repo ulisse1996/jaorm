@@ -133,17 +133,45 @@ public class SimpleWhereImpl<R> extends AbstractWhereImpl<Object, R> implements 
         return this.parent;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
-    public SimpleSelectedWhere like(LikeType type, String val) {
+    public SimpleSelectedWhere startsWith(String val) {
+        return like(LikeType.START, val);
+    }
+
+    @Override
+    public SimpleSelectedWhere contains(String val) {
+        return like(LikeType.FULL, val);
+    }
+
+    @Override
+    public SimpleSelectedWhere endsWith(String val) {
+        return like(LikeType.END, val);
+    }
+
+    @Override
+    public SimpleSelectedWhere notStartsWith(String val) {
+        return notLike(LikeType.START, val);
+    }
+
+    @Override
+    public SimpleSelectedWhere notContains(String val) {
+        return notLike(LikeType.FULL, val);
+    }
+
+    @Override
+    public SimpleSelectedWhere notEndsWith(String val) {
+        return notLike(LikeType.END, val);
+    }
+
+    @SuppressWarnings("unchecked")
+    private SimpleSelectedWhere like(LikeType type, String val) {
         assertIsString();
         this.likeType = type;
         return operation((R) val, Operation.LIKE, this.parent);
     }
 
     @SuppressWarnings("unchecked")
-    @Override
-    public SimpleSelectedWhere notLike(LikeType type, String val) {
+    private SimpleSelectedWhere notLike(LikeType type, String val) {
         assertIsString();
         this.likeType = type;
         return operation((R) val, Operation.NOT_LIKE, this.parent);

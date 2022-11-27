@@ -211,7 +211,7 @@ class QueryBuilderCaseTest extends AbstractQueryBuilderTest {
                         (Supplier<WithResult<MyEntity>>)() -> QueryBuilder.select(QueryBuilderTest.MyEntity.class)
                                 .where(COL_2).greaterOrEqualsTo(
                                         QueryBuilder.<String>usingCase()
-                                                .when(COL_2, "MY_TABLE").like(LikeType.FULL, "3").then(COL_2, "MY_TABLE")
+                                                .when(COL_2, "MY_TABLE").contains("3").then(COL_2, "MY_TABLE")
                                                 .orElse(COL_2)
                                 ),
                         "SELECT MY_TABLE.COL1, MY_TABLE.COL2 FROM MY_TABLE WHERE (MY_TABLE.COL2 >= CASE WHEN MY_TABLE.COL2 LIKE CONCAT('%',?,'%') THEN MY_TABLE.COL2 ELSE MY_TABLE.COL2 END)"
@@ -220,7 +220,7 @@ class QueryBuilderCaseTest extends AbstractQueryBuilderTest {
                         (Supplier<WithResult<MyEntity>>)() -> QueryBuilder.select(QueryBuilderTest.MyEntity.class)
                                 .where(COL_2).greaterOrEqualsTo(
                                         QueryBuilder.<String>usingCase()
-                                                .when(COL_2, "MY_TABLE").notLike(LikeType.FULL, "3").then(COL_2, "MY_TABLE")
+                                                .when(COL_2, "MY_TABLE").notContains("3").then(COL_2, "MY_TABLE")
                                                 .orElse(COL_2)
                                 ),
                         "SELECT MY_TABLE.COL1, MY_TABLE.COL2 FROM MY_TABLE WHERE (MY_TABLE.COL2 >= CASE WHEN MY_TABLE.COL2 NOT LIKE CONCAT('%',?,'%') THEN MY_TABLE.COL2 ELSE MY_TABLE.COL2 END)"

@@ -8,7 +8,7 @@ class AliasColumnTest {
 
     @Test
     void should_throw_exception_for_bad_type() {
-        Assertions.assertThrows(IllegalArgumentException.class, () -> new AliasColumn(new Selectable<Object>() { //NOSONAR
+        Assertions.assertThrows(IllegalArgumentException.class, () -> new AliasColumn(new Selectable<>() { //NOSONAR
         }, null));
     }
 }

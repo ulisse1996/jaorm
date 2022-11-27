@@ -51,12 +51,24 @@ public interface IntermediateJoin<T, R, L> {
     SelectedOn<T, R> greaterOrEqualsTo(SqlColumn<?, L> column, String alias);
 
     // Other operations
-    SelectedOn<T, R> like(LikeType type, SqlColumn<?, String> column);
-    SelectedOn<T, R> notLike(LikeType type, SqlColumn<?, String> column);
+    SelectedOn<T, R> startsWith(SqlColumn<?, String> column);
+    SelectedOn<T, R> contains(SqlColumn<?, String> column);
+    SelectedOn<T, R> endsWith(SqlColumn<?, String> column);
+    SelectedOn<T, R> notStartsWith(SqlColumn<?, String> column);
+    SelectedOn<T, R> notContains(SqlColumn<?, String> column);
+    SelectedOn<T, R> notEndsWith(SqlColumn<?, String> column);
 
-    SelectedOn<T, R> like(LikeType type, String value);
-    SelectedOn<T, R> notLike(LikeType type, String value);
+    SelectedOn<T, R> startsWith(String val);
+    SelectedOn<T, R> contains(String val);
+    SelectedOn<T, R> endsWith(String val);
+    SelectedOn<T, R> notStartsWith(String val);
+    SelectedOn<T, R> notContains(String val);
+    SelectedOn<T, R> notEndsWith(String val);
 
-    SelectedOn<T, R> like(LikeType type, SqlColumn<?, String> column, String alias);
-    SelectedOn<T, R> notLike(LikeType type, SqlColumn<?, String> column, String alias);
+    SelectedOn<T, R> startsWith(SqlColumn<?, String> column, String alias);
+    SelectedOn<T, R> contains(SqlColumn<?, String> column, String alias);
+    SelectedOn<T, R> endsWith(SqlColumn<?, String> column, String alias);
+    SelectedOn<T, R> notStartsWith(SqlColumn<?, String> column, String alias);
+    SelectedOn<T, R> notContains(SqlColumn<?, String> column, String alias);
+    SelectedOn<T, R> notEndsWith(SqlColumn<?, String> column, String alias);
 }

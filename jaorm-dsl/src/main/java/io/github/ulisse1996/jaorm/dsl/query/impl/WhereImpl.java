@@ -144,16 +144,44 @@ public class WhereImpl<T, R> extends AbstractWhereImpl<T, R> implements Intermed
     }
 
     @Override
+    public SelectedWhere<T> startsWith(String val) {
+        return like(LikeType.START, val);
+    }
+
+    @Override
+    public SelectedWhere<T> contains(String val) {
+        return like(LikeType.FULL, val);
+    }
+
+    @Override
+    public SelectedWhere<T> endsWith(String val) {
+        return like(LikeType.END, val);
+    }
+
+    @Override
+    public SelectedWhere<T> notStartsWith(String val) {
+        return notLike(LikeType.START, val);
+    }
+
+    @Override
+    public SelectedWhere<T> notContains(String val) {
+        return notLike(LikeType.FULL, val);
+    }
+
+    @Override
+    public SelectedWhere<T> notEndsWith(String val) {
+        return notLike(LikeType.END, val);
+    }
+
     @SuppressWarnings("unchecked")
-    public SelectedWhere<T> like(LikeType type, String val) {
+    private SelectedWhere<T> like(LikeType type, String val) {
         assertIsString();
         this.likeType = type;
         return operation((R) val, Operation.LIKE, this.parent);
     }
 
-    @Override
     @SuppressWarnings("unchecked")
-    public SelectedWhere<T> notLike(LikeType type, String val) {
+    private SelectedWhere<T> notLike(LikeType type, String val) {
         assertIsString();
         this.likeType = type;
         return operation((R) val, Operation.NOT_LIKE, this.parent);

@@ -138,16 +138,44 @@ public class UpdatedWhereImpl<T, R> extends AbstractWhereImpl<T,R> implements In
     }
 
     @Override
+    public UpdatedWhere<T> startsWith(String val) {
+        return like(LikeType.START, val);
+    }
+
+    @Override
+    public UpdatedWhere<T> contains(String val) {
+        return like(LikeType.FULL, val);
+    }
+
+    @Override
+    public UpdatedWhere<T> endsWith(String val) {
+        return like(LikeType.END, val);
+    }
+
+    @Override
+    public UpdatedWhere<T> notStartsWith(String val) {
+        return notLike(LikeType.START, val);
+    }
+
+    @Override
+    public UpdatedWhere<T> notContains(String val) {
+        return notLike(LikeType.FULL, val);
+    }
+
+    @Override
+    public UpdatedWhere<T> notEndsWith(String val) {
+        return notLike(LikeType.END, val);
+    }
+
     @SuppressWarnings("unchecked")
-    public UpdatedWhere<T> like(LikeType type, String val) {
+    private UpdatedWhere<T> like(LikeType type, String val) {
         assertIsString();
         this.likeType = type;
         return operation((R) val, Operation.LIKE, this.parent);
     }
 
-    @Override
     @SuppressWarnings("unchecked")
-    public UpdatedWhere<T> notLike(LikeType type, String val) {
+    private UpdatedWhere<T> notLike(LikeType type, String val) {
         assertIsString();
         this.likeType = type;
         return operation((R) val, Operation.NOT_LIKE, this.parent);

@@ -30,6 +30,11 @@ public interface IntermediateWhereCondition<R, L, M> {
     L notIn(M subQuery);
     L isNull();
     L isNotNull();
-    L like(LikeType type, String val);
-    L notLike(LikeType type, String val);
+
+    L startsWith(String val);
+    L contains(String val);
+    L endsWith(String val);
+    L notStartsWith(String val);
+    L notContains(String val);
+    L notEndsWith(String val);
 }

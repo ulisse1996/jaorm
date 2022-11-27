@@ -2,7 +2,6 @@ package io.github.ulisse1996.jaorm.dsl.query.impl;
 
 import io.github.ulisse1996.jaorm.dsl.config.QueryConfig;
 import io.github.ulisse1996.jaorm.dsl.query.QueryBuilder;
-import io.github.ulisse1996.jaorm.dsl.query.enums.LikeType;
 import io.github.ulisse1996.jaorm.entity.EntityDelegate;
 import io.github.ulisse1996.jaorm.entity.EntityMapper;
 import io.github.ulisse1996.jaorm.entity.SqlColumn;
@@ -29,8 +28,6 @@ class UpdatedImplTest {
 
     private static final SqlColumn<Object, Integer> COL1 = SqlColumn.instance(Object.class, "COL1", Integer.class);
     private static final SqlColumn<Object, String> COL2 = SqlColumn.instance(Object.class, "COL2", String.class);
-    private static final SqlColumn<Object, String> COL3 = SqlColumn.instance(Object.class, "COL3", String.class);
-    private static final SqlColumn<Object, Integer> COL4 = SqlColumn.instance(Object.class, "COL4", Integer.class);
     private final EntityMapper<Object> mapper;
 
     UpdatedImplTest() {
@@ -189,54 +186,54 @@ class UpdatedImplTest {
 
                 // Like
                 Arguments.of(
-                        (Supplier<Object>)() -> QueryBuilder.update(Object.class).setting(COL1).toValue(1).where(COL2).like(LikeType.START, "2"),
+                        (Supplier<Object>)() -> QueryBuilder.update(Object.class).setting(COL1).toValue(1).where(COL2).startsWith("2"),
                         "UPDATE MY_TABLE SET MY_TABLE.COL1 = ? WHERE (MY_TABLE.COL2 LIKE CONCAT('%',?))"
                 ),
                 Arguments.of(
-                        (Supplier<Object>)() -> QueryBuilder.update(Object.class).setting(COL1).toValue(1).where(COL2).like(LikeType.END, "2"),
+                        (Supplier<Object>)() -> QueryBuilder.update(Object.class).setting(COL1).toValue(1).where(COL2).endsWith("2"),
                         "UPDATE MY_TABLE SET MY_TABLE.COL1 = ? WHERE (MY_TABLE.COL2 LIKE CONCAT(?,'%'))"
                 ),
                 Arguments.of(
-                        (Supplier<Object>)() -> QueryBuilder.update(Object.class).setting(COL1).toValue(1).where(COL2).like(LikeType.FULL, "2"),
+                        (Supplier<Object>)() -> QueryBuilder.update(Object.class).setting(COL1).toValue(1).where(COL2).contains("2"),
                         "UPDATE MY_TABLE SET MY_TABLE.COL1 = ? WHERE (MY_TABLE.COL2 LIKE CONCAT('%',?,'%'))"
                 ),
                 Arguments.of(
-                        (Supplier<Object>)() -> QueryBuilder.update(Object.class).setting(COL1).toValue(1).where(COL2).notLike(LikeType.START, "2"),
+                        (Supplier<Object>)() -> QueryBuilder.update(Object.class).setting(COL1).toValue(1).where(COL2).notStartsWith("2"),
                         "UPDATE MY_TABLE SET MY_TABLE.COL1 = ? WHERE (MY_TABLE.COL2 NOT LIKE CONCAT('%',?))"
                 ),
                 Arguments.of(
-                        (Supplier<Object>)() -> QueryBuilder.update(Object.class).setting(COL1).toValue(1).where(COL2).notLike(LikeType.END, "2"),
+                        (Supplier<Object>)() -> QueryBuilder.update(Object.class).setting(COL1).toValue(1).where(COL2).notEndsWith("2"),
                         "UPDATE MY_TABLE SET MY_TABLE.COL1 = ? WHERE (MY_TABLE.COL2 NOT LIKE CONCAT(?,'%'))"
                 ),
                 Arguments.of(
-                        (Supplier<Object>)() -> QueryBuilder.update(Object.class).setting(COL1).toValue(1).where(COL2).notLike(LikeType.FULL, "2"),
+                        (Supplier<Object>)() -> QueryBuilder.update(Object.class).setting(COL1).toValue(1).where(COL2).notContains("2"),
                         "UPDATE MY_TABLE SET MY_TABLE.COL1 = ? WHERE (MY_TABLE.COL2 NOT LIKE CONCAT('%',?,'%'))"
                 ),
 
                 // Case Insensitive
 
                 Arguments.of(
-                        (Supplier<Object>)() -> QueryBuilder.update(Object.class, QueryConfig.builder().caseInsensitive().build()).setting(COL1).toValue(1).where(COL2).like(LikeType.START, "2"),
+                        (Supplier<Object>)() -> QueryBuilder.update(Object.class, QueryConfig.builder().caseInsensitive().build()).setting(COL1).toValue(1).where(COL2).startsWith("2"),
                         "UPDATE MY_TABLE SET MY_TABLE.COL1 = ? WHERE (UPPER(MY_TABLE.COL2) LIKE CONCAT('%',UPPER(?)))"
                 ),
                 Arguments.of(
-                        (Supplier<Object>)() -> QueryBuilder.update(Object.class, QueryConfig.builder().caseInsensitive().build()).setting(COL1).toValue(1).where(COL2).like(LikeType.END, "2"),
+                        (Supplier<Object>)() -> QueryBuilder.update(Object.class, QueryConfig.builder().caseInsensitive().build()).setting(COL1).toValue(1).where(COL2).endsWith("2"),
                         "UPDATE MY_TABLE SET MY_TABLE.COL1 = ? WHERE (UPPER(MY_TABLE.COL2) LIKE CONCAT(UPPER(?),'%'))"
                 ),
                 Arguments.of(
-                        (Supplier<Object>)() -> QueryBuilder.update(Object.class, QueryConfig.builder().caseInsensitive().build()).setting(COL1).toValue(1).where(COL2).like(LikeType.FULL, "2"),
+                        (Supplier<Object>)() -> QueryBuilder.update(Object.class, QueryConfig.builder().caseInsensitive().build()).setting(COL1).toValue(1).where(COL2).contains("2"),
                         "UPDATE MY_TABLE SET MY_TABLE.COL1 = ? WHERE (UPPER(MY_TABLE.COL2) LIKE CONCAT('%',UPPER(?),'%'))"
                 ),
                 Arguments.of(
-                        (Supplier<Object>)() -> QueryBuilder.update(Object.class, QueryConfig.builder().caseInsensitive().build()).setting(COL1).toValue(1).where(COL2).notLike(LikeType.START, "2"),
+                        (Supplier<Object>)() -> QueryBuilder.update(Object.class, QueryConfig.builder().caseInsensitive().build()).setting(COL1).toValue(1).where(COL2).notStartsWith("2"),
                         "UPDATE MY_TABLE SET MY_TABLE.COL1 = ? WHERE (UPPER(MY_TABLE.COL2) NOT LIKE CONCAT('%',UPPER(?)))"
                 ),
                 Arguments.of(
-                        (Supplier<Object>)() -> QueryBuilder.update(Object.class, QueryConfig.builder().caseInsensitive().build()).setting(COL1).toValue(1).where(COL2).notLike(LikeType.END, "2"),
+                        (Supplier<Object>)() -> QueryBuilder.update(Object.class, QueryConfig.builder().caseInsensitive().build()).setting(COL1).toValue(1).where(COL2).notEndsWith("2"),
                         "UPDATE MY_TABLE SET MY_TABLE.COL1 = ? WHERE (UPPER(MY_TABLE.COL2) NOT LIKE CONCAT(UPPER(?),'%'))"
                 ),
                 Arguments.of(
-                        (Supplier<Object>)() -> QueryBuilder.update(Object.class, QueryConfig.builder().caseInsensitive().build()).setting(COL1).toValue(1).where(COL2).notLike(LikeType.FULL, "2"),
+                        (Supplier<Object>)() -> QueryBuilder.update(Object.class, QueryConfig.builder().caseInsensitive().build()).setting(COL1).toValue(1).where(COL2).notContains("2"),
                         "UPDATE MY_TABLE SET MY_TABLE.COL1 = ? WHERE (UPPER(MY_TABLE.COL2) NOT LIKE CONCAT('%',UPPER(?),'%'))"
                 ),
 
@@ -264,46 +261,46 @@ class UpdatedImplTest {
         return Stream.of(
                 Arguments.of(
                         (Supplier<Object>)() -> QueryBuilder.update(Object.class).setting(COL1).toValue(1)
-                                .where(new CastFunction(COL2)).like(LikeType.FULL, "Hello"),
+                                .where(new CastFunction(COL2)).contains("Hello"),
                         "UPDATE MY_TABLE SET MY_TABLE.COL1 = ? WHERE (CAST(MY_TABLE.COL2 AS VARCHAR(32000)) LIKE CONCAT('%',?,'%'))"
                 ),
                 Arguments.of(
                         (Supplier<Object>)() -> QueryBuilder.update(Object.class).setting(COL1).toValue(1)
-                                .where(new CastFunction(COL2)).like(LikeType.FULL, "Hello")
+                                .where(new CastFunction(COL2)).contains("Hello")
                                 .orWhere(COL1).eq(2),
                         "UPDATE MY_TABLE SET MY_TABLE.COL1 = ? WHERE (CAST(MY_TABLE.COL2 AS VARCHAR(32000)) LIKE CONCAT('%',?,'%')) OR (MY_TABLE.COL1 = ?)"
                 ),
                 Arguments.of(
                         (Supplier<Object>)() -> QueryBuilder.update(Object.class).setting(COL1).toValue(1)
-                                .where(new CastFunction(COL2)).like(LikeType.FULL, "Hello").or(COL1).eq(2),
+                                .where(new CastFunction(COL2)).contains("Hello").or(COL1).eq(2),
                         "UPDATE MY_TABLE SET MY_TABLE.COL1 = ? WHERE (CAST(MY_TABLE.COL2 AS VARCHAR(32000)) LIKE CONCAT('%',?,'%') OR MY_TABLE.COL1 = ?)"
                 ),
                 Arguments.of(
                         (Supplier<Object>)() -> QueryBuilder.update(Object.class).setting(COL1).toValue(1)
-                                .where(new CastFunction(COL2)).like(LikeType.FULL, "Hello").and(COL1).eq(2),
+                                .where(new CastFunction(COL2)).contains("Hello").and(COL1).eq(2),
                         "UPDATE MY_TABLE SET MY_TABLE.COL1 = ? WHERE (CAST(MY_TABLE.COL2 AS VARCHAR(32000)) LIKE CONCAT('%',?,'%') AND MY_TABLE.COL1 = ?)"
                 ),
 
                 Arguments.of(
                         (Supplier<Object>)() -> QueryBuilder.update(Object.class).setting(COL1).toValue(1)
-                                .where(new CastFunction(COL2)).like(LikeType.FULL, "Hello")
-                                .andWhere(new CastFunction(COL2)).notLike(LikeType.FULL, "NOTMY"),
+                                .where(new CastFunction(COL2)).contains("Hello")
+                                .andWhere(new CastFunction(COL2)).notContains("NOTMY"),
                         "UPDATE MY_TABLE SET MY_TABLE.COL1 = ? WHERE (CAST(MY_TABLE.COL2 AS VARCHAR(32000)) LIKE CONCAT('%',?,'%')) AND (CAST(MY_TABLE.COL2 AS VARCHAR(32000)) NOT LIKE CONCAT('%',?,'%'))"
                 ),
                 Arguments.of(
                         (Supplier<Object>)() -> QueryBuilder.update(Object.class).setting(COL1).toValue(1)
-                                .where(new CastFunction(COL2)).like(LikeType.FULL, "Hello")
-                                .orWhere(new CastFunction(COL2)).notLike(LikeType.FULL, "NOTMY"),
+                                .where(new CastFunction(COL2)).contains("Hello")
+                                .orWhere(new CastFunction(COL2)).notContains("NOTMY"),
                         "UPDATE MY_TABLE SET MY_TABLE.COL1 = ? WHERE (CAST(MY_TABLE.COL2 AS VARCHAR(32000)) LIKE CONCAT('%',?,'%')) OR (CAST(MY_TABLE.COL2 AS VARCHAR(32000)) NOT LIKE CONCAT('%',?,'%'))"
                 ),
                 Arguments.of(
                         (Supplier<Object>)() -> QueryBuilder.update(Object.class).setting(COL1).toValue(1)
-                                .where(new CastFunction(COL2)).like(LikeType.FULL, "Hello").and(new CastFunction(COL2)).notLike(LikeType.FULL, "NOTMY"),
+                                .where(new CastFunction(COL2)).contains("Hello").and(new CastFunction(COL2)).notContains("NOTMY"),
                         "UPDATE MY_TABLE SET MY_TABLE.COL1 = ? WHERE (CAST(MY_TABLE.COL2 AS VARCHAR(32000)) LIKE CONCAT('%',?,'%') AND CAST(MY_TABLE.COL2 AS VARCHAR(32000)) NOT LIKE CONCAT('%',?,'%'))"
                 ),
                 Arguments.of(
                         (Supplier<Object>)() -> QueryBuilder.update(Object.class).setting(COL1).toValue(1)
-                                .where(new CastFunction(COL2)).like(LikeType.FULL, "Hello").or(new CastFunction(COL2)).notLike(LikeType.FULL, "NOTMY"),
+                                .where(new CastFunction(COL2)).contains("Hello").or(new CastFunction(COL2)).notContains("NOTMY"),
                         "UPDATE MY_TABLE SET MY_TABLE.COL1 = ? WHERE (CAST(MY_TABLE.COL2 AS VARCHAR(32000)) LIKE CONCAT('%',?,'%') OR CAST(MY_TABLE.COL2 AS VARCHAR(32000)) NOT LIKE CONCAT('%',?,'%'))"
                 ),
                 
@@ -311,13 +308,13 @@ class UpdatedImplTest {
                 Arguments.of(
                         (Supplier<Object>)() -> QueryBuilder.update(Object.class, QueryConfig.builder().caseInsensitive().build())
                                 .setting(COL1).toValue(1)
-                                .where(new CastFunction(COL2)).like(LikeType.FULL, "Hello"),
+                                .where(new CastFunction(COL2)).contains("Hello"),
                         "UPDATE MY_TABLE SET MY_TABLE.COL1 = ? WHERE (UPPER(CAST(MY_TABLE.COL2 AS VARCHAR(32000))) LIKE CONCAT('%',UPPER(?),'%'))"
                 ),
                 Arguments.of(
                         (Supplier<Object>)() -> QueryBuilder.update(Object.class, QueryConfig.builder().caseInsensitive().build())
                                 .setting(COL1).toValue(1)
-                                .where(new CastFunction(COL2)).like(LikeType.FULL, "Hello").or(new CastFunction(COL2)).notLike(LikeType.FULL, "NOTMY"),
+                                .where(new CastFunction(COL2)).contains("Hello").or(new CastFunction(COL2)).notContains("NOTMY"),
                         "UPDATE MY_TABLE SET MY_TABLE.COL1 = ? WHERE (UPPER(CAST(MY_TABLE.COL2 AS VARCHAR(32000))) LIKE CONCAT('%',UPPER(?),'%') OR UPPER(CAST(MY_TABLE.COL2 AS VARCHAR(32000))) NOT LIKE CONCAT('%',UPPER(?),'%'))"
                 )
         );
