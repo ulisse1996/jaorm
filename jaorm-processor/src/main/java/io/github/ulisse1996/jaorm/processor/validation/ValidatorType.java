@@ -12,7 +12,8 @@ public enum ValidatorType {
     RELATIONSHIP(Relationship.class),
     GENERATORS(CustomGenerated.class, TableGenerated.class),
     PROJECTIONS(Projection.class),
-    GRAPHS(Graph.class, Graph.Graphs.class);
+    GRAPHS(Graph.class, Graph.Graphs.class),
+    CONVERTER_PROVIDER(ConverterProvider.class);
 
     private final List<Class<? extends Annotation>> supported;
 

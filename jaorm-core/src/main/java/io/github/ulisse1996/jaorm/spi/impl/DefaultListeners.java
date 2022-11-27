@@ -15,11 +15,9 @@ public class DefaultListeners extends ListenersService {
     private final Set<Class<?>> classes;
 
     public DefaultListeners(Iterable<ListenerProvider> providers) {
-        this.classes = Collections.unmodifiableSet(
-                StreamSupport.stream(providers.spliterator(), false)
-                        .map(ListenerProvider::getEntityClass)
-                        .collect(Collectors.toSet())
-        );
+        this.classes = StreamSupport.stream(providers.spliterator(), false)
+                .map(ListenerProvider::getEntityClass)
+                .collect(Collectors.toUnmodifiableSet());
 
         logger.debug(() -> String.format("Loaded listeners for %s", classes));
     }

@@ -25,7 +25,10 @@ import javax.lang.model.type.PrimitiveType;
 import javax.lang.model.type.TypeMirror;
 import javax.tools.FileObject;
 import javax.tools.StandardLocation;
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.lang.annotation.Annotation;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
@@ -59,17 +62,15 @@ public class ProcessorUtils {
     private static final String ENDING_GENERIC = ">";
 
     static {
-        Map<Class<?>,Class<?>> map = new HashMap<>(16);
-        map.put(Integer.class, int.class);
-        map.put(Byte.class, byte.class);
-        map.put(Character.class, char.class);
-        map.put(Boolean.class, boolean.class);
-        map.put(Double.class, double.class);
-        map.put(Float.class, float.class);
-        map.put(Long.class, long.class);
-        map.put(Short.class, short.class);
-        map.put(Void.class, void.class);
-        WRAPPER_TYPE_MAP = Collections.unmodifiableMap(map);
+        WRAPPER_TYPE_MAP = Map.of(Integer.class, int.class,
+                Byte.class, byte.class,
+                Character.class, char.class,
+                Boolean.class, boolean.class,
+                Double.class, double.class,
+                Float.class, float.class,
+                Long.class, long.class,
+                Short.class, short.class,
+                Void.class, void.class);
     }
 
     public static List<ExecutableElement> getConstructors(ProcessingEnvironment processingEnvironment,
@@ -242,8 +243,13 @@ public class ProcessorUtils {
     }
 
     public static String getConverterCaller(ProcessingEnvironment processingEnvironment,
-                                            VariableElement variableElement) {
-        TypeMirror converterClass = getConverterClass(processingEnvironment, variableElement);
+                                            Element element) {
+        TypeMirror converterClass;
+        if (element instanceof VariableElement) {
+            converterClass = getConverterClass(processingEnvironment, (VariableElement) element);
+        } else {
+            converterClass = element.asType();
+        }
         return isConverterSingleton(processingEnvironment, converterClass)
                 ? converterClass.toString() +  "." + getConvertSingleton(processingEnvironment, converterClass)
                 : "new "  + converterClass.toString() + "()";
@@ -273,8 +279,13 @@ public class ProcessorUtils {
     }
 
     public static List<TypeElement> getConverterTypes(ProcessingEnvironment processingEnvironment,
-                                                      VariableElement variableElement) {
-        TypeMirror converterClass = getConverterClass(processingEnvironment, variableElement);
+                                                      Element element) {
+        TypeMirror converterClass;
+        if (element instanceof VariableElement) {
+            converterClass = getConverterClass(processingEnvironment, (VariableElement) element);
+        } else {
+            converterClass = element.asType();
+        }
         return getGenericTypes(processingEnvironment, converterClass, ValueConverter.class.getName());
     }
 

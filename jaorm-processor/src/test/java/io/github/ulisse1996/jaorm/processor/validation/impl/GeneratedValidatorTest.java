@@ -7,7 +7,6 @@ import io.github.ulisse1996.jaorm.annotation.TableGenerated;
 import io.github.ulisse1996.jaorm.processor.exception.ProcessorException;
 import io.github.ulisse1996.jaorm.processor.util.ProcessorUtils;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -44,10 +43,16 @@ class GeneratedValidatorTest {
         Element element = Mockito.mock(Element.class);
         TableGenerated generated = Mockito.mock(TableGenerated.class);
         Column column = Mockito.mock(Column.class);
-        Mockito.when(element.getAnnotation(TableGenerated.class))
-                .thenReturn(generated);
-        Mockito.when(element.getAnnotation(Column.class))
-                .thenReturn(column);
+        Mockito.when(element.getAnnotation(Mockito.any())).then(invocation -> {
+            Class<?> klass = invocation.getArgument(0);
+            if (klass.isAssignableFrom(TableGenerated.class)) {
+                return generated;
+            } else if (klass.isAssignableFrom(Column.class)) {
+                return column;
+            } else {
+                return null;
+            }
+        });
         Assertions.assertThrows(ProcessorException.class, () -> validator.validate(Collections.singletonList(element))); //NOSONAR
     }
 
@@ -56,12 +61,17 @@ class GeneratedValidatorTest {
         Element element = Mockito.mock(Element.class);
         TableGenerated generated = Mockito.mock(TableGenerated.class);
         Id id = Mockito.mock(Id.class);
-        Mockito.when(element.getAnnotation(TableGenerated.class))
-                .thenReturn(generated);
-        Mockito.when(element.getAnnotation(Column.class))
-                .thenReturn(null);
-        Mockito.when(element.getAnnotation(Id.class))
-                .thenReturn(id);
+        Mockito.when(element.getAnnotation(Mockito.any()))
+                .then(invocation -> {
+                    Class<?> klass = invocation.getArgument(0);
+                    if (klass.isAssignableFrom(TableGenerated.class)) {
+                        return generated;
+                    } else if (klass.isAssignableFrom(Id.class)) {
+                        return id;
+                    } else {
+                        return null;
+                    }
+                });
         Assertions.assertThrows(ProcessorException.class, () -> validator.validate(Collections.singletonList(element))); //NOSONAR
     }
 

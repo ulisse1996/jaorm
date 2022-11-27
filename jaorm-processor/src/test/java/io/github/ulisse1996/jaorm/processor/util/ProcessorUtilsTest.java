@@ -253,8 +253,8 @@ class ProcessorUtilsTest {
                 .thenReturn(elements);
         Mockito.when(elements.getTypeElement(type1))
                 .thenReturn(elementType1);
-        Mockito.when(elements.getTypeElement(type2))
-                .thenReturn(elementType2);
+        Mockito.doReturn(elementType2)
+                .when(elements).getTypeElement(type2);
         Assertions.assertEquals(Arrays.asList(elementType1, elementType2),
                 ProcessorUtils.getGenericTypes(environment, mirror, "io.github.ulisse1996.jaorm.entity.converter.ValueConverter"));
     }
@@ -447,8 +447,8 @@ class ProcessorUtilsTest {
                 .thenReturn(dao);
         Mockito.when(roundEnvironment.getElementsAnnotatedWith(Dao.class))
                 .then(invocation -> Collections.singleton(dao));
-        Mockito.when(roundEnvironment.getElementsAnnotatedWith(Query.class))
-                .then(invocation -> Collections.singleton(daoQuery));
+        Mockito.doReturn(Collections.singleton(daoQuery))
+                .when(roundEnvironment).getElementsAnnotatedWith(Query.class);
         List<TypeElement> result = ProcessorUtils.getAllDao(roundEnvironment);
         Assertions.assertEquals(1, result.size());
         Assertions.assertEquals(dao, result.get(0));
@@ -510,8 +510,8 @@ class ProcessorUtilsTest {
                 .then(invocation -> allElements);
         Mockito.when(elements.getTypeElement("java.lang.Object"))
                 .then(invocation -> objectElement);
-        Mockito.when(elements.getAllMembers(objectElement))
-                .then(invocation -> objectElements);
+        Mockito.doReturn(objectElements)
+                .when(elements).getAllMembers(objectElement);
         Assertions.assertEquals(Collections.singletonList(objectElements.get(3)), ProcessorUtils.getAllValidElements(environment, element));
     }
 
@@ -532,10 +532,8 @@ class ProcessorUtilsTest {
                 .thenReturn("io.github.ulisse1996.jaorm.entity.converter.ValueConverter<String,Integer>");
         Mockito.when(environment.getElementUtils())
                 .thenReturn(elements);
-        Mockito.when(elements.getTypeElement("String"))
-                .thenReturn(stringElement);
-        Mockito.when(elements.getTypeElement("Integer"))
-                .thenReturn(integerElement);
+        Mockito.doReturn(stringElement).when(elements).getTypeElement("String");
+        Mockito.doReturn(integerElement).when(elements).getTypeElement("Integer");
         List<TypeElement> expected = Arrays.asList(stringElement, integerElement);
         Assertions.assertEquals(expected, ProcessorUtils.getConverterTypes(environment, variableElement));
     }
@@ -819,8 +817,8 @@ class ProcessorUtilsTest {
                     .thenReturn(true);
             Mockito.when(instance.generateFakeElement(variableElement, LombokSupport.GenerationType.GETTER))
                     .thenReturn(getter);
-            Mockito.when(instance.generateFakeElement(variableElement, LombokSupport.GenerationType.SETTER))
-                    .thenReturn(setter);
+            Mockito.doReturn(setter)
+                    .when(instance).generateFakeElement(variableElement, LombokSupport.GenerationType.SETTER);
             Assertions.assertEquals(Arrays.asList(getter, setter),
                     ProcessorUtils.appendExternalGeneratedMethods(environment, element, fieldList));
         }
@@ -852,14 +850,13 @@ class ProcessorUtilsTest {
                 .thenReturn(Collections.emptyList());
         Mockito.when(elements.getTypeElement("java.lang.Object"))
                 .thenReturn(objectType);
-        Mockito.when(elements.getTypeElement("MyInterface"))
-                .thenReturn(interfaceType);
-        Mockito.when(elements.getTypeElement("Super"))
-                .thenReturn(superType);
+        Mockito.doReturn(interfaceType)
+                .when(elements).getTypeElement("MyInterface");
+        Mockito.doReturn(superType).when(elements).getTypeElement("Super");
         Mockito.when(interfaceType.getKind())
                 .thenReturn(ElementKind.INTERFACE);
-        Mockito.when(elements.getAllMembers(superType))
-                .then(invocation -> Collections.singletonList(variableElement));
+        Mockito.doReturn(Collections.singletonList(variableElement))
+                .when(elements).getAllMembers(superType);
         Mockito.when(variableElement.getSimpleName())
                 .thenReturn(nameOf("variable"));
         Mockito.when(variableElement.getAnnotation(Mockito.any()))

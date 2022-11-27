@@ -118,7 +118,7 @@ class CacheServiceTest {
     @Test
     @SuppressWarnings("unchecked")
     void should_change_cache() {
-        JaormCache<Object> cache = new JaormCache<Object>() {
+        JaormCache<Object> cache = new JaormCache<>() {
             @Override
             public Object get(Arguments arguments) {
                 return null;
@@ -136,7 +136,7 @@ class CacheServiceTest {
 
     @Test
     void should_set_new_cache_configuration() {
-        JaormCache<Object> cache = new JaormCache<Object>() {
+        JaormCache<Object> cache = new JaormCache<>() {
             @Override
             public Object get(Arguments arguments) {
                 return null;

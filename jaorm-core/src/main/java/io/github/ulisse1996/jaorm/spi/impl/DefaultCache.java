@@ -21,11 +21,9 @@ public class DefaultCache extends CacheService {
 
     public DefaultCache(Iterable<CacheActivator> loadServices) {
         this.cacheMap = new ConcurrentHashMap<>();
-        this.classes = Collections.unmodifiableSet(
-                StreamSupport.stream(loadServices.spliterator(), false)
-                        .map(CacheActivator::getEntityClass)
-                        .collect(Collectors.toSet())
-        );
+        this.classes = StreamSupport.stream(loadServices.spliterator(), false)
+                .map(CacheActivator::getEntityClass)
+                .collect(Collectors.toUnmodifiableSet());
 
         logger.debug(() -> String.format("Loaded cache activation for %s", classes));
     }

@@ -2,7 +2,7 @@ package io.github.ulisse1996.jaorm.entity.converter;
 
 public interface ValueConverter<T,R> {
 
-    ValueConverter<?, ?> NONE_CONVERTER = new ValueConverter<Object, Object>() {
+    ValueConverter<?, ?> NONE_CONVERTER = new ValueConverter<>() {
         @Override
         public Object fromSql(Object val) {
             return val;

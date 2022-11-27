@@ -34,7 +34,7 @@ public class RelationshipValidator extends Validator {
         for (Relationship.RelationshipColumn column : relationshipColumns) {
             Optional<VariableElement> optColumn = ProcessorUtils.getFieldWithColumnNameOpt(processingEnvironment,
                     fieldType, column.targetColumn());
-            if (!optColumn.isPresent()) {
+            if (optColumn.isEmpty()) {
                 throw new ProcessorException(
                         String.format(
                                 "Missing target column %s in Entity %s referenced from field %s in Entity %s",
@@ -50,8 +50,8 @@ public class RelationshipValidator extends Validator {
                 );
             }
             if (!column.sourceColumn().isEmpty()
-                    && !ProcessorUtils.getFieldWithColumnNameOpt(processingEnvironment,
-                    entityType, column.sourceColumn()).isPresent()) {
+                    && ProcessorUtils.getFieldWithColumnNameOpt(processingEnvironment,
+                    entityType, column.sourceColumn()).isEmpty()) {
                 throw new ProcessorException(
                         String.format("Source column %s not found for field %s in Entity %s",
                                 column.sourceColumn(), variableElement.getSimpleName(), entityType.getQualifiedName())

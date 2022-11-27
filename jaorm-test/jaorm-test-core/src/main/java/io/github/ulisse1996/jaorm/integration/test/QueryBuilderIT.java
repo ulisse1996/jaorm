@@ -4,7 +4,6 @@ import io.github.ulisse1996.jaorm.dsl.config.QueryConfig;
 import io.github.ulisse1996.jaorm.dsl.query.QueryBuilder;
 import io.github.ulisse1996.jaorm.dsl.query.common.MergeEnd;
 import io.github.ulisse1996.jaorm.dsl.query.common.SelectedWhere;
-import io.github.ulisse1996.jaorm.dsl.query.enums.LikeType;
 import io.github.ulisse1996.jaorm.dsl.query.enums.OrderType;
 import io.github.ulisse1996.jaorm.dsl.query.impl.SelectedImpl;
 import io.github.ulisse1996.jaorm.entity.EntityComparator;
@@ -110,13 +109,13 @@ public abstract class QueryBuilderIT extends AbstractIT {
         userDAO.insert(user);
 
         Optional<User> foundLike = QueryBuilder.select(User.class)
-                .where(UserColumns.USER_NAME).like(LikeType.FULL, "NAME")
+                .where(UserColumns.USER_NAME).contains("NAME")
                 .readOpt();
         Optional<User> foundNotLike = QueryBuilder.select(User.class)
-                .where(UserColumns.USER_NAME).notLike(LikeType.FULL, "FAL")
+                .where(UserColumns.USER_NAME).notContains("FAL")
                 .readOpt();
         Optional<User> notFound = QueryBuilder.select(User.class)
-                .where(UserColumns.USER_NAME).like(LikeType.START, "ST")
+                .where(UserColumns.USER_NAME).startsWith("ST")
                 .readOpt();
 
         Assertions.assertTrue(foundLike.isPresent());

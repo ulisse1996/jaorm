@@ -15,6 +15,7 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class ConverterGenerator extends Generator {
 
@@ -24,14 +25,14 @@ public class ConverterGenerator extends Generator {
 
     @Override
     public void generate(RoundEnvironment roundEnvironment) {
-        Set<ConverterInfo> conversions = roundEnvironment.getElementsAnnotatedWith(Converter.class)
-                .stream()
-                .map(element -> {
+        Set<ConverterInfo> conversions = Stream.concat(
+                    roundEnvironment.getElementsAnnotatedWith(Converter.class).stream(),
+                    roundEnvironment.getElementsAnnotatedWith(io.github.ulisse1996.jaorm.annotation.ConverterProvider.class).stream()
+                ).map(element -> {
                     ConverterInfo converterInfo = new ConverterInfo();
                     converterInfo.converterInstance = ProcessorUtils.getConverterCaller(processingEnvironment,
-                            (VariableElement) element);
-                    List<TypeElement> converterTypes = ProcessorUtils.getConverterTypes(processingEnvironment,
-                            (VariableElement) element);
+                            element);
+                    List<TypeElement> converterTypes = ProcessorUtils.getConverterTypes(processingEnvironment, element);
                     converterInfo.beforeClass = converterTypes.get(0);
                     converterInfo.afterClass = converterTypes.get(1);
                     return converterInfo;

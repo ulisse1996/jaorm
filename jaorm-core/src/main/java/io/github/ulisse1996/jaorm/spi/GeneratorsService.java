@@ -48,7 +48,7 @@ public abstract class GeneratorsService {
                 .flatMap(Collection::stream)
                 .filter(i -> i.getColumnName().equalsIgnoreCase(columnName))
                 .findFirst();
-        if (!info.isPresent()) {
+        if (info.isEmpty()) {
             throw new IllegalArgumentException("Can't process generation");
         }
 

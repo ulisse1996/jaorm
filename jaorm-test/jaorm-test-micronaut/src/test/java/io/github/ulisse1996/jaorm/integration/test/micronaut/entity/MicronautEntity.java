@@ -4,8 +4,6 @@ import io.github.ulisse1996.jaorm.annotation.Column;
 import io.github.ulisse1996.jaorm.annotation.Id;
 import io.github.ulisse1996.jaorm.annotation.Table;
 
-import java.math.BigDecimal;
-
 @Table(name = "MICRONAUT_ENTITY")
 public class MicronautEntity {
 

@@ -143,10 +143,10 @@ class SourceValidatorTest {
                 .thenReturn("COL1");
         Mockito.when(metaData.getColumnType(1))
                 .thenReturn(JDBCType.INTEGER.getVendorTypeNumber());
-        Mockito.when(metaData.getColumnName(2))
-                .thenReturn("COL2");
-        Mockito.when(metaData.getColumnType(2))
-                .thenReturn(JDBCType.VARCHAR.getVendorTypeNumber());
+        Mockito.doReturn("COL2")
+                .when(metaData).getColumnName(2);
+        Mockito.doReturn(JDBCType.VARCHAR.getVendorTypeNumber())
+                .when(metaData).getColumnType(2);
         Assertions.assertDoesNotThrow(validator::validateEntities);
     }
 
@@ -216,10 +216,10 @@ class SourceValidatorTest {
                 .thenReturn("COL1");
         Mockito.when(metaData.getColumnType(1))
                 .thenReturn(JDBCType.INTEGER.getVendorTypeNumber());
-        Mockito.when(metaData.getColumnName(2))
-                .thenReturn("COL2");
-        Mockito.when(metaData.getColumnType(2))
-                .thenReturn(JDBCType.VARCHAR.getVendorTypeNumber());
+        Mockito.doReturn("COL2")
+                .when(metaData).getColumnName(2);
+        Mockito.doReturn(JDBCType.VARCHAR.getVendorTypeNumber())
+                .when(metaData).getColumnType(2);
         Assertions.assertDoesNotThrow(validator::validateEntities);
     }
 

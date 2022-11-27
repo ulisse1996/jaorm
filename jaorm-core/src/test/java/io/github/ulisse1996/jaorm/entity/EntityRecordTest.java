@@ -10,7 +10,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class EntityRecordTest {
 
     @Mock private EntityRecordDao<EntityRecord<?>> dao;
-    private final EntityRecord<?> record = new EntityRecord<Object>() {};
+    private final EntityRecord<?> record = new EntityRecord<>() {};
 
     @Test
     void should_call_read_on_record_dao() {

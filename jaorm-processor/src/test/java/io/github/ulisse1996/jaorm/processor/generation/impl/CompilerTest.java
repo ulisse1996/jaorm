@@ -8,16 +8,17 @@ import org.junit.jupiter.api.Assertions;
 import javax.tools.Diagnostic;
 import javax.tools.JavaFileObject;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 public abstract class CompilerTest {
 
     protected JavaFileObject getFile(String folder, String name) {
-        return JavaFileObjects.forResource(CompilerTest.class.getResource("/" + folder + "/" + name));
+        return JavaFileObjects.forResource(Objects.requireNonNull(CompilerTest.class.getResource("/" + folder + "/" + name)));
     }
 
     protected static JavaFileObject getFile(String fullName) {
-        return JavaFileObjects.forResource(CompilerTest.class.getResource(fullName));
+        return JavaFileObjects.forResource(Objects.requireNonNull(CompilerTest.class.getResource(fullName)));
     }
 
     protected List<JavaFileObject> checkCompilation(Compilation compilation) {

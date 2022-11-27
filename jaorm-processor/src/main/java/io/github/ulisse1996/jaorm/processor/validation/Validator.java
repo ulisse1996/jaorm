@@ -29,6 +29,8 @@ public abstract class Validator {
                 return new ProjectionsValidator(processingEnvironment);
             case GRAPHS:
                 return new GraphsValidator(processingEnvironment);
+            case CONVERTER_PROVIDER:
+                return new ConverterProviderValidator(processingEnvironment);
             default:
                 throw new IllegalArgumentException("Can't find validator");
         }

@@ -19,7 +19,7 @@ public interface SqlColumn<T, R> extends Selectable<R> {
     }
 
     static <T,R> SqlColumn<T, R> instance(Class<T> entityClass, String name, Class<R> klass, ValueConverter<?, R> valueConverter) {
-        return new SqlColumn<T, R>() {
+        return new SqlColumn<>() {
             @Override
             public Class<T> getEntity() {
                 return entityClass;
