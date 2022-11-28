@@ -4,7 +4,6 @@ import io.github.ulisse1996.jaorm.logger.JaormLogger;
 import io.github.ulisse1996.jaorm.spi.ListenersService;
 import io.github.ulisse1996.jaorm.spi.provider.ListenerProvider;
 
-import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;

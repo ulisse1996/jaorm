@@ -6,7 +6,6 @@ import io.github.ulisse1996.jaorm.spi.CacheService;
 import io.github.ulisse1996.jaorm.spi.provider.CacheActivator;
 import io.github.ulisse1996.jaorm.util.ClassChecker;
 
-import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;

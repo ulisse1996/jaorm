@@ -6,8 +6,8 @@
 - Feature: Custom SqlAccessor for Vendor Specific
 - Feature: Spatial Support for Geography
 - Feature: Postgre Geography Implementation
-- Feature: startsWith, contains, endsWith, notStartsWith, notContains and notEndsWith for like and not like
-- Removal: Removed notLike and like 
+- Feature: startsWith, contains, endsWith, notStartsWith, notContains and notEndsWith for like and notLike
+- Removal: Removed notLike and like
 
 ## 1.10.0
 - Feature: BeanProvider for Dependency Injection Extensions
