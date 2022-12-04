@@ -140,7 +140,7 @@ public abstract class AbstractValidator implements Validator {
             for (EntityMetadata.FieldMetadata fieldMetadata : entityMetadata.getFields()) {
                 getLog().info(() -> String.format("Checking Field/Column %s of Entity %s", fieldMetadata.getName(), klassName));
                 Optional<TableMetadata.ColumnMetadata> columnOpt = metadata.findColumn(fieldMetadata.getColumnName());
-                if (!columnOpt.isPresent()) {
+                if (columnOpt.isEmpty()) {
                     throw new EntityValidationException(
                             String.format("Column %s not found for Entity %s", fieldMetadata.getColumnName(), klassName)
                     );

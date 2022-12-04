@@ -42,7 +42,7 @@ public class ResultSetStream<R> {
     }
 
     private Spliterator<R> createSpliterator() {
-        return new Spliterators.AbstractSpliterator<R>(Long.MAX_VALUE, Spliterator.ORDERED) {
+        return new Spliterators.AbstractSpliterator<>(Long.MAX_VALUE, Spliterator.ORDERED) {
 
             @Override
             public boolean tryAdvance(Consumer<? super R> action) {

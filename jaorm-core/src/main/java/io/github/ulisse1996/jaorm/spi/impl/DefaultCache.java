@@ -6,7 +6,6 @@ import io.github.ulisse1996.jaorm.spi.CacheService;
 import io.github.ulisse1996.jaorm.spi.provider.CacheActivator;
 import io.github.ulisse1996.jaorm.util.ClassChecker;
 
-import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -21,11 +20,9 @@ public class DefaultCache extends CacheService {
 
     public DefaultCache(Iterable<CacheActivator> loadServices) {
         this.cacheMap = new ConcurrentHashMap<>();
-        this.classes = Collections.unmodifiableSet(
-                StreamSupport.stream(loadServices.spliterator(), false)
-                        .map(CacheActivator::getEntityClass)
-                        .collect(Collectors.toSet())
-        );
+        this.classes = StreamSupport.stream(loadServices.spliterator(), false)
+                .map(CacheActivator::getEntityClass)
+                .collect(Collectors.toUnmodifiableSet());
 
         logger.debug(() -> String.format("Loaded cache activation for %s", classes));
     }

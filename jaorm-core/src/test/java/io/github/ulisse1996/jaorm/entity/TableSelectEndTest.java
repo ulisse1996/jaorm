@@ -15,7 +15,7 @@ class TableSelectEndTest {
     @Mock private BaseDao<Object> dao;
     @Mock private QueriesService service;
     private final Object obj = new Object();
-    private final TableSelectEnd<Object> testSubject = new TableSelectEnd<Object>(obj) {};
+    private final TableSelectEnd<Object> testSubject = new TableSelectEnd<>(obj) {};
 
     @Test
     void should_call_read() {

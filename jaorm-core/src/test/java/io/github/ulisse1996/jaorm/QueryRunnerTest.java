@@ -27,6 +27,7 @@ import java.util.*;
 @ExtendWith(MockitoExtension.class)
 class QueryRunnerTest {
 
+    @Mock private ResultSet resultSet;
     @Mock private DelegatesService delegatesService;
 
     @BeforeEach
@@ -141,17 +142,16 @@ class QueryRunnerTest {
     void should_return_map_of_auto_generated_keys() throws SQLException {
         Connection connection = Mockito.mock(Connection.class);
         PreparedStatement preparedStatement = Mockito.mock(PreparedStatement.class);
-        ResultSet resultSet = Mockito.mock(ResultSet.class);
         Mockito.when(connection.prepareStatement(Mockito.anyString(), Mockito.any(String[].class)))
                 .thenReturn(preparedStatement);
         Mockito.when(preparedStatement.getGeneratedKeys())
                 .thenReturn(resultSet);
         Mockito.when(resultSet.next())
                 .thenReturn(true, false);
-        Mockito.when(resultSet.getString("NAME1"))
-                .thenReturn("RETURN1");
-        Mockito.when(resultSet.getString("NAME2"))
-                .thenReturn("RETURN2");
+        Mockito.doReturn("RETURN1")
+                .when(resultSet).getString("NAME1");
+        Mockito.doReturn("RETURN2")
+                .when(resultSet).getString("NAME2");
 
         QueryRunner runner = new MockedRunner() {
             @Override
@@ -267,7 +267,6 @@ class QueryRunnerTest {
     void should_return_generate_keys_with_alternative_method() throws SQLException {
         Connection connection = Mockito.mock(Connection.class);
         PreparedStatement preparedStatement = Mockito.mock(PreparedStatement.class);
-        ResultSet resultSet = Mockito.mock(ResultSet.class);
         ResultSetMetaData metaData = Mockito.mock(ResultSetMetaData.class);
         Mockito.when(connection.prepareStatement(Mockito.anyString(), Mockito.any(String[].class)))
                 .thenReturn(preparedStatement);
@@ -277,20 +276,20 @@ class QueryRunnerTest {
                 .thenReturn(metaData);
         Mockito.when(resultSet.next())
                 .thenReturn(true, false);
-        Mockito.when(resultSet.getString("NAME1"))
-                .thenThrow(customSql());
-        Mockito.when(resultSet.getString("NAME2"))
-                .thenThrow(customSql());
+        Mockito.doThrow(customSql())
+                .when(resultSet).getString("NAME1");
+        Mockito.doThrow(customSql())
+                .when(resultSet).getString("NAME2");
         Mockito.when(metaData.getColumnCount())
                 .thenReturn(2);
-        Mockito.when(metaData.getColumnName(1))
-                .thenReturn("NAME1");
-        Mockito.when(metaData.getColumnName(2))
-                .thenReturn("NAME2");
-        Mockito.when(resultSet.getObject(1, String.class))
-                .thenReturn("RETURN1");
-        Mockito.when(resultSet.getObject(2, String.class))
-                .thenReturn("RETURN2");
+        Mockito.doReturn("NAME1")
+                .when(metaData).getColumnName(1);
+        Mockito.doReturn("NAME2")
+                .when(metaData).getColumnName(2);
+        Mockito.doReturn("RETURN1")
+                .when(resultSet).getObject(1, String.class);
+        Mockito.doReturn("RETURN2")
+                .when(resultSet).getObject(2, String.class);
 
         QueryRunner runner = new MockedRunner() {
             @Override

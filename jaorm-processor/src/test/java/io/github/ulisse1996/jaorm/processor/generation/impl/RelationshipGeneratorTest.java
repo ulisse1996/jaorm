@@ -50,6 +50,7 @@ class RelationshipGeneratorTest extends CompilerTest {
         );
     }
 
+    @SuppressWarnings("ResultOfMethodCallIgnored")
     @Test
     void should_throw_exception_for_missing_dao() {
         try {

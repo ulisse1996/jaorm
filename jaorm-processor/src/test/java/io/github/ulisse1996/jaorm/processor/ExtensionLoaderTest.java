@@ -43,7 +43,7 @@ class ExtensionLoaderTest {
         try (MockedStatic<ServiceLoader> mk = Mockito.mockStatic(ServiceLoader.class)) {
             ClassLoader loader = new CustomLoader(false);
             ExtensionLoader extensionLoader = ExtensionLoader.getInstance(loader);
-            mk.when(() -> ServiceLoader.load(Mockito.any(), Mockito.any()))
+            mk.when(() -> ServiceLoader.load(Mockito.any(), Mockito.any(ClassLoader.class)))
                     .thenReturn(serviceLoader);
             Mockito.when(serviceLoader.spliterator()).then(i -> Collections.emptyList().spliterator());
 
@@ -60,7 +60,7 @@ class ExtensionLoaderTest {
         try (MockedStatic<ServiceLoader> mk = Mockito.mockStatic(ServiceLoader.class)) {
             ClassLoader loader = new CustomLoader(false);
             ExtensionLoader extensionLoader = ExtensionLoader.getInstance(loader);
-            mk.when(() -> ServiceLoader.load(Mockito.any(), Mockito.any()))
+            mk.when(() -> ServiceLoader.load(Mockito.any(), Mockito.any(ClassLoader.class)))
                     .thenThrow(IllegalArgumentException.class);
 
             Assertions.assertThrows(ProcessorException.class, () -> extensionLoader.loadValidationExtensions(environment));

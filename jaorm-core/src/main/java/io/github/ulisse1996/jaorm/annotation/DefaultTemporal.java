@@ -12,5 +12,5 @@ public @interface DefaultTemporal {
     String format() default DEFAULT_FORMAT;
     String value() default "";
 
-    static String DEFAULT_FORMAT = "##DEFAULT##";
+    String DEFAULT_FORMAT = "##DEFAULT##";
 }

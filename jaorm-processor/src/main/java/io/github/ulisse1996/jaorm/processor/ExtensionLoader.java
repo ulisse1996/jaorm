@@ -29,7 +29,7 @@ public class ExtensionLoader {
         // Compiler use a custom classloader, we need to load klass in different mode
         try {
             Optional<Class<?>> aClass = tryLoad(loader, "io.github.ulisse1996.jaorm.extension.api.ValidatorExtension");
-            if (!aClass.isPresent()) {
+            if (aClass.isEmpty()) {
                 Optional.ofNullable(environment.getMessager()).ifPresent(m ->
                         m.printMessage(
                                 Diagnostic.Kind.NOTE,

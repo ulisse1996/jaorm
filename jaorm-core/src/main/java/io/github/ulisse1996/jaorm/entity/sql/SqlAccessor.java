@@ -1,6 +1,7 @@
 package io.github.ulisse1996.jaorm.entity.sql;
 
 import io.github.ulisse1996.jaorm.spi.ConverterService;
+import io.github.ulisse1996.jaorm.spi.ExternalSqlAccessorService;
 
 import java.io.InputStream;
 import java.math.BigDecimal;
@@ -10,6 +11,8 @@ import java.time.*;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public abstract class SqlAccessor {
 
@@ -92,7 +95,7 @@ public abstract class SqlAccessor {
     }
 
     public static <R> SqlAccessor find(Class<R> klass) {
-        for (SqlAccessor accessor : values()) {
+        for (SqlAccessor accessor : getAllValues()) {
             if (!klass.equals(Object.class) && klass.equals(accessor.klass)) {
                 return accessor;
             }
@@ -105,5 +108,10 @@ public abstract class SqlAccessor {
         }
 
         throw new IllegalArgumentException("Can't find accessor for type " + klass);
+    }
+
+    private static List<SqlAccessor> getAllValues() {
+        return Stream.concat(values().stream(), ExternalSqlAccessorService.getInstance().getAccessors().stream())
+                .collect(Collectors.toList());
     }
 }

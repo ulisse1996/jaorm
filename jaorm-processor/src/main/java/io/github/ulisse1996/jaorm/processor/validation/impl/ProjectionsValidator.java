@@ -45,7 +45,7 @@ public class ProjectionsValidator extends Validator {
                 .filter(ele -> ele.getParameters().isEmpty())
                 .filter(ele -> ele.getModifiers().contains(Modifier.PUBLIC))
                 .findFirst();
-        if (!emptyConstructor.isPresent()) {
+        if (emptyConstructor.isEmpty()) {
             throw new ProcessorException(String.format("Missing public no args Constructor for Projection %s", type.getQualifiedName()));
         }
     }
@@ -53,11 +53,11 @@ public class ProjectionsValidator extends Validator {
     private void checkField(TypeElement type, VariableElement field) {
         Optional<ExecutableElement> optGetter = ProcessorUtils.findGetterOpt(processingEnvironment, type, field.getSimpleName());
         Optional<ExecutableElement> optSetter = ProcessorUtils.findSetterOpt(processingEnvironment, type, field.getSimpleName());
-        if (!optGetter.isPresent()) {
+        if (optGetter.isEmpty()) {
             throw new ProcessorException(String.format("Missing getter for field %s of Projection %s",
                     field.getSimpleName(), type.getQualifiedName()));
         }
-        if (!optSetter.isPresent()) {
+        if (optSetter.isEmpty()) {
             throw new ProcessorException(String.format("Missing setter for field %s of Projection %s",
                     field.getSimpleName(), type.getQualifiedName()));
         }

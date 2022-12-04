@@ -139,7 +139,7 @@ public class UpdatedWhereImpl<T, R> extends AbstractWhereImpl<T,R> implements In
 
     @Override
     public UpdatedWhere<T> startsWith(String val) {
-        return like(LikeType.START, val);
+        return like(LikeType.END, val);
     }
 
     @Override
@@ -149,12 +149,12 @@ public class UpdatedWhereImpl<T, R> extends AbstractWhereImpl<T,R> implements In
 
     @Override
     public UpdatedWhere<T> endsWith(String val) {
-        return like(LikeType.END, val);
+        return like(LikeType.START, val);
     }
 
     @Override
     public UpdatedWhere<T> notStartsWith(String val) {
-        return notLike(LikeType.START, val);
+        return notLike(LikeType.END, val);
     }
 
     @Override
@@ -164,7 +164,7 @@ public class UpdatedWhereImpl<T, R> extends AbstractWhereImpl<T,R> implements In
 
     @Override
     public UpdatedWhere<T> notEndsWith(String val) {
-        return notLike(LikeType.END, val);
+        return notLike(LikeType.START, val);
     }
 
     @SuppressWarnings("unchecked")

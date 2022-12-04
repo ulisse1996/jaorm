@@ -4,7 +4,6 @@ import io.github.ulisse1996.jaorm.annotation.Relationship;
 import io.github.ulisse1996.jaorm.processor.exception.ProcessorException;
 import io.github.ulisse1996.jaorm.processor.util.ProcessorUtils;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -163,7 +162,6 @@ class RelationshipValidatorTest {
     }
 
     private Name nameOf(String field) {
-        //noinspection NullableProblems
         return new Name() {
             @Override
             public boolean contentEquals(CharSequence cs) {

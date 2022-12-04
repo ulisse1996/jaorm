@@ -26,7 +26,7 @@ public class ValidationUtils {
 
     public static Expression getSingleValueExpression(FieldDeclaration field, Class<? extends Annotation> annotation) {
         Optional<AnnotationExpr> annotationByClass = field.getAnnotationByClass(annotation);
-        if (!annotationByClass.isPresent() || !(annotationByClass.get() instanceof SingleMemberAnnotationExpr)) {
+        if (annotationByClass.isEmpty() || !(annotationByClass.get() instanceof SingleMemberAnnotationExpr)) {
             return null;
         }
 

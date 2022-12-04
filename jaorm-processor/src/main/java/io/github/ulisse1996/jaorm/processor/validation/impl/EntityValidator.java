@@ -195,11 +195,11 @@ public class EntityValidator extends Validator {
     private void checkColumn(TypeElement entity, VariableElement column) {
         Optional<ExecutableElement> getter = ProcessorUtils.findGetterOpt(processingEnvironment, entity, column.getSimpleName());
         Optional<ExecutableElement> setter = ProcessorUtils.findSetterOpt(processingEnvironment, entity, column.getSimpleName());
-        if (!getter.isPresent()) {
+        if (getter.isEmpty()) {
             throw new ProcessorException(String.format("Missing getter for field %s of Entity %s",
                     column.getSimpleName(), entity.getQualifiedName()));
         }
-        if (!setter.isPresent()) {
+        if (setter.isEmpty()) {
             throw new ProcessorException(String.format("Missing setter for field %s of Entity %s",
                     column.getSimpleName(), entity.getQualifiedName()));
         }
@@ -211,7 +211,7 @@ public class EntityValidator extends Validator {
                 .filter(ele -> ele.getParameters().isEmpty())
                 .filter(ele -> ele.getModifiers().contains(Modifier.PUBLIC))
                 .findFirst();
-        if (!emptyConstructor.isPresent() && !ProcessorUtils.hasExternalConstructor(entity)) {
+        if (emptyConstructor.isEmpty() && !ProcessorUtils.hasExternalConstructor(entity)) {
             throw new ProcessorException(String.format("Missing public no args Constructor for Entity %s", entity.getQualifiedName()));
         }
     }

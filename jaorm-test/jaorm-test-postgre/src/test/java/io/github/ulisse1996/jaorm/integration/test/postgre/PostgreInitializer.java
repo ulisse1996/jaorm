@@ -7,15 +7,14 @@ import io.github.ulisse1996.jaorm.spi.common.Singleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.JdbcDatabaseContainer;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.utility.DockerImageName;
+import org.testcontainers.containers.PostgisContainerProvider;
 
 import javax.sql.DataSource;
 import java.net.URL;
 
 public class PostgreInitializer implements DatabaseInitializer {
 
-    private static final Singleton<PostgreSQLContainer<?>> INSTANCE = Singleton.instance();
+    private static final Singleton<JdbcDatabaseContainer<?>> INSTANCE = Singleton.instance();
     private static final Logger logger = LoggerFactory.getLogger(PostgreInitializer.class);
 
     @Override
@@ -49,7 +48,7 @@ public class PostgreInitializer implements DatabaseInitializer {
     private void ensureInit() {
         synchronized (this) {
             if (!INSTANCE.isPresent()) {
-                INSTANCE.set(new PostgreSQLContainer<>(DockerImageName.parse("postgres:14.4")));
+                INSTANCE.set(new PostgisContainerProvider().newInstance("14-3.3"));
             }
         }
     }

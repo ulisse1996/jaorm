@@ -20,16 +20,14 @@ public class EntityMetadata {
 
     private static final Map<String, Class<?>> PRIMITIVE_MAP;
     static {
-        Map<String, Class<?>> map = new HashMap<>();
-        map.put("byte", byte.class);
-        map.put("short", short.class);
-        map.put("int", int.class);
-        map.put("long", long.class);
-        map.put("float", float.class);
-        map.put("double", double.class);
-        map.put("boolean", boolean.class);
-        map.put("char", char.class);
-        PRIMITIVE_MAP = Collections.unmodifiableMap(map);
+        PRIMITIVE_MAP = Map.of("byte", byte.class,
+                "short", short.class,
+                "int", int.class,
+                "long", long.class,
+                "float", float.class,
+                "double", double.class,
+                "boolean", boolean.class,
+                "char", char.class);
     }
 
     private final List<FieldMetadata> fields;
@@ -56,7 +54,7 @@ public class EntityMetadata {
     private List<FieldMetadata> buildFields(EntityMapper<?> entityMapper) {
         return entityMapper.getMappers()
                 .stream()
-                .map(m -> new FieldMetadata(null, m.getType().getName(), m.getName()))
+                .map(m -> new FieldMetadata(m.getType().getName(), m.getName()))
                 .collect(Collectors.toList());
     }
 
@@ -70,13 +68,12 @@ public class EntityMetadata {
 
     public static class FieldMetadata {
 
-        private final String name;
+        private String name;
         private final String type;
         private final String columnName;
         private String converterType;
 
-        private FieldMetadata(String name, String type, String columnName) {
-            this.name = name;
+        private FieldMetadata(String type, String columnName) {
             this.type = type;
             this.columnName = columnName;
         }

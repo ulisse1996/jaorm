@@ -269,12 +269,17 @@ class EntityValidatorTest {
             TypeElement gen2 = Mockito.mock(TypeElement.class);
             VariableElement field = Mockito.mock(VariableElement.class);
             mockGetterAndSetter(mk);
-            Mockito.when(field.getAnnotation(Relationship.class))
-                    .thenReturn(null);
-            Mockito.when(field.getAnnotation(Column.class))
-                    .thenReturn(Mockito.mock(Column.class));
-            Mockito.when(field.getAnnotation(Converter.class))
-                    .thenReturn(Mockito.mock(Converter.class));
+            Mockito.when(field.getAnnotation(Mockito.any()))
+                    .then(invocation -> {
+                        Class<?> klass = invocation.getArgument(0);
+                        if (klass.isAssignableFrom(Column.class)) {
+                            return Mockito.mock(Column.class);
+                        } else if (klass.isAssignableFrom(Converter.class)) {
+                            return Mockito.mock(Converter.class);
+                        } else {
+                            return null;
+                        }
+                    });
             mk.when(() -> ProcessorUtils.getAnnotated(Mockito.any(), Mockito.any(), Mockito.any()))
                     .thenReturn(Collections.singletonList(field));
             mk.when(() -> ProcessorUtils.getConverterTypes(Mockito.any(), Mockito.any()))
@@ -311,12 +316,17 @@ class EntityValidatorTest {
             TypeElement gen2 = Mockito.mock(TypeElement.class);
             VariableElement field = Mockito.mock(VariableElement.class);
             mockGetterAndSetter(mk);
-            Mockito.when(field.getAnnotation(Relationship.class))
-                    .thenReturn(null);
-            Mockito.when(field.getAnnotation(Column.class))
-                    .thenReturn(Mockito.mock(Column.class));
-            Mockito.when(field.getAnnotation(Converter.class))
-                    .thenReturn(Mockito.mock(Converter.class));
+            Mockito.when(field.getAnnotation(Mockito.any()))
+                    .then(invocation -> {
+                        Class<?> klass = invocation.getArgument(0);
+                        if (klass.isAssignableFrom(Column.class)) {
+                            return Mockito.mock(Column.class);
+                        } else if (klass.isAssignableFrom(Converter.class)) {
+                            return Mockito.mock(Converter.class);
+                        } else {
+                            return null;
+                        }
+                    });
             mk.when(() -> ProcessorUtils.getAnnotated(Mockito.any(), Mockito.any(), Mockito.any()))
                     .thenReturn(Collections.singletonList(field));
             mk.when(() -> ProcessorUtils.getConverterTypes(Mockito.any(), Mockito.any()))
@@ -347,18 +357,17 @@ class EntityValidatorTest {
             TypeElement gen = Mockito.mock(TypeElement.class);
             VariableElement field = Mockito.mock(VariableElement.class);
             mockGetterAndSetter(mk);
-            Mockito.when(field.getAnnotation(Column.class))
-                    .thenReturn(Mockito.mock(Column.class));
-            Mockito.when(field.getAnnotation(Relationship.class))
-                    .thenReturn(null);
-            Mockito.when(field.getAnnotation(Converter.class))
-                    .thenReturn(null);
-            Mockito.when(field.getAnnotation(DefaultNumeric.class))
-                    .thenReturn(null);
-            Mockito.when(field.getAnnotation(DefaultString.class))
-                    .thenReturn(null);
-            Mockito.when(field.getAnnotation(DefaultTemporal.class))
-                    .thenReturn(temporal);
+            Mockito.when(field.getAnnotation(Mockito.any()))
+                    .then(invocation -> {
+                        Class<?> klass = invocation.getArgument(0);
+                        if (klass.isAssignableFrom(Column.class)) {
+                            return Mockito.mock(Column.class);
+                        } else if (klass.isAssignableFrom(DefaultTemporal.class)) {
+                            return temporal;
+                        } else {
+                            return null;
+                        }
+                    });
             mk.when(() -> ProcessorUtils.getAnnotated(Mockito.any(), Mockito.any(), Mockito.any()))
                     .thenReturn(Collections.singletonList(field));
             mk.when(() -> ProcessorUtils.getFieldType(Mockito.any(), Mockito.any()))
@@ -387,18 +396,17 @@ class EntityValidatorTest {
             TypeElement gen = Mockito.mock(TypeElement.class);
             VariableElement field = Mockito.mock(VariableElement.class);
             mockGetterAndSetter(mk);
-            Mockito.when(field.getAnnotation(Column.class))
-                    .thenReturn(Mockito.mock(Column.class));
-            Mockito.when(field.getAnnotation(Relationship.class))
-                    .thenReturn(null);
-            Mockito.when(field.getAnnotation(Converter.class))
-                    .thenReturn(null);
-            Mockito.when(field.getAnnotation(DefaultNumeric.class))
-                    .thenReturn(null);
-            Mockito.when(field.getAnnotation(DefaultString.class))
-                    .thenReturn(null);
-            Mockito.when(field.getAnnotation(DefaultTemporal.class))
-                    .thenReturn(temporal);
+            Mockito.when(field.getAnnotation(Mockito.any()))
+                    .then(invocation -> {
+                        Class<?> klass = invocation.getArgument(0);
+                        if (klass.isAssignableFrom(Column.class)) {
+                            return Mockito.mock(Column.class);
+                        } else if (klass.isAssignableFrom(DefaultTemporal.class)) {
+                            return temporal;
+                        } else {
+                            return null;
+                        }
+                    });
             Mockito.when(temporal.format())
                     .thenReturn("format");
             mk.when(() -> ProcessorUtils.getAnnotated(Mockito.any(), Mockito.any(), Mockito.any()))
@@ -429,18 +437,17 @@ class EntityValidatorTest {
             TypeElement gen = Mockito.mock(TypeElement.class);
             VariableElement field = Mockito.mock(VariableElement.class);
             mockGetterAndSetter(mk);
-            Mockito.when(field.getAnnotation(Column.class))
-                    .thenReturn(Mockito.mock(Column.class));
-            Mockito.when(field.getAnnotation(Relationship.class))
-                    .thenReturn(null);
-            Mockito.when(field.getAnnotation(Converter.class))
-                    .thenReturn(null);
-            Mockito.when(field.getAnnotation(DefaultNumeric.class))
-                    .thenReturn(null);
-            Mockito.when(field.getAnnotation(DefaultString.class))
-                    .thenReturn(null);
-            Mockito.when(field.getAnnotation(DefaultTemporal.class))
-                    .thenReturn(temporal);
+            Mockito.when(field.getAnnotation(Mockito.any()))
+                    .then(invocation -> {
+                        Class<?> klass = invocation.getArgument(0);
+                        if (klass.isAssignableFrom(Column.class)) {
+                            return Mockito.mock(Column.class);
+                        } else if (klass.isAssignableFrom(DefaultTemporal.class)) {
+                            return temporal;
+                        } else {
+                            return null;
+                        }
+                    });
             Mockito.when(temporal.format())
                     .thenReturn("format");
             Mockito.when(temporal.value())
@@ -473,18 +480,17 @@ class EntityValidatorTest {
             TypeElement gen = Mockito.mock(TypeElement.class);
             VariableElement field = Mockito.mock(VariableElement.class);
             mockGetterAndSetter(mk);
-            Mockito.when(field.getAnnotation(Column.class))
-                    .thenReturn(Mockito.mock(Column.class));
-            Mockito.when(field.getAnnotation(Relationship.class))
-                    .thenReturn(null);
-            Mockito.when(field.getAnnotation(Converter.class))
-                    .thenReturn(null);
-            Mockito.when(field.getAnnotation(DefaultNumeric.class))
-                    .thenReturn(null);
-            Mockito.when(field.getAnnotation(DefaultString.class))
-                    .thenReturn(null);
-            Mockito.when(field.getAnnotation(DefaultTemporal.class))
-                    .thenReturn(temporal);
+            Mockito.when(field.getAnnotation(Mockito.any()))
+                    .then(invocation -> {
+                        Class<?> klass = invocation.getArgument(0);
+                        if (klass.isAssignableFrom(Column.class)) {
+                            return Mockito.mock(Column.class);
+                        } else if (klass.isAssignableFrom(DefaultTemporal.class)) {
+                            return temporal;
+                        } else {
+                            return null;
+                        }
+                    });
             Mockito.when(temporal.format())
                     .thenReturn("dd-MM-yyyy'T'HH:mm:ss");
             Mockito.when(temporal.value())
@@ -515,18 +521,17 @@ class EntityValidatorTest {
             TypeElement gen = Mockito.mock(TypeElement.class);
             VariableElement field = Mockito.mock(VariableElement.class);
             mockGetterAndSetter(mk);
-            Mockito.when(field.getAnnotation(Column.class))
-                    .thenReturn(Mockito.mock(Column.class));
-            Mockito.when(field.getAnnotation(Relationship.class))
-                    .thenReturn(null);
-            Mockito.when(field.getAnnotation(Converter.class))
-                    .thenReturn(null);
-            Mockito.when(field.getAnnotation(DefaultNumeric.class))
-                    .thenReturn(null);
-            Mockito.when(field.getAnnotation(DefaultString.class))
-                    .thenReturn(null);
-            Mockito.when(field.getAnnotation(DefaultTemporal.class))
-                    .thenReturn(temporal);
+            Mockito.when(field.getAnnotation(Mockito.any()))
+                    .then(invocation -> {
+                        Class<?> klass = invocation.getArgument(0);
+                        if (klass.isAssignableFrom(Column.class)) {
+                            return Mockito.mock(Column.class);
+                        } else if (klass.isAssignableFrom(DefaultTemporal.class)) {
+                            return temporal;
+                        } else {
+                            return null;
+                        }
+                    });
             Mockito.when(temporal.format())
                     .thenReturn("format");
             Mockito.when(temporal.value())
@@ -559,18 +564,18 @@ class EntityValidatorTest {
             TypeElement gen = Mockito.mock(TypeElement.class);
             VariableElement field = Mockito.mock(VariableElement.class);
             mockGetterAndSetter(mk);
-            Mockito.when(field.getAnnotation(Column.class))
-                    .thenReturn(Mockito.mock(Column.class));
-            Mockito.when(field.getAnnotation(Relationship.class))
-                    .thenReturn(null);
-            Mockito.when(field.getAnnotation(Converter.class))
-                    .thenReturn(null);
-            Mockito.when(field.getAnnotation(DefaultNumeric.class))
-                    .thenReturn(null);
-            Mockito.when(field.getAnnotation(DefaultString.class))
-                    .thenReturn(string);
-            Mockito.when(field.getAnnotation(DefaultTemporal.class))
-                    .thenReturn(null);
+
+            Mockito.when(field.getAnnotation(Mockito.any()))
+                    .then(invocation -> {
+                        Class<?> klass = invocation.getArgument(0);
+                        if (klass.isAssignableFrom(Column.class)) {
+                            return Mockito.mock(Column.class);
+                        } else if (klass.isAssignableFrom(DefaultString.class)) {
+                            return string;
+                        } else {
+                            return null;
+                        }
+                    });
             mk.when(() -> ProcessorUtils.getAnnotated(Mockito.any(), Mockito.any(), Mockito.any()))
                     .thenReturn(Collections.singletonList(field));
             mk.when(() -> ProcessorUtils.getFieldType(Mockito.any(), Mockito.any()))
@@ -599,18 +604,17 @@ class EntityValidatorTest {
             TypeElement gen = Mockito.mock(TypeElement.class);
             VariableElement field = Mockito.mock(VariableElement.class);
             mockGetterAndSetter(mk);
-            Mockito.when(field.getAnnotation(Column.class))
-                    .thenReturn(Mockito.mock(Column.class));
-            Mockito.when(field.getAnnotation(Relationship.class))
-                    .thenReturn(null);
-            Mockito.when(field.getAnnotation(Converter.class))
-                    .thenReturn(null);
-            Mockito.when(field.getAnnotation(DefaultNumeric.class))
-                    .thenReturn(numeric);
-            Mockito.when(field.getAnnotation(DefaultString.class))
-                    .thenReturn(null);
-            Mockito.when(field.getAnnotation(DefaultTemporal.class))
-                    .thenReturn(null);
+            Mockito.when(field.getAnnotation(Mockito.any()))
+                    .then(invocation -> {
+                        Class<?> klass = invocation.getArgument(0);
+                        if (klass.isAssignableFrom(Column.class)) {
+                            return Mockito.mock(Column.class);
+                        } else if (klass.isAssignableFrom(DefaultNumeric.class)) {
+                            return numeric;
+                        } else {
+                            return null;
+                        }
+                    });
             mk.when(() -> ProcessorUtils.getAnnotated(Mockito.any(), Mockito.any(), Mockito.any()))
                     .thenReturn(Collections.singletonList(field));
             mk.when(() -> ProcessorUtils.getFieldType(Mockito.any(), Mockito.any()))
@@ -639,18 +643,17 @@ class EntityValidatorTest {
             TypeElement gen = Mockito.mock(TypeElement.class);
             VariableElement field = Mockito.mock(VariableElement.class);
             mockGetterAndSetter(mk);
-            Mockito.when(field.getAnnotation(Column.class))
-                    .thenReturn(Mockito.mock(Column.class));
-            Mockito.when(field.getAnnotation(Relationship.class))
-                    .thenReturn(null);
-            Mockito.when(field.getAnnotation(Converter.class))
-                    .thenReturn(null);
-            Mockito.when(field.getAnnotation(DefaultNumeric.class))
-                    .thenReturn(null);
-            Mockito.when(field.getAnnotation(DefaultString.class))
-                    .thenReturn(string);
-            Mockito.when(field.getAnnotation(DefaultTemporal.class))
-                    .thenReturn(null);
+            Mockito.when(field.getAnnotation(Mockito.any()))
+                    .then(invocation -> {
+                        Class<?> klass = invocation.getArgument(0);
+                        if (klass.isAssignableFrom(Column.class)) {
+                            return Mockito.mock(Column.class);
+                        } else if (klass.isAssignableFrom(DefaultString.class)) {
+                            return string;
+                        } else {
+                            return null;
+                        }
+                    });
             mk.when(() -> ProcessorUtils.getAnnotated(Mockito.any(), Mockito.any(), Mockito.any()))
                     .thenReturn(Collections.singletonList(field));
             mk.when(() -> ProcessorUtils.getFieldType(Mockito.any(), Mockito.any()))
@@ -677,18 +680,17 @@ class EntityValidatorTest {
             TypeElement gen = Mockito.mock(TypeElement.class);
             VariableElement field = Mockito.mock(VariableElement.class);
             mockGetterAndSetter(mk);
-            Mockito.when(field.getAnnotation(Column.class))
-                    .thenReturn(Mockito.mock(Column.class));
-            Mockito.when(field.getAnnotation(Relationship.class))
-                    .thenReturn(null);
-            Mockito.when(field.getAnnotation(Converter.class))
-                    .thenReturn(null);
-            Mockito.when(field.getAnnotation(DefaultNumeric.class))
-                    .thenReturn(numeric);
-            Mockito.when(field.getAnnotation(DefaultString.class))
-                    .thenReturn(null);
-            Mockito.when(field.getAnnotation(DefaultTemporal.class))
-                    .thenReturn(null);
+            Mockito.when(field.getAnnotation(Mockito.any()))
+                    .then(invocation -> {
+                        Class<?> klass = invocation.getArgument(0);
+                        if (klass.isAssignableFrom(Column.class)) {
+                            return Mockito.mock(Column.class);
+                        } else if (klass.isAssignableFrom(DefaultNumeric.class)) {
+                            return numeric;
+                        } else {
+                            return null;
+                        }
+                    });
             mk.when(() -> ProcessorUtils.getAnnotated(Mockito.any(), Mockito.any(), Mockito.any()))
                     .thenReturn(Collections.singletonList(field));
             mk.when(() -> ProcessorUtils.getFieldType(Mockito.any(), Mockito.any()))

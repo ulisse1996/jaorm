@@ -233,7 +233,7 @@ class QueryValidatorTest {
             Mockito.when(typeElement.getSimpleName()).thenReturn(new MockName("name"));
             Mockito.when(typeElement.getAnnotation(Dao.class))
                     .thenReturn(Mockito.mock(Dao.class));
-            Mockito.when(typeElement.getAnnotation(Query.class)).thenReturn(null);
+            Mockito.doReturn(null).when(typeElement).getAnnotation(Query.class);
             mk.when(() -> ProcessorUtils.getAllValidElements(environment, typeElement))
                     .thenReturn(Arrays.asList(v1, v2));
             mk.when(() -> ProcessorUtils.isSubType(Mockito.any(), Mockito.any(), Mockito.any()))

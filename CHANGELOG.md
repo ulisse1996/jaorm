@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## 2.0.0
+- Feature: Source Code move to Java 11
+- Feature: Custom Converter without **@Converter** annotation using **@ConverterProvider**
+- Feature: Custom SqlAccessor for Vendor Specific
+- Feature: Spatial Support for Geography
+- Feature: Postgre Geography Implementation
+- Feature: startsWith, contains, endsWith, notStartsWith, notContains and notEndsWith for like and notLike
+- Removal: Removed notLike and like
+
 ## 1.10.0
 - Feature: BeanProvider for Dependency Injection Extensions
 - Feature: CDI Jakarta Extension

@@ -51,7 +51,7 @@ public class QueriesMock extends QueriesService {
         }
 
         @Override
-        public final Page<Object> page(int page, int size, List<Sort<Object>> sorts) {
+        public Page<Object> page(int page, int size, List<Sort<Object>> sorts) {
             return null;
         }
     }

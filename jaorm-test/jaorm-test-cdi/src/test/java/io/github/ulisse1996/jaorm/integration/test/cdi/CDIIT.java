@@ -14,7 +14,7 @@ import javax.inject.Inject;
 class CDIIT {
 
     @WeldSetup
-    private final WeldInitiator weld = WeldInitiator.performDefaultDiscovery();
+    private final WeldInitiator weld = WeldInitiator.ofTestPackage();
 
     @Inject private CdiApplicationScopedDAO applicationScopedDao;
     @Inject private CdiRequestScopedDAO requestScopedDAO;
