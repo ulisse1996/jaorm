@@ -17,7 +17,7 @@ class GeographyConverterTest {
     void should_throw_exception_for_invalid_geo_object() throws SQLException {
         PGobject pGobject = new PGobject();
         pGobject.setValue("1234");
-        Assertions.assertThrows(JaormSqlException.class, () -> new GeographyConverter().fromSql(pGobject));
+        Assertions.assertThrows(JaormSqlException.class, () -> new GeographyConverter().fromSql(pGobject)); // NOSONAR
     }
 
     @Test

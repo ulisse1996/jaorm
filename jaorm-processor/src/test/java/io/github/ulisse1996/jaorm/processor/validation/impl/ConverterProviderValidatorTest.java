@@ -33,7 +33,7 @@ class ConverterProviderValidatorTest {
         Mockito.when(elements.getTypeElement(ValueConverter.class.getName()))
                 .thenReturn(converter);
         Mockito.when(element.getInterfaces()).thenReturn(Collections.emptyList());
-        Assertions.assertThrows(ProcessorException.class, () -> getInstance().validate(Collections.singletonList(element)));
+        Assertions.assertThrows(ProcessorException.class, () -> getInstance().validate(Collections.singletonList(element))); //NOSONAR
     }
 
     @Test

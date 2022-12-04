@@ -1,7 +1,6 @@
 package io.github.ulisse1996.jaorm.dsl.query;
 
 import io.github.ulisse1996.jaorm.dsl.query.common.trait.WithResult;
-import io.github.ulisse1996.jaorm.dsl.query.enums.LikeType;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -18,7 +17,7 @@ import java.util.stream.Stream;
 class QueryBuilderCaseTest extends AbstractQueryBuilderTest {
 
     @Test
-    void should_create_select_with_where_case() throws Throwable {
+    void should_create_select_with_where_case() {
         withSimpleDelegate((v) -> {
             QueryBuilder.select(QueryBuilderTest.MyEntity.class)
                     .where(COL_1).eq(
@@ -224,6 +223,46 @@ class QueryBuilderCaseTest extends AbstractQueryBuilderTest {
                                                 .orElse(COL_2)
                                 ),
                         "SELECT MY_TABLE.COL1, MY_TABLE.COL2 FROM MY_TABLE WHERE (MY_TABLE.COL2 >= CASE WHEN MY_TABLE.COL2 NOT LIKE CONCAT('%',?,'%') THEN MY_TABLE.COL2 ELSE MY_TABLE.COL2 END)"
+                ),
+
+                Arguments.of(
+                        (Supplier<WithResult<MyEntity>>)() -> QueryBuilder.select(QueryBuilderTest.MyEntity.class)
+                                .where(COL_1).greaterOrEqualsTo(
+                                        QueryBuilder.<Integer>usingCase()
+                                                .when(COL_2, "MY_TABLE").startsWith("EL").then(COL_1)
+                                                .orElse(COL_3)
+                                ),
+                        "SELECT MY_TABLE.COL1, MY_TABLE.COL2 FROM MY_TABLE WHERE (MY_TABLE.COL1 >= CASE WHEN MY_TABLE.COL2 LIKE CONCAT(?,'%') THEN MY_TABLE.COL1 ELSE MY_TABLE.COL3 END)"
+                ),
+
+                Arguments.of(
+                        (Supplier<WithResult<MyEntity>>)() -> QueryBuilder.select(QueryBuilderTest.MyEntity.class)
+                                .where(COL_1).greaterOrEqualsTo(
+                                        QueryBuilder.<Integer>usingCase()
+                                                .when(COL_2, "MY_TABLE").endsWith("EL").then(COL_1)
+                                                .orElse(COL_3)
+                                ),
+                        "SELECT MY_TABLE.COL1, MY_TABLE.COL2 FROM MY_TABLE WHERE (MY_TABLE.COL1 >= CASE WHEN MY_TABLE.COL2 LIKE CONCAT('%', ?) THEN MY_TABLE.COL1 ELSE MY_TABLE.COL3 END)"
+                ),
+
+                Arguments.of(
+                        (Supplier<WithResult<MyEntity>>)() -> QueryBuilder.select(QueryBuilderTest.MyEntity.class)
+                                .where(COL_1).greaterOrEqualsTo(
+                                        QueryBuilder.<Integer>usingCase()
+                                                .when(COL_2, "MY_TABLE").notStartsWith("EL").then(COL_1)
+                                                .orElse(COL_3)
+                                ),
+                        "SELECT MY_TABLE.COL1, MY_TABLE.COL2 FROM MY_TABLE WHERE (MY_TABLE.COL1 >= CASE WHEN MY_TABLE.COL2 NOT LIKE CONCAT(?,'%') THEN MY_TABLE.COL1 ELSE MY_TABLE.COL3 END)"
+                ),
+
+                Arguments.of(
+                        (Supplier<WithResult<MyEntity>>)() -> QueryBuilder.select(QueryBuilderTest.MyEntity.class)
+                                .where(COL_1).greaterOrEqualsTo(
+                                        QueryBuilder.<Integer>usingCase()
+                                                .when(COL_2, "MY_TABLE").notEndsWith("EL").then(COL_1)
+                                                .orElse(COL_3)
+                                ),
+                        "SELECT MY_TABLE.COL1, MY_TABLE.COL2 FROM MY_TABLE WHERE (MY_TABLE.COL1 >= CASE WHEN MY_TABLE.COL2 NOT LIKE CONCAT('%', ?) THEN MY_TABLE.COL1 ELSE MY_TABLE.COL3 END)"
                 )
         );
     }
