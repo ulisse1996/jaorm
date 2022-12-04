@@ -242,7 +242,7 @@ class QueryBuilderCaseTest extends AbstractQueryBuilderTest {
                                                 .when(COL_2, "MY_TABLE").endsWith("EL").then(COL_1)
                                                 .orElse(COL_3)
                                 ),
-                        "SELECT MY_TABLE.COL1, MY_TABLE.COL2 FROM MY_TABLE WHERE (MY_TABLE.COL1 >= CASE WHEN MY_TABLE.COL2 LIKE CONCAT('%', ?) THEN MY_TABLE.COL1 ELSE MY_TABLE.COL3 END)"
+                        "SELECT MY_TABLE.COL1, MY_TABLE.COL2 FROM MY_TABLE WHERE (MY_TABLE.COL1 >= CASE WHEN MY_TABLE.COL2 LIKE CONCAT('%',?) THEN MY_TABLE.COL1 ELSE MY_TABLE.COL3 END)"
                 ),
 
                 Arguments.of(
@@ -262,7 +262,7 @@ class QueryBuilderCaseTest extends AbstractQueryBuilderTest {
                                                 .when(COL_2, "MY_TABLE").notEndsWith("EL").then(COL_1)
                                                 .orElse(COL_3)
                                 ),
-                        "SELECT MY_TABLE.COL1, MY_TABLE.COL2 FROM MY_TABLE WHERE (MY_TABLE.COL1 >= CASE WHEN MY_TABLE.COL2 NOT LIKE CONCAT('%', ?) THEN MY_TABLE.COL1 ELSE MY_TABLE.COL3 END)"
+                        "SELECT MY_TABLE.COL1, MY_TABLE.COL2 FROM MY_TABLE WHERE (MY_TABLE.COL1 >= CASE WHEN MY_TABLE.COL2 NOT LIKE CONCAT('%',?) THEN MY_TABLE.COL1 ELSE MY_TABLE.COL3 END)"
                 )
         );
     }
