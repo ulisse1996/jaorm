@@ -38,10 +38,8 @@ public class GeographyConverter implements ValueConverter<PGobject, Geography> {
             pGobject.setType("geography");
             pGobject.setValue(value);
             return pGobject;
-        } catch (ParseException ex) {
+        } catch (ParseException | SQLException ex) {
             throw new JaormSqlException(ex.getMessage());
-        } catch (SQLException ex) {
-            throw new JaormSqlException(ex);
         }
     }
 }

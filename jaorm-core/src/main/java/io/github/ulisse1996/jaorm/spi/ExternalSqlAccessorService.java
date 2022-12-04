@@ -27,7 +27,7 @@ public abstract class ExternalSqlAccessorService {
 
     public abstract Set<SqlAccessor> getAccessors();
 
-    private static class NoOp extends ExternalSqlAccessorService {
+    static class NoOp extends ExternalSqlAccessorService {
 
         private static final ExternalSqlAccessorService INSTANCE = new NoOp();
 
