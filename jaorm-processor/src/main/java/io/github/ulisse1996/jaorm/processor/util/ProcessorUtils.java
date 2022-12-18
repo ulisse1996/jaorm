@@ -58,6 +58,11 @@ public class ProcessorUtils {
             Result.class.getName(),
             Cursor.class.getName()
     );
+    private static final List<String> COLLECTION_TYPES = Arrays.asList(
+            java.util.List.class.getName(),
+            java.util.Set.class.getName(),
+            java.util.Collection.class.getName()
+    );
     private static final String STARTING_GENERIC = "<";
     private static final String ENDING_GENERIC = ">";
 
@@ -636,5 +641,28 @@ public class ProcessorUtils {
         } else {
             return processingEnvironment.getFiler().getResource(StandardLocation.CLASS_PATH, "", sql);
         }
+    }
+
+    public static boolean isCollectionType(TypeMirror mirror) {
+        for (String collectionType : COLLECTION_TYPES) {
+            if (mirror.toString().startsWith(collectionType)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public static TypeElement extractTypeFromCollection(ProcessingEnvironment processingEnvironment, TypeMirror typeMirror) {
+        for (String collectionType : COLLECTION_TYPES) {
+            if (typeMirror.toString().startsWith(collectionType)) {
+                String realClass = typeMirror.toString().replace(collectionType, "")
+                        .replace(STARTING_GENERIC, "")
+                        .replace(ENDING_GENERIC, "");
+                return processingEnvironment.getElementUtils().getTypeElement(realClass);
+            }
+        }
+
+        throw new IllegalArgumentException("Can't find type from collection !");
     }
 }

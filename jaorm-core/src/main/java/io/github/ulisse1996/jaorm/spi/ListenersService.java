@@ -6,7 +6,6 @@ import io.github.ulisse1996.jaorm.entity.event.GlobalEventType;
 import io.github.ulisse1996.jaorm.spi.common.Singleton;
 import io.github.ulisse1996.jaorm.spi.impl.DefaultListeners;
 import io.github.ulisse1996.jaorm.spi.provider.ListenerProvider;
-import io.github.ulisse1996.jaorm.util.ClassChecker;
 
 import java.util.Collections;
 import java.util.ServiceConfigurationError;
@@ -17,7 +16,7 @@ public abstract class ListenersService {
     private static final Singleton<ListenersService> INSTANCE = Singleton.instance();
 
     public static synchronized ListenersService getInstance() {
-        if (!INSTANCE.isPresent()) {
+        if (!INSTANCE.isPresent() || FrameworkIntegrationService.isReloadRequired(INSTANCE.get().getEventClasses())) {
             try {
                 Iterable<ListenerProvider> iterable = ServiceFinder.loadServices(ListenerProvider.class);
                 if (iterable.iterator().hasNext()) {
@@ -37,7 +36,7 @@ public abstract class ListenersService {
         Class<?> klass = entity.getClass();
         klass = getRealClass(klass);
         Class<?> finalKlass = klass;
-        if (getEventClasses().stream().anyMatch(el -> ClassChecker.isAssignable(el, finalKlass))) {
+        if (getEventClasses().stream().anyMatch(el -> el.equals(finalKlass))) {
             GlobalEventListener.getInstance().handleEvent(entity, eventType);
         }
     }

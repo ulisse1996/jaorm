@@ -243,6 +243,26 @@ public class SimpleJoinImpl implements SimpleOn, SimpleSelectedOn {
         return this.parent.where(function, alias);
     }
 
+    @Override
+    public SimpleGroup groupBy(SqlColumn<?, ?> column) {
+        return this.groupBy(column, null);
+    }
+
+    @Override
+    public SimpleGroup groupBy(SqlColumn<?, ?> column, String alias) {
+        return this.parent.groupBy(column, alias);
+    }
+
+    @Override
+    public SimpleGroup groupBy(SqlColumn<?, ?>... column) {
+        return this.groupBy(null, alias);
+    }
+
+    @Override
+    public SimpleGroup groupBy(String alias, SqlColumn<?, ?>... columns) {
+        return this.parent.groupBy(alias, columns);
+    }
+
     private static class SimpleOnImpl<L> implements IntermediateSimpleJoin<L> {
 
         private final SqlColumn<?, L> column;

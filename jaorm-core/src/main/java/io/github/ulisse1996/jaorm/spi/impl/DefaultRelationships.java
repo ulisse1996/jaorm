@@ -4,7 +4,6 @@ import io.github.ulisse1996.jaorm.entity.relationship.Relationship;
 import io.github.ulisse1996.jaorm.logger.JaormLogger;
 import io.github.ulisse1996.jaorm.spi.RelationshipService;
 import io.github.ulisse1996.jaorm.spi.provider.RelationshipProvider;
-import io.github.ulisse1996.jaorm.util.ClassChecker;
 
 import java.util.Collections;
 import java.util.Map;
@@ -34,7 +33,7 @@ public class DefaultRelationships extends RelationshipService {
         return (Relationship<T>) relationships
                 .entrySet()
                 .stream()
-                .filter(el -> ClassChecker.isAssignable(el.getKey(), entityClass))
+                .filter(el -> el.getKey().equals(entityClass))
                 .findFirst()
                 .map(Map.Entry::getValue)
                 .orElse(null);

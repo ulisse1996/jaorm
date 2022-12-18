@@ -17,7 +17,6 @@ import io.github.ulisse1996.jaorm.mapping.Cursor;
 import io.github.ulisse1996.jaorm.mapping.TableRow;
 import io.github.ulisse1996.jaorm.schema.TableInfo;
 import io.github.ulisse1996.jaorm.spi.common.Singleton;
-import io.github.ulisse1996.jaorm.util.ClassChecker;
 import io.github.ulisse1996.jaorm.vendor.VendorSpecific;
 import io.github.ulisse1996.jaorm.vendor.specific.GeneratedKeysSpecific;
 
@@ -55,9 +54,9 @@ public abstract class QueryRunner {
     }
 
     protected static boolean isDelegate(Class<?> klass) {
-        return DelegatesService.getInstance().getDelegates().entrySet().stream().anyMatch(el -> ClassChecker.isAssignable(el.getKey(), klass)) ||
+        return DelegatesService.getInstance().getDelegates().entrySet().stream().anyMatch(el -> el.getKey().equals(klass)) ||
                 EntityDelegate.class.isAssignableFrom(klass) ||
-                ProjectionsService.getInstance().getProjections().entrySet().stream().anyMatch(el -> ClassChecker.isAssignable(el.getKey(), klass));
+                ProjectionsService.getInstance().getProjections().entrySet().stream().anyMatch(el -> el.getKey().equals(klass));
     }
 
     public static QueryRunner getSimple() {

@@ -5,7 +5,6 @@ import io.github.ulisse1996.jaorm.entity.GenerationInfo;
 import io.github.ulisse1996.jaorm.spi.common.Singleton;
 import io.github.ulisse1996.jaorm.spi.impl.DefaultGenerators;
 import io.github.ulisse1996.jaorm.spi.provider.GeneratorProvider;
-import io.github.ulisse1996.jaorm.util.ClassChecker;
 
 import java.sql.SQLException;
 import java.util.*;
@@ -15,7 +14,7 @@ public abstract class GeneratorsService {
     private static final Singleton<GeneratorsService> INSTANCE = Singleton.instance();
 
     public static synchronized GeneratorsService getInstance() {
-        if (!INSTANCE.isPresent()) {
+        if (!INSTANCE.isPresent() || FrameworkIntegrationService.isReloadRequired(INSTANCE.get().getGenerated().keySet())) {
             Iterable<GeneratorProvider> iterable = ServiceFinder.loadServices(GeneratorProvider.class);
             if (iterable.iterator().hasNext()) {
                 INSTANCE.set(new DefaultGenerators(iterable));
@@ -31,7 +30,7 @@ public abstract class GeneratorsService {
         List<GenerationInfo> infos = getGenerated()
                 .entrySet()
                 .stream()
-                .filter(el -> ClassChecker.isAssignable(el.getKey(), klass))
+                .filter(el -> el.getKey().equals(klass))
                 .findFirst()
                 .map(Map.Entry::getValue)
                 .orElse(null);
@@ -43,7 +42,7 @@ public abstract class GeneratorsService {
         Optional<GenerationInfo> info = getGenerated()
                 .entrySet()
                 .stream()
-                .filter(el -> ClassChecker.isAssignable(el.getKey(), klass))
+                .filter(el -> el.getKey().equals(klass))
                 .map(Map.Entry::getValue)
                 .flatMap(Collection::stream)
                 .filter(i -> i.getColumnName().equalsIgnoreCase(columnName))
@@ -59,7 +58,7 @@ public abstract class GeneratorsService {
         return getGenerated()
                 .entrySet()
                 .stream()
-                .anyMatch(el -> ClassChecker.isAssignable(el.getKey(), entityClass));
+                .anyMatch(el -> el.getKey().equals(entityClass));
     }
 
     public abstract Map<Class<?>, List<GenerationInfo>> getGenerated();

@@ -67,7 +67,7 @@ public class EntityQueryRunner extends QueryRunner {
                 .getProjections()
                 .entrySet()
                 .stream()
-                .filter(el -> ClassChecker.isAssignable(el.getKey(), klass))
+                .filter(el -> el.getKey().equals(klass))
                 .findFirst()
                 .map(Map.Entry::getValue)
                 .orElse(null);

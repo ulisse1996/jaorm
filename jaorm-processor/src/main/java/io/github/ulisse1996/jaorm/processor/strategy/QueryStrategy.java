@@ -1,19 +1,18 @@
 package io.github.ulisse1996.jaorm.processor.strategy;
 
 import com.squareup.javapoet.CodeBlock;
+import io.github.ulisse1996.jaorm.annotation.Param;
 import io.github.ulisse1996.jaorm.entity.sql.SqlAccessor;
 import io.github.ulisse1996.jaorm.entity.sql.SqlParameter;
-import io.github.ulisse1996.jaorm.annotation.Param;
 import io.github.ulisse1996.jaorm.processor.exception.ProcessorException;
+import io.github.ulisse1996.jaorm.processor.util.ProcessorUtils;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -38,17 +37,17 @@ public enum QueryStrategy implements ParametersStrategy {
         }
 
         @Override
-        public List<CodeBlock> extract(ProcessingEnvironment procEnv, String query, ExecutableElement method) {
-            return IntStream.range(0, getParamNumber(query))
+        public GenerationUnit extract(ProcessingEnvironment procEnv, String query, ExecutableElement method) {
+            return GenerationUnit.ofCode(IntStream.range(0, getParamNumber(query))
                     .mapToObj(i -> {
                         VariableElement param = method.getParameters().get(i);
                         TypeMirror type = param.asType();
                         return getStatement(param, type);
-                    }).collect(Collectors.toList());
+                    }).collect(Collectors.toList()));
         }
 
         @Override
-        public String replaceQuery(String query) {
+        public String replaceQuery(String query, Set<String> collectionNames) {
             return query;
         }
     },
@@ -65,13 +64,20 @@ public enum QueryStrategy implements ParametersStrategy {
         }
 
         @Override
-        public List<CodeBlock> extract(ProcessingEnvironment procEnv, String query, ExecutableElement method) {
-            return getCodeBlocks(getRegex(), query, method);
+        public GenerationUnit extract(ProcessingEnvironment procEnv, String query, ExecutableElement method) {
+            return getCodeBlocks(getRegex(), query, method, procEnv);
         }
 
         @Override
-        public String replaceQuery(String query) {
-            return Pattern.compile(getRegex()).matcher(query).replaceAll("?");
+        public String replaceQuery(String query, Set<String> collectionNames) {
+            return Pattern.compile(getRegex()).matcher(query)
+                    .replaceAll(matchResult -> {
+                        String res = matchResult.group().substring(1);
+                        if (collectionNames.contains(res)) {
+                            return String.format("{%s}", res);
+                        }
+                        return "?";
+                    });
         }
     },
     ORDERED_WILDCARD("(\\?\\d*)") {
@@ -97,19 +103,19 @@ public enum QueryStrategy implements ParametersStrategy {
         }
 
         @Override
-        public List<CodeBlock> extract(ProcessingEnvironment procEnv, String query, ExecutableElement method) {
-            return getNumbers(query)
+        public GenerationUnit extract(ProcessingEnvironment procEnv, String query, ExecutableElement method) {
+            return GenerationUnit.ofCode(getNumbers(query)
                     .stream()
                     .map(i -> {
                         int realNum = i - 1; // We start at 1 as sql
                         VariableElement param = method.getParameters().get(realNum);
                         TypeMirror type = param.asType();
                         return QueryStrategy.getStatement(param, type);
-                    }).collect(Collectors.toList());
+                    }).collect(Collectors.toList()));
         }
 
         @Override
-        public String replaceQuery(String query) {
+        public String replaceQuery(String query, Set<String> collectionNames) {
             return Pattern.compile(getRegex()).matcher(query).replaceAll("?");
         }
     },
@@ -126,13 +132,19 @@ public enum QueryStrategy implements ParametersStrategy {
         }
 
         @Override
-        public List<CodeBlock> extract(ProcessingEnvironment procEnv, String query, ExecutableElement method) {
-            return getCodeBlocks(getRegex(), query, method);
+        public GenerationUnit extract(ProcessingEnvironment procEnv, String query, ExecutableElement method) {
+            return getCodeBlocks(getRegex(), query, method, procEnv);
         }
 
         @Override
-        public String replaceQuery(String query) {
-            return Pattern.compile(getRegex()).matcher(query).replaceAll("?");
+        public String replaceQuery(String query, Set<String> collectionNames) {
+            return Pattern.compile(getRegex()).matcher(query).replaceAll(matchResult -> {
+                String res = matchResult.group().substring(1);
+                if (collectionNames.contains(res)) {
+                    return String.format("{%s}", res);
+                }
+                return "?";
+            });
         }
     },
     NO_ARGS("") {
@@ -147,12 +159,12 @@ public enum QueryStrategy implements ParametersStrategy {
         }
 
         @Override
-        public List<CodeBlock> extract(ProcessingEnvironment procEnv, String query, ExecutableElement method) {
-            return Collections.emptyList();
+        public GenerationUnit extract(ProcessingEnvironment procEnv, String query, ExecutableElement method) {
+            return GenerationUnit.empty();
         }
 
         @Override
-        public String replaceQuery(String query) {
+        public String replaceQuery(String query, Set<String> collectionNames) {
             return query;
         }
     };
@@ -190,6 +202,16 @@ public enum QueryStrategy implements ParametersStrategy {
         return foundWords;
     }
 
+    private static CodeBlock getListStatement(VariableElement element, TypeMirror type, ProcessingEnvironment environment) {
+        TypeElement typeElement = ProcessorUtils.extractTypeFromCollection(environment, type);
+        return CodeBlock.builder()
+                .beginControlFlow("for ($T element : $L)", typeElement, element.getSimpleName())
+                .addStatement("params.add(new $T($L, $T.find($T.class).getSetter()))",
+                        SqlParameter.class, "element", SqlAccessor.class, typeElement)
+                .endControlFlow()
+                .build();
+    }
+
     private static CodeBlock getStatement(VariableElement element, TypeMirror type) {
         return CodeBlock.builder()
                 .addStatement("params.add(new $T($L, $T.find($T.class).getSetter()))",
@@ -197,14 +219,20 @@ public enum QueryStrategy implements ParametersStrategy {
                 .build();
     }
 
-    private static List<CodeBlock> getCodeBlocks(String regex, String query, ExecutableElement method) {
-        return getWords(regex, query)
-                .stream()
-                .map(s -> {
-                    VariableElement element = getVariable(method, s);
-                    TypeMirror type = element.asType();
-                    return getStatement(element, type);
-                }).collect(Collectors.toList());
+    private static GenerationUnit getCodeBlocks(String regex, String query, ExecutableElement method, ProcessingEnvironment environment) {
+        List<CodeBlock> code = new ArrayList<>();
+        Set<String> listArgs = new HashSet<>();
+        for (String word : getWords(regex, query)) {
+            VariableElement element = getVariable(method, word);
+            TypeMirror type = element.asType();
+            if (ProcessorUtils.isCollectionType(type)) {
+                code.add(getListStatement(element, type, environment));
+                listArgs.add(element.getSimpleName().toString());
+            } else {
+                code.add(getStatement(element, type));
+            }
+        }
+        return new GenerationUnit(code, listArgs);
     }
 
     private static VariableElement getVariable(ExecutableElement method, String s) {

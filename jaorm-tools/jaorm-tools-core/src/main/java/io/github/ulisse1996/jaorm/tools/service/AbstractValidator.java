@@ -19,10 +19,7 @@ import net.sf.jsqlparser.statement.Statement;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.sql.*;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Properties;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public abstract class AbstractValidator implements Validator {
@@ -43,7 +40,7 @@ public abstract class AbstractValidator implements Validator {
     protected void validateQuery(String query, boolean noArgs) throws QueryValidationException {
         for (QueryStrategy strategy : QueryStrategy.values()) {
             if (strategy.isValid(query, noArgs)) {
-                String realQuery = strategy.replaceQuery(query);
+                String realQuery = strategy.replaceQuery(query, Collections.emptySet());
                 try {
                     getLog().info(() -> String.format("Validating %s", realQuery));
                     Statement statement = CCJSqlParserUtil.parse(realQuery);

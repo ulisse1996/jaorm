@@ -267,7 +267,7 @@ class QueryBuilderSimpleTest extends AbstractQueryBuilderTest {
             Assertions.assertEquals(expected.getDate(), projection.getDate());
             Assertions.assertEquals("EL", projection.getCol2());
             Assertions.assertEquals(
-                    "SELECT CURRENT_DATE MY_DATE, B.COL2 MY_COL2 FROM TAB1 A JOIN TAB2 B ON A.COL1 = B.COL5 ",
+                    "SELECT CURRENT_DATE MY_DATE, B.COL2 MY_COL2 FROM TAB1 A JOIN TAB2 B ON A.COL1 = B.COL5",
                     sqlCapture.getValue()
             );
         });
@@ -299,7 +299,7 @@ class QueryBuilderSimpleTest extends AbstractQueryBuilderTest {
             Assertions.assertEquals(expected.getDate(), projection.getDate());
             Assertions.assertEquals("EL", projection.getCol2());
             Assertions.assertEquals(
-                    "SELECT CURRENT_DATE MY_DATE, B.COL2 MY_COL2 FROM TAB1 A RIGHT JOIN TAB2 B ON A.COL1 = B.COL5 ",
+                    "SELECT CURRENT_DATE MY_DATE, B.COL2 MY_COL2 FROM TAB1 A RIGHT JOIN TAB2 B ON A.COL1 = B.COL5",
                     sqlCapture.getValue()
             );
         });
@@ -331,7 +331,7 @@ class QueryBuilderSimpleTest extends AbstractQueryBuilderTest {
             Assertions.assertEquals(expected.getDate(), projection.getDate());
             Assertions.assertEquals("EL", projection.getCol2());
             Assertions.assertEquals(
-                    "SELECT CURRENT_DATE MY_DATE, B.COL2 MY_COL2 FROM TAB1 A FULL JOIN TAB2 B ON A.COL1 = B.COL5 ",
+                    "SELECT CURRENT_DATE MY_DATE, B.COL2 MY_COL2 FROM TAB1 A FULL JOIN TAB2 B ON A.COL1 = B.COL5",
                     sqlCapture.getValue()
             );
         });
@@ -363,7 +363,7 @@ class QueryBuilderSimpleTest extends AbstractQueryBuilderTest {
             Assertions.assertEquals(expected.getDate(), projection.getDate());
             Assertions.assertEquals("EL", projection.getCol2());
             Assertions.assertEquals(
-                    "SELECT CURRENT_DATE MY_DATE, B.COL2 MY_COL2 FROM TAB1 A LEFT JOIN TAB2 B ON A.COL1 = B.COL5 ",
+                    "SELECT CURRENT_DATE MY_DATE, B.COL2 MY_COL2 FROM TAB1 A LEFT JOIN TAB2 B ON A.COL1 = B.COL5",
                     sqlCapture.getValue()
             );
         });
@@ -395,7 +395,7 @@ class QueryBuilderSimpleTest extends AbstractQueryBuilderTest {
             Assertions.assertEquals(expected.getDate(), projection.getDate());
             Assertions.assertEquals("EL", projection.getCol2());
             Assertions.assertEquals(
-                    "SELECT CURRENT_DATE MY_DATE, COL2 MY_COL2 FROM TAB1 JOIN TAB2 ON COL1 = COL5 ",
+                    "SELECT CURRENT_DATE MY_DATE, COL2 MY_COL2 FROM TAB1 JOIN TAB2 ON COL1 = COL5",
                     sqlCapture.getValue()
             );
         });
@@ -427,7 +427,7 @@ class QueryBuilderSimpleTest extends AbstractQueryBuilderTest {
             Assertions.assertEquals(expected.getDate(), projection.getDate());
             Assertions.assertEquals("EL", projection.getCol2());
             Assertions.assertEquals(
-                    "SELECT CURRENT_DATE MY_DATE, COL2 MY_COL2 FROM TAB1 RIGHT JOIN TAB2 ON COL1 = COL5 ",
+                    "SELECT CURRENT_DATE MY_DATE, COL2 MY_COL2 FROM TAB1 RIGHT JOIN TAB2 ON COL1 = COL5",
                     sqlCapture.getValue()
             );
         });
@@ -459,7 +459,7 @@ class QueryBuilderSimpleTest extends AbstractQueryBuilderTest {
             Assertions.assertEquals(expected.getDate(), projection.getDate());
             Assertions.assertEquals("EL", projection.getCol2());
             Assertions.assertEquals(
-                    "SELECT CURRENT_DATE MY_DATE, COL2 MY_COL2 FROM TAB1 FULL JOIN TAB2 ON COL1 = COL5 ",
+                    "SELECT CURRENT_DATE MY_DATE, COL2 MY_COL2 FROM TAB1 FULL JOIN TAB2 ON COL1 = COL5",
                     sqlCapture.getValue()
             );
         });
@@ -491,7 +491,7 @@ class QueryBuilderSimpleTest extends AbstractQueryBuilderTest {
             Assertions.assertEquals(expected.getDate(), projection.getDate());
             Assertions.assertEquals("EL", projection.getCol2());
             Assertions.assertEquals(
-                    "SELECT CURRENT_DATE MY_DATE, COL2 MY_COL2 FROM TAB1 LEFT JOIN TAB2 ON COL1 = COL5 ",
+                    "SELECT CURRENT_DATE MY_DATE, COL2 MY_COL2 FROM TAB1 LEFT JOIN TAB2 ON COL1 = COL5",
                     sqlCapture.getValue()
             );
         });

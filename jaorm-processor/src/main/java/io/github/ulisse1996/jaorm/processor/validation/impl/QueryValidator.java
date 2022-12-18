@@ -19,6 +19,7 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeKind;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -94,7 +95,7 @@ public class QueryValidator extends Validator {
                 checkSpecs(sql, executableElement);
                 if (executableElement.getAnnotation(ExcludeExternalValidation.class) == null) {
                     for (ExtensionLoader.ExtensionManager extension : extensions) {
-                        extension.executeValidation(queryStrategy.replaceQuery(sql), processingEnvironment);
+                        extension.executeValidation(queryStrategy.replaceQuery(sql, Collections.emptySet()), processingEnvironment);
                     }
                 } else {
                     debugMessage(String.format("Skipping sql %s from external validation", sql));
