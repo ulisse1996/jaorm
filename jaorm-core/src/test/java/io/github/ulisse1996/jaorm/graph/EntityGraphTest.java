@@ -5,7 +5,9 @@ import io.github.ulisse1996.jaorm.DelegatesMock;
 import io.github.ulisse1996.jaorm.entity.EntityDelegate;
 import io.github.ulisse1996.jaorm.entity.EntityMapper;
 import io.github.ulisse1996.jaorm.exception.JaormSqlException;
+import io.github.ulisse1996.jaorm.metrics.MetricsTracker;
 import io.github.ulisse1996.jaorm.spi.DelegatesService;
+import io.github.ulisse1996.jaorm.spi.MetricsService;
 import io.github.ulisse1996.jaorm.spi.QueryRunner;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -39,7 +41,9 @@ class EntityGraphTest {
     void should_return_empty_fetch() throws SQLException {
         EntityGraph<DelegatesMock.MyEntity> graph = buildGraph();
         try (MockedStatic<DelegatesService> mkDel = Mockito.mockStatic(DelegatesService.class);
-             MockedStatic<QueryRunner> mkRunner = Mockito.mockStatic(QueryRunner.class)) {
+             MockedStatic<QueryRunner> mkRunner = Mockito.mockStatic(QueryRunner.class);
+             MockedStatic<MetricsService> mkMetrics = Mockito.mockStatic(MetricsService.class)) {
+            mkMetrics.when(MetricsService::getInstance).thenReturn(Mockito.mock(MetricsTracker.class));
             mkRunner.when(() -> QueryRunner.getInstance(Mockito.any()))
                     .thenReturn(runner);
             mkDel.when(DelegatesService::getInstance).thenReturn(delegatesService);
@@ -66,7 +70,9 @@ class EntityGraphTest {
     void should_throw_exception_for_fetch() throws SQLException {
         EntityGraph<DelegatesMock.MyEntity> graph = buildGraph();
         try (MockedStatic<DelegatesService> mkDel = Mockito.mockStatic(DelegatesService.class);
-             MockedStatic<QueryRunner> mkRunner = Mockito.mockStatic(QueryRunner.class)) {
+             MockedStatic<QueryRunner> mkRunner = Mockito.mockStatic(QueryRunner.class);
+             MockedStatic<MetricsService> mkMetrics = Mockito.mockStatic(MetricsService.class)) {
+            mkMetrics.when(MetricsService::getInstance).thenReturn(Mockito.mock(MetricsTracker.class));
             mkRunner.when(() -> QueryRunner.getInstance(Mockito.any()))
                     .thenReturn(runner);
             mkDel.when(DelegatesService::getInstance).thenReturn(delegatesService);
@@ -91,7 +97,9 @@ class EntityGraphTest {
     void should_map_graph() throws SQLException {
         EntityGraph<DelegatesMock.MyEntity> graph = buildGraph();
         try (MockedStatic<DelegatesService> mkDel = Mockito.mockStatic(DelegatesService.class);
-             MockedStatic<QueryRunner> mkRunner = Mockito.mockStatic(QueryRunner.class)) {
+             MockedStatic<QueryRunner> mkRunner = Mockito.mockStatic(QueryRunner.class);
+             MockedStatic<MetricsService> mkMetrics = Mockito.mockStatic(MetricsService.class)) {
+            mkMetrics.when(MetricsService::getInstance).thenReturn(Mockito.mock(MetricsTracker.class));
             mkRunner.when(() -> QueryRunner.getInstance(Mockito.any()))
                     .thenReturn(runner);
             mkDel.when(DelegatesService::getInstance).thenReturn(delegatesService);

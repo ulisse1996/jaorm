@@ -35,12 +35,22 @@ public class ArgumentsUtils {
         classes.add(BigInteger.class);
         classes.add(BigDecimal.class);
         classes.add(Number.class); // Custom numbers
-        try {
-            // Joda Money lib
-            classes.add(Class.forName("org.joda.money.Money"));
-            classes.add(Class.forName("org.joda.money.BigMoney"));
-        } catch (ClassNotFoundException ignored) {} //NOSONAR
+
+        // Joda
+        addIfFound(classes, "org.joda.money.Money");
+        addIfFound(classes, "org.joda.money.BigMoney");
+
+        // Javax Money
+        addIfFound(classes, "javax.money.MonetaryAmount");
         NUMBERS_KLASS = Collections.unmodifiableSet(classes);
+    }
+
+    private static void addIfFound(Set<Class<?>> classes, String name) {
+        try {
+            classes.add(Class.forName(name));
+        } catch (ClassNotFoundException ignored) { //NOSONAR
+            // Ignored
+        }
     }
 
     private ArgumentsUtils() {

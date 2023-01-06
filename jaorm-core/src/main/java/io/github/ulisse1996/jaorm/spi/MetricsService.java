@@ -23,6 +23,8 @@ public abstract class MetricsService {
             Iterable<MetricsTracker> trackers = ServiceFinder.loadServices(MetricsTracker.class);
             if (trackers.iterator().hasNext()) {
                 INSTANCE.set(trackers.iterator().next());
+            } else {
+                INSTANCE.set(NoOp.INSTANCE);
             }
         }
 

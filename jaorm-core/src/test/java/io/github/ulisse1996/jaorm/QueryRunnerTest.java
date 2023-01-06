@@ -3,9 +3,11 @@ package io.github.ulisse1996.jaorm;
 import io.github.ulisse1996.jaorm.entity.sql.DataSourceProvider;
 import io.github.ulisse1996.jaorm.entity.sql.SqlParameter;
 import io.github.ulisse1996.jaorm.exception.JaormSqlException;
+import io.github.ulisse1996.jaorm.metrics.MetricsTracker;
 import io.github.ulisse1996.jaorm.metrics.TimeTracker;
 import io.github.ulisse1996.jaorm.schema.TableInfo;
 import io.github.ulisse1996.jaorm.spi.DelegatesService;
+import io.github.ulisse1996.jaorm.spi.MetricsService;
 import io.github.ulisse1996.jaorm.spi.QueryRunner;
 import io.github.ulisse1996.jaorm.spi.TransactionManager;
 import io.github.ulisse1996.jaorm.spi.common.Singleton;
@@ -177,7 +179,9 @@ class QueryRunnerTest {
             }
         };
         try (MockedStatic<DelegatesService> mk = Mockito.mockStatic(DelegatesService.class);
-             MockedStatic<VendorSpecific> mkVendor = Mockito.mockStatic(VendorSpecific.class)) {
+             MockedStatic<VendorSpecific> mkVendor = Mockito.mockStatic(VendorSpecific.class);
+             MockedStatic<MetricsService> mkMetrics = Mockito.mockStatic(MetricsService.class)) {
+            mkMetrics.when(MetricsService::getInstance).thenReturn(Mockito.mock(MetricsTracker.class));
             mkVendor.when(() -> VendorSpecific.getSpecific(GeneratedKeysSpecific.class, GeneratedKeysSpecific.NO_OP))
                     .thenReturn(new Generated());
             mk.when(DelegatesService::getInstance)
@@ -315,7 +319,9 @@ class QueryRunnerTest {
             }
         };
         try (MockedStatic<DelegatesService> mk = Mockito.mockStatic(DelegatesService.class);
-             MockedStatic<VendorSpecific> mkVendor = Mockito.mockStatic(VendorSpecific.class)) {
+             MockedStatic<VendorSpecific> mkVendor = Mockito.mockStatic(VendorSpecific.class);
+             MockedStatic<MetricsService> mkMetrics = Mockito.mockStatic(MetricsService.class)) {
+            mkMetrics.when(MetricsService::getInstance).thenReturn(Mockito.mock(MetricsTracker.class));
             mkVendor.when(() -> VendorSpecific.getSpecific(GeneratedKeysSpecific.class, GeneratedKeysSpecific.NO_OP))
                     .thenReturn(new Generated());
             mk.when(DelegatesService::getInstance)
@@ -367,7 +373,9 @@ class QueryRunnerTest {
             }
         };
         try (MockedStatic<DelegatesService> mk = Mockito.mockStatic(DelegatesService.class);
-             MockedStatic<VendorSpecific> mkVendor = Mockito.mockStatic(VendorSpecific.class)) {
+             MockedStatic<VendorSpecific> mkVendor = Mockito.mockStatic(VendorSpecific.class);
+             MockedStatic<MetricsService> mkMetrics = Mockito.mockStatic(MetricsService.class)) {
+            mkMetrics.when(MetricsService::getInstance).thenReturn(Mockito.mock(MetricsTracker.class));
             mkVendor.when(() -> VendorSpecific.getSpecific(GeneratedKeysSpecific.class, GeneratedKeysSpecific.NO_OP))
                     .thenReturn(new Generated());
             mk.when(DelegatesService::getInstance)
