@@ -14,9 +14,9 @@ import java.sql.SQLException;
 public class PostgreCoreIT extends CoreIT {
 
     @Override
-    public void afterInit() throws SQLException {
+    public void afterInit() throws Exception {
+        super.afterInit();
         execute("INSERT INTO POSTGIS_ENTITY(ID, GEOG) VALUES(2, ST_GeomFromText('POINT(-71.060316 48.432044)', 4326))");
-        execute("INSERT INTO USER_ENTITY(USER_ID, USER_NAME, DEPARTMENT_ID) VALUES (99, 'NAME_99', 99)");
     }
 
     @Test

@@ -26,6 +26,11 @@ public abstract class CoreIT extends AbstractIT {
 
     private final UserDAO userDAO = QueriesService.getInstance().getQuery(UserDAO.class);
 
+    @Override
+    protected void afterInit() throws Exception {
+        execute("INSERT INTO USER_ENTITY(USER_ID, USER_NAME, DEPARTMENT_ID) VALUES (99, 'NAME_99', 99)");
+    }
+
     // CRUD - Read
 
     @Test
