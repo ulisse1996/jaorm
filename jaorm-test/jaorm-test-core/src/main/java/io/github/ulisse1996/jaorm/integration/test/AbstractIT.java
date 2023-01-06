@@ -38,7 +38,7 @@ public abstract class AbstractIT {
     }
 
     @BeforeEach
-    void initSql() throws SQLException, IOException, URISyntaxException {
+    void initSql() throws Exception {
         try {
             DatabaseInitializer initializer = ServiceFinder.loadService(DatabaseInitializer.class);
             logger.info("Reset Database -- Start");
@@ -49,6 +49,7 @@ public abstract class AbstractIT {
                 line = line.replace(";", "");
                 execute(line);
             }
+            afterInit();
             logger.info("Reset Database -- End");
         } catch (Exception ex) {
             logger.error("", ex);
@@ -56,10 +57,12 @@ public abstract class AbstractIT {
         }
     }
 
-    private void execute(String line) throws SQLException {
+    protected void afterInit() throws Exception {}
+
+    protected void execute(String line) throws SQLException {
         try (Connection connection = DataSourceProvider.getCurrent().getConnection();
              PreparedStatement pr = connection.prepareStatement(line)) {
-            pr.execute();
+            pr.executeUpdate();
         } catch (SQLException ex) {
             logger.info("Error on line {}", line);
             throw ex;
