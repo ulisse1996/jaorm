@@ -4,7 +4,10 @@ import io.github.ulisse1996.jaorm.ResultSetExecutor;
 import io.github.ulisse1996.jaorm.entity.*;
 import io.github.ulisse1996.jaorm.entity.sql.SqlParameter;
 import io.github.ulisse1996.jaorm.exception.JaormSqlException;
+import io.github.ulisse1996.jaorm.metrics.MetricInfo;
+import io.github.ulisse1996.jaorm.metrics.TimeTracker;
 import io.github.ulisse1996.jaorm.spi.DelegatesService;
+import io.github.ulisse1996.jaorm.spi.MetricsService;
 import io.github.ulisse1996.jaorm.spi.QueryRunner;
 
 import java.sql.Connection;
@@ -86,6 +89,7 @@ public class EntityGraph<T> {
 
     @SuppressWarnings("unchecked")
     private T doFetch(T entity, boolean opt) {
+        TimeTracker tracker = TimeTracker.start();
         Objects.requireNonNull(entity, "Entity can't be null");
         EntityDelegate<?> entityDelegate = DelegatesService.getInstance().searchDelegate(this.klass).get();
         String sql = buildSql(entityDelegate);
@@ -99,9 +103,13 @@ public class EntityGraph<T> {
             if (!hasNext && opt) {
                 return null;
             }
-            return mapResults(rs.getResultSet());
+            T result = mapResults(rs.getResultSet());
+            tracker.stop();
+            return result;
         } catch (SQLException ex) {
             throw new JaormSqlException(ex);
+        } finally {
+            MetricsService.getInstance().trackExecution(MetricInfo.of(sql, sqlParameters, !tracker.isStopped(), tracker.getStop()));
         }
     }
 

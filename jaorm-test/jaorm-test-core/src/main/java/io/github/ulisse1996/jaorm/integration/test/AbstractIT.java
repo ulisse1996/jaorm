@@ -2,6 +2,7 @@ package io.github.ulisse1996.jaorm.integration.test;
 
 import io.github.ulisse1996.jaorm.ServiceFinder;
 import io.github.ulisse1996.jaorm.entity.sql.DataSourceProvider;
+import io.github.ulisse1996.jaorm.spi.MetricsService;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,6 +30,11 @@ public abstract class AbstractIT {
     public static void initDatabase() {
         ServiceFinder.loadService(DatabaseInitializer.class)
                 .initDatabase();
+    }
+
+    @BeforeEach
+    void resetQueryTracker() {
+        MetricsService.getInstance().wrap(ITMetricsTracker.class).reset();
     }
 
     @BeforeEach
@@ -64,5 +70,9 @@ public abstract class AbstractIT {
     public static void destroyDatabase() {
         ServiceFinder.loadService(DatabaseInitializer.class)
                 .destroyDatabase();
+    }
+
+    protected void assertTotalInvocations(int times) {
+        MetricsService.getInstance().wrap(ITMetricsTracker.class).expectTotalInvocations(times);
     }
 }

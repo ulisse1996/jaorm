@@ -6,7 +6,6 @@ import io.github.ulisse1996.jaorm.entity.sql.SqlAccessor;
 import io.github.ulisse1996.jaorm.spi.common.Singleton;
 import io.github.ulisse1996.jaorm.spi.impl.DefaultConverters;
 import io.github.ulisse1996.jaorm.spi.provider.ConverterProvider;
-import io.github.ulisse1996.jaorm.util.ClassChecker;
 
 import java.util.Map;
 import java.util.Optional;

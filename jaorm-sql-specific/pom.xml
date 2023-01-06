@@ -14,6 +14,7 @@
         <module>jaorm-sql-specific-postgre</module>
         <module>jaorm-sql-specific-sql-server</module>
         <module>jaorm-sql-specific-mysql</module>
+        <module>jaorm-sql-specific-db2</module>
     </modules>
 
     <artifactId>jaorm-sql-specific</artifactId>

@@ -7,6 +7,10 @@ public interface Singleton<T> {
     boolean isPresent();
 
     static <T> Singleton<T> instance() {
-        return new SingletonImpl<>(null);
+        return instance(null);
+    }
+
+    static <T> Singleton<T> instance(T value) {
+        return new SingletonImpl<>(value);
     }
 }

@@ -2,6 +2,7 @@ package io.github.ulisse1996.jaorm.vendor.util;
 
 import io.github.ulisse1996.jaorm.InlineValue;
 import io.github.ulisse1996.jaorm.Selectable;
+import io.github.ulisse1996.jaorm.Sort;
 import io.github.ulisse1996.jaorm.entity.SqlColumn;
 import io.github.ulisse1996.jaorm.vendor.VendorFunction;
 import io.github.ulisse1996.jaorm.vendor.VendorFunctionWithParams;
@@ -38,7 +39,7 @@ public class ArgumentsUtils {
             // Joda Money lib
             classes.add(Class.forName("org.joda.money.Money"));
             classes.add(Class.forName("org.joda.money.BigMoney"));
-        } catch (ClassNotFoundException ignored) {}
+        } catch (ClassNotFoundException ignored) {} //NOSONAR
         NUMBERS_KLASS = Collections.unmodifiableSet(classes);
     }
 
@@ -101,15 +102,13 @@ public class ArgumentsUtils {
             .collect(Collectors.toList());
     }
 
-    public static Selectable<?> checkNumberArg(Selectable<?> selectable) {
+    public static Selectable<?> checkNumberArg(Selectable<?> selectable) { //NOSONAR
         if (selectable instanceof InlineValue) {
             checkNumber(((InlineValue<?>) selectable).getValue());
         } else if (selectable instanceof VendorFunctionWithParams) {
             ((VendorFunctionWithParams<?>) selectable).getParams().forEach(ArgumentsUtils::checkNumber);
-        } else if (selectable instanceof SqlColumn) {
-            if (!NUMBERS_KLASS.contains(((SqlColumn<?, ?>) selectable).getType())) {
-                throw new IllegalArgumentException("Column type must be a number !");
-            }
+        } else if (selectable instanceof SqlColumn && !NUMBERS_KLASS.contains(((SqlColumn<?, ?>) selectable).getType())) {
+            throw new IllegalArgumentException("Column type must be a number !");
         }
         return selectable;
     }
@@ -119,5 +118,13 @@ public class ArgumentsUtils {
         if (!NUMBERS_KLASS.contains(klass)) {
             throw new IllegalArgumentException("Value must be a number !");
         }
+    }
+
+    public static <T> List<Sort<T>> checkSortNumber(List<Sort<T>> sorts) {
+        if (sorts == null || sorts.size() == 0) {
+            throw new IllegalArgumentException("Sorts are required for page fetch !");
+        }
+
+        return sorts;
     }
 }

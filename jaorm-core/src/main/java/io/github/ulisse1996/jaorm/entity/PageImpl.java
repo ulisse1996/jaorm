@@ -5,6 +5,7 @@ import io.github.ulisse1996.jaorm.spi.DelegatesService;
 import io.github.ulisse1996.jaorm.spi.QueryRunner;
 import io.github.ulisse1996.jaorm.vendor.VendorSpecific;
 import io.github.ulisse1996.jaorm.vendor.specific.LimitOffsetSpecific;
+import io.github.ulisse1996.jaorm.vendor.util.ArgumentsUtils;
 
 import java.util.Collections;
 import java.util.List;
@@ -21,7 +22,7 @@ public class PageImpl<T> extends Page<T> {
                     Class<T> entityClass, List<Sort<T>> sorts) {
         super(pageNumber, fetchSize, count);
         this.entityClass = entityClass;
-        this.sorts = sorts;
+        this.sorts = ArgumentsUtils.checkSortNumber(sorts);
     }
 
     @Override

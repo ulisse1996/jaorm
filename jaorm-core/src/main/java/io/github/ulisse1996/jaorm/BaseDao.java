@@ -72,6 +72,7 @@ public interface BaseDao<R> {
             ListenersService.getInstance().fireEvent(entity, GlobalEventType.PRE_UPDATE);
             EntityEvent.forType(EntityEventType.UPDATE)
                     .apply(entity);
+            checkUpsert(entity);
         } else {
             if (entity instanceof PreUpdate) {
                 try {

@@ -3,6 +3,7 @@ package io.github.ulisse1996.jaorm;
 import io.github.ulisse1996.jaorm.entity.sql.DataSourceProvider;
 import io.github.ulisse1996.jaorm.entity.sql.SqlParameter;
 import io.github.ulisse1996.jaorm.exception.JaormSqlException;
+import io.github.ulisse1996.jaorm.metrics.TimeTracker;
 import io.github.ulisse1996.jaorm.schema.TableInfo;
 import io.github.ulisse1996.jaorm.spi.DelegatesService;
 import io.github.ulisse1996.jaorm.spi.QueryRunner;
@@ -164,7 +165,7 @@ class QueryRunnerTest {
                 autoGen.put("NAME1", String.class);
                 autoGen.put("NAME2", String.class);
 
-                Map<String,Object> map = doUpdate(entity.getClass(), query, params, autoGen);
+                Map<String,Object> map = doUpdate(entity.getClass(), query, params, autoGen, TimeTracker.start());
                 Assertions.assertFalse(map.isEmpty());
                 Assertions.assertEquals(expected, map);
                 return entity;
@@ -302,7 +303,7 @@ class QueryRunnerTest {
                 autoGen.put("NAME1", String.class);
                 autoGen.put("NAME2", String.class);
 
-                Map<String,Object> map = doUpdate(entity.getClass(), query, params, autoGen);
+                Map<String,Object> map = doUpdate(entity.getClass(), query, params, autoGen, TimeTracker.start());
                 Assertions.assertFalse(map.isEmpty());
                 Assertions.assertEquals(expected, map);
                 return entity;
@@ -354,7 +355,7 @@ class QueryRunnerTest {
                 autoGen.put("NAME1", String.class);
                 autoGen.put("NAME2", String.class);
 
-                Map<String,Object> map = doUpdate(entity.getClass(), query, params, autoGen);
+                Map<String,Object> map = doUpdate(entity.getClass(), query, params, autoGen, TimeTracker.start());
                 Assertions.assertFalse(map.isEmpty());
                 Assertions.assertEquals(expected, map);
                 return entity;

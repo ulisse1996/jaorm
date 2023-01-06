@@ -12,7 +12,10 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -70,14 +73,7 @@ public enum QueryStrategy implements ParametersStrategy {
 
         @Override
         public String replaceQuery(String query, Set<String> collectionNames) {
-            return Pattern.compile(getRegex()).matcher(query)
-                    .replaceAll(matchResult -> {
-                        String res = matchResult.group().substring(1);
-                        if (collectionNames.contains(res)) {
-                            return String.format("{%s}", res);
-                        }
-                        return "?";
-                    });
+            return replaceNamedQuery(getRegex(), query, collectionNames);
         }
     },
     ORDERED_WILDCARD("(\\?\\d*)") {
@@ -138,13 +134,7 @@ public enum QueryStrategy implements ParametersStrategy {
 
         @Override
         public String replaceQuery(String query, Set<String> collectionNames) {
-            return Pattern.compile(getRegex()).matcher(query).replaceAll(matchResult -> {
-                String res = matchResult.group().substring(1);
-                if (collectionNames.contains(res)) {
-                    return String.format("{%s}", res);
-                }
-                return "?";
-            });
+            return replaceNamedQuery(getRegex(), query, collectionNames);
         }
     },
     NO_ARGS("") {
@@ -177,6 +167,16 @@ public enum QueryStrategy implements ParametersStrategy {
 
     public String getRegex() {
         return regex;
+    }
+
+    private static String replaceNamedQuery(String regex, String query, Set<String> collectionNames) {
+        return Pattern.compile(regex).matcher(query).replaceAll(matchResult -> {
+            String res = matchResult.group().substring(1);
+            if (collectionNames.contains(res)) {
+                return String.format("{%s}", res);
+            }
+            return "?";
+        });
     }
 
     private static VariableElement getVariableElement(ExecutableElement method, String s) {

@@ -5,11 +5,9 @@ import io.github.ulisse1996.jaorm.entity.Result;
 import io.github.ulisse1996.jaorm.entity.sql.SqlParameter;
 import io.github.ulisse1996.jaorm.exception.JaormSqlException;
 import io.github.ulisse1996.jaorm.mapping.*;
-import io.github.ulisse1996.jaorm.spi.DelegatesService;
-import io.github.ulisse1996.jaorm.spi.GeneratorsService;
-import io.github.ulisse1996.jaorm.spi.ProjectionsService;
-import io.github.ulisse1996.jaorm.spi.QueryRunner;
-import io.github.ulisse1996.jaorm.util.ClassChecker;
+import io.github.ulisse1996.jaorm.metrics.MetricInfo;
+import io.github.ulisse1996.jaorm.metrics.TimeTracker;
+import io.github.ulisse1996.jaorm.spi.*;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -38,6 +36,7 @@ public class EntityQueryRunner extends QueryRunner {
     public <R> R read(Class<R> entity, String query, List<SqlParameter> params) {
         logger.logSql(query, params);
         SupplierPair supplierPair = getSupplierPair(entity);
+        TimeTracker tracker = TimeTracker.start();
         try (Connection connection = getConnection(
                 supplierPair.projectionSupplier == null
                         ? DelegatesService.getInstance().getTableInfo(entity)
@@ -49,15 +48,19 @@ public class EntityQueryRunner extends QueryRunner {
             if (supplierPair.projectionSupplier == null) {
                 EntityDelegate<?> entityDelegate = supplierPair.delegateSupplier.get();
                 entityDelegate.setEntity(executor.getResultSet());
+                tracker.stop();
                 return (R) entityDelegate;
             } else {
                 ProjectionDelegate delegate = supplierPair.projectionSupplier.get();
                 delegate.setEntity(executor.getResultSet());
+                tracker.stop();
                 return (R) delegate;
             }
         } catch (SQLException ex) {
             logger.error(String.format("Error during read for entity %s ", entity)::toString, ex);
             throw new JaormSqlException(ex);
+        } finally {
+            MetricsService.getInstance().trackExecution(MetricInfo.of(query, params, !tracker.isStopped(), tracker.getStop()));
         }
     }
 
@@ -82,6 +85,7 @@ public class EntityQueryRunner extends QueryRunner {
     public <R> Result<R> readOpt(Class<R> entity, String query, List<SqlParameter> params) {
         logger.logSql(query, params);
         SupplierPair supplierPair = getSupplierPair(entity);
+        TimeTracker tracker = TimeTracker.start();
         try (Connection connection = getConnection(
                 supplierPair.projectionSupplier == null
                         ? DelegatesService.getInstance().getTableInfo(entity)
@@ -93,10 +97,12 @@ public class EntityQueryRunner extends QueryRunner {
                 if (supplierPair.projectionSupplier == null) {
                     EntityDelegate<?> entityDelegate = supplierPair.delegateSupplier.get();
                     entityDelegate.setEntity(executor.getResultSet());
+                    tracker.stop();
                     return (Result<R>) Result.of(entityDelegate);
                 } else {
                     ProjectionDelegate delegate = supplierPair.projectionSupplier.get();
                     delegate.setEntity(executor.getResultSet());
+                    tracker.stop();
                     return (Result<R>) Result.of(delegate);
                 }
             } else {
@@ -105,6 +111,8 @@ public class EntityQueryRunner extends QueryRunner {
         } catch (SQLException ex) {
             logger.error(String.format("Error during readOpt for entity %s ", entity)::toString, ex);
             throw new JaormSqlException(ex);
+        } finally {
+            MetricsService.getInstance().trackExecution(MetricInfo.of(query, params, !tracker.isStopped(), tracker.getStop()));
         }
     }
 
@@ -114,6 +122,7 @@ public class EntityQueryRunner extends QueryRunner {
         logger.logSql(query, params);
         List<R> values = new ArrayList<>();
         SupplierPair supplierPair = getSupplierPair(entity);
+        TimeTracker tracker = TimeTracker.start();
         try (Connection connection = getConnection(
                 supplierPair.projectionSupplier == null
                         ? DelegatesService.getInstance().getTableInfo(entity)
@@ -133,10 +142,13 @@ public class EntityQueryRunner extends QueryRunner {
                 }
             }
 
+            tracker.stop();
             return values;
         } catch (SQLException ex) {
             logger.error(String.format("Error during readAll for entity %s ", entity)::toString, ex);
             throw new JaormSqlException(ex);
+        } finally {
+            MetricsService.getInstance().trackExecution(MetricInfo.of(query, params, !tracker.isStopped(), tracker.getStop()));
         }
     }
 
@@ -155,6 +167,7 @@ public class EntityQueryRunner extends QueryRunner {
         Connection connection = EmptyClosable.instance(Connection.class);
         PreparedStatement preparedStatement = EmptyClosable.instance(PreparedStatement.class);
         SqlExecutor executor = EmptyClosable.instance(SqlExecutor.class);
+        TimeTracker tracker = TimeTracker.start();
         try {
             SupplierPair supplierPair = getSupplierPair(entity);
             connection = getConnection(
@@ -164,11 +177,14 @@ public class EntityQueryRunner extends QueryRunner {
             );
             preparedStatement = connection.prepareStatement(query);
             executor = new ResultSetExecutor(preparedStatement, params);
+            tracker.stop();
             return producer.produce(connection, preparedStatement, executor, getMapper(supplierPair));
         } catch (SQLException ex) {
             SqlUtil.silentClose(executor, preparedStatement, connection);
             logger.error(String.format("Error during readStream for entity %s ", entity)::toString, ex);
             throw new JaormSqlException(ex);
+        } finally {
+            MetricsService.getInstance().trackExecution(MetricInfo.of(query, params, !tracker.isStopped(), tracker.getStop()));
         }
     }
 
@@ -204,6 +220,7 @@ public class EntityQueryRunner extends QueryRunner {
     @Override
     @SuppressWarnings("unchecked")
     public <R> R insert(R entity, String query, List<SqlParameter> params) {
+        TimeTracker tracker = TimeTracker.start();
         Supplier<EntityDelegate<?>> delegateSupplier = DelegatesService.getInstance().searchDelegate(entity.getClass());
         EntityDelegate<R> delegate = (EntityDelegate<R>) delegateSupplier.get();
         delegate.setFullEntity(entity);
@@ -214,7 +231,7 @@ public class EntityQueryRunner extends QueryRunner {
             params = SqlParameter.argumentsAsParameters(DelegatesService.getInstance()
                     .asInsert(entity, generated).getValues());
         }
-        Map<String,Object> generated = doUpdate(entity.getClass(), query, params, columns);
+        Map<String,Object> generated = doUpdate(entity.getClass(), query, params, columns, tracker);
         delegate.setAutoGenerated(generated);
         return (R) delegate;
     }
@@ -253,12 +270,13 @@ public class EntityQueryRunner extends QueryRunner {
 
     @Override
     public <R> List<R> updateWithBatch(Class<?> entityClass, String updateSql, List<R> entities) {
+        TimeTracker tracker = TimeTracker.start();
         List<List<SqlParameter>> parameters = entities.stream()
                 .map(e -> Stream.concat(DelegatesService.getInstance().asArguments(e).asSqlParameters().stream(),
                                 DelegatesService.getInstance().asWhere(e).asSqlParameters().stream())
                         .collect(Collectors.toList()))
                 .collect(Collectors.toList());
-        doBatchUpdate(entityClass, updateSql, parameters, Collections.emptyMap());
+        doBatchUpdate(entityClass, updateSql, parameters, Collections.emptyMap(), tracker);
         return entities;
     }
 
@@ -269,6 +287,7 @@ public class EntityQueryRunner extends QueryRunner {
         List<List<SqlParameter>> allParams = new ArrayList<>();
         Map<String, Class<?>> columns = new HashMap<>();
         List<R> results = new ArrayList<>();
+        TimeTracker tracker = TimeTracker.start();
         for (R entity : entities) {
             EntityDelegate<R> delegate = (EntityDelegate<R>) delegateSupplier.get();
             columns = delegate.getAutoGenerated();
@@ -286,7 +305,7 @@ public class EntityQueryRunner extends QueryRunner {
             results.add((R) delegate);
             allParams.add(params);
         }
-        List<Map<String, Object>> generated = doBatchUpdate(entityClass, sql, allParams, columns);
+        List<Map<String, Object>> generated = doBatchUpdate(entityClass, sql, allParams, columns, tracker);
         if (!generated.isEmpty()) {
             IntStream.range(0, entities.size())
                     .forEach(i -> {

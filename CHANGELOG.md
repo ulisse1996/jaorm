@@ -13,7 +13,11 @@
 - Feature: Quarkus Extension module
 - Feature: FrameworkIntegrationService for Integration with external framework like Quarkus or Micronaut
 - Feature: Support for List args in @Query with named params
+- Feature: Support for Metrics using MetricsTracker
+- Feature: DB2 Sql Specifics
 - Removal: Removed notLike and like
+- Refactor: Refactor of IT Tests
+- Bugfix: Fix missing upsert for entities with relationships
 - Bugfix: Fix dev mode reloading issues for Quarkus
 
 ## 1.10.0
