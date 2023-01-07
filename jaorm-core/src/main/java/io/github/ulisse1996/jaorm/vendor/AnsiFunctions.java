@@ -38,7 +38,7 @@ public class AnsiFunctions {
     }
 
     public static AggregateFunction<Number> max(Selectable<?> selectable) {
-        return new AggregateFunction<>(ArgumentsUtils.checkNumberArg(selectable), "MIN");
+        return new AggregateFunction<>(ArgumentsUtils.checkNumberArg(selectable), "MAX");
     }
 
     public static AggregateFunction<Number> count(Selectable<?> selectable) {

@@ -52,7 +52,7 @@ public class SimpleQueryRunner extends QueryRunner {
         } catch (SQLException ex) {
             throw new JaormSqlException(ex);
         } finally {
-            MetricsService.getInstance().trackExecution(MetricInfo.of(query, params, !tracker.isStopped(), tracker.getStop()));
+            MetricsService.getInstance().trackExecution(MetricInfo.of(query, params, !tracker.isStopped(), tracker.getElapsed()));
         }
     }
 
@@ -74,7 +74,7 @@ public class SimpleQueryRunner extends QueryRunner {
         } catch (SQLException ex) {
             throw new JaormSqlException(ex);
         } finally {
-            MetricsService.getInstance().trackExecution(MetricInfo.of(query, params, !tracker.isStopped(), tracker.getStop()));
+            MetricsService.getInstance().trackExecution(MetricInfo.of(query, params, !tracker.isStopped(), tracker.getElapsed()));
         }
     }
 
@@ -95,7 +95,7 @@ public class SimpleQueryRunner extends QueryRunner {
         } catch (SQLException ex) {
             throw new JaormSqlException(ex);
         } finally {
-            MetricsService.getInstance().trackExecution(MetricInfo.of(query, params, !tracker.isStopped(), tracker.getStop()));
+            MetricsService.getInstance().trackExecution(MetricInfo.of(query, params, !tracker.isStopped(), tracker.getElapsed()));
         }
     }
 
@@ -122,63 +122,59 @@ public class SimpleQueryRunner extends QueryRunner {
         try {
             connection = getConnection(TableInfo.EMPTY);
             preparedStatement = connection.prepareStatement(query);
-            executor = new ResultSetExecutor(preparedStatement, params);
+            executor = new ResultSetExecutor(preparedStatement, params); //NOSONAR We return an instance of closeable (TableRow and Stream) that user must close
             tracker.stop();
             return producer.produce(connection, preparedStatement, executor, mapper);
         } catch (SQLException ex) {
             SqlUtil.silentClose(executor, preparedStatement, connection);
             throw new JaormSqlException(ex);
         } finally {
-            MetricsService.getInstance().trackExecution(MetricInfo.of(query, params, !tracker.isStopped(), tracker.getStop()));
+            MetricsService.getInstance().trackExecution(MetricInfo.of(query, params, !tracker.isStopped(), tracker.getElapsed()));
         }
     }
 
     @Override
     public TableRow read(String query, List<SqlParameter> params) {
         logger.logSql(query, params);
-        Connection connection = EmptyClosable.instance(Connection.class);
-        PreparedStatement preparedStatement = EmptyClosable.instance(PreparedStatement.class);
-        SqlExecutor executor = EmptyClosable.instance(SqlExecutor.class);
+        CloseableTuple tuple = new CloseableTuple();
         TimeTracker tracker = TimeTracker.start();
         try {
-            connection = getConnection(TableInfo.EMPTY);
-            preparedStatement = connection.prepareStatement(query);
-            executor = new ResultSetExecutor(preparedStatement, params); //NOSONAR Should close it in tableRow
+            tuple.connection = getConnection(TableInfo.EMPTY);
+            tuple.preparedStatement = tuple.connection.prepareStatement(query);
+            tuple.executor = new ResultSetExecutor(tuple.preparedStatement, params); //NOSONAR Should close it in tableRow
             tracker.stop();
-            return new TableRow(connection, preparedStatement, (ResultSetExecutor) executor);
+            return new TableRow(tuple.connection, tuple.preparedStatement, (ResultSetExecutor) tuple.executor); //NOSONAR We return an instance of closeable (TableRow) that user must close
         } catch (SQLException ex) {
-            SqlUtil.silentClose(executor, preparedStatement, connection);
+            tuple.close();
             throw new JaormSqlException(ex);
         } finally {
-            MetricsService.getInstance().trackExecution(MetricInfo.of(query, params, !tracker.isStopped(), tracker.getStop()));
+            MetricsService.getInstance().trackExecution(MetricInfo.of(query, params, !tracker.isStopped(), tracker.getElapsed()));
         }
     }
 
     @Override
     public Optional<TableRow> readOpt(String query, List<SqlParameter> params) {
         logger.logSql(query, params);
-        Connection connection = EmptyClosable.instance(Connection.class);
-        PreparedStatement preparedStatement = EmptyClosable.instance(PreparedStatement.class);
-        SqlExecutor executor = EmptyClosable.instance(SqlExecutor.class);
+        CloseableTuple tuple = new CloseableTuple();
         TimeTracker tracker = TimeTracker.start();
         try {
-            connection = getConnection(TableInfo.EMPTY);
-            preparedStatement = connection.prepareStatement(query, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-            executor = new ResultSetExecutor(preparedStatement, params); //NOSONAR Should close it in tableRow
-            if (((ResultSetExecutor) executor).getResultSet().next()) {
-                ((ResultSetExecutor) executor).getResultSet().previous();
+            tuple.connection = getConnection(TableInfo.EMPTY);
+            tuple.preparedStatement = tuple.connection.prepareStatement(query, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+            tuple.executor = new ResultSetExecutor(tuple.preparedStatement, params); //NOSONAR Should close it in tableRow
+            if (((ResultSetExecutor) tuple.executor).getResultSet().next()) {
+                ((ResultSetExecutor) tuple.executor).getResultSet().previous();
                 tracker.stop();
-                return Optional.of(new TableRow(connection, preparedStatement, (ResultSetExecutor) executor));
+                return Optional.of(new TableRow(tuple.connection, tuple.preparedStatement, (ResultSetExecutor) tuple.executor)); //NOSONAR We return an instance of closeable (TableRow) that user must close
             } else {
-                SqlUtil.silentClose(executor, preparedStatement, connection);
+                tuple.close();
                 tracker.stop();
                 return Optional.empty();
             }
         } catch (SQLException ex) {
-            SqlUtil.silentClose(executor, preparedStatement, connection);
+            tuple.close();
             throw new JaormSqlException(ex);
         } finally {
-            MetricsService.getInstance().trackExecution(MetricInfo.of(query, params, !tracker.isStopped(), tracker.getStop()));
+            MetricsService.getInstance().trackExecution(MetricInfo.of(query, params, !tracker.isStopped(), tracker.getElapsed()));
         }
     }
 
@@ -197,13 +193,13 @@ public class SimpleQueryRunner extends QueryRunner {
             PreparedStatement finalPreparedStatement = preparedStatement;
             ResultSetExecutor finalExecutor = (ResultSetExecutor) executor;
             tracker.stop();
-            return new ResultSetStream<>(connection, preparedStatement, executor,
+            return new ResultSetStream<>(connection, preparedStatement, executor, //NOSONAR We return an instance of closeable (TableRow) that user must close
                     rs -> new TableRow(finalConnection, finalPreparedStatement, finalExecutor, true)).getStream();
         } catch (SQLException ex) {
             SqlUtil.silentClose(executor, preparedStatement, connection);
             throw new JaormSqlException(ex);
         } finally {
-            MetricsService.getInstance().trackExecution(MetricInfo.of(query, params, !tracker.isStopped(), tracker.getStop()));
+            MetricsService.getInstance().trackExecution(MetricInfo.of(query, params, !tracker.isStopped(), tracker.getElapsed()));
         }
     }
 
@@ -230,5 +226,21 @@ public class SimpleQueryRunner extends QueryRunner {
     @Override
     public int delete(String query, List<SqlParameter> params) {
         return doSimpleUpdate(query, params);
+    }
+
+    private static class CloseableTuple {
+        private Connection connection;
+        private PreparedStatement preparedStatement;
+        private SqlExecutor executor;
+
+        private CloseableTuple() {
+            this.connection = EmptyClosable.instance(Connection.class);
+            this.preparedStatement = EmptyClosable.instance(PreparedStatement.class);
+            this.executor = EmptyClosable.instance(SqlExecutor.class);
+        }
+
+        public void close() {
+            SqlUtil.silentClose(this.executor, this.preparedStatement, this.connection);
+        }
     }
 }

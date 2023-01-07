@@ -131,7 +131,7 @@ public class ArgumentsUtils {
     }
 
     public static <T> List<Sort<T>> checkSortNumber(List<Sort<T>> sorts) {
-        if (sorts == null || sorts.size() == 0) {
+        if (sorts == null || sorts.isEmpty()) {
             throw new IllegalArgumentException("Sorts are required for page fetch !");
         }
 

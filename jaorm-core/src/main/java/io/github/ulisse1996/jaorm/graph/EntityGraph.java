@@ -109,7 +109,7 @@ public class EntityGraph<T> {
         } catch (SQLException ex) {
             throw new JaormSqlException(ex);
         } finally {
-            MetricsService.getInstance().trackExecution(MetricInfo.of(sql, sqlParameters, !tracker.isStopped(), tracker.getStop()));
+            MetricsService.getInstance().trackExecution(MetricInfo.of(sql, sqlParameters, !tracker.isStopped(), tracker.getElapsed()));
         }
     }
 

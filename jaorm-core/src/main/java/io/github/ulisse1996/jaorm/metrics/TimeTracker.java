@@ -21,7 +21,7 @@ public class TimeTracker {
         return this.stop != 0;
     }
 
-    public long getStop() {
-        return this.stop;
+    public long getElapsed() {
+        return this.stop - this.start;
     }
 }

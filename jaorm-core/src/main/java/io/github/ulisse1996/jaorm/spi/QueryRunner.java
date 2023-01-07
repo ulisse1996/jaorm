@@ -91,7 +91,7 @@ public abstract class QueryRunner {
             logger.error("Error during update/insert/delete "::toString, ex);
             throw new JaormSqlException(ex);
         } finally {
-            MetricsService.getInstance().trackExecution(MetricInfo.of(query, params, !tracker.isStopped(), tracker.getStop()));
+            MetricsService.getInstance().trackExecution(MetricInfo.of(query, params, !tracker.isStopped(), tracker.getElapsed()));
         }
     }
 
@@ -127,7 +127,7 @@ public abstract class QueryRunner {
             logger.error("Error during update/insert/delete batch "::toString, ex);
             throw new JaormSqlException(ex);
         } finally {
-            MetricsService.getInstance().trackExecution(MetricInfo.ofBatch(query, params, !tracker.isStopped(), tracker.getStop()));
+            MetricsService.getInstance().trackExecution(MetricInfo.ofBatch(query, params, !tracker.isStopped(), tracker.getElapsed()));
         }
     }
 
@@ -158,7 +158,7 @@ public abstract class QueryRunner {
             logger.error("Error during update/insert/delete "::toString, ex);
             throw new JaormSqlException(ex);
         } finally {
-            MetricsService.getInstance().trackExecution(MetricInfo.of(query, params, !tracker.isStopped(), tracker.getStop()));
+            MetricsService.getInstance().trackExecution(MetricInfo.of(query, params, !tracker.isStopped(), tracker.getElapsed()));
         }
     }
 

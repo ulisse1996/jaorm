@@ -60,7 +60,7 @@ public class EntityQueryRunner extends QueryRunner {
             logger.error(String.format("Error during read for entity %s ", entity)::toString, ex);
             throw new JaormSqlException(ex);
         } finally {
-            MetricsService.getInstance().trackExecution(MetricInfo.of(query, params, !tracker.isStopped(), tracker.getStop()));
+            MetricsService.getInstance().trackExecution(MetricInfo.of(query, params, !tracker.isStopped(), tracker.getElapsed()));
         }
     }
 
@@ -112,7 +112,7 @@ public class EntityQueryRunner extends QueryRunner {
             logger.error(String.format("Error during readOpt for entity %s ", entity)::toString, ex);
             throw new JaormSqlException(ex);
         } finally {
-            MetricsService.getInstance().trackExecution(MetricInfo.of(query, params, !tracker.isStopped(), tracker.getStop()));
+            MetricsService.getInstance().trackExecution(MetricInfo.of(query, params, !tracker.isStopped(), tracker.getElapsed()));
         }
     }
 
@@ -148,7 +148,7 @@ public class EntityQueryRunner extends QueryRunner {
             logger.error(String.format("Error during readAll for entity %s ", entity)::toString, ex);
             throw new JaormSqlException(ex);
         } finally {
-            MetricsService.getInstance().trackExecution(MetricInfo.of(query, params, !tracker.isStopped(), tracker.getStop()));
+            MetricsService.getInstance().trackExecution(MetricInfo.of(query, params, !tracker.isStopped(), tracker.getElapsed()));
         }
     }
 
@@ -176,7 +176,7 @@ public class EntityQueryRunner extends QueryRunner {
                             : supplierPair.projectionSupplier.get().asTableInfo()
             );
             preparedStatement = connection.prepareStatement(query);
-            executor = new ResultSetExecutor(preparedStatement, params);
+            executor = new ResultSetExecutor(preparedStatement, params); //NOSONAR We return an instance of closeable (Stream and Cursor) that user must close
             tracker.stop();
             return producer.produce(connection, preparedStatement, executor, getMapper(supplierPair));
         } catch (SQLException ex) {
@@ -184,7 +184,7 @@ public class EntityQueryRunner extends QueryRunner {
             logger.error(String.format("Error during readStream for entity %s ", entity)::toString, ex);
             throw new JaormSqlException(ex);
         } finally {
-            MetricsService.getInstance().trackExecution(MetricInfo.of(query, params, !tracker.isStopped(), tracker.getStop()));
+            MetricsService.getInstance().trackExecution(MetricInfo.of(query, params, !tracker.isStopped(), tracker.getElapsed()));
         }
     }
 
