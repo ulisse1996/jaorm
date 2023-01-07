@@ -23,7 +23,7 @@ class SqlParameterTest {
 
     @Test
     void should_return_string_accessor_for_null_wrapper() {
-        SqlParameter parameter = new SqlParameter(new NullWrapper(String.class, null));
+        SqlParameter parameter = new SqlParameter(new NullWrapper(String.class));
         Assertions.assertEquals(
                 SqlAccessor.find(String.class),
                 parameter.getAccessor()
