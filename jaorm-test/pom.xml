@@ -27,6 +27,7 @@
         <module>jaorm-test-spring</module>
         <module>jaorm-test-mysql</module>
         <module>jaorm-test-micronaut</module>
+        <module>jaorm-test-db2</module>
     </modules>
 
     <dependencies>

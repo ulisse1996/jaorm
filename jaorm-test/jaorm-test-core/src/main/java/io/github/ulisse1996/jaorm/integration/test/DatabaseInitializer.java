@@ -32,4 +32,12 @@ public interface DatabaseInitializer {
             Assertions.fail();
         }
     }
+
+    default boolean requiredSpecialExecute(String line) {
+        return false;
+    }
+
+    default void executeSpecial(String line) throws SQLException {
+        throw new UnsupportedOperationException();
+    }
 }

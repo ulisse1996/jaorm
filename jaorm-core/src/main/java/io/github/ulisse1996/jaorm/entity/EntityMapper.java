@@ -2,6 +2,8 @@ package io.github.ulisse1996.jaorm.entity;
 
 import io.github.ulisse1996.jaorm.Arguments;
 import io.github.ulisse1996.jaorm.entity.sql.SqlAccessor;
+import io.github.ulisse1996.jaorm.vendor.VendorSpecific;
+import io.github.ulisse1996.jaorm.vendor.specific.NullSpecific;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -95,16 +97,29 @@ public class EntityMapper<T> {
 
                     return true;
                 })
-                .map(c -> c.getter.apply(entity))
+                .map(c -> checkNull(c.getter.apply(entity), c.type))
                 .toArray(Object[]::new));
     }
 
     public Arguments getValues(T updateEntity, List<ColumnMapper<T>> mappers) {
         return Arguments.values(
                 mappers.stream()
-                        .map(c -> c.getter.apply(updateEntity))
+                        .map(c -> checkNull(c.getter.apply(updateEntity), c.type))
                         .toArray(Object[]::new)
         );
+    }
+
+    public Object checkNull(Object value, Class<?> type) {
+        if (value != null) {
+            return value;
+        }
+
+        NullSpecific specific = VendorSpecific.getSpecific(NullSpecific.class, NullSpecific.NO_OP);
+        if (specific.isNullSetterStrict()) {
+            return new NullWrapper(type, null);
+        }
+
+        return null;
     }
 
     public Arguments getKeys(final T entity) {

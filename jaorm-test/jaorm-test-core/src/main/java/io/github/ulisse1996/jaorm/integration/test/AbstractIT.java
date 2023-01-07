@@ -47,7 +47,11 @@ public abstract class AbstractIT {
             List<String> lines = Files.readAllLines(Paths.get(Objects.requireNonNull(url).toURI()));
             for (String line : lines) {
                 line = line.replace(";", "");
-                execute(line);
+                if (initializer.requiredSpecialExecute(line)) {
+                    initializer.executeSpecial(line);
+                } else {
+                    execute(line);
+                }
             }
             afterInit();
             logger.info("Reset Database -- End");

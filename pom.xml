@@ -69,6 +69,7 @@
         <oracle.jdbc.version>19.15.0.0.1</oracle.jdbc.version>
         <postgre.jdbc.version>42.4.1</postgre.jdbc.version>
         <mssql.jdbc.version>10.2.1.jre8</mssql.jdbc.version>
+        <db2.jdbc.version>11.5.8.0</db2.jdbc.version>
 
         <!-- Maven Plugins -->
         <jaxb.version>2.3.1</jaxb.version>

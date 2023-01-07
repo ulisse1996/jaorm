@@ -413,6 +413,16 @@ class QueryRunnerTest {
         }
 
         @Override
+        public boolean isCustomGetResultSet() {
+            return false;
+        }
+
+        @Override
+        public List<ResultSet> getResultSets(PreparedStatement pr) {
+            return null;
+        }
+
+        @Override
         public <T> T getReturningKey(ResultSet rs, Map.Entry<String, Class<?>> entry) throws SQLException {
             return null;
         }

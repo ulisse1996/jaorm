@@ -1,5 +1,7 @@
 package io.github.ulisse1996.jaorm.entity.sql;
 
+import io.github.ulisse1996.jaorm.entity.NullWrapper;
+
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -15,11 +17,15 @@ public class SqlParameter {
     }
 
     public SqlParameter(Object val) {
-        this.val = val;
-        if (val != null) {
+        if (val instanceof NullWrapper) {
+            this.accessor = SqlAccessor.find(((NullWrapper) val).getType()).getSetter();
+            this.val = null;
+        } else if (val != null) {
             this.accessor = SqlAccessor.find(val.getClass()).getSetter();
+            this.val = val;
         } else {
             this.accessor = SqlAccessor.NULL.getSetter();
+            this.val = null;
         }
     }
 

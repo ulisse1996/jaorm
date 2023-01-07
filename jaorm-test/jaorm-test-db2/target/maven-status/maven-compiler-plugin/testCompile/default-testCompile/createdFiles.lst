@@ -1,0 +1,6 @@
+io/github/ulisse1996/jaorm/integration/test/db2/Db2TransactionalIT.class
+io/github/ulisse1996/jaorm/integration/test/db2/Db2QueryIT.class
+io/github/ulisse1996/jaorm/integration/test/db2/Db2VendorFunctionsIT.class
+io/github/ulisse1996/jaorm/integration/test/db2/Db2CoreIT.class
+io/github/ulisse1996/jaorm/integration/test/db2/Db2QueryBuilderIT.class
+io/github/ulisse1996/jaorm/integration/test/db2/Db2Initializer.class
