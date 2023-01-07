@@ -1,5 +1,6 @@
 package io.github.ulisse1996.jaorm.entity.sql;
 
+import io.github.ulisse1996.jaorm.entity.NullWrapper;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -18,6 +19,15 @@ class SqlParameterTest {
         PreparedStatement preparedStatement = Mockito.mock(PreparedStatement.class);
         parameter.getAccessor().set(preparedStatement, 1, null);
         Mockito.verify(preparedStatement).setNull(1, JDBCType.NULL.getVendorTypeNumber());
+    }
+
+    @Test
+    void should_return_string_accessor_for_null_wrapper() {
+        SqlParameter parameter = new SqlParameter(new NullWrapper(String.class, null));
+        Assertions.assertEquals(
+                SqlAccessor.find(String.class),
+                parameter.getAccessor()
+        );
     }
 
     @Test

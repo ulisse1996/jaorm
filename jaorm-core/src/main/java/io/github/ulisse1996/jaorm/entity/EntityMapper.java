@@ -116,7 +116,7 @@ public class EntityMapper<T> {
 
         NullSpecific specific = VendorSpecific.getSpecific(NullSpecific.class, NullSpecific.NO_OP);
         if (specific.isNullSetterStrict()) {
-            return new NullWrapper(type, null);
+            return new NullWrapper(type);
         }
 
         return null;

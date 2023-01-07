@@ -162,6 +162,7 @@ public class EntityQueryRunner extends QueryRunner {
         return produceIterableResult(klass, query, parameters, JaormCursor::new);
     }
 
+    @SuppressWarnings("java:S2093")
     private <T, R> T produceIterableResult(Class<R> entity, String query, List<SqlParameter> params, JaormIterableResultProducer<T, R> producer) {
         logger.logSql(query, params);
         Connection connection = EmptyClosable.instance(Connection.class);

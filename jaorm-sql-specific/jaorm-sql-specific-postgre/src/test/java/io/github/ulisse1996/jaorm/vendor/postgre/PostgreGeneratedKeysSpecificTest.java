@@ -2,8 +2,11 @@ package io.github.ulisse1996.jaorm.vendor.postgre;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
+import java.sql.PreparedStatement;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 
 class PostgreGeneratedKeysSpecificTest {
@@ -19,6 +22,21 @@ class PostgreGeneratedKeysSpecificTest {
                                 Arrays.asList("COL1", "COL2", "COL3")
                         )
                 )
+        );
+    }
+
+    @Test
+    void should_return_false_for_custom_result_sets() {
+        Assertions.assertFalse(
+                testSubject.isCustomGetResultSet()
+        );
+    }
+
+    @Test
+    void should_return_empty_list_for_custom_result_sets() {
+        Assertions.assertEquals(
+                Collections.emptyList(),
+                testSubject.getResultSets(Mockito.mock(PreparedStatement.class))
         );
     }
 

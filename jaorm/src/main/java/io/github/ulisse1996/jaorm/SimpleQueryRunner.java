@@ -109,7 +109,7 @@ public class SimpleQueryRunner extends QueryRunner {
         return produceIterableResult(klass, query, params, JaormCursor::new);
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "java:S2093"})
     private <T, R> T produceIterableResult(Class<R> klass, String query, List<SqlParameter> params,
                                          JaormIterableResultProducer<T, R> producer) {
         ThrowingFunction<ResultSet, R, SQLException> mapper =
@@ -134,6 +134,7 @@ public class SimpleQueryRunner extends QueryRunner {
     }
 
     @Override
+    @SuppressWarnings("java:S2093")
     public TableRow read(String query, List<SqlParameter> params) {
         logger.logSql(query, params);
         CloseableTuple tuple = new CloseableTuple();
@@ -153,6 +154,7 @@ public class SimpleQueryRunner extends QueryRunner {
     }
 
     @Override
+    @SuppressWarnings("java:S2093")
     public Optional<TableRow> readOpt(String query, List<SqlParameter> params) {
         logger.logSql(query, params);
         CloseableTuple tuple = new CloseableTuple();
@@ -179,6 +181,7 @@ public class SimpleQueryRunner extends QueryRunner {
     }
 
     @Override
+    @SuppressWarnings("java:S2093")
     public Stream<TableRow> readStream(String query, List<SqlParameter> params) {
         logger.logSql(query, params);
         Connection connection = EmptyClosable.instance(Connection.class);

@@ -10,8 +10,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -34,7 +32,7 @@ public abstract class AbstractIT {
 
     @BeforeEach
     void resetQueryTracker() {
-        MetricsService.getInstance().wrap(ITMetricsTracker.class).reset();
+        MetricsService.getInstance().unwrap(ITMetricsTracker.class).reset();
     }
 
     @BeforeEach
@@ -80,6 +78,6 @@ public abstract class AbstractIT {
     }
 
     protected void assertTotalInvocations(int times) {
-        MetricsService.getInstance().wrap(ITMetricsTracker.class).expectTotalInvocations(times);
+        MetricsService.getInstance().unwrap(ITMetricsTracker.class).expectTotalInvocations(times);
     }
 }
