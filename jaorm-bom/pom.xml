@@ -90,6 +90,11 @@
             <artifactId>jaorm-sql-specific-mysql</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>io.github.ulisse1996</groupId>
+            <artifactId>jaorm-sql-specific-db2</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
         <!-- Extensions -->
         <dependency>

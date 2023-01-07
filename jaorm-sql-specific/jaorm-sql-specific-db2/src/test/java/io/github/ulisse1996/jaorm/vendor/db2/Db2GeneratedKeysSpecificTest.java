@@ -42,11 +42,15 @@ class Db2GeneratedKeysSpecificTest {
 
     @Test
     void should_return_empty_list_for_missing_klass() {
-        Assertions.assertEquals(
-                Collections.emptyList(),
-                specific.getResultSets(preparedStatement)
-        );
-        Mockito.verifyNoInteractions(preparedStatement);
+        try (MockedStatic<ClassChecker> mk = Mockito.mockStatic(ClassChecker.class)) {
+            mk.when(() -> ClassChecker.findClass(Mockito.any(), Mockito.any()))
+                    .thenReturn(null);
+            Assertions.assertEquals(
+                    Collections.emptyList(),
+                    specific.getResultSets(preparedStatement)
+            );
+            Mockito.verifyNoInteractions(preparedStatement);
+        }
     }
 
     @Test

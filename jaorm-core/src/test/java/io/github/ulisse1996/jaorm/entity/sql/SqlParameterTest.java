@@ -3,15 +3,22 @@ package io.github.ulisse1996.jaorm.entity.sql;
 import io.github.ulisse1996.jaorm.entity.NullWrapper;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.sql.JDBCType;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
 
+@ExtendWith(MockitoExtension.class)
 class SqlParameterTest {
+
+    @Mock private PreparedStatement pr;
 
     @Test
     void should_return_null_setter() throws SQLException {
@@ -22,12 +29,11 @@ class SqlParameterTest {
     }
 
     @Test
-    void should_return_string_accessor_for_null_wrapper() {
+    void should_return_string_accessor_for_null_wrapper() throws SQLException {
         SqlParameter parameter = new SqlParameter(new NullWrapper(String.class));
-        Assertions.assertEquals(
-                SqlAccessor.find(String.class),
-                parameter.getAccessor()
-        );
+        parameter.getAccessor().set(pr, 1, "STRING");
+        Mockito.verify(pr)
+                .setString(1, "STRING");
     }
 
     @Test

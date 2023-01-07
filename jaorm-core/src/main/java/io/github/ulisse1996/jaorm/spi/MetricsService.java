@@ -11,7 +11,7 @@ public abstract class MetricsService {
 
     private static final Singleton<MetricsTracker> INSTANCE = Singleton.instance();
 
-    protected MetricsService() {}
+    private MetricsService() {}
 
     public static synchronized MetricsTracker getInstance() {
         BeanProvider provider = BeanProvider.getInstance();
@@ -35,7 +35,7 @@ public abstract class MetricsService {
 
     static class NoOp implements MetricsTracker {
 
-        private static final NoOp INSTANCE = new NoOp();
+        static final NoOp INSTANCE = new NoOp();
 
         @Override
         public void trackExecution(MetricInfo info) {
