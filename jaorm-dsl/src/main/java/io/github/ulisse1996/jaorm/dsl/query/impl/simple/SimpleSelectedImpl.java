@@ -165,10 +165,10 @@ public class SimpleSelectedImpl extends AbstractLimitOffsetImpl implements Simpl
         if (this.havings.isEmpty()) {
             return null;
         }
-        StringBuilder builder = new StringBuilder();
+        StringBuilder builder = new StringBuilder("HAVING ");
         for (int i = 0; i < this.havings.size(); i++) {
-            IntermediateSimpleHavingImpl<?> having = this.havings.get(0);
-            parameters.add(new SqlParameter(having));
+            IntermediateSimpleHavingImpl<?> having = this.havings.get(i);
+            parameters.add(new SqlParameter(having.val));
             if (i != 0) {
                 builder.append(SPACE);
             }
@@ -182,7 +182,7 @@ public class SimpleSelectedImpl extends AbstractLimitOffsetImpl implements Simpl
             return null;
         }
 
-        return " GROUP BY " + this.groups.stream()
+        return "GROUP BY " + this.groups.stream()
                 .map(GroupImpl::asString)
                 .collect(Collectors.joining(","));
     }
@@ -641,9 +641,9 @@ public class SimpleSelectedImpl extends AbstractLimitOffsetImpl implements Simpl
                 s = fn.apply(null);
             }
             if (first) {
-                return String.format("%s %s ?", s, operation.getValue());
+                return String.format("%s%s?", s, operation.getValue());
             }
-            return String.format("%s %s %s ?", this.or ? "OR" : "AND", s, operation.getValue());
+            return String.format("%s %s%s?", this.or ? "OR" : "AND", s, operation.getValue());
         }
     }
 

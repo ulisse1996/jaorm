@@ -16,7 +16,7 @@ class MetricsTrackerTest {
 
     @Test
     void should_throw_exception_for_bad_wrapper() {
-        Assertions.assertThrows(
+        Assertions.assertThrows( //NOSONAR
                 IllegalArgumentException.class,
                 () -> new MyTracker().unwrap(String.class)
         );

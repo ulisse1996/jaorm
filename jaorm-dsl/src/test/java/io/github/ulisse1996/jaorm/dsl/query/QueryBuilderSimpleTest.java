@@ -853,6 +853,55 @@ class QueryBuilderSimpleTest extends AbstractQueryBuilderTest {
         });
     }
 
+    @ParameterizedTest
+    @MethodSource("getHaving")
+    void should_generate_query_with_having(WithProjectionResult result, String sql) {
+        withProjectionRunner((runner, service) -> {
+            ArgumentCaptor<String> sqlCapture = ArgumentCaptor.forClass(String.class);
+
+            Mockito.when(projectionsService.searchDelegate(MyProjection.class))
+                    .thenReturn(() -> delegate);
+            Mockito.when(runner.readAll(Mockito.any(), Mockito.anyString(), Mockito.any()))
+                    .thenReturn(Collections.emptyList());
+
+            result.readAll(MyProjection.class);
+
+            Mockito.verify(runner)
+                    .readAll(Mockito.eq(MyProjection.class), sqlCapture.capture(), Mockito.any());
+
+            Assertions.assertEquals(
+                    sql, sqlCapture.getValue().trim()
+            );
+        });
+    }
+
+    @Test
+    void should_generate_query_with_multiple_having() {
+        withProjectionRunner((runner, service) -> {
+            String sql = "SELECT COUNT(COL1) COL1, COL2 FROM TAB1 GROUP BY COL2 HAVING COUNT(COL1) > ? AND COUNT(COL1) < ?";
+            ArgumentCaptor<String> sqlCapture = ArgumentCaptor.forClass(String.class);
+
+            Mockito.when(projectionsService.searchDelegate(MyProjection.class))
+                    .thenReturn(() -> delegate);
+            Mockito.when(runner.readAll(Mockito.any(), Mockito.anyString(), Mockito.any()))
+                    .thenReturn(Collections.emptyList());
+
+            QueryBuilder.select(AnsiFunctions.count(COL_1).as("COL1"), COL_2)
+                    .from("TAB1")
+                    .groupBy(COL_2)
+                    .having(AnsiFunctions.count(COL_1)).greaterThan(5)
+                    .andHaving(AnsiFunctions.count(COL_1)).lessThan(10)
+                    .readAll(MyProjection.class);
+
+            Mockito.verify(runner)
+                    .readAll(Mockito.eq(MyProjection.class), sqlCapture.capture(), Mockito.any());
+
+            Assertions.assertEquals(
+                    sql, sqlCapture.getValue().trim()
+            );
+        });
+    }
+
     @Test
     void should_throw_exception_for_invalid_offset() {
         Assertions.assertThrows( //NOSONAR
@@ -866,6 +915,106 @@ class QueryBuilderSimpleTest extends AbstractQueryBuilderTest {
         Assertions.assertThrows( //NOSONAR
                 IllegalArgumentException.class,
                 () -> QueryBuilder.select(COL_1).from("TAB1").limit(-1)
+        );
+    }
+
+    private static Stream<Arguments> getHaving() {
+        return Stream.of(
+                Arguments.of(
+                        QueryBuilder.select(AnsiFunctions.count(COL_1).as("COL1"), COL_2)
+                                .from("TAB1")
+                                .groupBy(COL_2)
+                                .having(AnsiFunctions.count(COL_1)).eq(5),
+                        "SELECT COUNT(COL1) COL1, COL2 FROM TAB1 GROUP BY COL2 HAVING COUNT(COL1) = ?"
+                ),
+
+                Arguments.of(
+                        QueryBuilder.select(AnsiFunctions.count(COL_1).as("COL1"), COL_2)
+                                .from("TAB1")
+                                .groupBy(COL_2)
+                                .having(AnsiFunctions.count(COL_1)).ne(5),
+                        "SELECT COUNT(COL1) COL1, COL2 FROM TAB1 GROUP BY COL2 HAVING COUNT(COL1) <> ?"
+                ),
+
+                Arguments.of(
+                        QueryBuilder.select(AnsiFunctions.count(COL_1).as("COL1"), COL_2)
+                                .from("TAB1")
+                                .groupBy(COL_2)
+                                .having(AnsiFunctions.count(COL_1)).gt(5),
+                        "SELECT COUNT(COL1) COL1, COL2 FROM TAB1 GROUP BY COL2 HAVING COUNT(COL1) > ?"
+                ),
+
+                Arguments.of(
+                        QueryBuilder.select(AnsiFunctions.count(COL_1).as("COL1"), COL_2)
+                                .from("TAB1")
+                                .groupBy(COL_2)
+                                .having(AnsiFunctions.count(COL_1)).lt(5),
+                        "SELECT COUNT(COL1) COL1, COL2 FROM TAB1 GROUP BY COL2 HAVING COUNT(COL1) < ?"
+                ),
+
+                Arguments.of(
+                        QueryBuilder.select(AnsiFunctions.count(COL_1).as("COL1"), COL_2)
+                                .from("TAB1")
+                                .groupBy(COL_2)
+                                .having(AnsiFunctions.count(COL_1)).ge(5),
+                        "SELECT COUNT(COL1) COL1, COL2 FROM TAB1 GROUP BY COL2 HAVING COUNT(COL1) >= ?"
+                ),
+
+                Arguments.of(
+                        QueryBuilder.select(AnsiFunctions.count(COL_1).as("COL1"), COL_2)
+                                .from("TAB1")
+                                .groupBy(COL_2)
+                                .having(AnsiFunctions.count(COL_1)).le(5),
+                        "SELECT COUNT(COL1) COL1, COL2 FROM TAB1 GROUP BY COL2 HAVING COUNT(COL1) <= ?"
+                ),
+
+                Arguments.of(
+                        QueryBuilder.select(AnsiFunctions.count(COL_1).as("COL1"), COL_2)
+                                .from("TAB1")
+                                .groupBy(COL_2)
+                                .having(AnsiFunctions.count(COL_1)).equalsTo(5),
+                        "SELECT COUNT(COL1) COL1, COL2 FROM TAB1 GROUP BY COL2 HAVING COUNT(COL1) = ?"
+                ),
+
+                Arguments.of(
+                        QueryBuilder.select(AnsiFunctions.count(COL_1).as("COL1"), COL_2)
+                                .from("TAB1")
+                                .groupBy(COL_2)
+                                .having(AnsiFunctions.count(COL_1)).notEqualsTo(5),
+                        "SELECT COUNT(COL1) COL1, COL2 FROM TAB1 GROUP BY COL2 HAVING COUNT(COL1) <> ?"
+                ),
+
+                Arguments.of(
+                        QueryBuilder.select(AnsiFunctions.count(COL_1).as("COL1"), COL_2)
+                                .from("TAB1")
+                                .groupBy(COL_2)
+                                .having(AnsiFunctions.count(COL_1)).greaterThan(5),
+                        "SELECT COUNT(COL1) COL1, COL2 FROM TAB1 GROUP BY COL2 HAVING COUNT(COL1) > ?"
+                ),
+
+                Arguments.of(
+                        QueryBuilder.select(AnsiFunctions.count(COL_1).as("COL1"), COL_2)
+                                .from("TAB1")
+                                .groupBy(COL_2)
+                                .having(AnsiFunctions.count(COL_1)).lessThan(5),
+                        "SELECT COUNT(COL1) COL1, COL2 FROM TAB1 GROUP BY COL2 HAVING COUNT(COL1) < ?"
+                ),
+
+                Arguments.of(
+                        QueryBuilder.select(AnsiFunctions.count(COL_1).as("COL1"), COL_2)
+                                .from("TAB1")
+                                .groupBy(COL_2)
+                                .having(AnsiFunctions.count(COL_1)).greaterOrEqualsTo(5),
+                        "SELECT COUNT(COL1) COL1, COL2 FROM TAB1 GROUP BY COL2 HAVING COUNT(COL1) >= ?"
+                ),
+
+                Arguments.of(
+                        QueryBuilder.select(AnsiFunctions.count(COL_1).as("COL1"), COL_2)
+                                .from("TAB1")
+                                .groupBy(COL_2)
+                                .having(AnsiFunctions.count(COL_1)).lessOrEqualsTo(5),
+                        "SELECT COUNT(COL1) COL1, COL2 FROM TAB1 GROUP BY COL2 HAVING COUNT(COL1) <= ?"
+                )
         );
     }
 

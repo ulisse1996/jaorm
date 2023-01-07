@@ -75,7 +75,10 @@ class QueryGeneratorTest extends CompilerTest {
                 Arguments.arguments("should_compile_queries_with_stream_and_table_row", Arrays.asList(getFile("/entity/SimpleEntity.java"), getFile("/queries/QueryWithStreamAndTableRow.java"))),
                 Arguments.arguments("should_compile_queries_with_table_row", Arrays.asList(getFile("/entity/SimpleEntity.java"), getFile("/queries/QueryWithTableRow.java"))),
                 Arguments.arguments("should_compile_queries_with_base_dao", Arrays.asList(getFile("/entity/SimpleEntity.java"), getFile("/queries/QueryWithBaseDaoWithoutCustomMethods.java"))),
-                Arguments.arguments("should_compile_queries_with_no_args", Arrays.asList(getFile("/entity/SimpleEntity.java"), getFile("/queries/QueryWithNoArgs.java")))
+                Arguments.arguments("should_compile_queries_with_no_args", Arrays.asList(getFile("/entity/SimpleEntity.java"), getFile("/queries/QueryWithNoArgs.java"))),
+                Arguments.arguments("should_compile_queries_with_list_arg", Arrays.asList(getFile("/entity/SimpleEntity.java"), getFile("/queries/QueryWithList.java"))),
+                Arguments.arguments("should_compile_queries_with_set_arg", Arrays.asList(getFile("/entity/SimpleEntity.java"), getFile("/queries/QueryWithSet.java"))),
+                Arguments.arguments("should_compile_queries_with_collection_arg", Arrays.asList(getFile("/entity/SimpleEntity.java"), getFile("/queries/QueryWithCollection.java")))
         );
     }
 

@@ -15,6 +15,7 @@
 - Feature: Support for List args in @Query with named params
 - Feature: Support for Metrics using MetricsTracker
 - Feature: DB2 Sql Specifics
+- Feature: Bean Provider for Bean Validation
 - Removal: Removed notLike and like
 - Refactor: Refactor of IT Tests
 - Bugfix: Fix missing upsert for entities with relationships

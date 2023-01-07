@@ -30,6 +30,6 @@ class Db2MergeSpecificTest {
 
     @Test
     void should_throw_unsupported_for_alternative_merge() {
-        Assertions.assertThrows(UnsupportedOperationException.class, () -> specific.executeAlternativeMerge(Object.class, Map.of(), List.of(), new Object(), new Object()));
+        Assertions.assertThrows(UnsupportedOperationException.class, () -> specific.executeAlternativeMerge(Object.class, Map.of(), List.of(), new Object(), new Object())); //NOSONAR
     }
 }
