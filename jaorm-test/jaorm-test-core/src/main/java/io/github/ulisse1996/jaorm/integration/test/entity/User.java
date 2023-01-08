@@ -14,6 +14,7 @@ import java.util.Objects;
 public class User {
 
     public static final EntityGraphFetcher<User> USER_FULL = EntityGraphFetcher.of(User.class, "UserFull");
+    public static final EntityGraphFetcher<User> USER_FULL_WITH_ROLES = EntityGraphFetcher.of(User.class, "UserFullWithRoles");
 
     @Id
     @Column(name = "USER_ID")
@@ -25,16 +26,19 @@ public class User {
     @Column(name = "DEPARTMENT_ID")
     private int departmentId;
 
+    @Cascade(CascadeType.ALL)
     @Relationship(
             columns = @Relationship.RelationshipColumn(targetColumn = "USER_ID", sourceColumn = "USER_ID")
     )
     private List<UserRole> roles;
 
+    @Cascade(CascadeType.ALL)
     @Relationship(
             columns = @Relationship.RelationshipColumn(targetColumn = "USER_ID", sourceColumn = "USER_ID")
     )
     private Cursor<UserRole> rolesCursor;
 
+    @Cascade(CascadeType.ALL)
     @Relationship(
             columns = @Relationship.RelationshipColumn(targetColumn = "USER_ID", sourceColumn = "USER_ID")
     )
@@ -93,11 +97,23 @@ public class User {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         User user = (User) o;
-        return id == user.id && departmentId == user.departmentId && Objects.equals(name, user.name);
+        return id == user.id && departmentId == user.departmentId && Objects.equals(name, user.name) && Objects.equals(roles, user.roles) && Objects.equals(rolesCursor, user.rolesCursor) && Objects.equals(userSpecific, user.userSpecific);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, departmentId);
+        return Objects.hash(id, name, departmentId, roles, rolesCursor, userSpecific);
+    }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", departmentId=" + departmentId +
+                ", roles=" + roles +
+                ", rolesCursor=" + rolesCursor +
+                ", userSpecific=" + userSpecific +
+                '}';
     }
 }

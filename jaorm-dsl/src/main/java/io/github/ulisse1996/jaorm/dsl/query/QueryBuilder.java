@@ -91,6 +91,7 @@ public class QueryBuilder {
     public static class IntermediateSelected implements SimpleSelected {
 
         private final List<AliasColumn> selectables;
+        private QueryConfig config;
 
         private IntermediateSelected(Selectable<?> selectable, String alias) {
             this.selectables = new ArrayList<>();
@@ -107,9 +108,9 @@ public class QueryBuilder {
         }
 
         @Override
-        public SimpleSelected withConfiguration(QueryConfig config) {
-            SimpleSelected selected = new SimpleSelectedImpl(this.selectables);
-            return selected.withConfiguration(config);
+        public IntermediateSelected withConfiguration(QueryConfig config) {
+            this.config = config;
+            return this;
         }
 
         @Override
@@ -120,6 +121,9 @@ public class QueryBuilder {
         @Override
         public FromSimpleSelected from(String table, String alias) {
             SimpleSelected selected = new SimpleSelectedImpl(this.selectables);
+            if (this.config != null) {
+                selected = selected.withConfiguration(config);
+            }
             return selected.from(table, alias);
         }
     }

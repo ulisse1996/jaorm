@@ -5,7 +5,7 @@
     <parent>
         <artifactId>jaorm-pom</artifactId>
         <groupId>io.github.ulisse1996</groupId>
-        <version>2.0.0-RC1</version>
+        <version>2.0.0-RC2</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <packaging>pom</packaging>
@@ -90,6 +90,11 @@
             <artifactId>jaorm-sql-specific-mysql</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>io.github.ulisse1996</groupId>
+            <artifactId>jaorm-sql-specific-db2</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
         <!-- Extensions -->
         <dependency>
@@ -126,6 +131,11 @@
         <dependency>
             <groupId>io.github.ulisse1996</groupId>
             <artifactId>jaorm-di-spring-extension</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.ulisse1996</groupId>
+            <artifactId>jaorm-quarkus-extension</artifactId>
             <version>${project.version}</version>
         </dependency>
 

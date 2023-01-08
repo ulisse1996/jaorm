@@ -7,6 +7,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -37,6 +38,21 @@ class MySqlGeneratedKeysSpecificTest {
         Assertions.assertEquals(
                 "",
                 specific.getReturningKeys(Collections.singleton("NAME"))
+        );
+    }
+
+    @Test
+    void should_return_false_for_custom_result_sets() {
+        Assertions.assertFalse(
+                specific.isCustomGetResultSet()
+        );
+    }
+
+    @Test
+    void should_return_empty_list_for_custom_result_sets() {
+        Assertions.assertEquals(
+                Collections.emptyList(),
+                specific.getResultSets(Mockito.mock(PreparedStatement.class))
         );
     }
 

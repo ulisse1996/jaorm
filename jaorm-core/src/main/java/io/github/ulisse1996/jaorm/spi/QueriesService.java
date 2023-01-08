@@ -7,7 +7,6 @@ import io.github.ulisse1996.jaorm.entity.EntityDelegate;
 import io.github.ulisse1996.jaorm.spi.common.Singleton;
 import io.github.ulisse1996.jaorm.spi.impl.DefaultQueries;
 import io.github.ulisse1996.jaorm.spi.provider.QueryProvider;
-import io.github.ulisse1996.jaorm.util.ClassChecker;
 
 import java.util.Map;
 import java.util.function.Supplier;
@@ -17,7 +16,7 @@ public abstract class QueriesService {
     private static final Singleton<QueriesService> INSTANCE = Singleton.instance();
 
     public static synchronized QueriesService getInstance() {
-        if (!INSTANCE.isPresent()) {
+        if (!INSTANCE.isPresent() || FrameworkIntegrationService.isReloadRequired(INSTANCE.get().getQueries().keySet())) {
             INSTANCE.set(new DefaultQueries(ServiceFinder.loadServices(QueryProvider.class)));
         }
 
@@ -29,7 +28,7 @@ public abstract class QueriesService {
         return (T) getQueries()
                 .entrySet()
                 .stream()
-                .filter(el -> ClassChecker.isAssignable(el.getKey(), klass))
+                .filter(el -> el.getKey().equals(klass))
                 .findFirst()
                 .map(Map.Entry::getValue)
                 .map(DaoImplementation::getDaoSupplier)
@@ -49,7 +48,7 @@ public abstract class QueriesService {
         return (BaseDao<T>) getQueries()
                 .values()
                 .stream()
-                .filter(entry -> ClassChecker.isAssignable(entry.getEntityClass(), found))
+                .filter(entry -> entry.getEntityClass().equals(found))
                 .findFirst()
                 .map(DaoImplementation::getDaoSupplier)
                 .map(Supplier::get)

@@ -1,0 +1,25 @@
+# Eclipse
+.classpath
+.project
+.settings/
+
+# Intellij
+.idea/
+*.iml
+*.iws
+.run
+
+# Mac
+.DS_Store
+
+# Maven
+log/
+
+# Target
+/target
+
+# Internal Test
+/test
+
+# Plugins
+/jaorm-intellij-plugin

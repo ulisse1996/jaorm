@@ -26,14 +26,14 @@ public class SqlServerInitializer implements DatabaseInitializer {
 
     @Override
     public void initDatabase() {
-        logger.info("Starting Postgre");
+        logger.info("Starting SQL Server");
         ensureInit();
         INSTANCE.get().start();
     }
 
     @Override
     public void destroyDatabase() {
-        logger.info("Stopping Postgre");
+        logger.info("Stopping SQL Server");
         ensureInit();
         DataSource dataSource = DataSourceProvider.getCurrent().getDataSource();
         HikariDataSource d = (HikariDataSource) dataSource;

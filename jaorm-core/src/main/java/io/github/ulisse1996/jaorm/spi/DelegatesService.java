@@ -6,7 +6,6 @@ import io.github.ulisse1996.jaorm.entity.EntityDelegate;
 import io.github.ulisse1996.jaorm.schema.TableInfo;
 import io.github.ulisse1996.jaorm.spi.common.Singleton;
 import io.github.ulisse1996.jaorm.spi.impl.DefaultDelegates;
-import io.github.ulisse1996.jaorm.util.ClassChecker;
 
 import java.util.Map;
 import java.util.function.Supplier;
@@ -16,7 +15,7 @@ public abstract class DelegatesService {
     private static final Singleton<DelegatesService> INSTANCE = Singleton.instance();
 
     public static synchronized DelegatesService getInstance() {
-        if (!INSTANCE.isPresent()) {
+        if (!INSTANCE.isPresent() || FrameworkIntegrationService.isReloadRequired(INSTANCE.get().getDelegates().keySet())) {
             @SuppressWarnings("rawtypes") Iterable<EntityDelegate> delegates = ServiceFinder.loadServices(EntityDelegate.class);
             INSTANCE.set(new DefaultDelegates(delegates));
         }
@@ -40,11 +39,8 @@ public abstract class DelegatesService {
         } catch (ClassNotFoundException ex) {
             return getDelegates().entrySet()
                     .stream()
-                    .filter(e -> {
-                        Supplier<?> supplier = e.getValue();
-                        Class<?> aClass = supplier.get().getClass();
-                        return ClassChecker.isAssignable(delegateClass, aClass);
-                    }).findFirst()
+                    .filter(el -> el.getKey().isAssignableFrom(delegateClass))
+                    .findFirst()
                     .map(Map.Entry::getKey)
                     .orElseThrow(() -> new IllegalArgumentException("Can't find real class from delegate " + delegateClass));
         }
@@ -55,7 +51,7 @@ public abstract class DelegatesService {
         return (Supplier<R>) getDelegates()
                 .entrySet()
                 .stream()
-                .filter(del -> ClassChecker.isAssignable(del.getKey(), entity))
+                .filter(del -> del.getKey().equals(entity))
                 .findFirst()
                 .map(Map.Entry::getValue)
                 .orElseThrow(() -> new IllegalArgumentException("Can't find delegate for " + entity));

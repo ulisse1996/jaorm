@@ -16,19 +16,7 @@ public class ITDatasourceProvider extends DataSourceProvider {
 
     @Override
     public DataSource getDataSource() {
-        synchronized (this) {
-            if (!INSTANCE.isPresent()) {
-                INSTANCE.set(initDatasource());
-            }
-
-            HikariDataSource d = (HikariDataSource) INSTANCE.get();
-            if (d.isClosed()) {
-                // Reset datasource
-                INSTANCE.set(initDatasource());
-            }
-
-            return INSTANCE.get();
-        }
+        return getCurrentDataSource();
     }
 
     private DataSource initDatasource() {
@@ -44,6 +32,10 @@ public class ITDatasourceProvider extends DataSourceProvider {
 
     @Override
     public DataSource getDataSource(TableInfo tableInfo) {
+        return getCurrentDataSource();
+    }
+
+    private DataSource getCurrentDataSource() {
         synchronized (this) {
             if (!INSTANCE.isPresent()) {
                 INSTANCE.set(initDatasource());

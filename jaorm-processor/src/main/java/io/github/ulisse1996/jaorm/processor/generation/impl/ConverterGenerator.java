@@ -49,6 +49,7 @@ public class ConverterGenerator extends Generator {
                     .addModifiers(Modifier.PUBLIC)
                     .addSuperinterface(ConverterProvider.class)
                     .addMethods(getConvertersMethods(info))
+                    .addMethod(getToStringMethod(info))
                     .build();
             GeneratedFile file = new GeneratedFile(JAORM_PACKAGE, converters, "");
             ProcessorUtils.generate(processingEnvironment, file);
@@ -56,6 +57,12 @@ public class ConverterGenerator extends Generator {
         }
 
         ProcessorUtils.generateSpi(processingEnvironment, files, ConverterProvider.class);
+    }
+
+    private MethodSpec getToStringMethod(ConverterInfo info) {
+        return MethodSpec.overriding(ProcessorUtils.getMethod(this.processingEnvironment, "toString", Object.class))
+                .addStatement("return $S", String.format("ConvertProvider{from=%s,to%s}", info.beforeClass, info.afterClass))
+                .build();
     }
 
     private Iterable<MethodSpec> getConvertersMethods(ConverterInfo info) {

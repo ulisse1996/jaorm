@@ -20,14 +20,14 @@ public class MySqlInitializer implements DatabaseInitializer {
 
     @Override
     public void initDatabase() {
-        logger.info("Starting Postgre");
+        logger.info("Starting MySQL");
         ensureInit();
         INSTANCE.get().start();
     }
 
     @Override
     public void destroyDatabase() {
-        logger.info("Stopping Postgre");
+        logger.info("Stopping MySQL");
         ensureInit();
         DataSource dataSource = DataSourceProvider.getCurrent().getDataSource();
         HikariDataSource d = (HikariDataSource) dataSource;

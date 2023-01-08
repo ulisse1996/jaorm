@@ -1,12 +1,10 @@
 package io.github.ulisse1996.jaorm.validation;
 
 import io.github.ulisse1996.jaorm.entity.validation.ValidationResult;
+import io.github.ulisse1996.jaorm.spi.BeanProvider;
 import io.github.ulisse1996.jaorm.spi.EntityValidator;
 
-import javax.validation.ConstraintViolation;
-import javax.validation.Path;
-import javax.validation.Validation;
-import javax.validation.ValidatorFactory;
+import javax.validation.*;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -21,6 +19,17 @@ public class EntityValidatorImpl extends EntityValidator {
 
     @Override
     public <R> List<ValidationResult<R>> validate(R entity) {
+        BeanProvider provider = BeanProvider.getInstance();
+        if (provider.isActive()) {
+            // Delegate Validation if a custom Validator Bean is provided
+            Optional<Validator> validator = provider.getOptBean(Validator.class);
+            if (validator.isPresent()) {
+                return validator.get().validate(entity)
+                        .stream()
+                        .map(this::toResult)
+                        .collect(Collectors.toList());
+            }
+        }
         try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
             Set<ConstraintViolation<R>> result = factory
                     .getValidator()

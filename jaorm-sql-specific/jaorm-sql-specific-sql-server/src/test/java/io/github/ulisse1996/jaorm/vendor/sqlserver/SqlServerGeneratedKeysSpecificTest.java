@@ -7,13 +7,11 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-import java.util.AbstractMap;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Map;
+import java.util.*;
 
 @ExtendWith(MockitoExtension.class)
 class SqlServerGeneratedKeysSpecificTest {
@@ -28,6 +26,24 @@ class SqlServerGeneratedKeysSpecificTest {
         Assertions.assertThrows( //NOSONAR
                 UnsupportedOperationException.class,
                 () -> testSubject.getReturningKeys(new HashSet<>(Arrays.asList("KEY1", "KEY2")))
+        );
+    }
+
+    @Test
+    void should_return_empty_string_for_returning_keys() {
+        Assertions.assertEquals("", testSubject.getReturningKeys(Collections.emptySet()));
+    }
+
+    @Test
+    void should_return_false_for_custom_get_result_sets() {
+        Assertions.assertFalse(testSubject.isCustomGetResultSet());
+    }
+
+    @Test
+    void should_get_empty_result_sets() {
+        Assertions.assertEquals(
+                Collections.emptyList(),
+                testSubject.getResultSets(Mockito.mock(PreparedStatement.class))
         );
     }
 

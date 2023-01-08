@@ -644,10 +644,15 @@ class BaseDaoTest {
         final MyDao dao = Mockito.spy(new MyDao());
         RelationshipService relationshipService = Mockito.mock(RelationshipService.class);
         EntityEvent event = Mockito.mock(EntityEvent.class);
+        QueryRunner simpleRunner = Mockito.mock(QueryRunner.class);
+        QueryRunner entityRunner = Mockito.mock(QueryRunner.class);
         try (MockedStatic<RelationshipService> mk = Mockito.mockStatic(RelationshipService.class);
              MockedStatic<EntityEvent> mkEntity = Mockito.mockStatic(EntityEvent.class);
              MockedStatic<ListenersService> mkList = Mockito.mockStatic(ListenersService.class);
-             MockedStatic<DelegatesService> mkDelegate = Mockito.mockStatic(DelegatesService.class)) {
+             MockedStatic<DelegatesService> mkDelegate = Mockito.mockStatic(DelegatesService.class);
+             MockedStatic<QueryRunner> mkRunner = Mockito.mockStatic(QueryRunner.class)) {
+            mkRunner.when(QueryRunner::getSimple).thenReturn(simpleRunner);
+            mkRunner.when(() -> QueryRunner.getInstance(Mockito.any())).thenReturn(entityRunner);
             mkDelegate.when(DelegatesService::getInstance).thenReturn(Mockito.mock(DelegatesService.class));
             mkList.when(ListenersService::getInstance).thenReturn(Mockito.mock(ListenersService.class));
             mk.when(RelationshipService::getInstance)
@@ -664,6 +669,7 @@ class BaseDaoTest {
                     dao.delete(new DelegatesMock.MyEntity());
                     break;
                 case UPDATE:
+                    Mockito.when(entityRunner.getUpdatedRows(Mockito.any())).thenReturn(1);
                     dao.update(new DelegatesMock.MyEntity());
                     break;
             }

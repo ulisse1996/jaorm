@@ -6,7 +6,6 @@ import io.github.ulisse1996.jaorm.entity.sql.SqlAccessor;
 import io.github.ulisse1996.jaorm.spi.common.Singleton;
 import io.github.ulisse1996.jaorm.spi.impl.DefaultConverters;
 import io.github.ulisse1996.jaorm.spi.provider.ConverterProvider;
-import io.github.ulisse1996.jaorm.util.ClassChecker;
 
 import java.util.Map;
 import java.util.Optional;
@@ -18,7 +17,7 @@ public abstract class ConverterService {
     private final Map<Class<?>, SqlAccessor> cache = new ConcurrentHashMap<>();
 
     public static synchronized ConverterService getInstance() {
-        if (!INSTANCE.isPresent()) {
+        if (!INSTANCE.isPresent() || FrameworkIntegrationService.isReloadRequired(INSTANCE.get().getConverters().keySet())) {
             INSTANCE.set(new DefaultConverters(ServiceFinder.loadServices(ConverterProvider.class)));
         }
 
@@ -32,7 +31,7 @@ public abstract class ConverterService {
         }
         ConverterPair<T,R> converterPair = (ConverterPair<T, R>) getConverters().entrySet()
                 .stream()
-                .filter(el -> ClassChecker.isAssignable(el.getKey(), klass))
+                .filter(el -> el.getKey().equals(klass))
                 .findFirst()
                 .map(Map.Entry::getValue)
                 .orElse(null);

@@ -2,7 +2,10 @@ package io.github.ulisse1996.jaorm.vendor.postgre;
 
 import io.github.ulisse1996.jaorm.vendor.specific.GeneratedKeysSpecific;
 
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -16,6 +19,16 @@ public class PostgreGeneratedKeysSpecific implements GeneratedKeysSpecific {
     @Override
     public boolean isCustomReturnKey() {
         return false;
+    }
+
+    @Override
+    public boolean isCustomGetResultSet() {
+        return false;
+    }
+
+    @Override
+    public List<ResultSet> getResultSets(PreparedStatement pr) {
+        return Collections.emptyList();
     }
 
     @Override

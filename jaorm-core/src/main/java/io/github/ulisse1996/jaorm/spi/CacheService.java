@@ -8,7 +8,6 @@ import io.github.ulisse1996.jaorm.spi.combined.CombinedCaches;
 import io.github.ulisse1996.jaorm.spi.common.Singleton;
 import io.github.ulisse1996.jaorm.spi.impl.DefaultCache;
 import io.github.ulisse1996.jaorm.spi.provider.CacheActivator;
-import io.github.ulisse1996.jaorm.util.ClassChecker;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -28,7 +27,7 @@ public abstract class CacheService {
                 return new CombinedCaches(cacheServices);
             }
 
-            if (!INSTANCE.isPresent()) {
+            if (!INSTANCE.isPresent() || FrameworkIntegrationService.isReloadRequired(INSTANCE.get().getCaches().keySet())) {
                 Iterable<CacheService> services = ServiceFinder.loadServices(CacheService.class);
 
                 List<CacheService> s = StreamSupport.stream(services.spliterator(), false).collect(Collectors.toList());
@@ -61,7 +60,7 @@ public abstract class CacheService {
     public <T> JaormCache<T> getCache(Class<T> klass) {
         EntityCache<?> entityCache = getCaches().entrySet()
                 .stream()
-                .filter(en -> ClassChecker.isAssignable(en.getKey(), klass))
+                .filter(en -> en.getKey().equals(klass))
                 .findFirst()
                 .map(Map.Entry::getValue)
                 .orElseThrow(() -> new IllegalArgumentException("Can't find cache"));
@@ -73,7 +72,7 @@ public abstract class CacheService {
     public <T> JaormAllCache<T> getCacheAll(Class<T> klass) {
         EntityCache<?> entityCache = getCaches().entrySet()
                 .stream()
-                .filter(en -> ClassChecker.isAssignable(en.getKey(), klass))
+                .filter(en -> en.getKey().equals(klass))
                 .findFirst()
                 .map(Map.Entry::getValue)
                 .orElseThrow(() -> new IllegalArgumentException("Can't find cache"));
@@ -103,7 +102,7 @@ public abstract class CacheService {
     }
 
     public boolean isDefault() {
-        return ClassChecker.isAssignable(this.getClass(), DefaultCache.class);
+        return Objects.equals(this.getClass(), DefaultCache.class);
     }
 
 

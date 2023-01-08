@@ -7,7 +7,7 @@
     <groupId>io.github.ulisse1996</groupId>
     <artifactId>jaorm-pom</artifactId>
     <packaging>pom</packaging>
-    <version>2.0.0-RC1</version>
+    <version>2.0.0-RC2</version>
     <modules>
         <module>jaorm-processor</module>
         <module>jaorm-core</module>
@@ -48,6 +48,7 @@
         <lombok.version>1.18.24</lombok.version>
         <compile.testing.version>0.19</compile.testing.version>
         <javax.validation.api.version>2.0.1.Final</javax.validation.api.version>
+        <quarkus.version>2.15.0.Final</quarkus.version>
 
         <!-- Tests -->
         <junit.version>5.9.0</junit.version>
@@ -68,6 +69,7 @@
         <oracle.jdbc.version>19.15.0.0.1</oracle.jdbc.version>
         <postgre.jdbc.version>42.4.1</postgre.jdbc.version>
         <mssql.jdbc.version>10.2.1.jre8</mssql.jdbc.version>
+        <db2.jdbc.version>11.5.8.0</db2.jdbc.version>
 
         <!-- Maven Plugins -->
         <jaxb.version>2.3.1</jaxb.version>

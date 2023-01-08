@@ -14,6 +14,7 @@ import javax.lang.model.element.Name;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
 import java.lang.annotation.Annotation;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -29,7 +30,7 @@ class QueryStrategyTest {
         int expectedParams = 2;
         boolean valid = strategy.isValid(query, false);
         int paramNumber = strategy.getParamNumber(query);
-        String actual = strategy.replaceQuery(query);
+        String actual = strategy.replaceQuery(query, Collections.emptySet());
         Assertions.assertDoesNotThrow(() -> strategy.extract(Mockito.mock(ProcessingEnvironment.class), query, method));
         Assertions.assertTrue(valid);
         Assertions.assertEquals(expectedParams, paramNumber);
@@ -45,8 +46,8 @@ class QueryStrategyTest {
         int expectedParams = 2;
         boolean valid = strategy.isValid(query, false);
         int paramNumber = strategy.getParamNumber(query);
-        String actual = strategy.replaceQuery(query);
-        int words = strategy.extract(Mockito.mock(ProcessingEnvironment.class), query, method).size();
+        String actual = strategy.replaceQuery(query, Collections.emptySet());
+        int words = strategy.extract(Mockito.mock(ProcessingEnvironment.class), query, method).getCodeParts().size();
         Assertions.assertTrue(valid);
         Assertions.assertEquals(expectedParams, paramNumber);
         Assertions.assertEquals(expectedQuery, actual);
@@ -62,7 +63,7 @@ class QueryStrategyTest {
         int expectedParams = 3;
         boolean valid = strategy.isValid(query, false);
         int paramNumber = strategy.getParamNumber(query);
-        String actual = strategy.replaceQuery(query);
+        String actual = strategy.replaceQuery(query, Collections.emptySet());
         Assertions.assertDoesNotThrow(() -> strategy.extract(Mockito.mock(ProcessingEnvironment.class), query, method));
         Assertions.assertTrue(valid);
         Assertions.assertEquals(expectedParams, paramNumber);
@@ -78,8 +79,8 @@ class QueryStrategyTest {
         int expectedParams = 2;
         boolean valid = strategy.isValid(query, false);
         int paramNumber = strategy.getParamNumber(query);
-        String actual = strategy.replaceQuery(query);
-        int words = strategy.extract(Mockito.mock(ProcessingEnvironment.class), query, method).size();
+        String actual = strategy.replaceQuery(query, Collections.emptySet());
+        int words = strategy.extract(Mockito.mock(ProcessingEnvironment.class), query, method).getCodeParts().size();
         Assertions.assertTrue(valid);
         Assertions.assertEquals(expectedParams, paramNumber);
         Assertions.assertEquals(expectedQuery, actual);
@@ -94,8 +95,8 @@ class QueryStrategyTest {
         boolean valid = strategy.isValid(query, true);
         ExecutableElement method = mockedMethod(0);
         int paramNumber = strategy.getParamNumber(query);
-        String actual = strategy.replaceQuery(query);
-        int words = strategy.extract(Mockito.mock(ProcessingEnvironment.class), query, method).size();
+        String actual = strategy.replaceQuery(query, Collections.emptySet());
+        int words = strategy.extract(Mockito.mock(ProcessingEnvironment.class), query, method).getCodeParts().size();
         Assertions.assertTrue(valid);
         Assertions.assertEquals(expectedParams, paramNumber);
         Assertions.assertEquals(query, actual);

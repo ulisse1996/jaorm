@@ -27,6 +27,8 @@ class PageImplTest {
     @Mock private LimitOffsetSpecific specific;
     @Mock private QueryRunner runner;
 
+    private static final List<Sort<Object>> SORTS = Collections.singletonList(Sort.desc(SqlColumn.simple("NAME", Object.class)));
+
     @Test
     void should_return_empty_next_page() {
         Page<Object> page = new PageImpl<>(
@@ -34,7 +36,7 @@ class PageImplTest {
                 10,
                 10,
                 Object.class,
-                Collections.emptyList()
+                SORTS
         );
         Assertions.assertFalse(page.getNext().isPresent());
     }
@@ -46,7 +48,7 @@ class PageImplTest {
                 10,
                 10,
                 Object.class,
-                Collections.emptyList()
+                SORTS
         );
         Assertions.assertFalse(page.getPrevious().isPresent());
     }
@@ -58,7 +60,7 @@ class PageImplTest {
                 10,
                 20,
                 Object.class,
-                Collections.emptyList()
+                SORTS
         );
         Optional<Page<Object>> next = page.getNext();
         Assertions.assertTrue(next.isPresent());
@@ -72,7 +74,7 @@ class PageImplTest {
                 10,
                 20,
                 Object.class,
-                Collections.emptyList()
+                SORTS
         );
         Optional<Page<Object>> next = page.getPrevious();
         Assertions.assertTrue(next.isPresent());
@@ -94,18 +96,18 @@ class PageImplTest {
 
     @Test
     void should_throw_exception_for_bad_page_number() {
-        Assertions.assertThrows(IllegalArgumentException.class, () -> new PageImpl<>(-1, 0, 0, Object.class, Collections.emptyList())); //NOSONAR
+        Assertions.assertThrows(IllegalArgumentException.class, () -> new PageImpl<>(-1, 0, 0, Object.class, SORTS)); //NOSONAR
     }
 
     @Test
     void should_throw_exception_for_bad_fetch_size_number() {
-        Assertions.assertThrows(IllegalArgumentException.class, () -> new PageImpl<>(0, 0, 0, Object.class, Collections.emptyList())); //NOSONAR
+        Assertions.assertThrows(IllegalArgumentException.class, () -> new PageImpl<>(0, 0, 0, Object.class, SORTS)); //NOSONAR
     }
 
     @Test
     void should_return_selected_data() {
         List<Object> data = Collections.nCopies(10, new Object());
-        Page<Object> page = new PageImpl<>(0, 10, 10, Object.class, Collections.emptyList());
+        Page<Object> page = new PageImpl<>(0, 10, 10, Object.class, SORTS);
         setData(page, data);
         Assertions.assertEquals(data, page.getData());
     }

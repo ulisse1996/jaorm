@@ -7,7 +7,19 @@
 - Feature: Spatial Support for Geography
 - Feature: Postgre Geography Implementation
 - Feature: startsWith, contains, endsWith, notStartsWith, notContains and notEndsWith for like and notLike
+- Feature: Group By for Simple DSL
+- Feature: Having for Simple DSL
+- Feature: SQL Ansi Aggregation Functions (COUNT, SUM, MIN, MAX, AVG)
+- Feature: Quarkus Extension module
+- Feature: FrameworkIntegrationService for Integration with external framework like Quarkus or Micronaut
+- Feature: Support for List args in @Query with named params
+- Feature: Support for Metrics using MetricsTracker
+- Feature: DB2 Sql Specifics
+- Feature: Bean Provider for Bean Validation
 - Removal: Removed notLike and like
+- Refactor: Refactor of IT Tests
+- Bugfix: Fix missing upsert for entities with relationships
+- Bugfix: Fix dev mode reloading issues for Quarkus
 
 ## 1.10.0
 - Feature: BeanProvider for Dependency Injection Extensions

@@ -14,6 +14,7 @@ public class UserRole {
     @Column(name = "ROLE_ID")
     private int roleId;
 
+    @Cascade(CascadeType.ALL)
     @Relationship(
             columns = @Relationship.RelationshipColumn(sourceColumn = "ROLE_ID", targetColumn = "ROLE_ID")
     )

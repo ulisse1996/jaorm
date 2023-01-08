@@ -2,6 +2,7 @@ package io.github.ulisse1996.jaorm.vendor;
 
 import io.github.ulisse1996.jaorm.Selectable;
 import io.github.ulisse1996.jaorm.vendor.ansi.*;
+import io.github.ulisse1996.jaorm.vendor.util.ArgumentsUtils;
 
 import java.util.Arrays;
 
@@ -30,5 +31,29 @@ public class AnsiFunctions {
 
     public static ReplaceFunction replace(Selectable<String> selectable, String search, String replacement) {
         return new ReplaceFunction(selectable, search, replacement);
+    }
+
+    public static AggregateFunction<Number> min(Selectable<?> selectable) {
+        return new AggregateFunction<>(ArgumentsUtils.checkNumberArg(selectable), "MIN");
+    }
+
+    public static AggregateFunction<Number> max(Selectable<?> selectable) {
+        return new AggregateFunction<>(ArgumentsUtils.checkNumberArg(selectable), "MAX");
+    }
+
+    public static AggregateFunction<Number> count(Selectable<?> selectable) {
+        return new AggregateFunction<>(selectable, "COUNT");
+    }
+
+    public static VendorFunction<Number> count() {
+        return CountStar.INSTANCE;
+    }
+
+    public static AggregateFunction<Number> avg(Selectable<?> selectable) {
+        return new AggregateFunction<>(ArgumentsUtils.checkNumberArg(selectable), "AVG");
+    }
+
+    public static AggregateFunction<Number> sum(Selectable<?> selectable) {
+        return new AggregateFunction<>(ArgumentsUtils.checkNumberArg(selectable), "SUM");
     }
 }
