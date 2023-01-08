@@ -96,7 +96,7 @@ class UpdateEventTest extends EventTest {
             Mockito.when(relationshipService.getRelationships(Mockito.any()))
                     .then(onMock -> fakeRel);
             Mockito.doNothing()
-                    .when(subject).doPreApply(Mockito.any(), Mockito.any(), Mockito.anyBoolean());
+                    .when(subject).doPreApply(Mockito.any(), Mockito.any(), Mockito.anyBoolean(), Mockito.any());
             subject.apply(mock);
             Mockito.verify(mock).preUpdate();
         }
@@ -126,7 +126,7 @@ class UpdateEventTest extends EventTest {
             Mockito.when(relationshipService.getRelationships(Mockito.any()))
                     .then(onMock -> fakeRel);
             Mockito.doNothing()
-                    .when(subject).doPreApply(Mockito.any(), Mockito.any(), Mockito.anyBoolean());
+                    .when(subject).doPreApply(Mockito.any(), Mockito.any(), Mockito.anyBoolean(), Mockito.any());
             subject.apply(mock);
             Mockito.verify(mock).postUpdate();
         }
@@ -158,7 +158,7 @@ class UpdateEventTest extends EventTest {
             Mockito.doThrow(Exception.class)
                     .when(mock).preUpdate();
             Mockito.doNothing()
-                    .when(subject).doPreApply(Mockito.any(), Mockito.any(), Mockito.anyBoolean());
+                    .when(subject).doPreApply(Mockito.any(), Mockito.any(), Mockito.anyBoolean(), Mockito.any());
             Assertions.assertThrows(PersistEventException.class, () -> subject.apply(mock));
         }
     }
@@ -167,9 +167,9 @@ class UpdateEventTest extends EventTest {
     @Test
     void should_do_insert_for_update_with_0_rows() {
         Relationship<Entity> relationship = new Relationship<>(Entity.class);
-        relationship.add(new Relationship.Node<>(RelEntity.class, Entity::getRelEntity, false, false, EntityEventType.values()));
-        relationship.add(new Relationship.Node<>(RelEntity.class, Entity::getRelEntityOpt, true, false, EntityEventType.values()));
-        relationship.add(new Relationship.Node<>(RelEntity.class, Entity::getRelEntityColl, false, true, EntityEventType.values()));
+        relationship.add(new Relationship.Node<>(RelEntity.class, Entity::getRelEntity, false, false, "name",EntityEventType.values()));
+        relationship.add(new Relationship.Node<>(RelEntity.class, Entity::getRelEntityOpt, true, false, "name",EntityEventType.values()));
+        relationship.add(new Relationship.Node<>(RelEntity.class, Entity::getRelEntityColl, false, true, "name",EntityEventType.values()));
         MyEntityDelegate delegate = new MyEntityDelegate();
         DelegatesService delegatedMock = Mockito.mock(DelegatesService.class);
         QueryRunner mockRunner = Mockito.mock(QueryRunner.class);
@@ -213,9 +213,9 @@ class UpdateEventTest extends EventTest {
     @Test
     void should_not_insert_for_update_with_0_rows() {
         Relationship<Entity> relationship = new Relationship<>(Entity.class);
-        relationship.add(new Relationship.Node<>(RelEntity.class, Entity::getRelEntity, false, false, EntityEventType.UPDATE));
-        relationship.add(new Relationship.Node<>(RelEntity.class, Entity::getRelEntityOpt, true, false, EntityEventType.UPDATE));
-        relationship.add(new Relationship.Node<>(RelEntity.class, Entity::getRelEntityColl, false, true, EntityEventType.UPDATE));
+        relationship.add(new Relationship.Node<>(RelEntity.class, Entity::getRelEntity, false, false, "name",EntityEventType.UPDATE));
+        relationship.add(new Relationship.Node<>(RelEntity.class, Entity::getRelEntityOpt, true, false, "name",EntityEventType.UPDATE));
+        relationship.add(new Relationship.Node<>(RelEntity.class, Entity::getRelEntityColl, false, true, "name",EntityEventType.UPDATE));
         MyEntityDelegate delegate = new MyEntityDelegate();
         DelegatesService delegatedMock = Mockito.mock(DelegatesService.class);
         QueryRunner mockRunner = Mockito.mock(QueryRunner.class);
@@ -292,7 +292,7 @@ class UpdateEventTest extends EventTest {
             Mockito.doThrow(Exception.class)
                     .when(mock).postUpdate();
             Mockito.doNothing()
-                    .when(subject).doPreApply(Mockito.any(), Mockito.any(), Mockito.anyBoolean());
+                    .when(subject).doPreApply(Mockito.any(), Mockito.any(), Mockito.anyBoolean(), Mockito.any());
             Assertions.assertThrows(PersistEventException.class, () -> subject.apply(mock));
         }
     }

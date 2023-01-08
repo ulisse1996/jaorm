@@ -14,15 +14,19 @@ import java.util.function.BiFunction;
 @SuppressWarnings("unchecked")
 public abstract class PreApplyEvent implements EntityEvent {
 
-    protected <T> void doPreApply(T entity, BiFunction<BaseDao<Object>, Object, Integer> function, boolean update) {
+    protected <T> void doPreApply(T entity, BiFunction<BaseDao<Object>, Object, Integer> function, boolean update,
+                                  EntityEventType eventType) {
         Class<T> klass = (Class<T>) entity.getClass();
         if (isDelegate(entity)) {
             klass = (Class<T>) getRealClass(klass);
         }
         Relationship<T> tree = RelationshipService.getInstance().getRelationships(klass);
         for (Relationship.Node<T> node : tree.getNodeSet()) {
+            if (!node.matchEvent(eventType)) {
+                continue;
+            }
             if (node.isCollection()) {
-                node.getAsCollection(entity).forEach(i -> {
+                node.getAsCollection(entity, eventType).forEach(i -> {
                     Objects.requireNonNull(i, "Collection can't contains null values !");
                     BaseDao<Object> baseDao = (BaseDao<Object>) QueriesService.getInstance().getBaseDao(i.getClass());
                     Integer res = function.apply(baseDao, i);
@@ -31,15 +35,16 @@ public abstract class PreApplyEvent implements EntityEvent {
                     }
                 });
             } else if (node.isOpt()) {
-                applyOpt(entity, function, node, update);
+                applyOpt(entity, function, node, update, eventType);
             } else {
-                doSimple(entity, function, update, node);
+                doSimple(entity, function, update, node, eventType);
             }
         }
     }
 
-    private <T> void doSimple(T entity, BiFunction<BaseDao<Object>, Object, Integer> function, boolean update, Relationship.Node<T> node) {
-        Object i = node.get(entity);
+    private <T> void doSimple(T entity, BiFunction<BaseDao<Object>, Object, Integer> function, boolean update, Relationship.Node<T> node,
+                              EntityEventType eventType) {
+        Object i = node.get(entity, eventType);
         if (i != null) {
             BaseDao<Object> baseDao = (BaseDao<Object>) QueriesService.getInstance().getBaseDao(i.getClass());
             Integer res = function.apply(baseDao, i);
@@ -49,8 +54,9 @@ public abstract class PreApplyEvent implements EntityEvent {
         }
     }
 
-    private <T> void applyOpt(T entity, BiFunction<BaseDao<Object>, Object, Integer> function, Relationship.Node<T> node, boolean update) {
-        Result<Object> optional = node.getAsOpt(entity);
+    private <T> void applyOpt(T entity, BiFunction<BaseDao<Object>, Object, Integer> function, Relationship.Node<T> node, boolean update,
+                              EntityEventType eventType) {
+        Result<Object> optional = node.getAsOpt(entity, eventType);
         if (optional.isPresent()) {
             Object i = optional.get();
             BaseDao<Object> baseDao = (BaseDao<Object>) QueriesService.getInstance().getBaseDao(i.getClass());

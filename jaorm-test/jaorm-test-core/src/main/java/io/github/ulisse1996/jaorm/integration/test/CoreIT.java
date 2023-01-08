@@ -6,9 +6,7 @@ import io.github.ulisse1996.jaorm.entity.EntityComparator;
 import io.github.ulisse1996.jaorm.entity.Page;
 import io.github.ulisse1996.jaorm.entity.Result;
 import io.github.ulisse1996.jaorm.integration.test.entity.*;
-import io.github.ulisse1996.jaorm.integration.test.query.AutoGenDao;
-import io.github.ulisse1996.jaorm.integration.test.query.ProgressiveDao;
-import io.github.ulisse1996.jaorm.integration.test.query.UserDAO;
+import io.github.ulisse1996.jaorm.integration.test.query.*;
 import io.github.ulisse1996.jaorm.spi.FeatureConfigurator;
 import io.github.ulisse1996.jaorm.spi.QueriesService;
 import org.jetbrains.annotations.NotNull;
@@ -25,6 +23,10 @@ import java.util.Optional;
 public abstract class CoreIT extends AbstractIT {
 
     private final UserDAO userDAO = QueriesService.getInstance().getQuery(UserDAO.class);
+    private final RoleDAO roleDAO = QueriesService.getInstance().getQuery(RoleDAO.class);
+    private final UserRoleDAO userRoleDAO = QueriesService.getInstance().getQuery(UserRoleDAO.class);
+    private final CityDAO cityDAO = QueriesService.getInstance().getQuery(CityDAO.class);
+    private final SellerDao sellerDao = QueriesService.getInstance().getQuery(SellerDao.class);
 
     @Override
     protected void afterInit() throws Exception {
@@ -245,6 +247,72 @@ public abstract class CoreIT extends AbstractIT {
         Assertions.assertNotNull(result.get().getRoles().get(0).getRole());
         assertSame(user, result.get());
         assertTotalInvocations(5);
+    }
+
+    // Relationships
+    @Test
+    void should_delete_not_fetched_relationships() {
+        User user = new User();
+        Role role = new Role();
+        role.setRoleId(1);
+        role.setRoleName("NAME");
+        Role role2 = new Role();
+        role2.setRoleId(2);
+        role2.setRoleName("NAME2");
+        Role role3 = new Role();
+        role3.setRoleId(3);
+        role3.setRoleName("NAME3");
+
+        user.setId(1);
+        user.setName("NAME");
+        user.setRoles(List.of(new UserRole(1, 1), new UserRole(1, 2), new UserRole(1, 3)));
+
+
+        roleDAO.insert(List.of(role, role2, role3)); // 3 Roles
+        userDAO.insert(user); // 7 User, UserRole (3)
+
+        Optional<UserRole> optUserRole = userRoleDAO.readOptByKeys(1, 1); // 8
+        Optional<UserRole> optUserRole2 = userRoleDAO.readOptByKeys(2, 1); // 9
+        Optional<UserRole> optUserRole3 = userRoleDAO.readOptByKeys(3, 1); // 10
+
+        Assertions.assertTrue(optUserRole.isPresent());
+        Assertions.assertTrue(optUserRole2.isPresent());
+        Assertions.assertTrue(optUserRole3.isPresent());
+
+        User u = userDAO.readByKey(1); // 11
+
+        userDAO.delete(u); // 14 Delete UserRole (1 query for 3 delete), Delete UserSpecific, Delete User
+
+        optUserRole = userRoleDAO.readOptByKeys(1, 1); // 15
+        optUserRole2 = userRoleDAO.readOptByKeys(2, 1); // 16
+        optUserRole3 = userRoleDAO.readOptByKeys(3, 1); // 17
+
+        Assertions.assertFalse(optUserRole.isPresent());
+        Assertions.assertFalse(optUserRole2.isPresent());
+        Assertions.assertFalse(optUserRole3.isPresent());
+        assertTotalInvocations(17);
+    }
+
+    @Test
+    void should_delete_not_fetched_relationships_recursively() {
+        Store store = new Store(1, "NAME", 1);
+        store.setSellers(List.of(new Seller(1, "SELLER1", 1), new Seller(2, "SELLER2", 1)));
+        Store store2 = new Store(2, "NAME2", 1);
+        store2.setSellers(List.of(new Seller(3, "SELLER1", 2), new Seller(4, "SELLER2", 2)));
+
+        City city = new City();
+        city.setCityId(1);
+        city.setName("NAME");
+        city.setStores(List.of(store, store2));
+
+        cityDAO.insert(city); // 7 City, Store (2), Seller (4)
+
+        Assertions.assertEquals(4, sellerDao.readAll().size()); // 8
+
+        cityDAO.deleteByKey(1); // 11 City, Store (1), Seller (1)
+
+        Assertions.assertEquals(0, sellerDao.readAll().size()); // 12
+        assertTotalInvocations(12);
     }
 
     // Utils

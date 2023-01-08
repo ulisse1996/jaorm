@@ -542,13 +542,13 @@ class BaseDaoTest {
                     .then(i -> mockDao);
             switch (type) {
                 case 1:
-                    relationship.add(new Relationship.Node<>(Object.class, e -> Result.empty(), true, false, EntityEventType.values()));
+                    relationship.add(new Relationship.Node<>(Object.class, e -> Result.empty(), true, false, "name", EntityEventType.values()));
                     break;
                 case 2:
-                    relationship.add(new Relationship.Node<>(Object.class, e -> Collections.emptyList(), false, true, EntityEventType.values()));
+                    relationship.add(new Relationship.Node<>(Object.class, e -> Collections.emptyList(), false, true, "name", EntityEventType.values()));
                     break;
                 default:
-                    relationship.add(new Relationship.Node<>(Object.class, e -> null, false, false, EntityEventType.values()));
+                    relationship.add(new Relationship.Node<>(Object.class, e -> null, false, false, "name", EntityEventType.values()));
                     break;
             }
             List<DelegatesMock.MyEntity> results = new MyDao().insertWithBatch(entities);
@@ -594,13 +594,13 @@ class BaseDaoTest {
                     .then(i -> mockDao);
             switch (type) {
                 case 1:
-                    relationship.add(new Relationship.Node<>(Object.class, e -> Result.empty(), true, false, EntityEventType.values()));
+                    relationship.add(new Relationship.Node<>(Object.class, e -> Result.empty(), true, false, "name", EntityEventType.values()));
                     break;
                 case 2:
-                    relationship.add(new Relationship.Node<>(Object.class, e -> Collections.emptyList(), false, true, EntityEventType.values()));
+                    relationship.add(new Relationship.Node<>(Object.class, e -> Collections.emptyList(), false, true, "name", EntityEventType.values()));
                     break;
                 default:
-                    relationship.add(new Relationship.Node<>(Object.class, e -> null, false, false, EntityEventType.values()));
+                    relationship.add(new Relationship.Node<>(Object.class, e -> null, false, false, "name", EntityEventType.values()));
                     break;
             }
             List<DelegatesMock.MyEntity> results = new MyDao().updateWithBatch(entities);

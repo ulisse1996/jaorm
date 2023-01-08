@@ -16,10 +16,12 @@
 - Feature: Support for Metrics using MetricsTracker
 - Feature: DB2 Sql Specifics
 - Feature: Bean Provider for Bean Validation
+- Feature: Cascade delete on not initialized lazy entities
 - Removal: Removed notLike and like
 - Refactor: Refactor of IT Tests
 - Bugfix: Fix missing upsert for entities with relationships
 - Bugfix: Fix dev mode reloading issues for Quarkus
+- Bugfix: Fix event dispatch on unsupported relationships
 
 ## 1.10.0
 - Feature: BeanProvider for Dependency Injection Extensions

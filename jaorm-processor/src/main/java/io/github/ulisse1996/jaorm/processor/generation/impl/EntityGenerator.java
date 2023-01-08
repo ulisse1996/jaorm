@@ -4,6 +4,8 @@ import com.squareup.javapoet.*;
 import io.github.ulisse1996.jaorm.annotation.*;
 import io.github.ulisse1996.jaorm.entity.*;
 import io.github.ulisse1996.jaorm.entity.converter.ParameterConverter;
+import io.github.ulisse1996.jaorm.entity.relationship.LazyEntityInfo;
+import io.github.ulisse1996.jaorm.entity.relationship.RelationshipManager;
 import io.github.ulisse1996.jaorm.entity.sql.SqlAccessor;
 import io.github.ulisse1996.jaorm.entity.sql.SqlParameter;
 import io.github.ulisse1996.jaorm.processor.exception.ProcessorException;
@@ -22,6 +24,7 @@ import javax.lang.model.element.*;
 import javax.lang.model.type.TypeMirror;
 import java.lang.annotation.Annotation;
 import java.util.*;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -87,11 +90,48 @@ public class EntityGenerator extends Generator {
         builder.addField(addInsertSql());
         builder.addField(addUpdateSql());
         builder.addField(addDeleteSql());
+        builder.addField(addTracker());
+        builder.addField(addLazyEntityInfo());
+        builder.addField(addRelationshipManager(entity));
         builder.addField(TypeName.INT, "modifiedRow", Modifier.PRIVATE);
         builder.addField(boolean.class, "modified", Modifier.PRIVATE);
-        builder.addMethods(buildDelegation(entity));
+        DelegationInfo delegationInfo = buildDelegation(entity);
+        builder.addMethods(delegationInfo.getMethods());
         builder.addMethods(buildOverrideEntity(entity));
+        builder.addStaticBlock(getRelationshipManagerBlock(delegationInfo.getRelationshipsBlocks(), entity));
         return new GeneratedFile(getPackage(entity), builder.build(), entity.getQualifiedName().toString());
+    }
+
+    private CodeBlock getRelationshipManagerBlock(List<CodeBlock> relationshipsBlocks, TypeElement entity) {
+        ParameterizedTypeName type = ParameterizedTypeName.get(ClassName.get(RelationshipManager.class), ClassName.get(entity));
+        CodeBlock.Builder builder = CodeBlock.builder()
+                .addStatement("$T manager = new $T()", type, type);
+        for (CodeBlock block : relationshipsBlocks) {
+            builder.add(block);
+        }
+        builder.addStatement("RELATIONSHIP_MANAGER = manager");
+        return builder.build();
+    }
+
+    private FieldSpec addRelationshipManager(TypeElement entity) {
+        return FieldSpec.builder(
+                ParameterizedTypeName.get(ClassName.get(RelationshipManager.class), ClassName.get(entity)),
+                "RELATIONSHIP_MANAGER",
+                Modifier.PRIVATE,
+                Modifier.STATIC,
+                Modifier.FINAL
+        ).build();
+    }
+
+    private FieldSpec addTracker() {
+        return FieldSpec.builder(DirtinessTracker.class, "tracker", Modifier.PRIVATE)
+                .initializer("new $T(this)", DirtinessTracker.class)
+                .build();
+    }
+
+    private FieldSpec addLazyEntityInfo() {
+        return FieldSpec.builder(LazyEntityInfo.class, "lazyInfo", Modifier.PRIVATE)
+                .build();
     }
 
     private FieldSpec addSchemaName(TypeElement entity) {
@@ -101,7 +141,7 @@ public class EntityGenerator extends Generator {
                 .build();
     }
 
-    private Iterable<MethodSpec> buildDelegation(TypeElement entity) {
+    private DelegationInfo buildDelegation(TypeElement entity) {
         List<? extends Element> elements = ProcessorUtils.getAllValidElements(processingEnvironment, entity);
         List<ExecutableElement> methods = ProcessorUtils.getAllMethods(processingEnvironment, entity);
         List<Map.Entry<Element, ExecutableElement>> joins = new ArrayList<>();
@@ -113,25 +153,28 @@ public class EntityGenerator extends Generator {
             }
         }
 
+        List<CodeBlock> blocks = new ArrayList<>();
         List<MethodSpec> specs = new ArrayList<>();
         for (ExecutableElement m : methods) {
             Optional<Map.Entry<Element, ExecutableElement>> join = joins.stream()
                     .filter(p -> p.getValue().equals(m))
                     .findFirst();
             if (join.isPresent()) {
-                specs.add(buildJoinMethod(entity, join.get()));
+                Map.Entry<CodeBlock, MethodSpec> generated = buildJoinMethod(entity, join.get());
+                specs.add(generated.getValue());
+                blocks.add(generated.getKey());
             } else {
                 specs.add(ProcessorUtils.buildDelegateMethod(m, entity, true));
             }
         }
-        return specs;
+        return new DelegationInfo(specs, blocks);
     }
 
     private boolean hasJoinAnnotation(Element ele) {
         return ele.getAnnotation(Relationship.class) != null;
     }
 
-    private MethodSpec buildJoinMethod(TypeElement entity, Map.Entry<Element, ExecutableElement> join) {
+    private Map.Entry<CodeBlock, MethodSpec> buildJoinMethod(TypeElement entity, Map.Entry<Element, ExecutableElement> join) {
         ExecutableElement method = join.getValue();
         ReturnTypeDefinition definition = new ReturnTypeDefinition(processingEnvironment, method.getReturnType());
         String runnerMethod;
@@ -152,12 +195,16 @@ public class EntityGenerator extends Generator {
                 .addStatement(REQUIRE_NON_NULL, Objects.class)
                 .beginControlFlow("if (this.entity.$L() == null)", join.getValue().getSimpleName())
                 .addStatement("$T params = new $T<>()", ParameterizedTypeName.get(List.class, SqlParameter.class), ArrayList.class);
-        for (Relationship.RelationshipColumn column : columns) {
+
+        List<Relationship.RelationshipColumn> sorted = Arrays.stream(columns)
+                .sorted(defaultComparator().reversed()) // Reversed so empty string (default value) are last
+                .collect(Collectors.toList());
+        for (Relationship.RelationshipColumn column : sorted) {
             VariableElement targetColumn = ProcessorUtils.getFieldWithColumnName(processingEnvironment,
                     definition.getRealClass(), column.targetColumn());
             buildJoinParam(column, builder, targetColumn, entity);
         }
-        String wheres = createJoinWhere(columns);
+        String wheres = createJoinWhere(sorted);
         CodeBlock block = builder.addStatement("this.entity.$L($T.getInstance($T.class).$L($T.class, $T.getInstance().getSimpleSql($T.class) +  $S, params))",
                 ProcessorUtils.findSetter(processingEnvironment, entity, join.getKey().getSimpleName()).getSimpleName(),
                 QueryRunner.class, definition.getRealClass(), runnerMethod, definition.getRealClass(), DelegatesService.class,
@@ -166,12 +213,45 @@ public class EntityGenerator extends Generator {
             .addStatement("return this.entity.$L()", join.getValue().getSimpleName())
             .build();
 
-        return MethodSpec.overriding(method)
+        CodeBlock relationshipInfo = generateRelInfo(join.getKey().getSimpleName(), wheres, entity, columns);
+        MethodSpec delegate = MethodSpec.overriding(method)
                 .addCode(block)
+                .build();
+
+        return new AbstractMap.SimpleImmutableEntry<>(relationshipInfo, delegate);
+    }
+
+    private Comparator<Relationship.RelationshipColumn> defaultComparator() {
+        return (c1, c2) -> {
+            if (!c1.sourceColumn().isEmpty()) {
+                return -1;
+            } else if (!c2.sourceColumn().isEmpty()) {
+                return 1;
+            }
+
+            return 0;
+        };
+    }
+
+    private CodeBlock generateRelInfo(Name simpleName, String wheres,
+                                      TypeElement entity,
+                                      Relationship.RelationshipColumn[] columns) {
+        CodeBlock.Builder block = CodeBlock.builder()
+                .add("$T.<$L>builder().where($S)", RelationshipManager.RelationshipInfo.Builder.class, entity, wheres);
+        for (Relationship.RelationshipColumn column : columns) {
+            if (!column.sourceColumn().isEmpty()) {
+                block.add(".param(($T<$T, Object>) Column.findColumn($S).getGetter())", Function.class, entity, column.sourceColumn());
+            } else {
+                block.add(".param((e) -> $T.$L.toValue($S))", ParameterConverter.class, column.converter(), column.defaultValue());
+            }
+        }
+        return CodeBlock.builder()
+                .addStatement("manager.addRelationshipInfo($S, $L)",
+                        simpleName, block.add(".build()").build())
                 .build();
     }
 
-    private String createJoinWhere(Relationship.RelationshipColumn[] columns) {
+    private String createJoinWhere(List<Relationship.RelationshipColumn> columns) {
         boolean first = true;
         StringBuilder builder = new StringBuilder();
         for (Relationship.RelationshipColumn column : columns) {
@@ -346,12 +426,39 @@ public class EntityGenerator extends Generator {
                 .addStatement("return new $LDelegate()", entity)
                 .build();
 
+        MethodSpec getTracker = MethodSpec.overriding(ProcessorUtils.getMethod(processingEnvironment, "getTracker", EntityDelegate.class))
+                .addStatement("return this.tracker")
+                .build();
+
+        MethodSpec isLazyEntity = MethodSpec.overriding(ProcessorUtils.getMethod(processingEnvironment, "isLazyEntity", EntityDelegate.class))
+                .addStatement("return this.lazyInfo != null")
+                .build();
+
+        MethodSpec getLazyInfo = MethodSpec.overriding(ProcessorUtils.getMethod(processingEnvironment, "getLazyInfo", EntityDelegate.class))
+                .addStatement("return this.lazyInfo")
+                .build();
+
+        MethodSpec setLazyInfo = MethodSpec.methodBuilder("setLazyInfo")
+                .addModifiers(Modifier.PUBLIC)
+                .addAnnotation(Override.class)
+                .addParameter(LazyEntityInfo.class, "info")
+                .addStatement("this.lazyInfo = info")
+                .build();
+
+        MethodSpec getRelationshipManager = MethodSpec.methodBuilder("getRelationshipManager")
+                .addModifiers(Modifier.PUBLIC)
+                .addAnnotation(Override.class)
+                .returns(ParameterizedTypeName.get(ClassName.get(RelationshipManager.class), ClassName.get(entity)))
+                .addStatement("return RELATIONSHIP_MANAGER")
+                .build();
+
         return Stream.of(supplierEntity, entityMapper,
                 setEntity, setEntityObj, baseSql, keysWhere,
                 insertSql, selectables, table, updateSql,
                 getEntity, deleteSql, modified,
                 isDefaultGeneration, initDefault, generateDelegate,
-                setFullEntityFullColumns, getKeyWhere, toTableInfo)
+                setFullEntityFullColumns, getKeyWhere, toTableInfo, getTracker,
+                getLazyInfo, isLazyEntity, setLazyInfo, getRelationshipManager)
                 .collect(Collectors.toList());
     }
 

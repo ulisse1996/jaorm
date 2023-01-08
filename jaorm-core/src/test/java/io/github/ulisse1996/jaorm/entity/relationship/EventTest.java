@@ -1,10 +1,7 @@
 package io.github.ulisse1996.jaorm.entity.relationship;
 
 import io.github.ulisse1996.jaorm.MockedProvider;
-import io.github.ulisse1996.jaorm.entity.EntityDelegate;
-import io.github.ulisse1996.jaorm.entity.EntityMapper;
-import io.github.ulisse1996.jaorm.entity.Result;
-import io.github.ulisse1996.jaorm.entity.SqlColumn;
+import io.github.ulisse1996.jaorm.entity.*;
 import io.github.ulisse1996.jaorm.schema.TableInfo;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.provider.Arguments;
@@ -133,17 +130,42 @@ public abstract class EventTest {
         public TableInfo toTableInfo() {
             return null;
         }
+
+        @Override
+        public DirtinessTracker getTracker() {
+            return null;
+        }
+
+        @Override
+        public boolean isLazyEntity() {
+            return false;
+        }
+
+        @Override
+        public LazyEntityInfo getLazyInfo() {
+            return null;
+        }
+
+        @Override
+        public void setLazyInfo(LazyEntityInfo info) {
+
+        }
+
+        @Override
+        public RelationshipManager<Entity> getRelationshipManager() {
+            return null;
+        }
     }
 
     protected static class RelEntity {}
 
     protected static Stream<Arguments> getRelationship() {
         Relationship<Entity> tree1 = new Relationship<>(Entity.class);
-        tree1.add(new Relationship.Node<>(RelEntity.class, Entity::getRelEntity, false, false, EntityEventType.values()));
+        tree1.add(new Relationship.Node<>(RelEntity.class, Entity::getRelEntity, false, false, "name",EntityEventType.values()));
         Relationship<Entity> tree2 = new Relationship<>(Entity.class);
-        tree2.add(new Relationship.Node<>(RelEntity.class, Entity::getRelEntityOpt, true, false, EntityEventType.values()));
+        tree2.add(new Relationship.Node<>(RelEntity.class, Entity::getRelEntityOpt, true, false, "name",EntityEventType.values()));
         Relationship<Entity> tree3 = new Relationship<>(Entity.class);
-        tree3.add(new Relationship.Node<>(RelEntity.class, Entity::getRelEntityColl, false, true, EntityEventType.values()));
+        tree3.add(new Relationship.Node<>(RelEntity.class, Entity::getRelEntityColl, false, true, "name",EntityEventType.values()));
         return Stream.of(
                 Arguments.arguments(tree1),
                 Arguments.arguments(tree2),

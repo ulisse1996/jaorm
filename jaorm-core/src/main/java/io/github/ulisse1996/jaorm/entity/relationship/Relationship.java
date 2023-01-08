@@ -40,15 +40,21 @@ public class Relationship<T> {
         private final boolean collection;
         private final List<EntityEventType> events;
         private final Class<?> linkedClass;
+        private final String name;
         private BiConsumer<T, Object> autoSet;
 
-        public Node(Class<?> linkedClass, Function<T, ?> function, boolean opt, boolean collection, EntityEventType... events) {
+        public Node(Class<?> linkedClass, Function<T, ?> function, boolean opt, boolean collection, String name, EntityEventType... events) {
             this.function = function;
             this.opt = opt;
             this.collection = collection;
             this.events = Arrays.asList(events);
             this.linkedClass = linkedClass;
+            this.name = name;
             this.autoSet = (entity, link) -> {};
+        }
+
+        public String getName() {
+            return name;
         }
 
         public void appendThen(BiConsumer<T, Object> then) {
@@ -76,29 +82,41 @@ public class Relationship<T> {
         }
 
         @SuppressWarnings("unchecked")
-        public Result<Object> getAsOpt(T entity) {
+        public Result<Object> getAsOpt(T entity, EntityEventType eventType) {
             if (EntityDelegate.class.isAssignableFrom(entity.getClass())) {
                 entity = ((EntityDelegate<T>) entity).getEntity();
             }
-            return Optional.ofNullable((Result<Object>) function.apply(entity))
+            Result<Object> result = Optional.ofNullable((Result<Object>) function.apply(entity))
                     .orElse(Result.empty());
+            if (EntityEventType.REMOVE.equals(eventType) && !result.isPresent()) {
+                new LazyDeleteEvent().apply(entity, this);
+            }
+            return result;
         }
 
         @SuppressWarnings("unchecked")
-        public Collection<Object> getAsCollection(T entity) {
+        public Collection<Object> getAsCollection(T entity, EntityEventType eventType) {
             if (EntityDelegate.class.isAssignableFrom(entity.getClass())) {
                 entity = ((EntityDelegate<T>) entity).getEntity();
             }
             Collection<Object> res = (Collection<Object>) function.apply(entity);
-            return Optional.ofNullable(res).orElse(Collections.emptyList());
+            Collection<Object> objects = Optional.ofNullable(res).orElse(Collections.emptyList());
+            if (EntityEventType.REMOVE.equals(eventType) && objects.isEmpty()) {
+                new LazyDeleteEvent().apply(entity, this);
+            }
+            return objects;
         }
 
         @SuppressWarnings("unchecked")
-        public Object get(T entity) {
+        public Object get(T entity, EntityEventType eventType) {
             if (EntityDelegate.class.isAssignableFrom(entity.getClass())) {
                 entity = ((EntityDelegate<T>) entity).getEntity();
             }
-            return function.apply(entity);
+            Object object = function.apply(entity);
+            if (EntityEventType.REMOVE.equals(eventType) && Objects.isNull(object)) {
+                new LazyDeleteEvent().apply(entity, this);
+            }
+            return object;
         }
     }
 }

@@ -18,7 +18,7 @@ public class RemoveEvent extends PreApplyEvent {
                 throw new PersistEventException(ex);
             }
         }
-        doPreApply(entity, BaseDao::delete, false);
+        doPreApply(entity, BaseDao::delete, false, EntityEventType.REMOVE);
         QueryRunner.getInstance(entity.getClass())
                 .delete(DelegatesService.getInstance().getDeleteSql(entity.getClass()),
                         DelegatesService.getInstance().asWhere(entity).asSqlParameters());

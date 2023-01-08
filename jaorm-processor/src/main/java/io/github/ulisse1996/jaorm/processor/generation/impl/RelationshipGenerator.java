@@ -116,13 +116,14 @@ public class RelationshipGenerator extends Generator {
             String events;
             EntityEventType[] values = getEvents(relationship);
             events = asVarArgs(values);
-            builder.addStatement("rel.add(new $T<>($T.class, e -> (($T)e).$L(), $L, $L, $L))",
+            builder.addStatement("rel.add(new $T<>($T.class, e -> (($T)e).$L(), $L, $L, $S, $L))",
                     Relationship.Node.class,
                     relationship.returnTypeDefinition.getRealClass(),
                     info.entity,
                     relationship.getter.getSimpleName(),
                     relationship.returnTypeDefinition.isOptional() ? "true" : "false",
                     relationship.returnTypeDefinition.isCollection() ? "true" : "false",
+                    relationship.relationship.getSimpleName(),
                     events
             );
             addAutoSetNode(info.entity, relationship, builder);

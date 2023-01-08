@@ -223,19 +223,19 @@ public interface BaseDao<R> {
                 if (node.isOpt()) {
                     results = entities.stream()
                             .map(EntityDelegate::unboxEntity)
-                            .map(node::getAsOpt)
+                            .map(i -> node.getAsOpt(i, eventType))
                             .filter(Result::isPresent)
                             .map(Result::get)
                             .collect(Collectors.toList());
                 } else if (node.isCollection()) {
                     results = entities.stream()
                             .map(EntityDelegate::unboxEntity)
-                            .flatMap(e -> Optional.ofNullable(node.getAsCollection(e)).orElse(Collections.emptyList()).stream())
+                            .flatMap(e -> Optional.ofNullable(node.getAsCollection(e, eventType)).orElse(Collections.emptyList()).stream())
                             .collect(Collectors.toList());
                 } else {
                     results = entities.stream()
                             .map(EntityDelegate::unboxEntity)
-                            .map(node::get)
+                            .map(i -> node.get(i, eventType))
                             .filter(Objects::nonNull)
                             .collect(Collectors.toList());
                 }
