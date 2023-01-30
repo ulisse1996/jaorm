@@ -26,7 +26,7 @@ class EntityEventTest {
             Mockito.when(delegatesService.getEntityClass(Mockito.any()))
                     .then(invocation -> Object.class);
 
-            Assertions.assertEquals(Object.class, EntityEvent.forType(EntityEventType.PERSIST).getRealClass(Object.class));
+            Assertions.assertEquals(Object.class, EntityEvent.getRealClass(Object.class));
         }
     }
 }

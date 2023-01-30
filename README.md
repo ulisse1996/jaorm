@@ -28,14 +28,16 @@ JAORM is divided in modules that are used from main module using **Java SPI**
   - MySql
   - MS SQL Server
   - PostgreSQL
+  - DB2
 - Validation
 - Extensions
   - ANSI SQL Build Extensions
-  - Dependency Injection Extensions
+  - Framework and Dependency Injection Extensions
     - Micronaut Extension
     - Jakarta CDI Extension
     - Javax CDI Extension
     - Spring DI Extension
+    - Quarkus Extension
 
 ## Features
 
@@ -48,7 +50,7 @@ JAORM is divided in modules that are used from main module using **Java SPI**
 - Supports for most of famous RDBMS
 - Supports for **@Getter**, **@Setter** and **@Data** Annotations of [Lombok](https://projectlombok.org/) on Entity
 - Supports for [JSR 380](https://beanvalidation.org/2.0-jsr380/) Validation on Entity during Persist/Update
-- Supports for DI with JavaEE, JakartaEE, Micronaut and Spring
+- Supports for DI with JavaEE, JakartaEE, Micronaut, Quarkus and Spring
 
 ## Use
 

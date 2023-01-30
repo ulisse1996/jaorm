@@ -61,7 +61,7 @@ public class ConverterGenerator extends Generator {
 
     private MethodSpec getToStringMethod(ConverterInfo info) {
         return MethodSpec.overriding(ProcessorUtils.getMethod(this.processingEnvironment, "toString", Object.class))
-                .addStatement("return $S", String.format("ConvertProvider{from=%s,to%s}", info.beforeClass, info.afterClass))
+                .addStatement("return $S", String.format("ConvertProvider{from=%s,to=%s}", info.beforeClass, info.afterClass))
                 .build();
     }
 

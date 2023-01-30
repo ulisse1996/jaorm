@@ -132,7 +132,7 @@ public abstract class EventTest {
         }
 
         @Override
-        public DirtinessTracker getTracker() {
+        public DirtinessTracker<Entity> getTracker() {
             return null;
         }
 

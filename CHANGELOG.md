@@ -9,6 +9,7 @@
 - Feature: startsWith, contains, endsWith, notStartsWith, notContains and notEndsWith for like and notLike
 - Feature: Group By for Simple DSL
 - Feature: Having for Simple DSL
+- Feature: Simple one type read for Simple DSL
 - Feature: SQL Ansi Aggregation Functions (COUNT, SUM, MIN, MAX, AVG)
 - Feature: Quarkus Extension module
 - Feature: FrameworkIntegrationService for Integration with external framework like Quarkus or Micronaut
@@ -17,11 +18,18 @@
 - Feature: DB2 Sql Specifics
 - Feature: Bean Provider for Bean Validation
 - Feature: Cascade delete on not initialized lazy entities
+- Feature: UUID SqlAccessor
+- Feature: Merge for Entities
 - Removal: Removed notLike and like
 - Refactor: Refactor of IT Tests
 - Bugfix: Fix missing upsert for entities with relationships
 - Bugfix: Fix dev mode reloading issues for Quarkus
 - Bugfix: Fix event dispatch on unsupported relationships
+- Bugfix: Fix missing setEntity for projections with inherited classes
+- Bugfix: Fix NPE on where checker for Simple DSL
+- Bugfix: Fix IllegalArgumentException for invalid Vendor Function params
+- Bugfix: Fix wrong exceptions on Update/Remove Event
+- Bugfix: Removed useless update on Entities with a false modified flag
 
 ## 1.10.0
 - Feature: BeanProvider for Dependency Injection Extensions

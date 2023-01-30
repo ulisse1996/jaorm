@@ -67,7 +67,7 @@ public class ProjectionsGenerator extends Generator {
     private Iterable<MethodSpec> generateDelegations(TypeElement element) {
         List<ExecutableElement> methods = ProcessorUtils.getAllMethods(processingEnvironment, element);
         return methods.stream()
-                .map(m -> ProcessorUtils.buildDelegateMethod(m, element, false))
+                .map(m -> ProcessorUtils.buildDelegateMethod(m, element, false, false, null))
                 .collect(Collectors.toList());
     }
 
@@ -102,7 +102,7 @@ public class ProjectionsGenerator extends Generator {
 
     private CodeBlock buildSetEntityCode(TypeElement element) {
         CodeBlock.Builder builder = CodeBlock.builder();
-        List<VariableElement> annotated = element.getEnclosedElements()
+        List<VariableElement> annotated = ProcessorUtils.getAllValidElements(processingEnvironment, element)
                 .stream()
                 .filter(e -> e.getAnnotation(Column.class) != null)
                 .map(VariableElement.class::cast)

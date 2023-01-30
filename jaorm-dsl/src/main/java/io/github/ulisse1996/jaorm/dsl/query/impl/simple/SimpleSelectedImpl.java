@@ -8,7 +8,7 @@ import io.github.ulisse1996.jaorm.dsl.query.impl.AbstractLimitOffsetImpl;
 import io.github.ulisse1996.jaorm.dsl.query.simple.FromSimpleSelected;
 import io.github.ulisse1996.jaorm.dsl.query.simple.SimpleSelected;
 import io.github.ulisse1996.jaorm.dsl.query.simple.intermediate.*;
-import io.github.ulisse1996.jaorm.dsl.query.simple.trait.WithProjectionResult;
+import io.github.ulisse1996.jaorm.dsl.query.simple.trait.WithResult;
 import io.github.ulisse1996.jaorm.dsl.util.Checker;
 import io.github.ulisse1996.jaorm.dsl.util.Pair;
 import io.github.ulisse1996.jaorm.entity.SqlColumn;
@@ -67,14 +67,14 @@ public class SimpleSelectedImpl extends AbstractLimitOffsetImpl implements Simpl
 
     @Override
     public <R> R read(Class<R> klass) {
-        checkProjection(klass);
+        checkProjectionOrSimpleType(klass);
         Pair<String, List<SqlParameter>> build = doBuild();
         return QueryRunner.getInstance(klass).read(klass, build.getKey(), build.getValue());
     }
 
     @Override
     public <R> Optional<R> readOpt(Class<R> klass) {
-        checkProjection(klass);
+        checkProjectionOrSimpleType(klass);
         Pair<String, List<SqlParameter>> build = doBuild();
         return QueryRunner.getInstance(klass).readOpt(klass, build.getKey(), build.getValue())
                 .toOptional();
@@ -82,13 +82,13 @@ public class SimpleSelectedImpl extends AbstractLimitOffsetImpl implements Simpl
 
     @Override
     public <R> List<R> readAll(Class<R> klass) {
-        checkProjection(klass);
+        checkProjectionOrSimpleType(klass);
         Pair<String, List<SqlParameter>> build = doBuild();
         return QueryRunner.getInstance(klass).readAll(klass, build.getKey(), build.getValue());
     }
 
     @Override
-    public WithProjectionResult union(WithProjectionResult union) {
+    public WithResult union(WithResult union) {
         SimpleSelectedImpl selected;
         if (union instanceof SimpleJoinImpl) {
             selected = ((SimpleJoinImpl) union).getParent();
@@ -99,8 +99,15 @@ public class SimpleSelectedImpl extends AbstractLimitOffsetImpl implements Simpl
         return this;
     }
 
-    private void checkProjection(Class<?> klass) {
-        ProjectionsService.getInstance().searchDelegate(klass);
+    private void checkProjectionOrSimpleType(Class<?> klass) {
+        try {
+            ProjectionsService.getInstance().searchDelegate(klass);
+        } catch (IllegalArgumentException ex) {
+            // Skip for simple read with only one column
+            if (this.columns.size() != 1) {
+                throw ex;
+            }
+        }
     }
 
     public FromSimpleSelected from(String table, String alias) {

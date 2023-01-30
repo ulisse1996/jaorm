@@ -90,7 +90,7 @@ public class EntityGenerator extends Generator {
         builder.addField(addInsertSql());
         builder.addField(addUpdateSql());
         builder.addField(addDeleteSql());
-        builder.addField(addTracker());
+        builder.addField(addTracker(entity));
         builder.addField(addLazyEntityInfo());
         builder.addField(addRelationshipManager(entity));
         builder.addField(TypeName.INT, "modifiedRow", Modifier.PRIVATE);
@@ -123,9 +123,10 @@ public class EntityGenerator extends Generator {
         ).build();
     }
 
-    private FieldSpec addTracker() {
-        return FieldSpec.builder(DirtinessTracker.class, "tracker", Modifier.PRIVATE)
-                .initializer("new $T(this)", DirtinessTracker.class)
+    private FieldSpec addTracker(TypeElement entity) {
+        ParameterizedTypeName type = ParameterizedTypeName.get(ClassName.get(DirtinessTracker.class), ClassName.get(entity));
+        return FieldSpec.builder(type, "tracker", Modifier.PRIVATE)
+                .initializer("new $T(this)", type)
                 .build();
     }
 
@@ -144,27 +145,35 @@ public class EntityGenerator extends Generator {
     private DelegationInfo buildDelegation(TypeElement entity) {
         List<? extends Element> elements = ProcessorUtils.getAllValidElements(processingEnvironment, entity);
         List<ExecutableElement> methods = ProcessorUtils.getAllMethods(processingEnvironment, entity);
-        List<Map.Entry<Element, ExecutableElement>> joins = new ArrayList<>();
+        List<JoinInfo> joins = new ArrayList<>();
         for (Element element : elements) {
             if (hasJoinAnnotation(element)) {
                 ExecutableElement getter = ProcessorUtils.findGetter(processingEnvironment,
                         entity, element.getSimpleName());
-                joins.add(new AbstractMap.SimpleImmutableEntry<>(element, getter));
+                ExecutableElement setter = ProcessorUtils.findSetter(processingEnvironment,
+                        entity, element.getSimpleName());
+                joins.add(new JoinInfo(element, getter, setter));
             }
         }
 
         List<CodeBlock> blocks = new ArrayList<>();
         List<MethodSpec> specs = new ArrayList<>();
         for (ExecutableElement m : methods) {
-            Optional<Map.Entry<Element, ExecutableElement>> join = joins.stream()
-                    .filter(p -> p.getValue().equals(m))
+            Optional<JoinInfo> join = joins.stream()
+                    .filter(p -> p.getter.equals(m) || p.setter.equals(m))
                     .findFirst();
             if (join.isPresent()) {
-                Map.Entry<CodeBlock, MethodSpec> generated = buildJoinMethod(entity, join.get());
-                specs.add(generated.getValue());
-                blocks.add(generated.getKey());
+                if (join.get().getter.equals(m)) {
+                    Map.Entry<CodeBlock, MethodSpec> generated = buildJoinMethod(entity, join.get());
+                    specs.add(generated.getValue());
+                    blocks.add(generated.getKey());
+                } else if (ProcessorUtils.isCollectionType(join.get().field.asType())) {
+                    specs.add(ProcessorUtils.buildDelegateMethod(m, entity, true, true, join.get().getter));
+                } else {
+                    specs.add(ProcessorUtils.buildDelegateMethod(m, entity, true, false, join.get().getter));
+                }
             } else {
-                specs.add(ProcessorUtils.buildDelegateMethod(m, entity, true));
+                specs.add(ProcessorUtils.buildDelegateMethod(m, entity, true, false, null));
             }
         }
         return new DelegationInfo(specs, blocks);
@@ -174,8 +183,8 @@ public class EntityGenerator extends Generator {
         return ele.getAnnotation(Relationship.class) != null;
     }
 
-    private Map.Entry<CodeBlock, MethodSpec> buildJoinMethod(TypeElement entity, Map.Entry<Element, ExecutableElement> join) {
-        ExecutableElement method = join.getValue();
+    private Map.Entry<CodeBlock, MethodSpec> buildJoinMethod(TypeElement entity, JoinInfo join) {
+        ExecutableElement method = join.getter;
         ReturnTypeDefinition definition = new ReturnTypeDefinition(processingEnvironment, method.getReturnType());
         String runnerMethod;
         if (definition.isCollection()) {
@@ -188,12 +197,12 @@ public class EntityGenerator extends Generator {
             runnerMethod = "read";
         }
 
-        Relationship relationship = join.getKey().getAnnotation(Relationship.class);
+        Relationship relationship = join.field.getAnnotation(Relationship.class);
         Relationship.RelationshipColumn[] columns = relationship.columns();
 
         CodeBlock.Builder builder = CodeBlock.builder()
                 .addStatement(REQUIRE_NON_NULL, Objects.class)
-                .beginControlFlow("if (this.entity.$L() == null)", join.getValue().getSimpleName())
+                .beginControlFlow("if (this.entity.$L() == null)", join.getter.getSimpleName())
                 .addStatement("$T params = new $T<>()", ParameterizedTypeName.get(List.class, SqlParameter.class), ArrayList.class);
 
         List<Relationship.RelationshipColumn> sorted = Arrays.stream(columns)
@@ -205,15 +214,27 @@ public class EntityGenerator extends Generator {
             buildJoinParam(column, builder, targetColumn, entity);
         }
         String wheres = createJoinWhere(sorted);
-        CodeBlock block = builder.addStatement("this.entity.$L($T.getInstance($T.class).$L($T.class, $T.getInstance().getSimpleSql($T.class) +  $S, params))",
-                ProcessorUtils.findSetter(processingEnvironment, entity, join.getKey().getSimpleName()).getSimpleName(),
-                QueryRunner.class, definition.getRealClass(), runnerMethod, definition.getRealClass(), DelegatesService.class,
-                definition.getRealClass(), wheres)
-            .endControlFlow()
-            .addStatement("return this.entity.$L()", join.getValue().getSimpleName())
-            .build();
+        CodeBlock block;
+        if (ProcessorUtils.isCollectionType(join.field.asType())) {
+            block = builder.addStatement("this.entity.$L(new $T<$T>($T.getInstance($T.class).$L($T.class, $T.getInstance().getSimpleSql($T.class) +  $S, params)))",
+                            ProcessorUtils.findSetter(processingEnvironment, entity, join.field.getSimpleName()).getSimpleName(),
+                            TrackedList.class, definition.getRealClass(),
+                            QueryRunner.class, definition.getRealClass(), runnerMethod, definition.getRealClass(), DelegatesService.class,
+                            definition.getRealClass(), wheres)
+                    .endControlFlow()
+                    .addStatement("return this.entity.$L()", join.getter.getSimpleName())
+                    .build();
+        } else {
+            block = builder.addStatement("this.entity.$L($T.getInstance($T.class).$L($T.class, $T.getInstance().getSimpleSql($T.class) +  $S, params))",
+                            ProcessorUtils.findSetter(processingEnvironment, entity, join.field.getSimpleName()).getSimpleName(),
+                            QueryRunner.class, definition.getRealClass(), runnerMethod, definition.getRealClass(), DelegatesService.class,
+                            definition.getRealClass(), wheres)
+                    .endControlFlow()
+                    .addStatement("return this.entity.$L()", join.getter.getSimpleName())
+                    .build();
+        }
 
-        CodeBlock relationshipInfo = generateRelInfo(join.getKey().getSimpleName(), wheres, entity, columns);
+        CodeBlock relationshipInfo = generateRelInfo(join.field.getSimpleName(), wheres, entity, columns);
         MethodSpec delegate = MethodSpec.overriding(method)
                 .addCode(block)
                 .build();
@@ -427,6 +448,7 @@ public class EntityGenerator extends Generator {
                 .build();
 
         MethodSpec getTracker = MethodSpec.overriding(ProcessorUtils.getMethod(processingEnvironment, "getTracker", EntityDelegate.class))
+                .returns(ParameterizedTypeName.get(ClassName.get(DirtinessTracker.class), ClassName.get(entity)))
                 .addStatement("return this.tracker")
                 .build();
 
@@ -811,6 +833,19 @@ public class EntityGenerator extends Generator {
         return ClassName.get(entity).packageName();
     }
 
+    private static class JoinInfo {
+
+        private final Element field;
+        private final ExecutableElement getter;
+        private final ExecutableElement setter;
+
+        private JoinInfo(Element field, ExecutableElement getter, ExecutableElement setter) {
+            this.field = field;
+            this.getter = getter;
+            this.setter = setter;
+        }
+    }
+
     private static class Accessor {
 
         private final String name;
@@ -843,8 +878,8 @@ public class EntityGenerator extends Generator {
             ExecutableElement getter = ProcessorUtils.findGetter(processingEnvironment, entity, element.getSimpleName());
             ExecutableElement setter = ProcessorUtils.findSetter(processingEnvironment, entity, element.getSimpleName());
             if (converter != null) {
-                converterInstance = ProcessorUtils.getConverterCaller(processingEnvironment, (VariableElement) element);
-                beforeConverterClass = ProcessorUtils.getConverterTypes(processingEnvironment, (VariableElement) element)
+                converterInstance = ProcessorUtils.getConverterCaller(processingEnvironment, element);
+                beforeConverterClass = ProcessorUtils.getConverterTypes(processingEnvironment, element)
                         .get(0);
             }
             return new Accessor(

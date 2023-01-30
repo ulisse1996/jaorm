@@ -1,13 +1,13 @@
 package io.github.ulisse1996.jaorm;
 
 import io.github.ulisse1996.jaorm.entity.DirtinessTracker;
+import io.github.ulisse1996.jaorm.entity.EntityDelegate;
+import io.github.ulisse1996.jaorm.entity.EntityMapper;
 import io.github.ulisse1996.jaorm.entity.SqlColumn;
 import io.github.ulisse1996.jaorm.entity.relationship.LazyEntityInfo;
 import io.github.ulisse1996.jaorm.entity.relationship.RelationshipManager;
 import io.github.ulisse1996.jaorm.schema.TableInfo;
 import io.github.ulisse1996.jaorm.spi.DelegatesService;
-import io.github.ulisse1996.jaorm.entity.EntityDelegate;
-import io.github.ulisse1996.jaorm.entity.EntityMapper;
 
 import java.math.BigDecimal;
 import java.sql.ResultSet;
@@ -158,7 +158,7 @@ public class DelegatesMock extends DelegatesService {
         }
 
         @Override
-        public DirtinessTracker getTracker() {
+        public DirtinessTracker<MyEntity> getTracker() {
             return null;
         }
 

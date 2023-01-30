@@ -19,6 +19,15 @@ public interface EntityDelegate<T> {
         return e;
     }
 
+    @SuppressWarnings("unchecked")
+    static <R> EntityDelegate<R> unwrap(R e) {
+        if (e instanceof EntityDelegate<?>) {
+            return (EntityDelegate<R>) e;
+        } else {
+            throw new UnsupportedOperationException("Object is not an EntityDelegate");
+        }
+    }
+
     EntityDelegate<T> generateDelegate();
     Supplier<T> getEntityInstance();
     EntityMapper<T> getEntityMapper();
@@ -38,7 +47,7 @@ public interface EntityDelegate<T> {
     boolean isDefaultGeneration();
     T initDefault(T entity);
     TableInfo toTableInfo();
-    DirtinessTracker getTracker();
+    DirtinessTracker<T> getTracker();
     boolean isLazyEntity();
     LazyEntityInfo getLazyInfo();
     void setLazyInfo(LazyEntityInfo info);

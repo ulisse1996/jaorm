@@ -9,6 +9,7 @@ import io.github.ulisse1996.jaorm.annotation.Converter;
 import io.github.ulisse1996.jaorm.annotation.Dao;
 import io.github.ulisse1996.jaorm.annotation.Query;
 import io.github.ulisse1996.jaorm.entity.Result;
+import io.github.ulisse1996.jaorm.entity.TrackedList;
 import io.github.ulisse1996.jaorm.entity.converter.ValueConverter;
 import io.github.ulisse1996.jaorm.external.LombokMock;
 import io.github.ulisse1996.jaorm.external.LombokSupport;
@@ -572,7 +573,7 @@ public class ProcessorUtils {
         return "";
     }
 
-    public static MethodSpec buildDelegateMethod(ExecutableElement m, TypeElement entity, boolean forEntity) {
+    public static MethodSpec buildDelegateMethod(ExecutableElement m, TypeElement entity, boolean forEntity, boolean wrappedList, ExecutableElement getter) {
         MethodSpec.Builder builder = MethodSpec.overriding(m)
                 .addStatement(REQUIRE_NON_NULL, Objects.class);
         String variables = ProcessorUtils.extractParameterNames(m);
@@ -583,7 +584,14 @@ public class ProcessorUtils {
             if (forEntity) {
                 builder.addStatement("this.modified = true");
             }
-            builder.addStatement("this.entity.$L($L)", m.getSimpleName(), variables);
+            if (wrappedList) {
+                builder.addStatement("this.entity.$L($T.merge(this.entity.$L(), $L))", m.getSimpleName(), TrackedList.class, getter.getSimpleName(), variables);
+            } else {
+                if (getter != null) {
+                    builder.addStatement("this.tracker.registerRemoved(this.entity.$L())", getter.getSimpleName());
+                }
+                builder.addStatement("this.entity.$L($L)", m.getSimpleName(), variables);
+            }
         } else {
             builder.addStatement("return this.entity.$L($L)", m.getSimpleName(), variables);
         }

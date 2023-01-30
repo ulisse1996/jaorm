@@ -169,7 +169,7 @@ class RelationshipServiceTest {
         }
 
         @Override
-        public DirtinessTracker getTracker() {
+        public DirtinessTracker<String> getTracker() {
             return null;
         }
 

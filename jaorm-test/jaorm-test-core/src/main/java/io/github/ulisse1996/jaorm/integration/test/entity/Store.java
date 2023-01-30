@@ -10,6 +10,10 @@ public class Store {
 
     public Store() {}
 
+    public Store(int storeId) {
+        this(storeId, null, 0);
+    }
+
     public Store(int storeId, String name, int cityId) {
         this.storeId = storeId;
         this.name = name;

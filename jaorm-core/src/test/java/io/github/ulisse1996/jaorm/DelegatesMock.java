@@ -194,7 +194,7 @@ public class DelegatesMock extends DelegatesService {
         }
 
         @Override
-        public DirtinessTracker getTracker() {
+        public DirtinessTracker<MyEntity> getTracker() {
             return null;
         }
 

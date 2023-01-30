@@ -27,6 +27,7 @@ public abstract class CoreIT extends AbstractIT {
     private final UserRoleDAO userRoleDAO = QueriesService.getInstance().getQuery(UserRoleDAO.class);
     private final CityDAO cityDAO = QueriesService.getInstance().getQuery(CityDAO.class);
     private final SellerDao sellerDao = QueriesService.getInstance().getQuery(SellerDao.class);
+    private final StoreDAO storeDAO = QueriesService.getInstance().getQuery(StoreDAO.class);
 
     @Override
     protected void afterInit() throws Exception {
@@ -295,15 +296,7 @@ public abstract class CoreIT extends AbstractIT {
 
     @Test
     void should_delete_not_fetched_relationships_recursively() {
-        Store store = new Store(1, "NAME", 1);
-        store.setSellers(List.of(new Seller(1, "SELLER1", 1), new Seller(2, "SELLER2", 1)));
-        Store store2 = new Store(2, "NAME2", 1);
-        store2.setSellers(List.of(new Seller(3, "SELLER1", 2), new Seller(4, "SELLER2", 2)));
-
-        City city = new City();
-        city.setCityId(1);
-        city.setName("NAME");
-        city.setStores(List.of(store, store2));
+        City city = createCityWithStores();
 
         cityDAO.insert(city); // 7 City, Store (2), Seller (4)
 
@@ -313,6 +306,61 @@ public abstract class CoreIT extends AbstractIT {
 
         Assertions.assertEquals(0, sellerDao.readAll().size()); // 12
         assertTotalInvocations(12);
+    }
+
+    @Test
+    void should_merge_city_with_removed_stores() {
+        City city = createCityWithStores();
+
+        cityDAO.insert(city); // 7 City, Store (2), Seller (4)
+
+        Assertions.assertEquals(4, sellerDao.readAll().size()); // 8
+
+        city = cityDAO.read(city); // 9
+        city.getStores().clear(); // 10
+        cityDAO.merge(city); // 14
+
+        Assertions.assertEquals(0, sellerDao.readAll().size()); // 16, 4 remove + 1 update
+        assertTotalInvocations(16);
+    }
+
+    @Test
+    void should_merge_city_with_removed_store_and_new_store() {
+        Store store3 = new Store(3, "NAME3", 1);
+        store3.setSellers(List.of(new Seller(4, "SELLER1", 3), new Seller(5, "SELLER2", 3)));
+        City city = createCityWithStores();
+
+        cityDAO.insert(city); // 7 City, Store (2), Seller (4)
+
+        Assertions.assertEquals(2, storeDAO.readAll().size()); // 8
+
+        city = cityDAO.read(city); // 9
+        city.getStores().set(1, store3); // 10
+
+        cityDAO.merge(city); // 15, 2 delete (store2 + seller), 3 insert (store3 + seller)
+
+        Assertions.assertFalse(storeDAO.readOpt(new Store(2)).isPresent()); // 16
+
+        Optional<Store> s = storeDAO.readOpt(store3); // 17
+
+        Assertions.assertTrue(s.isPresent());
+        Assertions.assertEquals(2, s.get().getSellers().size()); // 18
+
+        assertTotalInvocations(18);
+    }
+
+    @NotNull
+    private City createCityWithStores() {
+        Store store = new Store(1, "NAME", 1);
+        store.setSellers(List.of(new Seller(1, "SELLER1", 1), new Seller(2, "SELLER2", 1)));
+        Store store2 = new Store(2, "NAME2", 1);
+        store2.setSellers(List.of(new Seller(3, "SELLER1", 2), new Seller(4, "SELLER2", 2)));
+
+        City city = new City();
+        city.setCityId(1);
+        city.setName("NAME");
+        city.setStores(List.of(store, store2));
+        return city;
     }
 
     // Utils

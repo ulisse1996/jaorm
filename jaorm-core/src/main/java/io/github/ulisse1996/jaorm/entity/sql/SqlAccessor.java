@@ -62,6 +62,7 @@ public abstract class SqlAccessor {
         }
     }){};
     public static final SqlAccessor NULL = new SqlAccessor(void.class, (rs, colName) -> null, (pr, index, val) -> pr.setNull(index, JDBCType.NULL.getVendorTypeNumber())){};
+    public static final SqlAccessor UUID = new SqlAccessor(java.util.UUID.class, (rs, colName) -> java.util.UUID.fromString(rs.getString(colName)), (pr, index, value) -> pr.setString(index, value.toString())) {};
 
     private static final List<SqlAccessor> ALL = Arrays.asList(
             BYTE, BYTE_WRAPPER, SHORT, SHORT_WRAPPER, INTEGER, INTEGER_WRAPPER,
@@ -69,7 +70,8 @@ public abstract class SqlAccessor {
             STRING, BOOLEAN, BOOLEAN_WRAPPER, ARRAY, STREAM, BLOB,
             BYTES, NCLOB, XML, TIME, TIMESTAMP, URL, DATE, DATE_UTIL,
             INSTANT, OFFSET_DATE_TIME, ZONED_DATE_TIME, LOCAL_DATE_TIME,
-            LOCAL_DATE, LOCAL_TIME, OFFSET_TIME, BIG_DECIMAL, BIG_INTEGER, NULL
+            LOCAL_DATE, LOCAL_TIME, OFFSET_TIME, BIG_DECIMAL, BIG_INTEGER, NULL,
+            UUID
     );
 
     private final Class<?> klass;
