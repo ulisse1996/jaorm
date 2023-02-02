@@ -76,24 +76,44 @@ public class QueryBuilder {
         return new SimpleSelectedImpl(
                 Arrays.stream(selectables)
                         .map(el -> new AliasColumn(el, null))
-                        .collect(Collectors.toList())
+                        .collect(Collectors.toList()),
+                false
+        );
+    }
+
+    public static SimpleSelected selectDistinct(Selectable<?>... selectables) {
+        return new SimpleSelectedImpl(
+                Arrays.stream(selectables)
+                        .map(el -> new AliasColumn(el, null))
+                        .collect(Collectors.toList()),
+                true
         );
     }
 
     public static IntermediateSelected select(Selectable<?> selectable) {
-        return new IntermediateSelected(selectable, null);
+        return new IntermediateSelected(selectable, null, false);
     }
 
     public static IntermediateSelected select(Selectable<?> selectable, String alias) {
-        return new IntermediateSelected(selectable, alias);
+        return new IntermediateSelected(selectable, alias, false);
+    }
+
+    public static IntermediateSelected selectDistinct(Selectable<?> selectable) {
+        return new IntermediateSelected(selectable, null, true);
+    }
+
+    public static IntermediateSelected selectDistinct(Selectable<?> selectable, String alias) {
+        return new IntermediateSelected(selectable, alias, true);
     }
 
     public static class IntermediateSelected implements SimpleSelected {
 
         private final List<AliasColumn> selectables;
         private QueryConfig config;
+        private final boolean distinct;
 
-        private IntermediateSelected(Selectable<?> selectable, String alias) {
+        private IntermediateSelected(Selectable<?> selectable, String alias, boolean distinct) {
+            this.distinct = distinct;
             this.selectables = new ArrayList<>();
             this.selectables.add(new AliasColumn(selectable, alias));
         }
@@ -120,7 +140,7 @@ public class QueryBuilder {
 
         @Override
         public FromSimpleSelected from(String table, String alias) {
-            SimpleSelected selected = new SimpleSelectedImpl(this.selectables);
+            SimpleSelected selected = new SimpleSelectedImpl(this.selectables, this.distinct);
             if (this.config != null) {
                 selected = selected.withConfiguration(config);
             }

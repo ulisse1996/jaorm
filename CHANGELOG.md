@@ -20,6 +20,7 @@
 - Feature: Cascade delete on not initialized lazy entities
 - Feature: UUID SqlAccessor
 - Feature: Merge for Entities
+- Feature: Simple DSL distinct select
 - Removal: Removed notLike and like
 - Refactor: Refactor of IT Tests
 - Bugfix: Fix missing upsert for entities with relationships

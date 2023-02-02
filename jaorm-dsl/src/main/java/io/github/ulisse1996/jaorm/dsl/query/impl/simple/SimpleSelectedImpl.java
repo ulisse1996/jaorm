@@ -40,6 +40,7 @@ public class SimpleSelectedImpl extends AbstractLimitOffsetImpl implements Simpl
     private final List<SimpleWhereImpl<?>> wheres;
     private final List<GroupImpl> groups;
     private final List<IntermediateSimpleHavingImpl<?>> havings;
+    private final boolean distinct;
     private SimpleWhereImpl<?> lastWhere;
     private String table;
     private String alias;
@@ -47,7 +48,8 @@ public class SimpleSelectedImpl extends AbstractLimitOffsetImpl implements Simpl
     private int limit;
     private int offset;
 
-    public SimpleSelectedImpl(List<AliasColumn> columns) {
+    public SimpleSelectedImpl(List<AliasColumn> columns, boolean distinct) {
+        this.distinct = distinct;
         this.columns = Collections.unmodifiableList(
                 Checker.assertNotNull(columns, "columns")
         );
@@ -228,7 +230,7 @@ public class SimpleSelectedImpl extends AbstractLimitOffsetImpl implements Simpl
                         .map(SqlParameter::new)
                         .collect(Collectors.toList())
         );
-        return "SELECT " + s;
+        return "SELECT " + (distinct ? "DISTINCT " : "") + s;
     }
 
     private String getVendorFunctionColumn(AliasColumn i, AliasesSpecific aliasesSpecific) {
