@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 2.0.0
+## 2.0.0-RC3
 - Feature: Source Code move to Java 11
 - Feature: Custom Converter without **@Converter** annotation using **@ConverterProvider**
 - Feature: Custom SqlAccessor for Vendor Specific
