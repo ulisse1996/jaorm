@@ -8,12 +8,14 @@ import io.github.ulisse1996.jaorm.spi.common.Singleton;
 import io.github.ulisse1996.jaorm.spi.impl.DefaultRelationships;
 import io.github.ulisse1996.jaorm.spi.provider.RelationshipProvider;
 
+import java.util.Map;
+
 public abstract class RelationshipService {
 
     private static final Singleton<RelationshipService> INSTANCE = Singleton.instance();
 
     public static synchronized RelationshipService getInstance() {
-        if (!INSTANCE.isPresent()) {
+        if (!INSTANCE.isPresent() || FrameworkIntegrationService.isReloadRequired(RelationshipService.INSTANCE.get().getAllRelationships().keySet())) {
             INSTANCE.set(new DefaultRelationships(ServiceFinder.loadServices(RelationshipProvider.class)));
         }
         return INSTANCE.get();
@@ -36,4 +38,5 @@ public abstract class RelationshipService {
     }
 
     public abstract <T> Relationship<T> getRelationships(Class<T> entityClass);
+    public abstract Map<Class<?>, Relationship<?>> getAllRelationships();
 }

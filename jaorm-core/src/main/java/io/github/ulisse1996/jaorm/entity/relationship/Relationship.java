@@ -41,7 +41,7 @@ public class Relationship<T> {
         private final List<EntityEventType> events;
         private final Class<?> linkedClass;
         private final String name;
-        private BiConsumer<T, Object> autoSet;
+        private BiConsumer<Object, T> autoSet;
 
         public Node(Class<?> linkedClass, Function<T, ?> function, boolean opt, boolean collection, String name, EntityEventType... events) {
             this.function = function;
@@ -57,11 +57,11 @@ public class Relationship<T> {
             return name;
         }
 
-        public void appendThen(BiConsumer<T, Object> then) {
+        public void appendThen(BiConsumer<Object, T> then) {
             this.autoSet = this.autoSet.andThen(then);
         }
 
-        public BiConsumer<T, Object> getAutoSet() { //NOSONAR
+        public BiConsumer<Object, T> getAutoSet() { //NOSONAR
             return autoSet;
         }
 

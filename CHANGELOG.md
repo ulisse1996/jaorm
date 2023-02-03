@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 2.0.0-RC3
+## 2.0.0
 - Feature: Source Code move to Java 11
 - Feature: Custom Converter without **@Converter** annotation using **@ConverterProvider**
 - Feature: Custom SqlAccessor for Vendor Specific
@@ -21,6 +21,7 @@
 - Feature: UUID SqlAccessor
 - Feature: Merge for Entities
 - Feature: Simple DSL distinct select
+- Feature: Added missing methods from Optional to Result
 - Removal: Removed notLike and like
 - Refactor: Refactor of IT Tests
 - Bugfix: Fix missing upsert for entities with relationships
@@ -31,6 +32,7 @@
 - Bugfix: Fix IllegalArgumentException for invalid Vendor Function params
 - Bugfix: Fix wrong exceptions on Update/Remove Event
 - Bugfix: Removed useless update on Entities with a false modified flag
+- Bugfix: Fix auto-set inverse execution
 
 ## 1.10.0
 - Feature: BeanProvider for Dependency Injection Extensions

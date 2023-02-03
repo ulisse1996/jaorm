@@ -27,6 +27,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -846,6 +847,11 @@ class BaseDaoTest {
 
         @Override
         public <T> Relationship<T> getRelationships(Class<T> entityClass) {
+            return null;
+        }
+
+        @Override
+        public Map<Class<?>, Relationship<?>> getAllRelationships() {
             return null;
         }
     }

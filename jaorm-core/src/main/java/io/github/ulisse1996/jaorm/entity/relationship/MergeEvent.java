@@ -81,7 +81,7 @@ public class MergeEvent extends PreApplyEvent {
                     applyRemove(((TrackedList<?>) collection).getRemovedElements());
                 }
                 collection.forEach(i -> {
-                    node.getAutoSet().accept(entity, i);
+                    node.getAutoSet().accept(i, entity);
                     Objects.requireNonNull(i, "Collection can't contains null values !");
                     BaseDao<Object> baseDao = QueriesService.getInstance().getBaseDao((Class<Object>) i.getClass());
                     baseDao.merge(i);
@@ -90,14 +90,14 @@ public class MergeEvent extends PreApplyEvent {
                 Result<Object> optional = node.getAsOpt(entity, EntityEventType.MERGE);
                 if (optional.isPresent()) {
                     Object i = optional.get();
-                    node.getAutoSet().accept(entity, i);
+                    node.getAutoSet().accept(i, entity);
                     BaseDao<Object> baseDao = QueriesService.getInstance().getBaseDao((Class<Object>) i.getClass());
                     baseDao.merge(i);
                 }
             } else {
                 Object i = node.get(entity, EntityEventType.MERGE);
                 if (i != null) {
-                    node.getAutoSet().accept(entity, i);
+                    node.getAutoSet().accept(i, entity);
                     BaseDao<Object> baseDao = QueriesService.getInstance().getBaseDao((Class<Object>) i.getClass());
                     baseDao.merge(i);
                 }

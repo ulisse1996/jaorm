@@ -9,13 +9,15 @@ import io.github.ulisse1996.jaorm.spi.provider.GraphProvider;
 
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public abstract class GraphsService {
 
     private static final Singleton<GraphsService> INSTANCE = Singleton.instance();
 
     public static synchronized GraphsService getInstance() {
-        if (!INSTANCE.isPresent()) {
+        if (!INSTANCE.isPresent() || FrameworkIntegrationService.isReloadRequired(
+                INSTANCE.get().getEntityGraphs().keySet().stream().map(GraphPair::getEntity).collect(Collectors.toSet()))) {
             Iterable<GraphProvider> providers = ServiceFinder.loadServices(GraphProvider.class);
             INSTANCE.set(new DefaultGraphs(providers));
         }

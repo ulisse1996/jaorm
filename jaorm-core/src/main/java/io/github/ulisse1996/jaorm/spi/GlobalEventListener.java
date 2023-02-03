@@ -5,6 +5,7 @@ import io.github.ulisse1996.jaorm.entity.event.GlobalEventType;
 import io.github.ulisse1996.jaorm.exception.GlobalEventException;
 import io.github.ulisse1996.jaorm.spi.common.Singleton;
 
+import java.util.Collections;
 import java.util.ServiceConfigurationError;
 
 public abstract class GlobalEventListener {
@@ -19,7 +20,7 @@ public abstract class GlobalEventListener {
                     .orElse(NoOp.INSTANCE);
         }
 
-        if (!INSTANCE.isPresent()) {
+        if (!INSTANCE.isPresent() || FrameworkIntegrationService.isReloadRequired(Collections.singleton(GlobalEventListener.class))) {
             try {
                 INSTANCE.set(ServiceFinder.loadService(GlobalEventListener.class));
             } catch (Exception | ServiceConfigurationError ex) {

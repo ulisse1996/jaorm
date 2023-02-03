@@ -212,5 +212,10 @@ class RelationshipServiceTest {
         public <T> Relationship<T> getRelationships(Class<T> entityClass) {
             return (Relationship<T>) map.get(entityClass);
         }
+
+        @Override
+        public Map<Class<?>, Relationship<?>> getAllRelationships() {
+            return map;
+        }
     }
 }

@@ -3,6 +3,8 @@ package io.github.ulisse1996.jaorm.spi;
 import io.github.ulisse1996.jaorm.ServiceFinder;
 import io.github.ulisse1996.jaorm.spi.common.Singleton;
 
+import java.util.Collections;
+
 public abstract class FeatureConfigurator {
 
     private static final Singleton<FeatureConfigurator> INSTANCE = Singleton.instance();
@@ -15,7 +17,7 @@ public abstract class FeatureConfigurator {
                     .orElse(DefaultConfiguration.INSTANCE);
         }
 
-        if (!INSTANCE.isPresent()) {
+        if (!INSTANCE.isPresent() || FrameworkIntegrationService.isReloadRequired(Collections.singleton(INSTANCE.get().getClass()))) {
             try {
                 INSTANCE.set(ServiceFinder.loadService(FeatureConfigurator.class));
             } catch (Exception ex) {

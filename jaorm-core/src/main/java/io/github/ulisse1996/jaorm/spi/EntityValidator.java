@@ -4,6 +4,7 @@ import io.github.ulisse1996.jaorm.ServiceFinder;
 import io.github.ulisse1996.jaorm.entity.validation.ValidationResult;
 import io.github.ulisse1996.jaorm.spi.common.Singleton;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.ServiceConfigurationError;
 
@@ -12,7 +13,7 @@ public abstract class EntityValidator {
     private static final Singleton<EntityValidator> INSTANCE = Singleton.instance();
 
     public static synchronized EntityValidator getInstance() {
-        if (!INSTANCE.isPresent()) {
+        if (!INSTANCE.isPresent() || FrameworkIntegrationService.isReloadRequired(Collections.singleton(INSTANCE.get().getClass()))) {
             try {
                 INSTANCE.set(ServiceFinder.loadService(EntityValidator.class));
             } catch (Exception | ServiceConfigurationError ex) {

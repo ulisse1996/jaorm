@@ -41,7 +41,7 @@ public abstract class DelegatesService {
                     .stream()
                     .filter(el -> el.getKey().isAssignableFrom(delegateClass))
                     .findFirst()
-                    .map(Map.Entry::getKey)
+                    .map(e -> e.getValue().get().toTableInfo().getEntity())
                     .orElseThrow(() -> new IllegalArgumentException("Can't find real class from delegate " + delegateClass));
         }
     }

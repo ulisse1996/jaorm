@@ -172,20 +172,20 @@ public class RelationshipGenerator extends Generator {
                     params.put(
                             "(($T)link).$L((($T)entity).$L())",
                             Arrays.asList(
-                                    rel,
-                                    ProcessorUtils.findSetter(processingEnvironment, rel, toSet.getSimpleName()).getSimpleName(),
                                     entity,
-                                    ProcessorUtils.findGetter(processingEnvironment, entity, fromSet.getSimpleName()).getSimpleName()
+                                    ProcessorUtils.findSetter(processingEnvironment, entity, fromSet.getSimpleName()).getSimpleName(),
+                                    rel,
+                                    ProcessorUtils.findGetter(processingEnvironment, rel, toSet.getSimpleName()).getSimpleName()
                             ));
                 } else {
                     params.put(
                             "(($T)link).$L($L.toSql((($T)entity).$L()))",
                             Arrays.asList(
-                                    rel,
-                                    ProcessorUtils.findSetter(processingEnvironment, rel, toSet.getSimpleName()).getSimpleName(),
-                                    ProcessorUtils.getConverterCaller(processingEnvironment, fromSet),
                                     entity,
-                                    ProcessorUtils.findGetter(processingEnvironment, entity, fromSet.getSimpleName()).getSimpleName()
+                                    ProcessorUtils.findSetter(processingEnvironment, entity, fromSet.getSimpleName()).getSimpleName(),
+                                    ProcessorUtils.getConverterCaller(processingEnvironment, fromSet),
+                                    rel,
+                                    ProcessorUtils.findGetter(processingEnvironment, rel, toSet.getSimpleName()).getSimpleName()
                             ));
                 }
             }
@@ -207,6 +207,8 @@ public class RelationshipGenerator extends Generator {
                 events.add(EntityEventType.REMOVE);
             } else if (cascadeType.equals(CascadeType.PERSIST)) {
                 events.add(EntityEventType.PERSIST);
+            } else if (cascadeType.equals(CascadeType.MERGE)) {
+                events.add(EntityEventType.MERGE);
             } else {
                 events.add(EntityEventType.UPDATE);
             }

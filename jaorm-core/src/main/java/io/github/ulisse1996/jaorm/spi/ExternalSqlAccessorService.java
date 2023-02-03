@@ -13,7 +13,7 @@ public abstract class ExternalSqlAccessorService {
     private static final Singleton<ExternalSqlAccessorService> INSTANCE = Singleton.instance();
 
     public static synchronized ExternalSqlAccessorService getInstance() {
-        if (!INSTANCE.isPresent()) {
+        if (!INSTANCE.isPresent() || FrameworkIntegrationService.isReloadRequired(Collections.singleton(INSTANCE.get().getClass()))) {
             Iterable<SqlAccessor> iterable = ServiceFinder.loadServices(SqlAccessor.class);
             if (iterable.iterator().hasNext()) {
                 INSTANCE.set(new DefaultSqlAccessors(iterable));

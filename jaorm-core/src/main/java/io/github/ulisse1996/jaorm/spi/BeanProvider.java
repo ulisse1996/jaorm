@@ -3,6 +3,7 @@ package io.github.ulisse1996.jaorm.spi;
 import io.github.ulisse1996.jaorm.ServiceFinder;
 import io.github.ulisse1996.jaorm.spi.common.Singleton;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.StreamSupport;
@@ -12,7 +13,7 @@ public abstract class BeanProvider {
     private static final Singleton<BeanProvider> INSTANCE = Singleton.instance();
 
     public static synchronized BeanProvider getInstance() {
-        if (!INSTANCE.isPresent()) {
+        if (!INSTANCE.isPresent() || FrameworkIntegrationService.isReloadRequired(Collections.singleton(INSTANCE.get().getClass()))) {
             INSTANCE.set(
                     StreamSupport.stream(ServiceFinder.loadServices(BeanProvider.class).spliterator(), false)
                             .findFirst()

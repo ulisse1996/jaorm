@@ -36,7 +36,7 @@ public class PersistEvent implements EntityEvent {
             }
             if (node.isCollection()) {
                 node.getAsCollection(insert, EntityEventType.PERSIST).forEach(i -> {
-                    node.getAutoSet().accept(insert, i);
+                    node.getAutoSet().accept(i, insert);
                     Objects.requireNonNull(i, "Collection can't contains null values !");
                     BaseDao<Object> baseDao = QueriesService.getInstance().getBaseDao((Class<Object>) i.getClass());
                     baseDao.insert(i);
@@ -45,14 +45,14 @@ public class PersistEvent implements EntityEvent {
                 Result<Object> optional = node.getAsOpt(insert, EntityEventType.PERSIST);
                 if (optional.isPresent()) {
                     Object i = optional.get();
-                    node.getAutoSet().accept(insert, i);
+                    node.getAutoSet().accept(i, insert);
                     BaseDao<Object> baseDao = QueriesService.getInstance().getBaseDao((Class<Object>) i.getClass());
                     baseDao.insert(i);
                 }
             } else {
                 Object i = node.get(insert, EntityEventType.PERSIST);
                 if (i != null) {
-                    node.getAutoSet().accept(insert, i);
+                    node.getAutoSet().accept(i, insert);
                     BaseDao<Object> baseDao = QueriesService.getInstance().getBaseDao((Class<Object>) i.getClass());
                     baseDao.insert(i);
                 }
