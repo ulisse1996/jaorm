@@ -31,24 +31,29 @@ public abstract class PreApplyEvent implements EntityEvent {
             if (!node.matchEvent(eventType)) {
                 continue;
             }
-            if (node.isCollection()) {
-                Collection<?> collection = node.getAsCollection(entity, eventType);
-                if (EntityEventType.MERGE.equals(eventType) && collection instanceof TrackedList && !((TrackedList<?>) collection).getRemovedElements().isEmpty()) {
-                    applyRemove(((TrackedList<?>) collection).getRemovedElements());
-                }
-                collection.forEach(i -> {
-                    Objects.requireNonNull(i, "Collection can't contains null values !");
-                    BaseDao<Object> baseDao = (BaseDao<Object>) QueriesService.getInstance().getBaseDao(i.getClass());
-                    Integer res = function.apply(baseDao, i);
-                    if (shouldTryInsert(res, update)) {
-                        tryInsert(baseDao, node, i, entity);
-                    }
-                });
-            } else if (node.isOpt()) {
-                applyOpt(entity, function, node, update, eventType);
-            } else {
-                doSimple(entity, function, update, node, eventType);
+            checkPreApplyNode(entity, function, update, eventType, node);
+        }
+    }
+
+    private static <T> void checkPreApplyNode(T entity, BiFunction<BaseDao<Object>, Object, Integer> function, boolean update,
+                                              EntityEventType eventType, Relationship.Node<T> node) {
+        if (node.isCollection()) {
+            Collection<?> collection = node.getAsCollection(entity, eventType);
+            if (EntityEventType.MERGE.equals(eventType) && collection instanceof TrackedList && !((TrackedList<?>) collection).getRemovedElements().isEmpty()) {
+                applyRemove(((TrackedList<?>) collection).getRemovedElements());
             }
+            collection.forEach(i -> {
+                Objects.requireNonNull(i, "Collection can't contains null values !");
+                BaseDao<Object> baseDao = (BaseDao<Object>) QueriesService.getInstance().getBaseDao(i.getClass());
+                Integer res = function.apply(baseDao, i);
+                if (shouldTryInsert(res, update)) {
+                    tryInsert(baseDao, node, i, entity);
+                }
+            });
+        } else if (node.isOpt()) {
+            applyOpt(entity, function, node, update, eventType);
+        } else {
+            doSimple(entity, function, update, node, eventType);
         }
     }
 

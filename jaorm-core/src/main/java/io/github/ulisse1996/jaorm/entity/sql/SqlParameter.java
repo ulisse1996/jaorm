@@ -3,6 +3,7 @@ package io.github.ulisse1996.jaorm.entity.sql;
 import io.github.ulisse1996.jaorm.entity.NullWrapper;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -46,5 +47,18 @@ public class SqlParameter {
 
     public SqlSetter<Object> getAccessor() {
         return accessor;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        SqlParameter parameter = (SqlParameter) o;
+        return Objects.equals(val, parameter.val) && Objects.equals(accessor, parameter.accessor);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(val, accessor);
     }
 }

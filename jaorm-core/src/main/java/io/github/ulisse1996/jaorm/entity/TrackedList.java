@@ -3,6 +3,7 @@ package io.github.ulisse1996.jaorm.entity;
 import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -16,8 +17,8 @@ public class TrackedList<T> extends AbstractList<T> {
     }
 
     public TrackedList(List<T> delegate, List<T> removedElements) {
-        this.delegate = delegate;
-        this.removedElements = removedElements;
+        this.delegate = new ArrayList<>(delegate);
+        this.removedElements = new ArrayList<>(removedElements);
     }
 
     public static <T> TrackedList<T> merge(List<T> from, List<T> newList) {
@@ -65,5 +66,16 @@ public class TrackedList<T> extends AbstractList<T> {
 
     public List<T> getRemovedElements() {
         return this.removedElements;
+    }
+
+    @SuppressWarnings("EqualsWhichDoesntCheckParameterClass")
+    @Override
+    public boolean equals(Object o) {
+        return Objects.equals(this.delegate, o);
+    }
+
+    @Override
+    public int hashCode() {
+        return this.delegate.hashCode();
     }
 }

@@ -75,32 +75,37 @@ public class MergeEvent extends PreApplyEvent {
             if (!node.matchEvent(EntityEventType.MERGE)) {
                 continue;
             }
-            if (node.isCollection()) {
-                Collection<?> collection = node.getAsCollection(entity, EntityEventType.MERGE);
-                if (collection instanceof TrackedList && !((TrackedList<?>) collection).getRemovedElements().isEmpty()) {
-                    applyRemove(((TrackedList<?>) collection).getRemovedElements());
-                }
-                collection.forEach(i -> {
-                    node.getAutoSet().accept(i, entity);
-                    Objects.requireNonNull(i, "Collection can't contains null values !");
-                    BaseDao<Object> baseDao = QueriesService.getInstance().getBaseDao((Class<Object>) i.getClass());
-                    baseDao.merge(i);
-                });
-            } else if (node.isOpt()) {
-                Result<Object> optional = node.getAsOpt(entity, EntityEventType.MERGE);
-                if (optional.isPresent()) {
-                    Object i = optional.get();
-                    node.getAutoSet().accept(i, entity);
-                    BaseDao<Object> baseDao = QueriesService.getInstance().getBaseDao((Class<Object>) i.getClass());
-                    baseDao.merge(i);
-                }
-            } else {
-                Object i = node.get(entity, EntityEventType.MERGE);
-                if (i != null) {
-                    node.getAutoSet().accept(i, entity);
-                    BaseDao<Object> baseDao = QueriesService.getInstance().getBaseDao((Class<Object>) i.getClass());
-                    baseDao.merge(i);
-                }
+            checkNode(node, entity);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <R> void checkNode(Relationship.Node<R> node, R entity) {
+        if (node.isCollection()) {
+            Collection<?> collection = node.getAsCollection(entity, EntityEventType.MERGE);
+            if (collection instanceof TrackedList && !((TrackedList<?>) collection).getRemovedElements().isEmpty()) {
+                applyRemove(((TrackedList<?>) collection).getRemovedElements());
+            }
+            collection.forEach(i -> {
+                node.getAutoSet().accept(i, entity);
+                Objects.requireNonNull(i, "Collection can't contains null values !");
+                BaseDao<Object> baseDao = QueriesService.getInstance().getBaseDao((Class<Object>) i.getClass());
+                baseDao.merge(i);
+            });
+        } else if (node.isOpt()) {
+            Result<Object> optional = node.getAsOpt(entity, EntityEventType.MERGE);
+            if (optional.isPresent()) {
+                Object i = optional.get();
+                node.getAutoSet().accept(i, entity);
+                BaseDao<Object> baseDao = QueriesService.getInstance().getBaseDao((Class<Object>) i.getClass());
+                baseDao.merge(i);
+            }
+        } else {
+            Object i = node.get(entity, EntityEventType.MERGE);
+            if (i != null) {
+                node.getAutoSet().accept(i, entity);
+                BaseDao<Object> baseDao = QueriesService.getInstance().getBaseDao((Class<Object>) i.getClass());
+                baseDao.merge(i);
             }
         }
     }

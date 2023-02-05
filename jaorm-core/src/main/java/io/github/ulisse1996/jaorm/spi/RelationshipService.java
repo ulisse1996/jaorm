@@ -38,5 +38,5 @@ public abstract class RelationshipService {
     }
 
     public abstract <T> Relationship<T> getRelationships(Class<T> entityClass);
-    public abstract Map<Class<?>, Relationship<?>> getAllRelationships();
+    public abstract Map<Class<?>, Relationship<?>> getAllRelationships(); //NOSONAR
 }

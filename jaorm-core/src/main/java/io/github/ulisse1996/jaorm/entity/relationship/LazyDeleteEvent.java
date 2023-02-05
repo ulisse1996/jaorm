@@ -39,6 +39,9 @@ public class LazyDeleteEvent {
         EntityDelegate<Object> childDelegate = (EntityDelegate<Object>) DelegatesService.getInstance().searchDelegate(node.getLinkedClass()).get();
         if (RelationshipService.getInstance().isEventActive(node.getLinkedClass(), EntityEventType.REMOVE)) {
             Relationship<Object> relationship = (Relationship<Object>) RelationshipService.getInstance().getRelationships(node.getLinkedClass());
+            if (relationship == null) {
+                return;
+            }
             for (Relationship.Node<Object> childNode : relationship.getNodeSet()) {
                 RelationshipManager.RelationshipInfo<?> childInfo = childDelegate.getRelationshipManager().getRelationshipInfo(childNode.getName());
                 String childWhere = childInfo.getWhere().replace("WHERE", "").trim().split(" ")[0]; // WHERE COLUMN_ID = ?

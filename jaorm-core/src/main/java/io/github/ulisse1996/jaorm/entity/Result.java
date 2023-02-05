@@ -151,7 +151,7 @@ public class Result<T> {
     @Override
     public String toString() {
         return entity != null
-                ? String.format("Optional[%s]", entity)
-                : "Optional.empty";
+                ? String.format("Result[%s]", entity)
+                : "Result.empty";
     }
 }
