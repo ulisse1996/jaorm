@@ -414,15 +414,21 @@ public abstract class QueryBuilderIT extends AbstractIT {
     @Test
     void should_read_using_simple_join() {
         UserDAO userDAO = QueriesService.getInstance().getQuery(UserDAO.class);
+        RoleDAO roleDAO = QueriesService.getInstance().getQuery(RoleDAO.class);
         UserRoleDAO userRoleDAO = QueriesService.getInstance().getQuery(UserRoleDAO.class);
 
         User user = createUser(1);
-        UserRole role = new UserRole();
+        Role role = new Role();
         role.setRoleId(3);
-        role.setUserId(1);
+        role.setRoleName("ROLE_NAME3");
+
+        UserRole userRole = new UserRole();
+        userRole.setRoleId(3);
+        userRole.setUserId(1);
 
         userDAO.insert(user);
-        userRoleDAO.insert(role);
+        roleDAO.insert(role);
+        userRoleDAO.insert(userRole);
 
         Optional<User> optUser = QueryBuilder.select(User.class)
                 .join(UserRole.class, "B").on(UserRoleColumns.USER_ID).eq(1)

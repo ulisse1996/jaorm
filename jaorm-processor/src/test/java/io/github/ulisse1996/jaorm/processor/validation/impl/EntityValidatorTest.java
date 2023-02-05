@@ -17,7 +17,6 @@ import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.*;
 import javax.lang.model.type.TypeMirror;
-import java.lang.annotation.Annotation;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.*;
