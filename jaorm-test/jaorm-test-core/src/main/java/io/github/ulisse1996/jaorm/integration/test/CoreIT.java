@@ -116,10 +116,10 @@ public abstract class CoreIT extends AbstractIT {
     void should_delete_user() {
         User user = userDAO.readByKey(99); // 1
 
-        userDAO.delete(user); // 2
+        userDAO.delete(user); // 4 Delete Role, Specific, User
 
-        Assertions.assertFalse(userDAO.readOptByKey(99).isPresent()); // 3
-        assertTotalInvocations(3);
+        Assertions.assertFalse(userDAO.readOptByKey(99).isPresent()); // 5
+        assertTotalInvocations(5);
     }
 
     // CURD - Create
@@ -218,16 +218,21 @@ public abstract class CoreIT extends AbstractIT {
     @Test
     void should_get_full_user() {
         User user = createGraph();
+        Role role = new Role();
+        role.setRoleName("NAME");
+        role.setRoleId(1);
 
-        userDAO.insert(user); // 3 User, UserRole and UserSpecific
+        roleDAO.insert(role); // 1 Role
 
-        Optional<User> result = User.USER_FULL.fetchOpt(createPair().getKey()); // 4
+        userDAO.insert(user); // 4 User, UserRole and UserSpecific
+
+        Optional<User> result = User.USER_FULL.fetchOpt(createPair().getKey()); // 5
 
         Assertions.assertTrue(result.isPresent());
         Assertions.assertTrue(result.get().getUserSpecific().isPresent());
         Assertions.assertEquals(1, result.get().getRoles().size());
         assertSame(user, result.get());
-        assertTotalInvocations(4);
+        assertTotalInvocations(5);
     }
 
     //@Test Should be available when we implement sub graphs
@@ -320,8 +325,8 @@ public abstract class CoreIT extends AbstractIT {
         city.getStores().clear(); // 10
         cityDAO.merge(city); // 14
 
-        Assertions.assertEquals(0, sellerDao.readAll().size()); // 16, 4 remove + 1 update
-        assertTotalInvocations(16);
+        Assertions.assertEquals(0, sellerDao.readAll().size()); // 16, 4 remove
+        assertTotalInvocations(15);
     }
 
     @Test

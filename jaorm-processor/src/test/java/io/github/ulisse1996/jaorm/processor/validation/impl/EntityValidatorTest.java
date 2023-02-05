@@ -17,6 +17,7 @@ import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.*;
 import javax.lang.model.type.TypeMirror;
+import java.lang.annotation.Annotation;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.*;
@@ -140,7 +141,7 @@ class EntityValidatorTest {
             VariableElement column = Mockito.mock(VariableElement.class);
             Mockito.when(column.getSimpleName())
                     .thenReturn(new CustomName("col1"));
-            mk.when(() -> ProcessorUtils.getAnnotated(Mockito.any(), Mockito.any(), Mockito.any()))
+            mk.when(() -> ProcessorUtils.getAnnotated(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
                     .thenReturn(Collections.singletonList(column));
             mk.when(() -> ProcessorUtils.findGetterOpt(Mockito.any(), Mockito.any(), Mockito.any()))
                     .thenReturn(Optional.empty());
@@ -164,7 +165,7 @@ class EntityValidatorTest {
             VariableElement column = Mockito.mock(VariableElement.class);
             Mockito.when(column.getSimpleName())
                     .thenReturn(new CustomName("col1"));
-            mk.when(() -> ProcessorUtils.getAnnotated(Mockito.any(), Mockito.any(), Mockito.any()))
+            mk.when(() -> ProcessorUtils.getAnnotated(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
                     .thenReturn(Collections.singletonList(column));
             mk.when(() -> ProcessorUtils.findGetterOpt(Mockito.any(), Mockito.any(), Mockito.any()))
                     .thenReturn(Optional.of(Mockito.mock(ExecutableElement.class)));
@@ -190,7 +191,7 @@ class EntityValidatorTest {
             VariableElement column = Mockito.mock(VariableElement.class);
             Mockito.when(column.getSimpleName())
                     .thenReturn(new CustomName("col1"));
-            mk.when(() -> ProcessorUtils.getAnnotated(Mockito.any(), Mockito.any(), Mockito.any()))
+            mk.when(() -> ProcessorUtils.getAnnotated(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
                     .thenReturn(Collections.singletonList(column));
             mockGetterAndSetter(mk);
             testSubject.validate(Collections.singletonList(entity));
@@ -211,7 +212,7 @@ class EntityValidatorTest {
             mockGetterAndSetter(mk);
             Mockito.when(relField.getAnnotation(Relationship.class))
                     .thenReturn(Mockito.mock(Relationship.class));
-            mk.when(() -> ProcessorUtils.getAnnotated(Mockito.any(), Mockito.any(), Mockito.any()))
+            mk.when(() -> ProcessorUtils.getAnnotated(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
                     .thenReturn(Collections.singletonList(relField));
             mk.when(() -> ProcessorUtils.getFieldType(Mockito.any(), Mockito.any()))
                     .thenReturn(relEntity);
@@ -227,7 +228,9 @@ class EntityValidatorTest {
             testSubject.validate(Collections.singletonList(entity));
         } catch (ProcessorException ex) {
             Assertions.assertTrue(ex.getMessage().contains("Type RelEntity is not a valid Entity at field col1 in Entity Entity"));
+            return;
         }
+        Assertions.fail("Should throw exception !");
     }
 
     @Test
@@ -242,7 +245,7 @@ class EntityValidatorTest {
             mockGetterAndSetter(mk);
             Mockito.when(relField.getAnnotation(Relationship.class))
                     .thenReturn(Mockito.mock(Relationship.class));
-            mk.when(() -> ProcessorUtils.getAnnotated(Mockito.any(), Mockito.any(), Mockito.any()))
+            mk.when(() -> ProcessorUtils.getAnnotated(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
                     .thenReturn(Collections.singletonList(relField));
             mk.when(() -> ProcessorUtils.getFieldType(Mockito.any(), Mockito.any()))
                     .thenReturn(relEntity);
@@ -280,7 +283,7 @@ class EntityValidatorTest {
                             return null;
                         }
                     });
-            mk.when(() -> ProcessorUtils.getAnnotated(Mockito.any(), Mockito.any(), Mockito.any()))
+            mk.when(() -> ProcessorUtils.getAnnotated(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
                     .thenReturn(Collections.singletonList(field));
             mk.when(() -> ProcessorUtils.getConverterTypes(Mockito.any(), Mockito.any()))
                     .thenReturn(Arrays.asList(gen1, gen2));
@@ -327,7 +330,7 @@ class EntityValidatorTest {
                             return null;
                         }
                     });
-            mk.when(() -> ProcessorUtils.getAnnotated(Mockito.any(), Mockito.any(), Mockito.any()))
+            mk.when(() -> ProcessorUtils.getAnnotated(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
                     .thenReturn(Collections.singletonList(field));
             mk.when(() -> ProcessorUtils.getConverterTypes(Mockito.any(), Mockito.any()))
                     .thenReturn(Arrays.asList(gen1, gen2));
@@ -368,7 +371,7 @@ class EntityValidatorTest {
                             return null;
                         }
                     });
-            mk.when(() -> ProcessorUtils.getAnnotated(Mockito.any(), Mockito.any(), Mockito.any()))
+            mk.when(() -> ProcessorUtils.getAnnotated(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
                     .thenReturn(Collections.singletonList(field));
             mk.when(() -> ProcessorUtils.getFieldType(Mockito.any(), Mockito.any()))
                     .thenReturn(gen);
@@ -409,7 +412,7 @@ class EntityValidatorTest {
                     });
             Mockito.when(temporal.format())
                     .thenReturn("format");
-            mk.when(() -> ProcessorUtils.getAnnotated(Mockito.any(), Mockito.any(), Mockito.any()))
+            mk.when(() -> ProcessorUtils.getAnnotated(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
                     .thenReturn(Collections.singletonList(field));
             mk.when(() -> ProcessorUtils.getFieldType(Mockito.any(), Mockito.any()))
                     .thenReturn(gen);
@@ -452,7 +455,7 @@ class EntityValidatorTest {
                     .thenReturn("format");
             Mockito.when(temporal.value())
                     .thenReturn("");
-            mk.when(() -> ProcessorUtils.getAnnotated(Mockito.any(), Mockito.any(), Mockito.any()))
+            mk.when(() -> ProcessorUtils.getAnnotated(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
                     .thenReturn(Collections.singletonList(field));
             mk.when(() -> ProcessorUtils.getFieldType(Mockito.any(), Mockito.any()))
                     .thenReturn(gen);
@@ -495,7 +498,7 @@ class EntityValidatorTest {
                     .thenReturn("dd-MM-yyyy'T'HH:mm:ss");
             Mockito.when(temporal.value())
                     .thenReturn("20-10-2022T00:00:00");
-            mk.when(() -> ProcessorUtils.getAnnotated(Mockito.any(), Mockito.any(), Mockito.any()))
+            mk.when(() -> ProcessorUtils.getAnnotated(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
                     .thenReturn(Collections.singletonList(field));
             mk.when(() -> ProcessorUtils.getFieldType(Mockito.any(), Mockito.any()))
                     .thenReturn(gen);
@@ -536,7 +539,7 @@ class EntityValidatorTest {
                     .thenReturn("format");
             Mockito.when(temporal.value())
                     .thenReturn("bad_value");
-            mk.when(() -> ProcessorUtils.getAnnotated(Mockito.any(), Mockito.any(), Mockito.any()))
+            mk.when(() -> ProcessorUtils.getAnnotated(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
                     .thenReturn(Collections.singletonList(field));
             mk.when(() -> ProcessorUtils.getFieldType(Mockito.any(), Mockito.any()))
                     .thenReturn(gen);
@@ -576,7 +579,7 @@ class EntityValidatorTest {
                             return null;
                         }
                     });
-            mk.when(() -> ProcessorUtils.getAnnotated(Mockito.any(), Mockito.any(), Mockito.any()))
+            mk.when(() -> ProcessorUtils.getAnnotated(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
                     .thenReturn(Collections.singletonList(field));
             mk.when(() -> ProcessorUtils.getFieldType(Mockito.any(), Mockito.any()))
                     .thenReturn(gen);
@@ -615,7 +618,7 @@ class EntityValidatorTest {
                             return null;
                         }
                     });
-            mk.when(() -> ProcessorUtils.getAnnotated(Mockito.any(), Mockito.any(), Mockito.any()))
+            mk.when(() -> ProcessorUtils.getAnnotated(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
                     .thenReturn(Collections.singletonList(field));
             mk.when(() -> ProcessorUtils.getFieldType(Mockito.any(), Mockito.any()))
                     .thenReturn(gen);
@@ -654,7 +657,7 @@ class EntityValidatorTest {
                             return null;
                         }
                     });
-            mk.when(() -> ProcessorUtils.getAnnotated(Mockito.any(), Mockito.any(), Mockito.any()))
+            mk.when(() -> ProcessorUtils.getAnnotated(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
                     .thenReturn(Collections.singletonList(field));
             mk.when(() -> ProcessorUtils.getFieldType(Mockito.any(), Mockito.any()))
                     .thenReturn(gen);
@@ -691,7 +694,7 @@ class EntityValidatorTest {
                             return null;
                         }
                     });
-            mk.when(() -> ProcessorUtils.getAnnotated(Mockito.any(), Mockito.any(), Mockito.any()))
+            mk.when(() -> ProcessorUtils.getAnnotated(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
                     .thenReturn(Collections.singletonList(field));
             mk.when(() -> ProcessorUtils.getFieldType(Mockito.any(), Mockito.any()))
                     .thenReturn(gen);

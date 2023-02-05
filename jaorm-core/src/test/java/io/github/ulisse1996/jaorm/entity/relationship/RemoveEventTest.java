@@ -4,7 +4,7 @@ import io.github.ulisse1996.jaorm.Arguments;
 import io.github.ulisse1996.jaorm.BaseDao;
 import io.github.ulisse1996.jaorm.entity.event.PostRemove;
 import io.github.ulisse1996.jaorm.entity.event.PreRemove;
-import io.github.ulisse1996.jaorm.exception.PersistEventException;
+import io.github.ulisse1996.jaorm.exception.RemoveEventException;
 import io.github.ulisse1996.jaorm.spi.DelegatesService;
 import io.github.ulisse1996.jaorm.spi.QueriesService;
 import io.github.ulisse1996.jaorm.spi.QueryRunner;
@@ -130,8 +130,6 @@ class RemoveEventTest extends EventTest {
                     .thenReturn(Arguments.empty());
             Mockito.when(relationshipService.getRelationships(Mockito.any()))
                     .then(onMock -> fakeRel);
-            Mockito.doNothing()
-                    .when(subject).doPreApply(Mockito.any(), Mockito.any(), Mockito.anyBoolean(), Mockito.any());
             subject.apply(mock);
             Mockito.verify(mock).preRemove();
         }
@@ -158,8 +156,6 @@ class RemoveEventTest extends EventTest {
                     .thenReturn(Arguments.empty());
             Mockito.when(relationshipService.getRelationships(Mockito.any()))
                     .then(onMock -> fakeRel);
-            Mockito.doNothing()
-                    .when(subject).doPreApply(Mockito.any(), Mockito.any(), Mockito.anyBoolean(), Mockito.any());
             subject.apply(mock);
             Mockito.verify(mock).postRemove();
         }
@@ -188,9 +184,7 @@ class RemoveEventTest extends EventTest {
                     .then(onMock -> fakeRel);
             Mockito.doThrow(Exception.class)
                     .when(mock).preRemove();
-            Mockito.doNothing()
-                    .when(subject).doPreApply(Mockito.any(), Mockito.any(), Mockito.anyBoolean(), Mockito.any());
-            Assertions.assertThrows(PersistEventException.class, () -> subject.apply(mock));
+            Assertions.assertThrows(RemoveEventException.class, () -> subject.apply(mock));
         }
     }
 
@@ -217,9 +211,7 @@ class RemoveEventTest extends EventTest {
                     .then(onMock -> fakeRel);
             Mockito.doThrow(Exception.class)
                     .when(mock).postRemove();
-            Mockito.doNothing()
-                    .when(subject).doPreApply(Mockito.any(), Mockito.any(), Mockito.anyBoolean(), Mockito.any());
-            Assertions.assertThrows(PersistEventException.class, () -> subject.apply(mock));
+            Assertions.assertThrows(RemoveEventException.class, () -> subject.apply(mock));
         }
     }
 }

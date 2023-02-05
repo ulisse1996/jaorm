@@ -573,7 +573,9 @@ public class ProcessorUtils {
         return "";
     }
 
-    public static MethodSpec buildDelegateMethod(ExecutableElement m, TypeElement entity, boolean forEntity, boolean wrappedList, ExecutableElement getter) {
+    public static MethodSpec buildDelegateMethod(ProcessingEnvironment environment,
+                                                 ExecutableElement m, TypeElement entity,
+                                                 boolean forEntity, boolean wrappedList, ExecutableElement getter) {
         MethodSpec.Builder builder = MethodSpec.overriding(m)
                 .addStatement(REQUIRE_NON_NULL, Objects.class);
         String variables = ProcessorUtils.extractParameterNames(m);
@@ -582,7 +584,13 @@ public class ProcessorUtils {
             builder.addCode(buildCustomEquals(m.getParameters().get(0).getSimpleName().toString(), entity));
         } else if (m.getReturnType() instanceof NoType) {
             if (forEntity) {
-                builder.addStatement("this.modified = true");
+                if (!m.getParameters().isEmpty()) {
+                    String modifiedGetter = ProcessorUtils.findGetter(environment, entity, m.getParameters().get(0).getSimpleName())
+                                    .getSimpleName().toString();
+                    builder.addStatement("this.modified = !$T.equals($L(), $L)", Objects.class, modifiedGetter, m.getParameters().get(0).getSimpleName().toString());
+                } else {
+                    builder.addStatement("this.modified = true");
+                }
             }
             if (wrappedList) {
                 builder.addStatement("this.entity.$L($T.merge(this.entity.$L(), $L))", m.getSimpleName(), TrackedList.class, getter.getSimpleName(), variables);

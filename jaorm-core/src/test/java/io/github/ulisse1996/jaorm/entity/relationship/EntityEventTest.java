@@ -23,8 +23,8 @@ class EntityEventTest {
         try (MockedStatic<DelegatesService> mk = Mockito.mockStatic(DelegatesService.class)) {
             mk.when(DelegatesService::getInstance)
                     .thenReturn(delegatesService);
-            Mockito.when(delegatesService.getEntityClass(Mockito.any()))
-                    .then(invocation -> Object.class);
+            Mockito.doReturn(Object.class)
+                    .when(delegatesService).getEntityClass(Mockito.any());
 
             Assertions.assertEquals(Object.class, EntityEvent.getRealClass(Object.class));
         }

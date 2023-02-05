@@ -179,7 +179,7 @@ public class RelationshipGenerator extends Generator {
                             ));
                 } else {
                     params.put(
-                            "(($T)link).$L($L.toSql((($T)entity).$L()))",
+                            "(($T)link).$L($L.fromSql((($T)entity).$L()))",
                             Arrays.asList(
                                     entity,
                                     ProcessorUtils.findSetter(processingEnvironment, entity, fromSet.getSimpleName()).getSimpleName(),

@@ -17,4 +17,9 @@ public enum EntityEventType {
     public EntityEvent getEntityEvent() {
         return entityEvent;
     }
+
+    @Override
+    public String toString() {
+        return String.format("EntityEventType.%s", name());
+    }
 }

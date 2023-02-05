@@ -168,12 +168,12 @@ public class EntityGenerator extends Generator {
                     specs.add(generated.getValue());
                     blocks.add(generated.getKey());
                 } else if (ProcessorUtils.isCollectionType(join.get().field.asType())) {
-                    specs.add(ProcessorUtils.buildDelegateMethod(m, entity, true, true, join.get().getter));
+                    specs.add(ProcessorUtils.buildDelegateMethod(processingEnvironment, m, entity, true, true, join.get().getter));
                 } else {
-                    specs.add(ProcessorUtils.buildDelegateMethod(m, entity, true, false, join.get().getter));
+                    specs.add(ProcessorUtils.buildDelegateMethod(processingEnvironment, m, entity, true, false, join.get().getter));
                 }
             } else {
-                specs.add(ProcessorUtils.buildDelegateMethod(m, entity, true, false, null));
+                specs.add(ProcessorUtils.buildDelegateMethod(processingEnvironment, m, entity, true, false, null));
             }
         }
         return new DelegationInfo(specs, blocks);

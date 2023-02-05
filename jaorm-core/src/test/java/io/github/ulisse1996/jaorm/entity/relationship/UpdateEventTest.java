@@ -6,6 +6,7 @@ import io.github.ulisse1996.jaorm.ServiceFinder;
 import io.github.ulisse1996.jaorm.entity.event.PostUpdate;
 import io.github.ulisse1996.jaorm.entity.event.PreUpdate;
 import io.github.ulisse1996.jaorm.exception.PersistEventException;
+import io.github.ulisse1996.jaorm.exception.UpdateEventException;
 import io.github.ulisse1996.jaorm.logger.JaormLoggerHandler;
 import io.github.ulisse1996.jaorm.spi.DelegatesService;
 import io.github.ulisse1996.jaorm.spi.QueriesService;
@@ -95,8 +96,6 @@ class UpdateEventTest extends EventTest {
                     .thenReturn(Arguments.empty());
             Mockito.when(relationshipService.getRelationships(Mockito.any()))
                     .then(onMock -> fakeRel);
-            Mockito.doNothing()
-                    .when(subject).doPreApply(Mockito.any(), Mockito.any(), Mockito.anyBoolean(), Mockito.any());
             subject.apply(mock);
             Mockito.verify(mock).preUpdate();
         }
@@ -125,8 +124,6 @@ class UpdateEventTest extends EventTest {
                     .thenReturn(Arguments.empty());
             Mockito.when(relationshipService.getRelationships(Mockito.any()))
                     .then(onMock -> fakeRel);
-            Mockito.doNothing()
-                    .when(subject).doPreApply(Mockito.any(), Mockito.any(), Mockito.anyBoolean(), Mockito.any());
             subject.apply(mock);
             Mockito.verify(mock).postUpdate();
         }
@@ -157,9 +154,7 @@ class UpdateEventTest extends EventTest {
                     .then(onMock -> fakeRel);
             Mockito.doThrow(Exception.class)
                     .when(mock).preUpdate();
-            Mockito.doNothing()
-                    .when(subject).doPreApply(Mockito.any(), Mockito.any(), Mockito.anyBoolean(), Mockito.any());
-            Assertions.assertThrows(PersistEventException.class, () -> subject.apply(mock));
+            Assertions.assertThrows(UpdateEventException.class, () -> subject.apply(mock));
         }
     }
 
@@ -291,9 +286,7 @@ class UpdateEventTest extends EventTest {
                     .then(onMock -> fakeRel);
             Mockito.doThrow(Exception.class)
                     .when(mock).postUpdate();
-            Mockito.doNothing()
-                    .when(subject).doPreApply(Mockito.any(), Mockito.any(), Mockito.anyBoolean(), Mockito.any());
-            Assertions.assertThrows(PersistEventException.class, () -> subject.apply(mock));
+            Assertions.assertThrows(UpdateEventException.class, () -> subject.apply(mock));
         }
     }
 }

@@ -67,7 +67,7 @@ public class ProjectionsGenerator extends Generator {
     private Iterable<MethodSpec> generateDelegations(TypeElement element) {
         List<ExecutableElement> methods = ProcessorUtils.getAllMethods(processingEnvironment, element);
         return methods.stream()
-                .map(m -> ProcessorUtils.buildDelegateMethod(m, element, false, false, null))
+                .map(m -> ProcessorUtils.buildDelegateMethod(processingEnvironment, m, element, false, false, null))
                 .collect(Collectors.toList());
     }
 
