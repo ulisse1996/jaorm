@@ -33,6 +33,7 @@
 - Bugfix: Fix wrong exceptions on Update/Remove Event
 - Bugfix: Removed useless update on Entities with a false modified flag
 - Bugfix: Fix auto-set inverse execution
+- Bugfix: Fix match of custom functions (like ::date) for named parameters in @Query
 
 ## 1.10.0
 - Feature: BeanProvider for Dependency Injection Extensions

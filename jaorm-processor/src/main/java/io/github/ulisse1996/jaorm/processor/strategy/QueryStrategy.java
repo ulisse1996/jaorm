@@ -170,8 +170,13 @@ public enum QueryStrategy implements ParametersStrategy {
     }
 
     private static String replaceNamedQuery(String regex, String query, Set<String> collectionNames) {
+        List<String> words = getWords(regex, query);
         return Pattern.compile(regex).matcher(query).replaceAll(matchResult -> {
-            String res = matchResult.group().substring(1);
+            String matched = matchResult.group();
+            String res = matched.substring(1);
+            if (!words.contains(res)) {
+                return matched;
+            }
             if (collectionNames.contains(res)) {
                 return String.format("{%s}", res);
             }
@@ -193,13 +198,27 @@ public enum QueryStrategy implements ParametersStrategy {
                 .orElseThrow(() -> new ProcessorException("Can't find parameter with name " + s));
     }
 
-    static List<String> getWords(String regex, String query) {
+    public static List<String> getWords(String regex, String query) {
         List<String> foundWords = new ArrayList<>();
         Matcher matcher = Pattern.compile(regex).matcher(query);
-        while (matcher.find()) {
-            foundWords.add(matcher.group().substring(1));
+        List<String> matches = toList(matcher);
+        for (int i = 0; i < matches.size(); i++) {
+            String matched = matches.get(i);
+            if (matched.isEmpty()) {
+                i++; // Skip next
+                continue; // We don't want to match special functions likes ::date used for example in Postgre
+            }
+            foundWords.add(matched);
         }
         return foundWords;
+    }
+
+    private static List<String> toList(Matcher matcher) {
+        List<String> values = new ArrayList<>();
+        while (matcher.find()) {
+            values.add(matcher.group().substring(1));
+        }
+        return values;
     }
 
     private static CodeBlock getListStatement(VariableElement element, TypeMirror type, ProcessingEnvironment environment) {
