@@ -114,6 +114,11 @@ public class SelectedImpl<T, N> extends AbstractLimitOffsetImpl
         return QueryRunner.getSimple().read(long.class, pair.getKey(), pair.getValue());
     }
 
+    @Override
+    public boolean hasResults() {
+        return count() > 0;
+    }
+
     public List<SqlParameter> getParameters() {
         Stream<SqlParameter> joinParams = this.joins.stream().flatMap(JoinImpl::getParameters);
         Stream<SqlParameter> wheresParams = this.wheres.stream().flatMap(m -> m.getParameters(this.caseInsensitiveLike));

@@ -22,6 +22,7 @@
 - Feature: Merge for Entities
 - Feature: Simple DSL distinct select
 - Feature: Added missing methods from Optional to Result
+- Feature: Count and hasResults for DSL
 - Removal: Removed notLike and like
 - Refactor: Refactor of IT Tests
 - Bugfix: Fix missing upsert for entities with relationships

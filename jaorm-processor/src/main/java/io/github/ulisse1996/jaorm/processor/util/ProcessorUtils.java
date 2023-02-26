@@ -587,7 +587,7 @@ public class ProcessorUtils {
                 if (!m.getParameters().isEmpty()) {
                     String modifiedGetter = ProcessorUtils.findGetter(environment, entity, m.getParameters().get(0).getSimpleName())
                                     .getSimpleName().toString();
-                    builder.addStatement("this.modified = !$T.equals($L(), $L)", Objects.class, modifiedGetter, m.getParameters().get(0).getSimpleName().toString());
+                    builder.addStatement("this.modified = this.modified || !$T.equals($L(), $L)", Objects.class, modifiedGetter, m.getParameters().get(0).getSimpleName().toString());
                 } else {
                     builder.addStatement("this.modified = true");
                 }
