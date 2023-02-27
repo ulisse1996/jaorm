@@ -1,5 +1,6 @@
 package io.github.ulisse1996.jaorm.entity.relationship;
 
+import io.github.ulisse1996.jaorm.Arguments;
 import io.github.ulisse1996.jaorm.BaseDao;
 import io.github.ulisse1996.jaorm.entity.DirtinessTracker;
 import io.github.ulisse1996.jaorm.entity.EntityDelegate;
@@ -37,13 +38,21 @@ public class MergeEvent extends PreApplyEvent {
         }
     }
 
+    @SuppressWarnings("unchecked")
     public static <R> void mergeEntity(R entity) {
-        if (!(entity instanceof EntityDelegate)) {
+        EntityDelegate<R> delegate = (EntityDelegate<R>) DelegatesService.getInstance().searchDelegate(entity.getClass())
+                .get();
+        if (!(entity instanceof EntityDelegate) && !hasKeys(delegate, entity)) {
             R insert = QueryRunner.getInstance(entity.getClass())
                     .insert(entity, DelegatesService.getInstance().getInsertSql(entity),
                             DelegatesService.getInstance().asInsert(entity).asSqlParameters());
             doMergeAfterPersist(insert);
         } else {
+            if (!(entity instanceof EntityDelegate)) {
+                delegate.setFullEntity(entity);
+                delegate.setModified(true); // If an entity has keys but is not a delegate, jaorm will force update
+                entity = (R) delegate;
+            }
             checkRemoved(entity);
             doPreApply(entity, (dao, i) -> {
                 dao.merge(i);
@@ -53,11 +62,27 @@ public class MergeEvent extends PreApplyEvent {
         }
     }
 
+    private static <R> boolean hasKeys(EntityDelegate<R> delegate, R entity) {
+        Arguments keys = delegate.getEntityMapper().getKeys(entity);
+        return keys.stream()
+                .allMatch(el -> {
+                    if (el instanceof Number) {
+                        Number number = (Number) el;
+                        return number.doubleValue() != 0.00d;
+                    }
+                    return !Objects.isNull(el);
+                });
+    }
+
     private static <R> void checkRemoved(R entity) {
         EntityDelegate<R> delegate = EntityDelegate.unwrap(entity);
         DirtinessTracker<R> tracker = delegate.getTracker();
         if (!tracker.getRemovedElements().isEmpty()) {
-            applyRemove(tracker.getRemovedElements());
+            Relationship<?> relationships = RelationshipService.getInstance().getRelationships(EntityDelegate.unboxEntity(entity).getClass());
+            if (relationships == null) {
+                return;
+            }
+            applyRemove(relationships, tracker.getRemovedElements());
         }
     }
 
@@ -84,7 +109,11 @@ public class MergeEvent extends PreApplyEvent {
         if (node.isCollection()) {
             Collection<?> collection = node.getAsCollection(entity, EntityEventType.MERGE);
             if (collection instanceof TrackedList && !((TrackedList<?>) collection).getRemovedElements().isEmpty()) {
-                applyRemove(((TrackedList<?>) collection).getRemovedElements());
+                Relationship<?> relationships = RelationshipService.getInstance().getRelationships(EntityDelegate.unboxEntity(entity).getClass());
+                if (relationships == null) {
+                    return;
+                }
+                applyRemove(relationships, ((TrackedList<?>) collection).getRemovedElements());
             }
             collection.forEach(i -> {
                 node.getAutoSet().accept(i, entity);

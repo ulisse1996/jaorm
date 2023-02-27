@@ -154,6 +154,11 @@ class RelationshipServiceTest {
         }
 
         @Override
+        public void setModified(boolean modified) {
+
+        }
+
+        @Override
         public boolean isDefaultGeneration() {
             return false;
         }

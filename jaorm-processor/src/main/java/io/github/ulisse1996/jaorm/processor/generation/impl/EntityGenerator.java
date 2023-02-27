@@ -405,6 +405,9 @@ public class EntityGenerator extends Generator {
         MethodSpec modified = MethodSpec.overriding(ProcessorUtils.getMethod(processingEnvironment, "isModified", EntityDelegate.class))
                 .addStatement("return this.modified")
                 .build();
+        MethodSpec setModified = MethodSpec.overriding(ProcessorUtils.getMethod(processingEnvironment, "setModified", EntityDelegate.class))
+                .addStatement("this.modified = arg0")
+                .build();
         MethodSpec isDefaultGeneration = MethodSpec.overriding(ProcessorUtils.getMethod(processingEnvironment, "isDefaultGeneration", EntityDelegate.class))
                 .addStatement("return $L", hasDefaultGenerated(entity))
                 .build();
@@ -480,7 +483,8 @@ public class EntityGenerator extends Generator {
                 getEntity, deleteSql, modified,
                 isDefaultGeneration, initDefault, generateDelegate,
                 setFullEntityFullColumns, getKeyWhere, toTableInfo, getTracker,
-                getLazyInfo, isLazyEntity, setLazyInfo, getRelationshipManager)
+                getLazyInfo, isLazyEntity, setLazyInfo, getRelationshipManager,
+                setModified)
                 .collect(Collectors.toList());
     }
 

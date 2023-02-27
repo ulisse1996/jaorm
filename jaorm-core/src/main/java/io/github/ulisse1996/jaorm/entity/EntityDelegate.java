@@ -24,7 +24,7 @@ public interface EntityDelegate<T> {
         if (e instanceof EntityDelegate<?>) {
             return (EntityDelegate<R>) e;
         } else {
-            throw new UnsupportedOperationException("Object is not an EntityDelegate");
+            throw new UnsupportedOperationException(String.format("%s is not an EntityDelegate", e != null ? e.getClass().getName() : "null"));
         }
     }
 
@@ -44,6 +44,7 @@ public interface EntityDelegate<T> {
     String getUpdateSql();
     String getDeleteSql();
     boolean isModified();
+    void setModified(boolean modified);
     boolean isDefaultGeneration();
     T initDefault(T entity);
     TableInfo toTableInfo();

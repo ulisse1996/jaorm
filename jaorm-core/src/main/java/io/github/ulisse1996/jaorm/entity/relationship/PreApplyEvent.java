@@ -1,6 +1,7 @@
 package io.github.ulisse1996.jaorm.entity.relationship;
 
 import io.github.ulisse1996.jaorm.BaseDao;
+import io.github.ulisse1996.jaorm.entity.EntityDelegate;
 import io.github.ulisse1996.jaorm.entity.Result;
 import io.github.ulisse1996.jaorm.entity.TrackedList;
 import io.github.ulisse1996.jaorm.logger.JaormLogger;
@@ -8,10 +9,7 @@ import io.github.ulisse1996.jaorm.spi.FeatureConfigurator;
 import io.github.ulisse1996.jaorm.spi.QueriesService;
 import io.github.ulisse1996.jaorm.spi.RelationshipService;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.BiFunction;
 
 @SuppressWarnings("unchecked")
@@ -40,7 +38,11 @@ public abstract class PreApplyEvent implements EntityEvent {
         if (node.isCollection()) {
             Collection<?> collection = node.getAsCollection(entity, eventType);
             if (EntityEventType.MERGE.equals(eventType) && collection instanceof TrackedList && !((TrackedList<?>) collection).getRemovedElements().isEmpty()) {
-                applyRemove(((TrackedList<?>) collection).getRemovedElements());
+                Relationship<?> relationships = RelationshipService.getInstance().getRelationships(EntityDelegate.unboxEntity(entity).getClass());
+                if (relationships == null) {
+                    return;
+                }
+                applyRemove(relationships, ((TrackedList<?>) collection).getRemovedElements());
             }
             collection.forEach(i -> {
                 Objects.requireNonNull(i, "Collection can't contains null values !");
@@ -57,10 +59,20 @@ public abstract class PreApplyEvent implements EntityEvent {
         }
     }
 
-    protected static void applyRemove(List<?> removedElements) {
+    protected static void applyRemove(Relationship<?> relationships, List<?> removedElements) {
         for (Object removed : removedElements) {
-            new RemoveEvent().apply(removed);
+            Class<?> aClass = removed.getClass();
+            Optional<? extends Relationship.Node<?>> node = findNode(aClass, relationships.getNodeSet());
+            if (node.isPresent() && node.get().matchEvent(EntityEventType.MERGE)) {
+                new RemoveEvent().apply(removed);
+            }
         }
+    }
+
+    private static Optional<? extends Relationship.Node<?>> findNode(Class<?> aClass, List<? extends Relationship.Node<?>> nodeSet) {
+        return nodeSet.stream()
+                .filter(el -> el.getLinkedClass().equals(aClass))
+                .findFirst();
     }
 
     private static <T> void doSimple(T entity, BiFunction<BaseDao<Object>, Object, Integer> function, boolean update, Relationship.Node<T> node,
