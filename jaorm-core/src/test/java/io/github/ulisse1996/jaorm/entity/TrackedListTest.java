@@ -2,16 +2,22 @@ package io.github.ulisse1996.jaorm.entity;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+@ExtendWith(MockitoExtension.class)
 class TrackedListTest {
+
+    @Mock private EntityDelegate<?> delegate;
 
     @Test
     void should_create_standard_tracked_list() {
-        TrackedList<Object> list = TrackedList.merge(null, new ArrayList<>());
+        TrackedList<Object> list = TrackedList.merge(delegate, null, new ArrayList<>());
         Assertions.assertEquals(
                 Collections.emptyList(),
                 list
@@ -24,7 +30,7 @@ class TrackedListTest {
 
     @Test
     void should_create_tacked_list_from_standard_list() {
-        TrackedList<Object> list = TrackedList.merge(Collections.singletonList("1"), Collections.singletonList("2"));
+        TrackedList<Object> list = TrackedList.merge(delegate, Collections.singletonList("1"), Collections.singletonList("2"));
         Assertions.assertEquals(
                 Collections.singletonList("1"),
                 list.getRemovedElements()
@@ -37,8 +43,8 @@ class TrackedListTest {
 
     @Test
     void should_merge_previous_tracked_list() {
-        TrackedList<Object> list = new TrackedList<>(Collections.singletonList("1"), Collections.singletonList("2"));
-        TrackedList<Object> newList = TrackedList.merge(list, Collections.singletonList("3"));
+        TrackedList<Object> list = new TrackedList<>(delegate, Collections.singletonList("1"), Collections.singletonList("2"));
+        TrackedList<Object> newList = TrackedList.merge(delegate, list, Collections.singletonList("3"));
         Assertions.assertEquals(
                 List.of("2", "1"),
                 newList.getRemovedElements()
@@ -86,7 +92,7 @@ class TrackedListTest {
         List<String> l = List.of("2", "3", "4");
         Assertions.assertEquals(
                 l.hashCode(),
-                new TrackedList<>(l).hashCode()
+                new TrackedList<>(delegate, l).hashCode()
         );
     }
 
@@ -98,6 +104,6 @@ class TrackedListTest {
     }
 
     private TrackedList<Object> getNew(Object... elements) {
-        return new TrackedList<>(List.of(elements));
+        return new TrackedList<>(delegate, List.of(elements));
     }
 }

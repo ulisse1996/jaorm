@@ -216,7 +216,7 @@ public class EntityGenerator extends Generator {
         String wheres = createJoinWhere(sorted);
         CodeBlock block;
         if (ProcessorUtils.isCollectionType(join.field.asType())) {
-            block = builder.addStatement("this.entity.$L(new $T<$T>($T.getInstance($T.class).$L($T.class, $T.getInstance().getSimpleSql($T.class) +  $S, params)))",
+            block = builder.addStatement("this.entity.$L(new $T<$T>(this, $T.getInstance($T.class).$L($T.class, $T.getInstance().getSimpleSql($T.class) +  $S, params)))",
                             ProcessorUtils.findSetter(processingEnvironment, entity, join.field.getSimpleName()).getSimpleName(),
                             TrackedList.class, definition.getRealClass(),
                             QueryRunner.class, definition.getRealClass(), runnerMethod, definition.getRealClass(), DelegatesService.class,

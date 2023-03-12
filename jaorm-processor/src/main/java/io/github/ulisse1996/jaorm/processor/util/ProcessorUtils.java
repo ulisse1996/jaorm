@@ -593,7 +593,7 @@ public class ProcessorUtils {
                 }
             }
             if (wrappedList && getter != null) {
-                builder.addStatement("this.entity.$L($T.merge(this.entity.$L(), $L))", m.getSimpleName(), TrackedList.class, getter.getSimpleName(), variables);
+                builder.addStatement("this.entity.$L($T.merge(this, this.entity.$L(), $L))", m.getSimpleName(), TrackedList.class, getter.getSimpleName(), variables);
             } else {
                 if (getter != null) {
                     builder.addStatement("this.tracker.registerRemoved(this.entity.$L())", getter.getSimpleName());

@@ -32,7 +32,7 @@ public abstract class QueryRunner {
     public static final SqlJaormLogger logger = JaormLogger.getSqlLogger(ResultSetExecutor.class);
     private static final Singleton<QueryRunner> ENTITY_RUNNER = Singleton.instance();
     private static final Singleton<QueryRunner> SIMPLE_RUNNER = Singleton.instance();
-    private static final ThreadLocal<Map<Object, Integer>> UPDATED_ROWS_LOCAL = ThreadLocal.withInitial(HashMap::new); //NOSONAR
+    private static final ThreadLocal<Map<Object, Integer>> UPDATED_ROWS_LOCAL = ThreadLocal.withInitial(WeakHashMap::new); //NOSONAR
 
     public static QueryRunner getInstance(Class<?> klass) {
         if (!isDelegate(klass)) {
@@ -255,6 +255,9 @@ public abstract class QueryRunner {
 
     public void registerUpdatedRows(Object object, int rows) {
         UPDATED_ROWS_LOCAL.get().put(object, rows);
+        if (object instanceof EntityDelegate) {
+            UPDATED_ROWS_LOCAL.get().put(EntityDelegate.unboxEntity(object), rows);
+        }
     }
 
     public Integer getUpdatedRows(Object object) {

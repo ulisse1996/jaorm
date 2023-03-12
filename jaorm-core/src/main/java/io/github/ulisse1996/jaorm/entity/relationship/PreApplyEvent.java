@@ -15,6 +15,8 @@ import java.util.function.BiFunction;
 @SuppressWarnings("unchecked")
 public abstract class PreApplyEvent implements EntityEvent {
 
+    private static final JaormLogger logger = JaormLogger.getLogger(PreApplyEvent.class);
+
     protected static <T> void doPreApply(T entity, BiFunction<BaseDao<Object>, Object, Integer> function, boolean update,
                                          EntityEventType eventType) {
         Class<T> klass = (Class<T>) entity.getClass();
@@ -61,10 +63,19 @@ public abstract class PreApplyEvent implements EntityEvent {
 
     protected static void applyRemove(Relationship<?> relationships, List<?> removedElements) {
         for (Object removed : removedElements) {
-            Class<?> aClass = removed.getClass();
-            Optional<? extends Relationship.Node<?>> node = findNode(aClass, relationships.getNodeSet());
-            if (node.isPresent() && node.get().matchEvent(EntityEventType.MERGE)) {
-                new RemoveEvent().apply(removed);
+            Class<?> entityClass;
+            if (removed instanceof EntityDelegate) {
+                entityClass = EntityDelegate.unboxEntity(removed).getClass();
+            } else {
+                entityClass = removed.getClass();
+            }
+            Optional<? extends Relationship.Node<?>> node = findNode(entityClass, relationships.getNodeSet());
+            if (node.isPresent()) {
+                if (node.get().matchEvent(EntityEventType.MERGE)) {
+                    new RemoveEvent().apply(removed);
+                } else {
+                    logger.warn(() -> String.format("Linked Entity with class %s is removed but node doesn't match MERGE event", entityClass.getName()));
+                }
             }
         }
     }

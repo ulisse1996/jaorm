@@ -323,10 +323,10 @@ public abstract class CoreIT extends AbstractIT {
 
         city = cityDAO.read(city); // 9
         city.getStores().clear(); // 10
-        cityDAO.merge(city); // 14
+        cityDAO.merge(city); // 18
 
-        Assertions.assertEquals(0, sellerDao.readAll().size()); // 16, 4 remove
-        assertTotalInvocations(15);
+        Assertions.assertEquals(0, sellerDao.readAll().size()); // 19
+        assertTotalInvocations(19);
     }
 
     @Test

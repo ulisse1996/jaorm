@@ -1,6 +1,5 @@
 package io.github.ulisse1996.jaorm.entity.relationship;
 
-import io.github.ulisse1996.jaorm.Arguments;
 import io.github.ulisse1996.jaorm.BaseDao;
 import io.github.ulisse1996.jaorm.entity.DirtinessTracker;
 import io.github.ulisse1996.jaorm.entity.EntityDelegate;
@@ -38,21 +37,13 @@ public class MergeEvent extends PreApplyEvent {
         }
     }
 
-    @SuppressWarnings("unchecked")
     public static <R> void mergeEntity(R entity) {
-        EntityDelegate<R> delegate = (EntityDelegate<R>) DelegatesService.getInstance().searchDelegate(entity.getClass())
-                .get();
-        if (!(entity instanceof EntityDelegate) && !hasKeys(delegate, entity)) {
+        if (!(entity instanceof EntityDelegate)) {
             R insert = QueryRunner.getInstance(entity.getClass())
                     .insert(entity, DelegatesService.getInstance().getInsertSql(entity),
                             DelegatesService.getInstance().asInsert(entity).asSqlParameters());
             doMergeAfterPersist(insert);
         } else {
-            if (!(entity instanceof EntityDelegate)) {
-                delegate.setFullEntity(entity);
-                delegate.setModified(true); // If an entity has keys but is not a delegate, jaorm will force update
-                entity = (R) delegate;
-            }
             checkRemoved(entity);
             doPreApply(entity, (dao, i) -> {
                 dao.merge(i);
@@ -60,18 +51,6 @@ public class MergeEvent extends PreApplyEvent {
             }, true, EntityEventType.MERGE);
             UpdateEvent.updateEntity(entity);
         }
-    }
-
-    private static <R> boolean hasKeys(EntityDelegate<R> delegate, R entity) {
-        Arguments keys = delegate.getEntityMapper().getKeys(entity);
-        return keys.stream()
-                .allMatch(el -> {
-                    if (el instanceof Number) {
-                        Number number = (Number) el;
-                        return number.doubleValue() != 0.00d;
-                    }
-                    return !Objects.isNull(el);
-                });
     }
 
     private static <R> void checkRemoved(R entity) {

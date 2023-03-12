@@ -11,27 +11,29 @@ public class TrackedList<T> extends AbstractList<T> {
 
     private final List<T> delegate;
     private final List<T> removedElements;
+    private final EntityDelegate<?> parent;
 
-    public TrackedList(List<T> delegate) {
-        this(delegate, new ArrayList<>());
+    public TrackedList(EntityDelegate<?> parent, List<T> delegate) {
+        this(parent, delegate, new ArrayList<>());
     }
 
-    public TrackedList(List<T> delegate, List<T> removedElements) {
+    public TrackedList(EntityDelegate<?> parent, List<T> delegate, List<T> removedElements) {
+        this.parent = parent;
         this.delegate = new ArrayList<>(delegate);
         this.removedElements = new ArrayList<>(removedElements);
     }
 
-    public static <T> TrackedList<T> merge(List<T> from, List<T> newList) {
+    public static <T> TrackedList<T> merge(EntityDelegate<?> parent, List<T> from, List<T> newList) {
         if (from == null) {
-            return new TrackedList<>(newList, new ArrayList<>());
+            return new TrackedList<>(parent, newList, new ArrayList<>());
         }
         if (from instanceof TrackedList) {
             // Override of current state is equals to clear, so we get all elements (previously deleted or not) and add to initial deleted
             List<T> all = Stream.concat(((TrackedList<T>) from).getRemovedElements().stream(), from.stream())
                     .collect(Collectors.toList());
-            return new TrackedList<>(newList, all);
+            return new TrackedList<>(parent, newList, all);
         } else {
-            return new TrackedList<>(newList, from);
+            return new TrackedList<>(parent, newList, from);
         }
     }
 
@@ -61,6 +63,7 @@ public class TrackedList<T> extends AbstractList<T> {
     public T remove(int index) {
         T removed = delegate.remove(index);
         this.removedElements.add(removed);
+        this.parent.getTracker().registerRemoved(removed);
         return removed;
     }
 
