@@ -170,22 +170,22 @@ public class RelationshipGenerator extends Generator {
                 VariableElement fromSet = ProcessorUtils.getFieldWithColumnName(processingEnvironment, entity, column.sourceColumn());
                 if (fromSet.getAnnotation(Converter.class) == null || noNeedForConversion(fromSet, toSet)) {
                     params.put(
-                            "(($T)link).$L((($T)entity).$L())",
+                            "(($T)entity).$L((($T)link).$L())",
                             Arrays.asList(
-                                    entity,
-                                    ProcessorUtils.findSetter(processingEnvironment, entity, fromSet.getSimpleName()).getSimpleName(),
                                     rel,
-                                    ProcessorUtils.findGetter(processingEnvironment, rel, toSet.getSimpleName()).getSimpleName()
+                                    ProcessorUtils.findSetter(processingEnvironment, rel, toSet.getSimpleName()).getSimpleName(),
+                                    entity,
+                                    ProcessorUtils.findGetter(processingEnvironment, entity, fromSet.getSimpleName()).getSimpleName()
                             ));
                 } else {
                     params.put(
-                            "(($T)link).$L($L.fromSql((($T)entity).$L()))",
+                            "(($T)entity).$L($L.fromSql((($T)link).$L()))",
                             Arrays.asList(
-                                    entity,
-                                    ProcessorUtils.findSetter(processingEnvironment, entity, fromSet.getSimpleName()).getSimpleName(),
-                                    ProcessorUtils.getConverterCaller(processingEnvironment, fromSet),
                                     rel,
-                                    ProcessorUtils.findGetter(processingEnvironment, rel, toSet.getSimpleName()).getSimpleName()
+                                    ProcessorUtils.findSetter(processingEnvironment, rel, toSet.getSimpleName()).getSimpleName(),
+                                    ProcessorUtils.getConverterCaller(processingEnvironment, toSet),
+                                    entity,
+                                    ProcessorUtils.findGetter(processingEnvironment, entity, fromSet.getSimpleName()).getSimpleName()
                             ));
                 }
             }

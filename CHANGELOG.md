@@ -23,6 +23,8 @@
 - Feature: Simple DSL distinct select
 - Feature: Added missing methods from Optional to Result
 - Feature: Count and hasResults for DSL
+- Feature: Distinct for DSL Entity Select
+- Feature: Distinct for DSL SubQuery
 - Removal: Removed notLike and like
 - Refactor: Refactor of IT Tests
 - Bugfix: Fix missing upsert for entities with relationships

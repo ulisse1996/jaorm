@@ -28,6 +28,10 @@ public class QueryBuilder {
         return select(klass, QueryConfig.builder().build());
     }
 
+    public static <T> Selected<T> selectDistinct(Class<T> klass) {
+        return selectDistinct(klass, QueryConfig.builder().build());
+    }
+
     public static <T> Selected<T> select(Class<T> klass, boolean caseInsensitiveLike) {
         QueryConfig.Builder builder = QueryConfig.builder();
         if (caseInsensitiveLike) {
@@ -36,17 +40,30 @@ public class QueryBuilder {
         return select(klass, builder.build());
     }
 
+    public static <T> Selected<T> selectDistinct(Class<T> klass, QueryConfig config) {
+        Objects.requireNonNull(klass, ENTITY_CLASS_CAN_T_BE_NULL);
+        return new SelectedImpl<>(klass, config, true);
+    }
+
     public static <T> Selected<T> select(Class<T> klass, QueryConfig config) {
         Objects.requireNonNull(klass, ENTITY_CLASS_CAN_T_BE_NULL);
-        return new SelectedImpl<>(klass, config);
+        return new SelectedImpl<>(klass, config, false);
     }
 
     public static <T, R> Selected<T> subQuery(SqlColumn<T, R> column) {
         return subQuery(column, QueryConfig.builder().build());
     }
 
+    public static <T, R> Selected<T> subQueryDistinct(SqlColumn<T, R> column) {
+        return subQueryDistinct(column, QueryConfig.builder().build());
+    }
+
+    public static <T, R> Selected<T> subQueryDistinct(SqlColumn<T, R> column, QueryConfig config) {
+        return new SubQueryImpl<>(column, config, true);
+    }
+
     public static <T, R> Selected<T> subQuery(SqlColumn<T, R> column, QueryConfig config) {
-        return new SubQueryImpl<>(column, config);
+        return new SubQueryImpl<>(column, config, false);
     }
 
     public static <T> Inserted<T> insertInto(Class<T> klass) {
