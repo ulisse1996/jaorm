@@ -23,6 +23,7 @@ import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiPredicate;
@@ -206,7 +207,7 @@ class RelationshipServiceTest {
         public RelationshipMock() {
             this.map = new HashMap<>();
             Relationship<String> stringRelationshipTree = new Relationship<>(String.class);
-            stringRelationshipTree.add(new Relationship.Node<>(String.class, e -> "", false, false, "name",EntityEventType.PERSIST));
+            stringRelationshipTree.add(new Relationship.Node<>(String.class, e -> "", false, false, "name", Collections.emptyList(), EntityEventType.PERSIST));
             Relationship<BigDecimal> bigDecimalRelationshipTree = new Relationship<>(BigDecimal.class);
             this.map.put(stringRelationshipTree.getEntityClass(), stringRelationshipTree);
             this.map.put(bigDecimalRelationshipTree.getEntityClass(), bigDecimalRelationshipTree);

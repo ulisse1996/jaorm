@@ -4,13 +4,11 @@ import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeSpec;
-import io.github.ulisse1996.jaorm.annotation.Cascade;
-import io.github.ulisse1996.jaorm.annotation.CascadeType;
-import io.github.ulisse1996.jaorm.annotation.Converter;
-import io.github.ulisse1996.jaorm.annotation.Table;
+import io.github.ulisse1996.jaorm.annotation.*;
 import io.github.ulisse1996.jaorm.entity.converter.ParameterConverter;
 import io.github.ulisse1996.jaorm.entity.relationship.EntityEventType;
 import io.github.ulisse1996.jaorm.entity.relationship.Relationship;
+import io.github.ulisse1996.jaorm.entity.relationship.RelationshipManager;
 import io.github.ulisse1996.jaorm.processor.exception.ProcessorException;
 import io.github.ulisse1996.jaorm.processor.generation.Generator;
 import io.github.ulisse1996.jaorm.processor.util.GeneratedFile;
@@ -116,7 +114,7 @@ public class RelationshipGenerator extends Generator {
             String events;
             EntityEventType[] values = getEvents(relationship);
             events = asVarArgs(values);
-            builder.addStatement("rel.add(new $T<>($T.class, e -> (($T)e).$L(), $L, $L, $S, $L))",
+            builder.addStatement("rel.add(new $T<>($T.class, e -> (($T)e).$L(), $L, $L, $S, $L, $L))",
                     Relationship.Node.class,
                     relationship.returnTypeDefinition.getRealClass(),
                     info.entity,
@@ -124,12 +122,41 @@ public class RelationshipGenerator extends Generator {
                     relationship.returnTypeDefinition.isOptional() ? "true" : "false",
                     relationship.returnTypeDefinition.isCollection() ? "true" : "false",
                     relationship.relationship.getSimpleName(),
+                    getKeys(info.entity, relationship),
                     events
             );
             addAutoSetNode(info.entity, relationship, builder);
         }
 
         return Arrays.asList(getEntityClass, builder.addStatement("return rel").build());
+    }
+
+    private String getKeys(TypeElement entity, RelationshipAccessor relationship) {
+        io.github.ulisse1996.jaorm.annotation.Relationship currRel = relationship.relationship.getAnnotation(io.github.ulisse1996.jaorm.annotation.Relationship.class);
+        Set<String> relColumns = Stream.of(currRel.columns())
+                .map(io.github.ulisse1996.jaorm.annotation.Relationship.RelationshipColumn::sourceColumn)
+                .filter(s -> !s.isEmpty())
+                .collect(Collectors.toSet());
+        List<String> entityKeys = ProcessorUtils.getAllValidElements(processingEnvironment, entity)
+                .stream()
+                .filter(el -> el.getKind().isField())
+                .filter(el -> el.getAnnotation(Id.class) != null)
+                .map(el -> el.getAnnotation(Column.class).name())
+                .collect(Collectors.toList());
+        List<String> keys = new ArrayList<>();
+        for (String key : entityKeys) {
+            if (relColumns.contains(key)) {
+                keys.add(key);
+            }
+        }
+        if (keys.size() == 0) {
+            return String.format("%s.emptyList()", Collections.class.getName());
+        } else if (keys.size() == 1) {
+            return String.format("%s.singletonList(\"%s\")", Collections.class.getName(), keys.get(0));
+        } else {
+            return String.format("%s.asList(%s)", Arrays.class.getName(),
+                    keys.stream().map(el -> String.format("\"%s\"", el)).collect(Collectors.joining(",")));
+        }
     }
 
     private String getPackage(TypeElement entity) {
@@ -140,21 +167,26 @@ public class RelationshipGenerator extends Generator {
         TypeElement rel = relationship.returnTypeDefinition.getRealClass();
         VariableElement variable = relationship.relationship;
         io.github.ulisse1996.jaorm.annotation.Relationship currRel = variable.getAnnotation(io.github.ulisse1996.jaorm.annotation.Relationship.class);
-        Map<String, List<Object>> params = new HashMap<>();
+        RelationshipStatements params = new RelationshipStatements();
         for (io.github.ulisse1996.jaorm.annotation.Relationship.RelationshipColumn column : currRel.columns()) {
             VariableElement toSet = ProcessorUtils.getFieldWithColumnName(processingEnvironment, rel, column.targetColumn());
             if (column.sourceColumn().isEmpty()) {
                 if (toSet.getAnnotation(Converter.class) == null) {
                     params.put(
-                            "(($T)link).$L($T.$L.toValue($S))",
+                            "$T.applyCallback($S, null, link, null, $T.class, $T::$L, null, $T.$L.toValue($S))",
                             Arrays.asList(
+                                    RelationshipManager.class,
+                                    String.format("%s -> %s", entity.getSimpleName(), rel.getSimpleName()),
+                                    rel,
                                     rel,
                                     ProcessorUtils.findSetter(processingEnvironment, rel, toSet.getSimpleName()).getSimpleName(),
                                     ParameterConverter.class,
                                     column.converter().name(),
                                     column.defaultValue()
-                            ));
+                            )
+                    );
                 } else {
+                    // TODO
                     params.put(
                             "(($T)link).$L($L.fromSql($T.$L.toValue($S)))",
                             Arrays.asList(
@@ -169,14 +201,35 @@ public class RelationshipGenerator extends Generator {
             } else {
                 VariableElement fromSet = ProcessorUtils.getFieldWithColumnName(processingEnvironment, entity, column.sourceColumn());
                 if (fromSet.getAnnotation(Converter.class) == null || noNeedForConversion(fromSet, toSet)) {
+                    // Setter from
                     params.put(
-                            "(($T)entity).$L((($T)link).$L())",
+                            "$T.applyCallback($S, link, entity, $T.class, $T.class, $T::$L, $T::$L, null)",
                             Arrays.asList(
+                                    RelationshipManager.class,
+                                    String.format("%s -> %s", entity.getSimpleName(), rel.getSimpleName()),
+                                    entity,
+                                    rel,
                                     rel,
                                     ProcessorUtils.findSetter(processingEnvironment, rel, toSet.getSimpleName()).getSimpleName(),
                                     entity,
                                     ProcessorUtils.findGetter(processingEnvironment, entity, fromSet.getSimpleName()).getSimpleName()
-                            ));
+                            )
+                    );
+
+                    // Setter to
+                    params.put(
+                            "$T.applyCallback($S, entity, link, $T.class, $T.class, $T::$L, $T::$L, null)",
+                            Arrays.asList(
+                                    RelationshipManager.class,
+                                    String.format("%s -> %s", rel.getSimpleName(), entity.getSimpleName()),
+                                    rel,
+                                    entity,
+                                    entity,
+                                    ProcessorUtils.findSetter(processingEnvironment, entity, fromSet.getSimpleName()).getSimpleName(),
+                                    rel,
+                                    ProcessorUtils.findGetter(processingEnvironment, rel, toSet.getSimpleName()).getSimpleName()
+                            )
+                    );
                 } else {
                     params.put(
                             "(($T)entity).$L($L.fromSql((($T)link).$L()))",
@@ -190,8 +243,8 @@ public class RelationshipGenerator extends Generator {
                 }
             }
         }
-        params.forEach((code, p) -> builder.addStatement(
-                String.format("rel.getLast().appendThen((entity, link) -> %s)", code), p.toArray()));
+        params.statements.forEach((e) -> builder.addStatement(
+                String.format("rel.getLast().appendThen((entity, link) -> %s)", e.statement), e.params.toArray()));
     }
 
     private boolean noNeedForConversion(VariableElement fromSet, VariableElement toSet) {
@@ -277,6 +330,28 @@ public class RelationshipGenerator extends Generator {
             this.getter = getter;
             this.cascadeTypes = cascadeTypes;
             this.relationship = relationship;
+        }
+    }
+
+    private static class RelationshipStatements {
+        private final List<RelationshipStatement> statements;
+
+        public RelationshipStatements() {
+            this.statements = new ArrayList<>();
+        }
+
+        public void put(String statement, List<Object> params) {
+            this.statements.add(new RelationshipStatement(statement, params));
+        }
+    }
+
+    private static class RelationshipStatement {
+        private final String statement;
+        private final List<Object> params;
+
+        public RelationshipStatement(String statement, List<Object> params) {
+            this.statement = statement;
+            this.params = params;
         }
     }
 }

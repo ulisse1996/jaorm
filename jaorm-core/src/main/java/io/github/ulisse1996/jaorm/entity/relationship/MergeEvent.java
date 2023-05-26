@@ -1,10 +1,7 @@
 package io.github.ulisse1996.jaorm.entity.relationship;
 
 import io.github.ulisse1996.jaorm.BaseDao;
-import io.github.ulisse1996.jaorm.entity.DirtinessTracker;
-import io.github.ulisse1996.jaorm.entity.EntityDelegate;
-import io.github.ulisse1996.jaorm.entity.Result;
-import io.github.ulisse1996.jaorm.entity.TrackedList;
+import io.github.ulisse1996.jaorm.entity.*;
 import io.github.ulisse1996.jaorm.entity.event.PostMerge;
 import io.github.ulisse1996.jaorm.entity.event.PreMerge;
 import io.github.ulisse1996.jaorm.exception.MergeEventException;
@@ -14,7 +11,9 @@ import io.github.ulisse1996.jaorm.spi.QueryRunner;
 import io.github.ulisse1996.jaorm.spi.RelationshipService;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class MergeEvent extends PreApplyEvent {
 
@@ -37,8 +36,10 @@ public class MergeEvent extends PreApplyEvent {
         }
     }
 
+    @SuppressWarnings("unchecked")
     public static <R> void mergeEntity(R entity) {
-        if (!(entity instanceof EntityDelegate)) {
+        boolean hasRelationshipsWithLinkedId = hasRelationshipsWithLinkedId(entity);
+        if (!(entity instanceof EntityDelegate) && hasRelationshipsWithLinkedId) {
             R insert = QueryRunner.getInstance(entity.getClass())
                     .insert(entity, DelegatesService.getInstance().getInsertSql(entity),
                             DelegatesService.getInstance().asInsert(entity).asSqlParameters());
@@ -49,11 +50,45 @@ public class MergeEvent extends PreApplyEvent {
                 dao.merge(i);
                 return QueryRunner.getInstance(i.getClass()).getUpdatedRows(i);
             }, true, EntityEventType.MERGE);
-            UpdateEvent.updateEntity(entity);
+            if (!(entity instanceof EntityDelegate)) {
+                new PersistEvent().persist(entity, (Class<? super R>) entity.getClass());
+            } else {
+                UpdateEvent.updateEntity(entity);
+            }
         }
     }
 
+    private static <R> boolean hasRelationshipsWithLinkedId(R entity) {
+        Relationship<?> relationships = RelationshipService.getInstance().getRelationships(entity.getClass());
+
+        if (relationships == null) {
+            return true;
+        }
+
+        List<String> keys = getKeys(entity);
+        for (Relationship.Node<?> node : relationships.getNodeSet()) {
+            if (node.getLinkedKeys().stream().anyMatch(keys::contains)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static <R> List<String> getKeys(R entity) {
+        EntityMapper<?> entityMapper = DelegatesService.getInstance().searchDelegate(entity)
+                .get().getEntityMapper();
+        return entityMapper.getMappers()
+                .stream()
+                .filter(EntityMapper.ColumnMapper::isKey)
+                .map(EntityMapper.ColumnMapper::getName)
+                .collect(Collectors.toList());
+    }
+
     private static <R> void checkRemoved(R entity) {
+        if (!(entity instanceof EntityDelegate)) {
+            return;
+        }
         EntityDelegate<R> delegate = EntityDelegate.unwrap(entity);
         DirtinessTracker<R> tracker = delegate.getTracker();
         if (!tracker.getRemovedElements().isEmpty()) {

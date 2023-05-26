@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -28,6 +29,7 @@ public abstract class CoreIT extends AbstractIT {
     private final CityDAO cityDAO = QueriesService.getInstance().getQuery(CityDAO.class);
     private final SellerDao sellerDao = QueriesService.getInstance().getQuery(SellerDao.class);
     private final StoreDAO storeDAO = QueriesService.getInstance().getQuery(StoreDAO.class);
+    private final TransactionDao transactionDao = QueriesService.getInstance().getQuery(TransactionDao.class);
 
     @Override
     protected void afterInit() throws Exception {
@@ -352,6 +354,36 @@ public abstract class CoreIT extends AbstractIT {
         Assertions.assertEquals(2, s.get().getSellers().size()); // 18
 
         assertTotalInvocations(18);
+    }
+
+    @Test
+    void should_create_a_full_transaction_with_relationships() {
+        Reservation reservation = new Reservation();
+        reservation.setName("NAME");
+
+        Payment payment = new Payment();
+        payment.setType("TYPE");
+
+        Transaction transaction = new Transaction();
+        transaction.setReservation(reservation);
+        transaction.setPayment(payment);
+
+        transaction = transactionDao.merge(transaction);
+
+        Transaction t1 = new Transaction();
+        t1.setId(BigInteger.ONE);
+        Optional<Transaction> opt = transactionDao.readOpt(t1);
+
+        Transaction finalTransaction = transaction;
+        Assertions.assertAll(
+                () -> Assertions.assertTrue(opt.isPresent()),
+                () -> Assertions.assertEquals(BigInteger.ONE, finalTransaction.getReservationId()),
+                () -> Assertions.assertEquals(BigInteger.ONE, finalTransaction.getPaymentId()),
+                () -> Assertions.assertEquals(BigInteger.ONE, finalTransaction.getPayment().getId()),
+                () -> Assertions.assertEquals(BigInteger.ONE, finalTransaction.getReservation().getId())
+        );
+
+        assertTotalInvocations(4);
     }
 
     @NotNull

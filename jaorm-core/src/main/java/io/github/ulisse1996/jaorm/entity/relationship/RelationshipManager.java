@@ -1,10 +1,14 @@
 package io.github.ulisse1996.jaorm.entity.relationship;
 
+import io.github.ulisse1996.jaorm.logger.JaormLogger;
+
 import java.util.*;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 public class RelationshipManager<T> {
 
+    private static final JaormLogger logger = JaormLogger.getLogger(RelationshipManager.class);
     private final Map<String, RelationshipInfo<T>> relationships;
 
     public RelationshipManager() {
@@ -19,6 +23,20 @@ public class RelationshipManager<T> {
     public RelationshipInfo<T> getRelationshipInfo(String name) {
         Optional<RelationshipInfo<T>> info = Optional.ofNullable(this.relationships.get(name));
         return info.orElseThrow(() -> new IllegalArgumentException(String.format("Can't find relationship with name %s", name)));
+    }
+
+    public static <R, L, M> void applyCallback(String name, Object from, Object to,
+                                               Class<L> fromClass, Class<M> toClass,
+                                               BiConsumer<M, R> setter, Function<L, R> getter,
+                                               R defaultValue) {
+        R value = Objects.nonNull(defaultValue) ? defaultValue : getter.apply(fromClass.cast(from));
+        if (Objects.nonNull(value)) {
+            logger.debug(() -> String.format("Applying relationship callback with name %s and value %s", name, value));
+            M target = toClass.cast(to);
+            setter.accept(target, value);
+        } else {
+            logger.debug(() -> String.format("Skipping relationship callback with name %s for null value", name));
+        }
     }
 
     public static class RelationshipInfo<T> {

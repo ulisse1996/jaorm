@@ -166,11 +166,11 @@ public abstract class EventTest {
 
     protected static Stream<Arguments> getRelationship() {
         Relationship<Entity> tree1 = new Relationship<>(Entity.class);
-        tree1.add(new Relationship.Node<>(RelEntity.class, Entity::getRelEntity, false, false, "name",EntityEventType.values()));
+        tree1.add(new Relationship.Node<>(RelEntity.class, Entity::getRelEntity, false, false, "name", Collections.emptyList(), EntityEventType.values()));
         Relationship<Entity> tree2 = new Relationship<>(Entity.class);
-        tree2.add(new Relationship.Node<>(RelEntity.class, Entity::getRelEntityOpt, true, false, "name",EntityEventType.values()));
+        tree2.add(new Relationship.Node<>(RelEntity.class, Entity::getRelEntityOpt, true, false, "name", Collections.emptyList(), EntityEventType.values()));
         Relationship<Entity> tree3 = new Relationship<>(Entity.class);
-        tree3.add(new Relationship.Node<>(RelEntity.class, Entity::getRelEntityColl, false, true, "name",EntityEventType.values()));
+        tree3.add(new Relationship.Node<>(RelEntity.class, Entity::getRelEntityColl, false, true, "name", Collections.emptyList(), EntityEventType.values()));
         return Stream.of(
                 Arguments.arguments(tree1),
                 Arguments.arguments(tree2),

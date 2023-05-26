@@ -25,11 +25,7 @@ public class PersistEvent implements EntityEvent {
             klass = (Class<T>) EntityEvent.getRealClass(klass);
         }
         Relationship<T> tree = RelationshipService.getInstance().getRelationships(klass);
-        doPrePersist(entity);
-        T insert = QueryRunner.getInstance(klass)
-                .insert(entity, DelegatesService.getInstance().getInsertSql(entity),
-                        DelegatesService.getInstance().asInsert(entity).asSqlParameters());
-        doPostPersist(entity);
+        T insert = persist(entity, klass);
         for (Relationship.Node<T> node : tree.getNodeSet()) {
             if (!node.matchEvent(EntityEventType.PERSIST)) {
                 continue;
@@ -59,6 +55,15 @@ public class PersistEvent implements EntityEvent {
             }
         }
 
+        return insert;
+    }
+
+    public  <T> T persist(T entity, Class<T> klass) {
+        doPrePersist(entity);
+        T insert = QueryRunner.getInstance(klass)
+                .insert(entity, DelegatesService.getInstance().getInsertSql(entity),
+                        DelegatesService.getInstance().asInsert(entity).asSqlParameters());
+        doPostPersist(entity);
         return insert;
     }
 

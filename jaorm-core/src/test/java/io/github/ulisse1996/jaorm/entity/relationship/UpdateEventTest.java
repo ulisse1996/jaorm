@@ -19,6 +19,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
+import java.util.Collections;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
@@ -162,9 +163,9 @@ class UpdateEventTest extends EventTest {
     @Test
     void should_do_insert_for_update_with_0_rows() {
         Relationship<Entity> relationship = new Relationship<>(Entity.class);
-        relationship.add(new Relationship.Node<>(RelEntity.class, Entity::getRelEntity, false, false, "name",EntityEventType.values()));
-        relationship.add(new Relationship.Node<>(RelEntity.class, Entity::getRelEntityOpt, true, false, "name",EntityEventType.values()));
-        relationship.add(new Relationship.Node<>(RelEntity.class, Entity::getRelEntityColl, false, true, "name",EntityEventType.values()));
+        relationship.add(new Relationship.Node<>(RelEntity.class, Entity::getRelEntity, false, false, "name", Collections.emptyList(), EntityEventType.values()));
+        relationship.add(new Relationship.Node<>(RelEntity.class, Entity::getRelEntityOpt, true, false, "name",Collections.emptyList(), EntityEventType.values()));
+        relationship.add(new Relationship.Node<>(RelEntity.class, Entity::getRelEntityColl, false, true, "name",Collections.emptyList(), EntityEventType.values()));
         MyEntityDelegate delegate = new MyEntityDelegate();
         DelegatesService delegatedMock = Mockito.mock(DelegatesService.class);
         QueryRunner mockRunner = Mockito.mock(QueryRunner.class);
@@ -208,9 +209,9 @@ class UpdateEventTest extends EventTest {
     @Test
     void should_not_insert_for_update_with_0_rows() {
         Relationship<Entity> relationship = new Relationship<>(Entity.class);
-        relationship.add(new Relationship.Node<>(RelEntity.class, Entity::getRelEntity, false, false, "name",EntityEventType.UPDATE));
-        relationship.add(new Relationship.Node<>(RelEntity.class, Entity::getRelEntityOpt, true, false, "name",EntityEventType.UPDATE));
-        relationship.add(new Relationship.Node<>(RelEntity.class, Entity::getRelEntityColl, false, true, "name",EntityEventType.UPDATE));
+        relationship.add(new Relationship.Node<>(RelEntity.class, Entity::getRelEntity, false, false, "name", Collections.emptyList(), EntityEventType.UPDATE));
+        relationship.add(new Relationship.Node<>(RelEntity.class, Entity::getRelEntityOpt, true, false, "name",Collections.emptyList(), EntityEventType.UPDATE));
+        relationship.add(new Relationship.Node<>(RelEntity.class, Entity::getRelEntityColl, false, true, "name",Collections.emptyList(), EntityEventType.UPDATE));
         MyEntityDelegate delegate = new MyEntityDelegate();
         DelegatesService delegatedMock = Mockito.mock(DelegatesService.class);
         QueryRunner mockRunner = Mockito.mock(QueryRunner.class);

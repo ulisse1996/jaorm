@@ -25,7 +25,7 @@ public class Relationship<T> {
         return this.nodeSet.get(this.nodeSet.size() - 1);
     }
 
-    public List<Node<T>> getNodeSet() { //NOSONAR
+    public List<Node<T>> getNodeSet() {
         return Collections.unmodifiableList(this.nodeSet);
     }
 
@@ -42,8 +42,10 @@ public class Relationship<T> {
         private final Class<?> linkedClass;
         private final String name;
         private BiConsumer<Object, T> autoSet;
+        private final List<String> linkedKeys;
 
-        public Node(Class<?> linkedClass, Function<T, ?> function, boolean opt, boolean collection, String name, EntityEventType... events) {
+        public Node(Class<?> linkedClass, Function<T, ?> function, boolean opt, boolean collection, String name, List<String> linkedKeys,
+                    EntityEventType... events) {
             this.function = function;
             this.opt = opt;
             this.collection = collection;
@@ -51,6 +53,11 @@ public class Relationship<T> {
             this.linkedClass = linkedClass;
             this.name = name;
             this.autoSet = (entity, link) -> {};
+            this.linkedKeys = Collections.unmodifiableList(linkedKeys);
+        }
+
+        public List<String> getLinkedKeys() {
+            return linkedKeys;
         }
 
         public String getName() {
