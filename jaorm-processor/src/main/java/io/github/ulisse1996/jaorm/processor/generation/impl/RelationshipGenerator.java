@@ -23,6 +23,7 @@ import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import java.util.*;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -186,7 +187,6 @@ public class RelationshipGenerator extends Generator {
                             )
                     );
                 } else {
-                    // TODO
                     params.put(
                             "(($T)link).$L($L.fromSql($T.$L.toValue($S)))",
                             Arrays.asList(
@@ -232,19 +232,34 @@ public class RelationshipGenerator extends Generator {
                     );
                 } else {
                     params.put(
-                            "(($T)entity).$L($L.fromSql((($T)link).$L()))",
+                            "$T.applyCallback($S, link, entity, $T.class, $T.class, $T::$L, (t) -> $L.fromSql(t).$L(), null)",
                             Arrays.asList(
+                                    RelationshipManager.class,
+                                    String.format("%s -> %s", entity.getSimpleName(), rel.getSimpleName()),
+                                    entity,
+                                    rel,
                                     rel,
                                     ProcessorUtils.findSetter(processingEnvironment, rel, toSet.getSimpleName()).getSimpleName(),
-                                    ProcessorUtils.getConverterCaller(processingEnvironment, toSet),
-                                    entity,
+                                    handleExceptionInfoPropagation(fromSet, toSet, () -> ProcessorUtils.getConverterCaller(processingEnvironment, toSet)),
                                     ProcessorUtils.findGetter(processingEnvironment, entity, fromSet.getSimpleName()).getSimpleName()
-                            ));
+                            )
+                    );
                 }
             }
         }
         params.statements.forEach((e) -> builder.addStatement(
                 String.format("rel.getLast().appendThen((entity, link) -> %s)", e.statement), e.params.toArray()));
+    }
+
+    private String handleExceptionInfoPropagation(VariableElement fromSet, VariableElement toSet, Supplier<String> converterCallerGetter) {
+        try {
+            return converterCallerGetter.get();
+        } catch (ProcessorException ex) {
+            if (toSet.getAnnotation(Converter.class) == null) {
+                throw new ProcessorException(String.format("%s referenced by %s.%s", ex.getMessage(), fromSet.getEnclosingElement().getSimpleName(), fromSet.getSimpleName()));
+            }
+            throw ex;
+        }
     }
 
     private boolean noNeedForConversion(VariableElement fromSet, VariableElement toSet) {

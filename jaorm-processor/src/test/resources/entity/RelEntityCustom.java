@@ -19,13 +19,14 @@ public class RelEntityCustom {
     private CustomEnum colRel2;
 
     @Column(name = "COL_REL_3")
-    private String colRel3;
+    @Converter(StringToBigDecimalConverter.class)
+    private BigDecimal colRel3;
 
-    public String getColRel3() {
+    public BigDecimal getColRel3() {
         return colRel3;
     }
 
-    public void setColRel3(String colRel3) {
+    public void setColRel3(BigDecimal colRel3) {
         this.colRel3 = colRel3;
     }
 

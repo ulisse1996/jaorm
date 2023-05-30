@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.ArrayList;
@@ -14,6 +15,7 @@ import java.util.List;
 class TrackedListTest {
 
     @Mock private EntityDelegate<?> delegate;
+    @Mock private DirtinessTracker<?> tracker;
 
     @Test
     void should_create_standard_tracked_list() {
@@ -81,6 +83,7 @@ class TrackedListTest {
     @Test
     void should_remove_element_and_add_it_to_removed_list() {
         TrackedList<Object> list = getNew("1");
+        Mockito.when(delegate.getTracker()).then(i -> tracker);
         Object removed = list.remove(0);
         Assertions.assertEquals("1", removed);
         Assertions.assertEquals(List.of(), list);

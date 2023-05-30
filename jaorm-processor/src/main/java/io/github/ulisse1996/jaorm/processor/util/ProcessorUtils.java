@@ -298,6 +298,11 @@ public class ProcessorUtils {
     private static TypeMirror getConverterClass(ProcessingEnvironment environment, VariableElement variableElement) {
         TypeMirror converterClass;
         Converter converter = variableElement.getAnnotation(Converter.class);
+
+        if (converter == null) {
+            throw new ProcessorException(String.format("Can't find converter class for required conversion on %s.%s", variableElement.getEnclosingElement().getSimpleName(), variableElement.getSimpleName()));
+        }
+
         try {
             // Only way to get class
             Class<?> klass = converter.value();
