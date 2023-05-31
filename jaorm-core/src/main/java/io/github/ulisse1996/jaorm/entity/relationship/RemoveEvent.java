@@ -18,10 +18,17 @@ public class RemoveEvent extends PreApplyEvent {
                 throw new RemoveEventException(ex);
             }
         }
-        doPreApply(entity, BaseDao::delete, false, EntityEventType.REMOVE);
-        QueryRunner.getInstance(entity.getClass())
-                .delete(DelegatesService.getInstance().getDeleteSql(entity.getClass()),
-                        DelegatesService.getInstance().asWhere(entity).asSqlParameters());
+        if (hasRelationshipsWithLinkedId(entity)) {
+            doPreApply(entity, BaseDao::delete, false, EntityEventType.REMOVE);
+            QueryRunner.getInstance(entity.getClass())
+                    .delete(DelegatesService.getInstance().getDeleteSql(entity.getClass()),
+                            DelegatesService.getInstance().asWhere(entity).asSqlParameters());
+        } else {
+            QueryRunner.getInstance(entity.getClass())
+                    .delete(DelegatesService.getInstance().getDeleteSql(entity.getClass()),
+                            DelegatesService.getInstance().asWhere(entity).asSqlParameters());
+            doPreApply(entity, BaseDao::delete, false, EntityEventType.REMOVE);
+        }
         if (entity instanceof PostRemove<?>) {
             try {
                 ((PostRemove<?>) entity).postRemove();

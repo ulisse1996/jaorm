@@ -2,20 +2,50 @@ package io.github.ulisse1996.jaorm.entity.relationship;
 
 import io.github.ulisse1996.jaorm.BaseDao;
 import io.github.ulisse1996.jaorm.entity.EntityDelegate;
+import io.github.ulisse1996.jaorm.entity.EntityMapper;
 import io.github.ulisse1996.jaorm.entity.Result;
 import io.github.ulisse1996.jaorm.entity.TrackedList;
 import io.github.ulisse1996.jaorm.logger.JaormLogger;
+import io.github.ulisse1996.jaorm.spi.DelegatesService;
 import io.github.ulisse1996.jaorm.spi.FeatureConfigurator;
 import io.github.ulisse1996.jaorm.spi.QueriesService;
 import io.github.ulisse1996.jaorm.spi.RelationshipService;
 
 import java.util.*;
 import java.util.function.BiFunction;
+import java.util.stream.Collectors;
 
 @SuppressWarnings("unchecked")
 public abstract class PreApplyEvent implements EntityEvent {
 
     private static final JaormLogger logger = JaormLogger.getLogger(PreApplyEvent.class);
+
+    private static <R> List<String> getKeys(R entity) {
+        EntityMapper<?> entityMapper = DelegatesService.getInstance().searchDelegate(entity)
+                .get().getEntityMapper();
+        return entityMapper.getMappers()
+                .stream()
+                .filter(EntityMapper.ColumnMapper::isKey)
+                .map(EntityMapper.ColumnMapper::getName)
+                .collect(Collectors.toList());
+    }
+
+    protected static <R> boolean hasRelationshipsWithLinkedId(R entity) {
+        Relationship<?> relationships = RelationshipService.getInstance().getRelationships(entity.getClass());
+
+        if (relationships == null) {
+            return true;
+        }
+
+        List<String> keys = getKeys(entity);
+        for (Relationship.Node<?> node : relationships.getNodeSet()) {
+            if (node.getLinkedKeys().stream().anyMatch(keys::contains)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 
     protected static <T> void doPreApply(T entity, BiFunction<BaseDao<Object>, Object, Integer> function, boolean update,
                                          EntityEventType eventType) {

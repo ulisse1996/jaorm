@@ -58,33 +58,6 @@ public class MergeEvent extends PreApplyEvent {
         }
     }
 
-    private static <R> boolean hasRelationshipsWithLinkedId(R entity) {
-        Relationship<?> relationships = RelationshipService.getInstance().getRelationships(entity.getClass());
-
-        if (relationships == null) {
-            return true;
-        }
-
-        List<String> keys = getKeys(entity);
-        for (Relationship.Node<?> node : relationships.getNodeSet()) {
-            if (node.getLinkedKeys().stream().anyMatch(keys::contains)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private static <R> List<String> getKeys(R entity) {
-        EntityMapper<?> entityMapper = DelegatesService.getInstance().searchDelegate(entity)
-                .get().getEntityMapper();
-        return entityMapper.getMappers()
-                .stream()
-                .filter(EntityMapper.ColumnMapper::isKey)
-                .map(EntityMapper.ColumnMapper::getName)
-                .collect(Collectors.toList());
-    }
-
     private static <R> void checkRemoved(R entity) {
         if (!(entity instanceof EntityDelegate)) {
             return;

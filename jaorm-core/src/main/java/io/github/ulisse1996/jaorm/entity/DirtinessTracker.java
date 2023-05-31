@@ -17,14 +17,13 @@ public class DirtinessTracker<T> {
         return delegate;
     }
 
-    public void registerRemoved(Result<?> result) {
-        if (result != null && result.isPresent() && result.get() instanceof EntityDelegate) {
-            this.removedElements.add(result.get());
-        }
-    }
-
     public void registerRemoved(Object element) {
-        if (element instanceof EntityDelegate) {
+        if (element instanceof Result) {
+            Result<?> result = (Result<?>) element;
+            if (result.isPresent() && result.get() instanceof EntityDelegate) {
+                this.removedElements.add(result.get());
+            }
+        } else if (element instanceof EntityDelegate) {
             this.removedElements.add(element);
         }
     }
