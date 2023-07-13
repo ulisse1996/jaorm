@@ -31,7 +31,11 @@ public abstract class PreApplyEvent implements EntityEvent {
     }
 
     protected static <R> boolean hasRelationshipsWithLinkedId(R entity) {
-        Relationship<?> relationships = RelationshipService.getInstance().getRelationships(entity.getClass());
+        Class<R> klass = (Class<R>) entity.getClass();
+        if (EntityEvent.isDelegate(entity)) {
+            klass = (Class<R>) EntityEvent.getRealClass(entity.getClass());
+        }
+        Relationship<?> relationships = RelationshipService.getInstance().getRelationships(klass);
 
         if (relationships == null) {
             return true;
