@@ -25,6 +25,7 @@
 - Feature: Count and hasResults for DSL
 - Feature: Distinct for DSL Entity Select
 - Feature: Distinct for DSL SubQuery
+- Feature: Simple EnumConverter
 - Removal: Removed notLike and like
 - Refactor: Refactor of IT Tests
 - Bugfix: Fix missing upsert for entities with relationships
