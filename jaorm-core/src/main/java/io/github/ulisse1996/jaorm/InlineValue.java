@@ -7,4 +7,8 @@ public interface InlineValue<R> extends Selectable<R> {
     static <R> InlineValue<R> inline(R value) {
         return () -> value;
     }
+
+    default InlineValueWithAlias<R> as(String alias) {
+        return new InlineValueWithAlias<>(getValue(), alias);
+    }
 }

@@ -1,5 +1,7 @@
 package io.github.ulisse1996.jaorm.dsl.query.impl.simple;
 
+import io.github.ulisse1996.jaorm.InlineValue;
+import io.github.ulisse1996.jaorm.InlineValueWithAlias;
 import io.github.ulisse1996.jaorm.dsl.config.QueryConfig;
 import io.github.ulisse1996.jaorm.dsl.query.enums.JoinType;
 import io.github.ulisse1996.jaorm.dsl.query.enums.Operation;
@@ -7,7 +9,15 @@ import io.github.ulisse1996.jaorm.dsl.query.enums.OrderType;
 import io.github.ulisse1996.jaorm.dsl.query.impl.AbstractLimitOffsetImpl;
 import io.github.ulisse1996.jaorm.dsl.query.simple.FromSimpleSelected;
 import io.github.ulisse1996.jaorm.dsl.query.simple.SimpleSelected;
-import io.github.ulisse1996.jaorm.dsl.query.simple.intermediate.*;
+import io.github.ulisse1996.jaorm.dsl.query.simple.intermediate.IntermediateSimpleHaving;
+import io.github.ulisse1996.jaorm.dsl.query.simple.intermediate.IntermediateSimpleWhere;
+import io.github.ulisse1996.jaorm.dsl.query.simple.intermediate.SimpleGroup;
+import io.github.ulisse1996.jaorm.dsl.query.simple.intermediate.SimpleHaving;
+import io.github.ulisse1996.jaorm.dsl.query.simple.intermediate.SimpleOn;
+import io.github.ulisse1996.jaorm.dsl.query.simple.intermediate.SimpleOrder;
+import io.github.ulisse1996.jaorm.dsl.query.simple.intermediate.SimpleSelectedLimit;
+import io.github.ulisse1996.jaorm.dsl.query.simple.intermediate.SimpleSelectedOffset;
+import io.github.ulisse1996.jaorm.dsl.query.simple.intermediate.SimpleSelectedWhere;
 import io.github.ulisse1996.jaorm.dsl.query.simple.trait.WithResult;
 import io.github.ulisse1996.jaorm.dsl.util.Checker;
 import io.github.ulisse1996.jaorm.dsl.util.Pair;
@@ -28,6 +38,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class SimpleSelectedImpl extends AbstractLimitOffsetImpl implements SimpleSelected, FromSimpleSelected,
         SimpleOrder, SimpleSelectedWhere, SimpleSelectedLimit, SimpleSelectedOffset, SimpleGroup, SimpleHaving {
@@ -218,19 +229,35 @@ public class SimpleSelectedImpl extends AbstractLimitOffsetImpl implements Simpl
                 .map(i -> {
                     if (i.getColumn() != null) {
                         return getSelectColumn(i, aliasesSpecific);
+                    } else if (i.getInlineValue() != null) {
+                        return getInlineColumn(i.getInlineValue(), aliasesSpecific);
                     } else {
                         return getVendorFunctionColumn(i, aliasesSpecific);
                     }
                 }).collect(Collectors.joining(", "));
         parameters.addAll(
                 this.columns.stream()
-                        .filter(el -> el.getFunction() != null && el.getFunction().supportParams())
-                        .map(AliasColumn::getFunction)
-                        .flatMap(el -> ((VendorFunctionWithParams<?>) el).getParams().stream())
+                        .filter(el -> (el.getFunction() != null && el.getFunction().supportParams()) || el.getInlineValue() != null)
+                        .flatMap(el -> {
+                            if (el.getInlineValue() != null) {
+                                return Stream.of(el.getInlineValue().getValue());
+                            } else {
+                                VendorFunction<?> function = el.getFunction();
+                                return ((VendorFunctionWithParams<?>) function).getParams().stream();
+                            }
+                        })
                         .map(SqlParameter::new)
                         .collect(Collectors.toList())
         );
         return "SELECT " + (distinct ? "DISTINCT " : "") + s;
+    }
+
+    private String getInlineColumn(InlineValue<?> inlineValue, AliasesSpecific aliasesSpecific) {
+        String columnAlias = "";
+        if (inlineValue instanceof InlineValueWithAlias) {
+            columnAlias = aliasesSpecific.convertToAlias(((InlineValueWithAlias<?>) inlineValue).getAlias());
+        }
+        return String.format("?%s", columnAlias);
     }
 
     private String getVendorFunctionColumn(AliasColumn i, AliasesSpecific aliasesSpecific) {
