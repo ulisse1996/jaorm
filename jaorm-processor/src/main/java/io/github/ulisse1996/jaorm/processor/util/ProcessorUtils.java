@@ -1,5 +1,6 @@
 package io.github.ulisse1996.jaorm.processor.util;
 
+import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.MethodSpec;
@@ -614,6 +615,12 @@ public class ProcessorUtils {
                                                  ExecutableElement m, TypeElement entity,
                                                  boolean forEntity, boolean wrappedList, ExecutableElement getter) {
         MethodSpec.Builder builder = MethodSpec.overriding(m)
+                .addAnnotations(
+                        m.getAnnotationMirrors()
+                                .stream()
+                                .map(AnnotationSpec::get)
+                                .collect(Collectors.toList())
+                )
                 .addStatement(REQUIRE_NON_NULL, Objects.class);
         String variables = ProcessorUtils.extractParameterNames(m);
 

@@ -40,6 +40,7 @@
 - Bugfix: Fix auto-set inverse execution
 - Bugfix: Fix match of custom functions (like ::date) for named parameters in @Query
 - Bugfix: Fix delete cascade order on one-to-one entities
+- Bugfix: Copy annotations from entity methods on override
 
 ## 1.10.0
 - Feature: BeanProvider for Dependency Injection Extensions

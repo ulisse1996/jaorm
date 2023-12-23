@@ -1,8 +1,31 @@
 package io.github.ulisse1996.jaorm.processor.generation.impl;
 
-import com.squareup.javapoet.*;
-import io.github.ulisse1996.jaorm.annotation.*;
-import io.github.ulisse1996.jaorm.entity.*;
+import com.squareup.javapoet.AnnotationSpec;
+import com.squareup.javapoet.ClassName;
+import com.squareup.javapoet.CodeBlock;
+import com.squareup.javapoet.FieldSpec;
+import com.squareup.javapoet.MethodSpec;
+import com.squareup.javapoet.ParameterSpec;
+import com.squareup.javapoet.ParameterizedTypeName;
+import com.squareup.javapoet.TypeName;
+import com.squareup.javapoet.TypeSpec;
+import com.squareup.javapoet.WildcardTypeName;
+import io.github.ulisse1996.jaorm.annotation.Column;
+import io.github.ulisse1996.jaorm.annotation.Converter;
+import io.github.ulisse1996.jaorm.annotation.DefaultNumeric;
+import io.github.ulisse1996.jaorm.annotation.DefaultString;
+import io.github.ulisse1996.jaorm.annotation.DefaultTemporal;
+import io.github.ulisse1996.jaorm.annotation.Id;
+import io.github.ulisse1996.jaorm.annotation.Relationship;
+import io.github.ulisse1996.jaorm.annotation.Table;
+import io.github.ulisse1996.jaorm.entity.ColumnGetter;
+import io.github.ulisse1996.jaorm.entity.ColumnSetter;
+import io.github.ulisse1996.jaorm.entity.DefaultGenerator;
+import io.github.ulisse1996.jaorm.entity.DirtinessTracker;
+import io.github.ulisse1996.jaorm.entity.EntityDelegate;
+import io.github.ulisse1996.jaorm.entity.EntityMapper;
+import io.github.ulisse1996.jaorm.entity.SqlColumn;
+import io.github.ulisse1996.jaorm.entity.TrackedList;
 import io.github.ulisse1996.jaorm.entity.converter.ParameterConverter;
 import io.github.ulisse1996.jaorm.entity.relationship.LazyEntityInfo;
 import io.github.ulisse1996.jaorm.entity.relationship.RelationshipManager;
@@ -20,10 +43,22 @@ import io.github.ulisse1996.jaorm.spi.QueryRunner;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
-import javax.lang.model.element.*;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.Modifier;
+import javax.lang.model.element.Name;
+import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
 import java.lang.annotation.Annotation;
-import java.util.*;
+import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -236,10 +271,18 @@ public class EntityGenerator extends Generator {
 
         CodeBlock relationshipInfo = generateRelInfo(join.field.getSimpleName(), wheres, entity, columns);
         MethodSpec delegate = MethodSpec.overriding(method)
+                .addAnnotations(getAllAnnotations(method)) // Add all annotations that are available on getter
                 .addCode(block)
                 .build();
 
         return new AbstractMap.SimpleImmutableEntry<>(relationshipInfo, delegate);
+    }
+
+    private Iterable<AnnotationSpec> getAllAnnotations(ExecutableElement method) {
+        return method.getAnnotationMirrors()
+                .stream()
+                .map(AnnotationSpec::get)
+                .collect(Collectors.toList());
     }
 
     private Comparator<Relationship.RelationshipColumn> defaultComparator() {
