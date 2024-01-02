@@ -619,6 +619,7 @@ public class ProcessorUtils {
                         m.getAnnotationMirrors()
                                 .stream()
                                 .map(AnnotationSpec::get)
+                                .filter(el -> !el.type.equals(TypeName.get(Override.class)))
                                 .collect(Collectors.toList())
                 )
                 .addStatement(REQUIRE_NON_NULL, Objects.class);
