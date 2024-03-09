@@ -10,6 +10,7 @@ import io.github.ulisse1996.jaorm.spi.impl.DefaultCache;
 import io.github.ulisse1996.jaorm.spi.provider.CacheActivator;
 
 import java.util.*;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -17,8 +18,10 @@ public abstract class CacheService {
 
     private static final JaormLogger logger = JaormLogger.getLogger(CacheService.class);
     private static final Singleton<CacheService> INSTANCE = Singleton.instance();
+    private static final ReentrantLock LOCK = new ReentrantLock();
 
-    public static synchronized CacheService getInstance() {
+    public static CacheService getInstance() {
+        LOCK.lock();
         try {
             BeanProvider provider = BeanProvider.getInstance();
 
@@ -48,6 +51,8 @@ public abstract class CacheService {
         } catch (IllegalArgumentException ex) {
             logger.debug(ex::getMessage);
             INSTANCE.set(NoOpCache.INSTANCE);
+        } finally {
+            LOCK.unlock();
         }
 
         return INSTANCE.get();

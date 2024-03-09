@@ -6,19 +6,26 @@ import io.github.ulisse1996.jaorm.spi.common.Singleton;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.StreamSupport;
 
 public abstract class BeanProvider {
 
     private static final Singleton<BeanProvider> INSTANCE = Singleton.instance();
+    private static final ReentrantLock LOCK = new ReentrantLock();
 
-    public static synchronized BeanProvider getInstance() {
-        if (!INSTANCE.isPresent() || FrameworkIntegrationService.isReloadRequired(Collections.singleton(INSTANCE.get().getClass()))) {
-            INSTANCE.set(
-                    StreamSupport.stream(ServiceFinder.loadServices(BeanProvider.class).spliterator(), false)
-                            .findFirst()
-                            .orElse(BeanProvider.NoOp.INSTANCE)
-            );
+    public static BeanProvider getInstance() {
+        LOCK.lock();
+        try {
+            if (!INSTANCE.isPresent() || FrameworkIntegrationService.isReloadRequired(Collections.singleton(INSTANCE.get().getClass()))) {
+                INSTANCE.set(
+                        StreamSupport.stream(ServiceFinder.loadServices(BeanProvider.class).spliterator(), false)
+                                .findFirst()
+                                .orElse(BeanProvider.NoOp.INSTANCE)
+                );
+            }
+        } finally {
+            LOCK.unlock();
         }
 
         return INSTANCE.get();

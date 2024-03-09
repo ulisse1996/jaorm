@@ -1,31 +1,8 @@
 package io.github.ulisse1996.jaorm.processor.generation.impl;
 
-import com.squareup.javapoet.AnnotationSpec;
-import com.squareup.javapoet.ClassName;
-import com.squareup.javapoet.CodeBlock;
-import com.squareup.javapoet.FieldSpec;
-import com.squareup.javapoet.MethodSpec;
-import com.squareup.javapoet.ParameterSpec;
-import com.squareup.javapoet.ParameterizedTypeName;
-import com.squareup.javapoet.TypeName;
-import com.squareup.javapoet.TypeSpec;
-import com.squareup.javapoet.WildcardTypeName;
-import io.github.ulisse1996.jaorm.annotation.Column;
-import io.github.ulisse1996.jaorm.annotation.Converter;
-import io.github.ulisse1996.jaorm.annotation.DefaultNumeric;
-import io.github.ulisse1996.jaorm.annotation.DefaultString;
-import io.github.ulisse1996.jaorm.annotation.DefaultTemporal;
-import io.github.ulisse1996.jaorm.annotation.Id;
-import io.github.ulisse1996.jaorm.annotation.Relationship;
-import io.github.ulisse1996.jaorm.annotation.Table;
-import io.github.ulisse1996.jaorm.entity.ColumnGetter;
-import io.github.ulisse1996.jaorm.entity.ColumnSetter;
-import io.github.ulisse1996.jaorm.entity.DefaultGenerator;
-import io.github.ulisse1996.jaorm.entity.DirtinessTracker;
-import io.github.ulisse1996.jaorm.entity.EntityDelegate;
-import io.github.ulisse1996.jaorm.entity.EntityMapper;
-import io.github.ulisse1996.jaorm.entity.SqlColumn;
-import io.github.ulisse1996.jaorm.entity.TrackedList;
+import com.squareup.javapoet.*;
+import io.github.ulisse1996.jaorm.annotation.*;
+import io.github.ulisse1996.jaorm.entity.*;
 import io.github.ulisse1996.jaorm.entity.converter.ParameterConverter;
 import io.github.ulisse1996.jaorm.entity.relationship.LazyEntityInfo;
 import io.github.ulisse1996.jaorm.entity.relationship.RelationshipManager;
@@ -43,22 +20,10 @@ import io.github.ulisse1996.jaorm.spi.QueryRunner;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
-import javax.lang.model.element.Element;
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.element.Modifier;
-import javax.lang.model.element.Name;
-import javax.lang.model.element.TypeElement;
-import javax.lang.model.element.VariableElement;
+import javax.lang.model.element.*;
 import javax.lang.model.type.TypeMirror;
 import java.lang.annotation.Annotation;
-import java.util.AbstractMap;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -106,8 +71,15 @@ public class EntityGenerator extends Generator {
                 .addModifiers(Modifier.PUBLIC)
                 .superclass(entity.asType())
                 .addSuperinterface(ParameterizedTypeName.get(ClassName.get(EntityDelegate.class), ClassName.get(entity)));
+
         TypeSpec columns = generateColumns(processingEnvironment, entity);
         builder.addType(columns);
+        builder.addInitializerBlock(buildEntityMapperGenerator(entity));
+        builder.addInitializerBlock(buildSelectablesGenerator());
+        builder.addInitializerBlock(buildKeysWhereGenerator());
+        builder.addInitializerBlock(buildInsertSqlGenerator(entity));
+        builder.addInitializerBlock(buildUpdateSqlGenerator(entity));
+
         builder.addField(ClassName.get(entity), ENTITY, Modifier.PRIVATE);
         builder.addField(
                 FieldSpec.builder(
@@ -655,8 +627,87 @@ public class EntityGenerator extends Generator {
         for (Accessor accessor : accessors) {
             builder.addEnumConstant(accessor.name, enumImpl(accessor, entity));
         }
+
         addColumnsMethods(builder, entity);
         return builder.build();
+    }
+
+    private CodeBlock buildUpdateSqlGenerator(TypeElement entity) {
+        String table = entity.getAnnotation(Table.class).name();
+        return CodeBlock.builder()
+                .addStatement(BUILDER_INSTANCE, StringBuilder.class, StringBuilder.class)
+                .addStatement(BUILDER_SIMPLE_APPEND, "UPDATE " + table + " ")
+                .addStatement(SET_FIRST)
+                .beginControlFlow("for (int i = 0; i < Column.values().length; i++)")
+                .addStatement("Column column = Column.values()[i]")
+                .beginControlFlow(CHECK_FIRST)
+                .addStatement(BUILDER_SIMPLE_APPEND, "SET ")
+                .addStatement(RESET_FIRST)
+                .endControlFlow()
+                .addStatement("builder.append(column.colName).append($S)", " = ?")
+                .beginControlFlow("if (i != Column.values().length - 1)")
+                .addStatement(BUILDER_SIMPLE_APPEND, ", ")
+                .endControlFlow()
+                .endControlFlow()
+                .addStatement("Column.UPDATE_SQL = builder.toString()")
+                .build();
+    }
+
+    private CodeBlock buildInsertSqlGenerator(TypeElement entity) {
+        String table = entity.getAnnotation(Table.class).name();
+        return CodeBlock.builder()
+                .addStatement("$T genInstance = $T.getInstance()", GeneratorsService.class, GeneratorsService.class)
+                .addStatement(BUILDER_INSTANCE, StringBuilder.class, StringBuilder.class)
+                .addStatement(BUILDER_SIMPLE_APPEND, "INSERT INTO " + table + " (")
+                .beginControlFlow("for (int i = 0; i < Column.values().length; i++)")
+                .addStatement("Column column = Column.values()[i]")
+                .beginControlFlow("if (column.autoGenerated && !genInstance.canGenerateValue($T.class, column.colName))", entity)
+                .addStatement("continue")
+                .endControlFlow()
+                .addStatement("builder.append(column.colName)")
+                .beginControlFlow("if (i != Column.values().length - 1)")
+                .addStatement(BUILDER_SIMPLE_APPEND, ",")
+                .endControlFlow()
+                .endControlFlow()
+                .addStatement("String wildcards = Stream.of(Column.values()).filter(c -> !c.autoGenerated || genInstance.canGenerateValue($T.class, c.colName)).map(c -> $S).collect($T.joining($S))", entity, "?", Collectors.class, ",")
+                .addStatement("builder.append($S).append(wildcards).append($S)", ") VALUES (", ")")
+                .addStatement("Column.INSERT_SQL = builder.toString()")
+                .build();
+    }
+
+    private CodeBlock buildKeysWhereGenerator() {
+        return CodeBlock.builder()
+                .addStatement("$L keys = $T.of(Column.values()).filter(col -> col.key).map(col -> col.colName).collect($T.toList())",
+                        ParameterizedTypeName.get(List.class, String.class), Stream.class, Collectors.class)
+                .addStatement(SET_FIRST)
+                .addStatement(BUILDER_INSTANCE, StringBuilder.class, StringBuilder.class)
+                .beginControlFlow("for (String key : keys)")
+                .beginControlFlow(CHECK_FIRST)
+                .addStatement("builder.append($S).append(key).append($S)", WHERE, WILDCARD)
+                .addStatement(RESET_FIRST)
+                .nextControlFlow("else")
+                .addStatement("builder.append($S).append(key).append($S)", AND, WILDCARD)
+                .endControlFlow()
+                .endControlFlow()
+                .addStatement("Column.KEYS_WHERE = builder.toString()")
+                .build();
+    }
+
+    private CodeBlock buildSelectablesGenerator() {
+        return CodeBlock.builder()
+                .addStatement("Column.SELECTABLES = $T.of(Column.values()).map(col -> col.colName).collect($T.joining($S))",
+                        Stream.class, Collectors.class, ",")
+                .build();
+    }
+
+    private CodeBlock buildEntityMapperGenerator(TypeElement entity) {
+        return CodeBlock.builder()
+                .addStatement("$T.Builder<$T> builder = new $T.Builder<>()", EntityMapper.class, entity, EntityMapper.class)
+                .beginControlFlow("for (Column col : Column.values())")
+                .addStatement("builder.add(col.colName, col.type, col.setter, col.getter, col.key, col.autoGenerated)")
+                .endControlFlow()
+                .addStatement("Column.ENTITY_MAPPER = builder.build()")
+                .build();
     }
 
     private void addColumnsMethods(TypeSpec.Builder builder, TypeElement entity) {
@@ -670,36 +721,36 @@ public class EntityGenerator extends Generator {
         builder.addMethod(
                 MethodSpec.methodBuilder("getEntityMapper")
                         .returns(getEntityMapperType(entity))
-                        .addModifiers(Modifier.STATIC, Modifier.SYNCHRONIZED)
-                        .addCode(buildEntityMapperCodeBlock(entity))
+                        .addModifiers(Modifier.STATIC)
+                        .addCode(buildEntityMapperCodeBlock())
                         .build()
         );
         builder.addMethod(
                 MethodSpec.methodBuilder("getSelectables")
                         .returns(String.class)
-                        .addModifiers(Modifier.STATIC, Modifier.SYNCHRONIZED)
+                        .addModifiers(Modifier.STATIC)
                         .addCode(buildSelectablesCodeBlock())
                         .build()
         );
         builder.addMethod(
                 MethodSpec.methodBuilder("getKeyWheres")
                         .returns(String.class)
-                        .addModifiers(Modifier.STATIC, Modifier.SYNCHRONIZED)
+                        .addModifiers(Modifier.STATIC)
                         .addCode(buildKeysWhereCodeBlock())
                         .build()
         );
         builder.addMethod(
                 MethodSpec.methodBuilder("getInsertSql")
                         .returns(String.class)
-                        .addModifiers(Modifier.STATIC, Modifier.SYNCHRONIZED)
-                        .addCode(buildInsertSqlCodeBlock(entity.getAnnotation(Table.class).name(), entity))
+                        .addModifiers(Modifier.STATIC)
+                        .addCode(buildInsertSqlCodeBlock())
                         .build()
         );
         builder.addMethod(
                 MethodSpec.methodBuilder("getUpdateSql")
                         .returns(String.class)
-                        .addModifiers(Modifier.STATIC, Modifier.SYNCHRONIZED)
-                        .addCode(buildUpdateSql(entity.getAnnotation(Table.class).name()))
+                        .addModifiers(Modifier.STATIC)
+                        .addCode(buildUpdateSql())
                         .build()
         );
         builder.addMethod(
@@ -713,49 +764,14 @@ public class EntityGenerator extends Generator {
         );
     }
 
-    private CodeBlock buildUpdateSql(String table) {
+    private CodeBlock buildUpdateSql() {
         return CodeBlock.builder()
-                .beginControlFlow("if (UPDATE_SQL == null)")
-                .addStatement(BUILDER_INSTANCE, StringBuilder.class, StringBuilder.class)
-                .addStatement(BUILDER_SIMPLE_APPEND, "UPDATE " + table + " ")
-                .addStatement(SET_FIRST)
-                .beginControlFlow("for (int i = 0; i < values().length; i++)")
-                .addStatement("Column column = values()[i]")
-                .beginControlFlow(CHECK_FIRST)
-                .addStatement(BUILDER_SIMPLE_APPEND, "SET ")
-                .addStatement(RESET_FIRST)
-                .endControlFlow()
-                .addStatement("builder.append(column.colName).append($S)", " = ?")
-                .beginControlFlow("if (i != values().length - 1)")
-                .addStatement(BUILDER_SIMPLE_APPEND, ", ")
-                .endControlFlow()
-                .endControlFlow()
-                .addStatement("UPDATE_SQL = builder.toString()")
-                .endControlFlow()
                 .addStatement("return UPDATE_SQL")
                 .build();
     }
 
-    private CodeBlock buildInsertSqlCodeBlock(String table, TypeElement entity) {
+    private CodeBlock buildInsertSqlCodeBlock() {
         return CodeBlock.builder()
-                .beginControlFlow("if (INSERT_SQL == null)")
-                .addStatement("$T genInstance = $T.getInstance()", GeneratorsService.class, GeneratorsService.class)
-                .addStatement(BUILDER_INSTANCE, StringBuilder.class, StringBuilder.class)
-                .addStatement(BUILDER_SIMPLE_APPEND, "INSERT INTO " + table + " (")
-                .beginControlFlow("for (int i = 0; i < values().length; i++)")
-                .addStatement("Column column = values()[i]")
-                .beginControlFlow("if (column.autoGenerated && !genInstance.canGenerateValue($T.class, column.colName))", entity)
-                .addStatement("continue")
-                .endControlFlow()
-                .addStatement("builder.append(column.colName)")
-                .beginControlFlow("if (i != values().length - 1)")
-                .addStatement(BUILDER_SIMPLE_APPEND, ",")
-                .endControlFlow()
-                .endControlFlow()
-                .addStatement("String wildcards = Stream.of(values()).filter(c -> !c.autoGenerated || genInstance.canGenerateValue($T.class, c.colName)).map(c -> $S).collect($T.joining($S))", entity, "?", Collectors.class, ",")
-                .addStatement("builder.append($S).append(wildcards).append($S)", ") VALUES (", ")")
-                .addStatement("INSERT_SQL = builder.toString()")
-                .endControlFlow()
                 .addStatement("return INSERT_SQL")
                 .build();
     }
@@ -773,44 +789,18 @@ public class EntityGenerator extends Generator {
 
     private CodeBlock buildKeysWhereCodeBlock() {
         return CodeBlock.builder()
-                .beginControlFlow("if (KEYS_WHERE == null)")
-                .addStatement("$L keys = $T.of(values()).filter(col -> col.key).map(col -> col.colName).collect($T.toList())",
-                        ParameterizedTypeName.get(List.class, String.class), Stream.class, Collectors.class)
-                .addStatement(SET_FIRST)
-                .addStatement(BUILDER_INSTANCE, StringBuilder.class, StringBuilder.class)
-                .beginControlFlow("for (String key : keys)")
-                .beginControlFlow(CHECK_FIRST)
-                .addStatement("builder.append($S).append(key).append($S)", WHERE, WILDCARD)
-                .addStatement(RESET_FIRST)
-                .nextControlFlow("else")
-                .addStatement("builder.append($S).append(key).append($S)", AND, WILDCARD)
-                .endControlFlow()
-                .endControlFlow()
-                .addStatement("KEYS_WHERE = builder.toString()")
-                .endControlFlow()
                 .addStatement("return KEYS_WHERE")
                 .build();
     }
 
     private CodeBlock buildSelectablesCodeBlock() {
         return CodeBlock.builder()
-                .beginControlFlow("if (SELECTABLES == null)")
-                .addStatement("SELECTABLES = $T.of(values()).map(col -> col.colName).collect($T.joining($S))",
-                        Stream.class, Collectors.class, ",")
-                .endControlFlow()
                 .addStatement("return SELECTABLES")
                 .build();
     }
 
-    private CodeBlock buildEntityMapperCodeBlock(TypeElement entity) {
+    private CodeBlock buildEntityMapperCodeBlock() {
         return CodeBlock.builder()
-                .beginControlFlow("if (ENTITY_MAPPER == null)")
-                .addStatement("$T.Builder<$T> builder = new $T.Builder<>()", EntityMapper.class, entity, EntityMapper.class)
-                .beginControlFlow("for (Column col : Column.values())")
-                .addStatement("builder.add(col.colName, col.type, col.setter, col.getter, col.key, col.autoGenerated)")
-                .endControlFlow()
-                .addStatement("ENTITY_MAPPER = builder.build()")
-                .endControlFlow()
                 .addStatement("return ENTITY_MAPPER")
                 .build();
     }
