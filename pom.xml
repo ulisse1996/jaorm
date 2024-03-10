@@ -45,7 +45,7 @@
         <spring.boot.version>2.7.5</spring.boot.version>
         <micronaut.version>3.7.3</micronaut.version>
         <javapoet.version>1.13.0</javapoet.version>
-        <lombok.version>1.18.24</lombok.version>
+        <lombok.version>1.18.30</lombok.version>
         <compile.testing.version>0.19</compile.testing.version>
         <javax.validation.api.version>2.0.1.Final</javax.validation.api.version>
         <quarkus.version>2.15.0.Final</quarkus.version>
