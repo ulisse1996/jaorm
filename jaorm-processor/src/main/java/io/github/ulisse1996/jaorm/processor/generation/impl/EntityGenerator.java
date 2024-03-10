@@ -110,11 +110,11 @@ public class EntityGenerator extends Generator {
 
         TypeSpec columns = generateColumns(processingEnvironment, entity);
         builder.addType(columns);
-        builder.addInitializerBlock(buildEntityMapperGenerator(entity));
-        builder.addInitializerBlock(buildSelectablesGenerator());
-        builder.addInitializerBlock(buildKeysWhereGenerator());
-        builder.addInitializerBlock(buildInsertSqlGenerator(entity));
-        builder.addInitializerBlock(buildUpdateSqlGenerator(entity));
+        builder.addStaticBlock(buildEntityMapperGenerator(entity));
+        builder.addStaticBlock(buildSelectablesGenerator());
+        builder.addStaticBlock(buildKeysWhereGenerator());
+        builder.addStaticBlock(buildInsertSqlGenerator(entity));
+        builder.addStaticBlock(buildUpdateSqlGenerator(entity));
 
         builder.addField(ClassName.get(entity), ENTITY, Modifier.PRIVATE);
         builder.addField(
@@ -128,14 +128,14 @@ public class EntityGenerator extends Generator {
         );
         builder.addField(addTableName(entity));
         builder.addField(addSchemaName(entity));
-        builder.addField(addBaseSql(entity));
+        builder.addField(addSelectables());
         builder.addField(addKeysWhere());
         builder.addField(addInsertSql());
         builder.addField(addUpdateSql());
-        builder.addField(addDeleteSql());
         builder.addField(addTracker(entity));
         builder.addField(addLazyEntityInfo());
         builder.addField(addRelationshipManager(entity));
+        builder.addField(getEntityMapperType(entity), "ENTITY_MAPPER", Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL);
         builder.addField(TypeName.INT, "modifiedRow", Modifier.PRIVATE);
         builder.addField(boolean.class, "modified", Modifier.PRIVATE);
         DelegationInfo delegationInfo = buildDelegation(entity);
@@ -143,6 +143,11 @@ public class EntityGenerator extends Generator {
         builder.addMethods(buildOverrideEntity(entity));
         builder.addStaticBlock(getRelationshipManagerBlock(delegationInfo.getRelationshipsBlocks(), entity));
         return new GeneratedFile(getPackage(entity), builder.build(), entity.getQualifiedName().toString());
+    }
+
+    private FieldSpec addSelectables() {
+        return FieldSpec.builder(String.class, "SELECTABLES", Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
+                .build();
     }
 
     private CodeBlock getRelationshipManagerBlock(List<CodeBlock> relationshipsBlocks, TypeElement entity) {
@@ -374,36 +379,18 @@ public class EntityGenerator extends Generator {
                 .orElseThrow(() -> new ProcessorException("Can't find referenced column"));
     }
 
-
-    private FieldSpec addDeleteSql() {
-        return FieldSpec.builder(String.class, "DELETE_SQL", Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
-                .initializer("$S + $L + $L", "DELETE FROM ", "TABLE", KEYS_WHERE)
-                .build();
-    }
-
     private FieldSpec addUpdateSql() {
         return FieldSpec.builder(String.class, "UPDATE_SQL", Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
-                .initializer("Column.getUpdateSql()")
                 .build();
     }
 
     private FieldSpec addInsertSql() {
         return FieldSpec.builder(String.class, "INSERT_SQL", Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
-                .initializer("Column.getInsertSql()")
                 .build();
     }
 
     private FieldSpec addKeysWhere() {
         return FieldSpec.builder(String.class, KEYS_WHERE, Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
-                .initializer("Column.getKeyWheres()")
-                .build();
-    }
-
-    private FieldSpec addBaseSql(TypeElement entity) {
-        String select = "SELECT ";
-        String from = " FROM " + entity.getAnnotation(Table.class).name();
-        return FieldSpec.builder(String.class, "BASE_SQL", Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
-                .initializer("$S + Column.getSelectables() + $S", select, from)
                 .build();
     }
 
@@ -420,7 +407,7 @@ public class EntityGenerator extends Generator {
                 .build();
         MethodSpec entityMapper = MethodSpec.overriding(ProcessorUtils.getMethod(processingEnvironment, "getEntityMapper", EntityDelegate.class))
                 .returns(ParameterizedTypeName.get(ClassName.get(EntityMapper.class), ClassName.get(entity)))
-                .addStatement("return Column.getEntityMapper()")
+                .addStatement("return ENTITY_MAPPER")
                 .build();
         MethodSpec setEntity = MethodSpec.overriding(ProcessorUtils.getMethod(processingEnvironment, "setEntity", EntityDelegate.class))
                 .addStatement("this.modified = false")
@@ -439,7 +426,7 @@ public class EntityGenerator extends Generator {
                 .addStatement("return this.entity")
                 .build();
         MethodSpec baseSql = MethodSpec.overriding(ProcessorUtils.getMethod(processingEnvironment, "getBaseSql", EntityDelegate.class))
-                .addStatement("return BASE_SQL")
+                .addStatement("return \"SELECT \" + SELECTABLES + \" FROM \" + TABLE")
                 .build();
         MethodSpec keysWhere = MethodSpec.overriding(ProcessorUtils.getMethod(processingEnvironment, "getKeysWhere", EntityDelegate.class))
                 .addStatement("return KEYS_WHERE")
@@ -448,7 +435,7 @@ public class EntityGenerator extends Generator {
                 .addStatement("return INSERT_SQL")
                 .build();
         MethodSpec selectables = MethodSpec.overriding(ProcessorUtils.getMethod(processingEnvironment, "getSelectables", EntityDelegate.class))
-                .addStatement("return Column.getSelectables().replace($S,$S).replace($S,$S).split($S)", "(", "", ")", "", ",")
+                .addStatement("return SELECTABLES.replace($S,$S).replace($S,$S).split($S)", "(", "", ")", "", ",")
                 .build();
         MethodSpec table = MethodSpec.overriding(ProcessorUtils.getMethod(processingEnvironment, "getTable", EntityDelegate.class))
                 .addStatement("return TABLE")
@@ -457,7 +444,7 @@ public class EntityGenerator extends Generator {
                 .addStatement("return UPDATE_SQL")
                 .build();
         MethodSpec deleteSql = MethodSpec.overriding(ProcessorUtils.getMethod(processingEnvironment, "getDeleteSql", EntityDelegate.class))
-                .addStatement("return DELETE_SQL")
+                .addStatement("return \"DELETE FROM \" + TABLE + KEYS_WHERE")
                 .build();
         MethodSpec modified = MethodSpec.overriding(ProcessorUtils.getMethod(processingEnvironment, "isModified", EntityDelegate.class))
                 .addStatement("return this.modified")
@@ -660,11 +647,6 @@ public class EntityGenerator extends Generator {
         builder.addField(String.class, COL_NAME, Modifier.PRIVATE, Modifier.FINAL);
         builder.addField(boolean.class, "key", Modifier.PRIVATE, Modifier.FINAL);
         builder.addField(boolean.class, "autoGenerated", Modifier.PRIVATE, Modifier.FINAL);
-        builder.addField(getEntityMapperType(entity), "ENTITY_MAPPER", Modifier.PRIVATE, Modifier.STATIC);
-        builder.addField(String.class, "SELECTABLES", Modifier.PRIVATE, Modifier.STATIC);
-        builder.addField(String.class, KEYS_WHERE, Modifier.PRIVATE, Modifier.STATIC);
-        builder.addField(String.class, "INSERT_SQL", Modifier.PRIVATE, Modifier.STATIC);
-        builder.addField(String.class, "UPDATE_SQL", Modifier.PRIVATE, Modifier.STATIC);
         builder.addMethod(addColumnConstructor(entity));
         for (Accessor accessor : accessors) {
             builder.addEnumConstant(accessor.name, enumImpl(accessor, entity));
@@ -691,7 +673,7 @@ public class EntityGenerator extends Generator {
                 .addStatement(BUILDER_SIMPLE_APPEND, ", ")
                 .endControlFlow()
                 .endControlFlow()
-                .addStatement("Column.UPDATE_SQL = builder.toString()")
+                .addStatement("UPDATE_SQL = builder.toString()")
                 .build();
     }
 
@@ -713,7 +695,7 @@ public class EntityGenerator extends Generator {
                 .endControlFlow()
                 .addStatement("String wildcards = Stream.of(Column.values()).filter(c -> !c.autoGenerated || genInstance.canGenerateValue($T.class, c.colName)).map(c -> $S).collect($T.joining($S))", entity, "?", Collectors.class, ",")
                 .addStatement("builder.append($S).append(wildcards).append($S)", ") VALUES (", ")")
-                .addStatement("Column.INSERT_SQL = builder.toString()")
+                .addStatement("INSERT_SQL = builder.toString()")
                 .build();
     }
 
@@ -731,13 +713,13 @@ public class EntityGenerator extends Generator {
                 .addStatement("builder.append($S).append(key).append($S)", AND, WILDCARD)
                 .endControlFlow()
                 .endControlFlow()
-                .addStatement("Column.KEYS_WHERE = builder.toString()")
+                .addStatement("KEYS_WHERE = builder.toString()")
                 .build();
     }
 
     private CodeBlock buildSelectablesGenerator() {
         return CodeBlock.builder()
-                .addStatement("Column.SELECTABLES = $T.of(Column.values()).map(col -> col.colName).collect($T.joining($S))",
+                .addStatement("SELECTABLES = $T.of(Column.values()).map(col -> col.colName).collect($T.joining($S))",
                         Stream.class, Collectors.class, ",")
                 .build();
     }
@@ -748,7 +730,7 @@ public class EntityGenerator extends Generator {
                 .beginControlFlow("for (Column col : Column.values())")
                 .addStatement("builder.add(col.colName, col.type, col.setter, col.getter, col.key, col.autoGenerated)")
                 .endControlFlow()
-                .addStatement("Column.ENTITY_MAPPER = builder.build()")
+                .addStatement("ENTITY_MAPPER = builder.build()")
                 .build();
     }
 
@@ -758,41 +740,6 @@ public class EntityGenerator extends Generator {
                         .returns(ParameterizedTypeName.get(ClassName.get(ColumnGetter.class), ClassName.get(entity), WildcardTypeName.subtypeOf(Object.class)))
                         .addModifiers(Modifier.PUBLIC)
                         .addStatement("return this.getter")
-                        .build()
-        );
-        builder.addMethod(
-                MethodSpec.methodBuilder("getEntityMapper")
-                        .returns(getEntityMapperType(entity))
-                        .addModifiers(Modifier.STATIC)
-                        .addCode(buildEntityMapperCodeBlock())
-                        .build()
-        );
-        builder.addMethod(
-                MethodSpec.methodBuilder("getSelectables")
-                        .returns(String.class)
-                        .addModifiers(Modifier.STATIC)
-                        .addCode(buildSelectablesCodeBlock())
-                        .build()
-        );
-        builder.addMethod(
-                MethodSpec.methodBuilder("getKeyWheres")
-                        .returns(String.class)
-                        .addModifiers(Modifier.STATIC)
-                        .addCode(buildKeysWhereCodeBlock())
-                        .build()
-        );
-        builder.addMethod(
-                MethodSpec.methodBuilder("getInsertSql")
-                        .returns(String.class)
-                        .addModifiers(Modifier.STATIC)
-                        .addCode(buildInsertSqlCodeBlock())
-                        .build()
-        );
-        builder.addMethod(
-                MethodSpec.methodBuilder("getUpdateSql")
-                        .returns(String.class)
-                        .addModifiers(Modifier.STATIC)
-                        .addCode(buildUpdateSql())
                         .build()
         );
         builder.addMethod(
@@ -806,18 +753,6 @@ public class EntityGenerator extends Generator {
         );
     }
 
-    private CodeBlock buildUpdateSql() {
-        return CodeBlock.builder()
-                .addStatement("return UPDATE_SQL")
-                .build();
-    }
-
-    private CodeBlock buildInsertSqlCodeBlock() {
-        return CodeBlock.builder()
-                .addStatement("return INSERT_SQL")
-                .build();
-    }
-
     private CodeBlock buildFindColumnCodeBlock() {
         return CodeBlock.builder()
                 .beginControlFlow("for (Column col : values())")
@@ -826,24 +761,6 @@ public class EntityGenerator extends Generator {
                 .endControlFlow()
                 .endControlFlow()
                 .addStatement("throw new $T($S + colName)", IllegalArgumentException.class, "Can't find column ")
-                .build();
-    }
-
-    private CodeBlock buildKeysWhereCodeBlock() {
-        return CodeBlock.builder()
-                .addStatement("return KEYS_WHERE")
-                .build();
-    }
-
-    private CodeBlock buildSelectablesCodeBlock() {
-        return CodeBlock.builder()
-                .addStatement("return SELECTABLES")
-                .build();
-    }
-
-    private CodeBlock buildEntityMapperCodeBlock() {
-        return CodeBlock.builder()
-                .addStatement("return ENTITY_MAPPER")
                 .build();
     }
 
