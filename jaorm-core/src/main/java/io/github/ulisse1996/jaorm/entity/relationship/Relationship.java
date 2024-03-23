@@ -25,7 +25,7 @@ public class Relationship<T> {
         return this.nodeSet.get(this.nodeSet.size() - 1);
     }
 
-    public List<Node<T>> getNodeSet() { //NOSONAR
+    public List<Node<T>> getNodeSet() {
         return Collections.unmodifiableList(this.nodeSet);
     }
 
@@ -40,22 +40,35 @@ public class Relationship<T> {
         private final boolean collection;
         private final List<EntityEventType> events;
         private final Class<?> linkedClass;
-        private BiConsumer<T, Object> autoSet;
+        private final String name;
+        private BiConsumer<Object, T> autoSet;
+        private final List<String> linkedKeys;
 
-        public Node(Class<?> linkedClass, Function<T, ?> function, boolean opt, boolean collection, EntityEventType... events) {
+        public Node(Class<?> linkedClass, Function<T, ?> function, boolean opt, boolean collection, String name, List<String> linkedKeys,
+                    EntityEventType... events) {
             this.function = function;
             this.opt = opt;
             this.collection = collection;
             this.events = Arrays.asList(events);
             this.linkedClass = linkedClass;
+            this.name = name;
             this.autoSet = (entity, link) -> {};
+            this.linkedKeys = Collections.unmodifiableList(linkedKeys);
         }
 
-        public void appendThen(BiConsumer<T, Object> then) {
+        public List<String> getLinkedKeys() {
+            return linkedKeys;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void appendThen(BiConsumer<Object, T> then) {
             this.autoSet = this.autoSet.andThen(then);
         }
 
-        public BiConsumer<T, Object> getAutoSet() { //NOSONAR
+        public BiConsumer<Object, T> getAutoSet() { //NOSONAR
             return autoSet;
         }
 
@@ -76,29 +89,41 @@ public class Relationship<T> {
         }
 
         @SuppressWarnings("unchecked")
-        public Result<Object> getAsOpt(T entity) {
+        public Result<Object> getAsOpt(T entity, EntityEventType eventType) {
             if (EntityDelegate.class.isAssignableFrom(entity.getClass())) {
                 entity = ((EntityDelegate<T>) entity).getEntity();
             }
-            return Optional.ofNullable((Result<Object>) function.apply(entity))
+            Result<Object> result = Optional.ofNullable((Result<Object>) function.apply(entity))
                     .orElse(Result.empty());
+            if (EntityEventType.REMOVE.equals(eventType) && !result.isPresent()) {
+                new LazyDeleteEvent().apply(entity, this);
+            }
+            return result;
         }
 
         @SuppressWarnings("unchecked")
-        public Collection<Object> getAsCollection(T entity) {
+        public Collection<Object> getAsCollection(T entity, EntityEventType eventType) {
             if (EntityDelegate.class.isAssignableFrom(entity.getClass())) {
                 entity = ((EntityDelegate<T>) entity).getEntity();
             }
             Collection<Object> res = (Collection<Object>) function.apply(entity);
-            return Optional.ofNullable(res).orElse(Collections.emptyList());
+            Collection<Object> objects = Optional.ofNullable(res).orElse(Collections.emptyList());
+            if (EntityEventType.REMOVE.equals(eventType) && objects.isEmpty()) {
+                new LazyDeleteEvent().apply(entity, this);
+            }
+            return objects;
         }
 
         @SuppressWarnings("unchecked")
-        public Object get(T entity) {
+        public Object get(T entity, EntityEventType eventType) {
             if (EntityDelegate.class.isAssignableFrom(entity.getClass())) {
                 entity = ((EntityDelegate<T>) entity).getEntity();
             }
-            return function.apply(entity);
+            Object object = function.apply(entity);
+            if (EntityEventType.REMOVE.equals(eventType) && Objects.isNull(object)) {
+                new LazyDeleteEvent().apply(entity, this);
+            }
+            return object;
         }
     }
 }

@@ -5,7 +5,8 @@ import java.util.function.Supplier;
 public enum EntityEventType {
     PERSIST(PersistEvent::new),
     REMOVE(RemoveEvent::new),
-    UPDATE(UpdateEvent::new);
+    UPDATE(UpdateEvent::new),
+    MERGE(MergeEvent::new);
 
     private final EntityEvent entityEvent;
 
@@ -15,5 +16,10 @@ public enum EntityEventType {
 
     public EntityEvent getEntityEvent() {
         return entityEvent;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("EntityEventType.%s", name());
     }
 }

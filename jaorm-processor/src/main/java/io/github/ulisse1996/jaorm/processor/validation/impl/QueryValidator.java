@@ -16,12 +16,16 @@ import io.github.ulisse1996.jaorm.specialization.TripleKeyDao;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.Name;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeKind;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class QueryValidator extends Validator {
@@ -90,7 +94,7 @@ public class QueryValidator extends Validator {
             if (queryStrategy.isValid(sql, query.noArgs())) {
                 int paramNumber = queryStrategy.getParamNumber(sql);
                 if (paramNumber != executableElement.getParameters().size()) {
-                    throw new ProcessorException("Mismatch between parameters and query parameters for method " + executableElement.getSimpleName());
+                    throw mismatchParameters(queryStrategy, executableElement, sql);
                 }
                 checkSpecs(sql, executableElement);
                 if (executableElement.getAnnotation(ExcludeExternalValidation.class) == null) {
@@ -108,13 +112,29 @@ public class QueryValidator extends Validator {
         throw new ProcessorException(String.format("Can't find query strategy for method %s", executableElement.getSimpleName()));
     }
 
+    private ProcessorException mismatchParameters(QueryStrategy queryStrategy, ExecutableElement executableElement, String sql) {
+        if (queryStrategy.getRegex() != null) {
+            Set<String> words = new HashSet<>(QueryStrategy.getWords(queryStrategy.getRegex(), sql));
+            List<String> params = executableElement.getParameters().stream()
+                    .map(VariableElement::getSimpleName)
+                    .map(Name::toString)
+                    .collect(Collectors.toList());
+            return new ProcessorException(String.format("Mismatch between parameters and query parameters for methods %s! Found: %s, required %s",
+                    executableElement.getSimpleName(), words, params));
+        } else {
+            int paramNumber = queryStrategy.getParamNumber(sql);
+            return new ProcessorException(String.format("Mismatch between parameters and query parameters for method %s! Found: %d, required %d",
+                    executableElement.getSimpleName(), executableElement.getParameters().size(), paramNumber));
+        }
+    }
+
     private String getSql(Query query) {
         String sql = query.sql();
         return ProcessorUtils.getSqlOrSqlFromFile(sql, this.processingEnvironment);
     }
 
     private void checkSpecs(String sql, ExecutableElement method) {
-        if (sql.toUpperCase().startsWith("SELECT")) {
+        if (isValidSelect(sql)) {
             checkReturnMethod(method);
             return;
         } else if (sql.toUpperCase().startsWith("DELETE") || sql.toUpperCase().startsWith("UPDATE")) {
@@ -123,6 +143,10 @@ public class QueryValidator extends Validator {
         }
 
         throw new ProcessorException(String.format("Operation not supported for sql %s in method %s", sql, method));
+    }
+
+    private boolean isValidSelect(String sql) {
+        return sql.toUpperCase().startsWith("SELECT") || sql.toUpperCase().startsWith("WITH");
     }
 
     private void checkReturnMethod(ExecutableElement method) {

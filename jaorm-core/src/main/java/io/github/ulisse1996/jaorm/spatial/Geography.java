@@ -45,4 +45,13 @@ public class Geography {
     public void setSrid(int srid) {
         this.srid = srid;
     }
+
+    @Override
+    public String toString() {
+        return "Geography{" +
+                "latitude=" + latitude +
+                ", longitude=" + longitude +
+                ", srid=" + srid +
+                '}';
+    }
 }

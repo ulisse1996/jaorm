@@ -6,7 +6,7 @@ import io.github.ulisse1996.jaorm.dsl.query.enums.LikeType;
 import io.github.ulisse1996.jaorm.dsl.query.enums.Operation;
 import io.github.ulisse1996.jaorm.dsl.query.enums.OrderType;
 import io.github.ulisse1996.jaorm.dsl.query.simple.intermediate.*;
-import io.github.ulisse1996.jaorm.dsl.query.simple.trait.WithProjectionResult;
+import io.github.ulisse1996.jaorm.dsl.query.simple.trait.WithResult;
 import io.github.ulisse1996.jaorm.dsl.util.Pair;
 import io.github.ulisse1996.jaorm.entity.SqlColumn;
 import io.github.ulisse1996.jaorm.entity.sql.SqlParameter;
@@ -203,7 +203,7 @@ public class SimpleJoinImpl implements SimpleOn, SimpleSelectedOn {
     }
 
     @Override
-    public WithProjectionResult union(WithProjectionResult union) {
+    public WithResult union(WithResult union) {
         return this.parent.union(union);
     }
 

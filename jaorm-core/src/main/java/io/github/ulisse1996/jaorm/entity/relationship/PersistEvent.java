@@ -21,41 +21,49 @@ public class PersistEvent implements EntityEvent {
     @SuppressWarnings("unchecked")
     public <T> T applyAndReturn(T entity) {
         Class<T> klass = (Class<T>) entity.getClass();
-        if (isDelegate(entity)) {
-            klass = (Class<T>) getRealClass(klass);
+        if (EntityEvent.isDelegate(entity)) {
+            klass = (Class<T>) EntityEvent.getRealClass(klass);
         }
         Relationship<T> tree = RelationshipService.getInstance().getRelationships(klass);
-        doPrePersist(entity);
-        T insert = QueryRunner.getInstance(klass)
-                .insert(entity, DelegatesService.getInstance().getInsertSql(entity),
-                        DelegatesService.getInstance().asInsert(entity).asSqlParameters());
-        doPostPersist(entity);
+        T insert = persist(entity, klass);
         for (Relationship.Node<T> node : tree.getNodeSet()) {
+            if (!node.matchEvent(EntityEventType.PERSIST)) {
+                continue;
+            }
             if (node.isCollection()) {
-                node.getAsCollection(insert).forEach(i -> {
-                    node.getAutoSet().accept(insert, i);
+                node.getAsCollection(insert, EntityEventType.PERSIST).forEach(i -> {
+                    node.getAutoSet().accept(i, insert);
                     Objects.requireNonNull(i, "Collection can't contains null values !");
                     BaseDao<Object> baseDao = QueriesService.getInstance().getBaseDao((Class<Object>) i.getClass());
                     baseDao.insert(i);
                 });
             } else if (node.isOpt()) {
-                Result<Object> optional = node.getAsOpt(insert);
+                Result<Object> optional = node.getAsOpt(insert, EntityEventType.PERSIST);
                 if (optional.isPresent()) {
                     Object i = optional.get();
-                    node.getAutoSet().accept(insert, i);
+                    node.getAutoSet().accept(i, insert);
                     BaseDao<Object> baseDao = QueriesService.getInstance().getBaseDao((Class<Object>) i.getClass());
                     baseDao.insert(i);
                 }
             } else {
-                Object i = node.get(insert);
+                Object i = node.get(insert, EntityEventType.PERSIST);
                 if (i != null) {
-                    node.getAutoSet().accept(insert, i);
+                    node.getAutoSet().accept(i, insert);
                     BaseDao<Object> baseDao = QueriesService.getInstance().getBaseDao((Class<Object>) i.getClass());
                     baseDao.insert(i);
                 }
             }
         }
 
+        return insert;
+    }
+
+    public  <T> T persist(T entity, Class<T> klass) {
+        doPrePersist(entity);
+        T insert = QueryRunner.getInstance(klass)
+                .insert(entity, DelegatesService.getInstance().getInsertSql(entity),
+                        DelegatesService.getInstance().asInsert(entity).asSqlParameters());
+        doPostPersist(entity);
         return insert;
     }
 

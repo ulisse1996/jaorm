@@ -7,19 +7,26 @@ import io.github.ulisse1996.jaorm.spi.impl.DefaultSqlAccessors;
 
 import java.util.Collections;
 import java.util.Set;
+import java.util.concurrent.locks.ReentrantLock;
 
 public abstract class ExternalSqlAccessorService {
 
     private static final Singleton<ExternalSqlAccessorService> INSTANCE = Singleton.instance();
+    private static final ReentrantLock LOCK = new ReentrantLock();
 
-    public static synchronized ExternalSqlAccessorService getInstance() {
-        if (!INSTANCE.isPresent()) {
-            Iterable<SqlAccessor> iterable = ServiceFinder.loadServices(SqlAccessor.class);
-            if (iterable.iterator().hasNext()) {
-                INSTANCE.set(new DefaultSqlAccessors(iterable));
-            } else {
-                INSTANCE.set(ExternalSqlAccessorService.NoOp.INSTANCE);
+    public static ExternalSqlAccessorService getInstance() {
+        LOCK.lock();
+        try {
+            if (!INSTANCE.isPresent() || FrameworkIntegrationService.isReloadRequired(Collections.singleton(INSTANCE.get().getClass()))) {
+                Iterable<SqlAccessor> iterable = ServiceFinder.loadServices(SqlAccessor.class);
+                if (iterable.iterator().hasNext()) {
+                    INSTANCE.set(new DefaultSqlAccessors(iterable));
+                } else {
+                    INSTANCE.set(ExternalSqlAccessorService.NoOp.INSTANCE);
+                }
             }
+        } finally {
+            LOCK.unlock();
         }
 
         return INSTANCE.get();

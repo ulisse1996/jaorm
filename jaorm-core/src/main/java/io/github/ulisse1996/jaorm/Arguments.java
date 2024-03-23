@@ -14,6 +14,10 @@ public abstract class Arguments {
     public abstract boolean equals(Object o);
     public abstract int hashCode();
 
+    public Stream<Object> stream() {
+        return Stream.of(getValues());
+    }
+
     public static Arguments of(Object... values) {
         return values(values);
     }

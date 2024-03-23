@@ -1,14 +1,18 @@
 package io.github.ulisse1996.jaorm.processor.util;
 
+import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.MethodSpec;
+import com.squareup.javapoet.TypeName;
 import io.github.ulisse1996.jaorm.BaseDao;
 import io.github.ulisse1996.jaorm.annotation.Column;
 import io.github.ulisse1996.jaorm.annotation.Converter;
 import io.github.ulisse1996.jaorm.annotation.Dao;
 import io.github.ulisse1996.jaorm.annotation.Query;
 import io.github.ulisse1996.jaorm.entity.Result;
+import io.github.ulisse1996.jaorm.entity.TrackedList;
+import io.github.ulisse1996.jaorm.entity.converter.EnumConverter;
 import io.github.ulisse1996.jaorm.entity.converter.ValueConverter;
 import io.github.ulisse1996.jaorm.external.LombokMock;
 import io.github.ulisse1996.jaorm.external.LombokSupport;
@@ -18,7 +22,13 @@ import io.github.ulisse1996.jaorm.processor.exception.ProcessorException;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
-import javax.lang.model.element.*;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.Modifier;
+import javax.lang.model.element.Name;
+import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.MirroredTypeException;
 import javax.lang.model.type.NoType;
 import javax.lang.model.type.PrimitiveType;
@@ -38,7 +48,16 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -205,11 +224,11 @@ public class ProcessorUtils {
     public static List<TypeElement> getGenericTypes(ProcessingEnvironment processingEnvironment, TypeMirror mirror, String name) {
         TypeElement typeElement = (TypeElement) processingEnvironment.getTypeUtils().asElement(mirror);
         TypeMirror converterType = typeElement.getInterfaces().get(0);
-        return getParameters(processingEnvironment, converterType, name);
+        return getParameters(processingEnvironment, converterType.toString(), name);
     }
 
-    private static List<TypeElement> getParameters(ProcessingEnvironment processingEnvironment, TypeMirror mirror, String name) {
-        String[] param = mirror.toString().replace(name, "")
+    private static List<TypeElement> getParameters(ProcessingEnvironment processingEnvironment, String mirror, String name) {
+        String[] param = mirror.replace(name, "")
                 .replace(STARTING_GENERIC, "").replace(ENDING_GENERIC, "")
                 .split(",");
         return Stream.of(param)
@@ -291,12 +310,33 @@ public class ProcessorUtils {
         } else {
             converterClass = element.asType();
         }
+        TypeElement typeElement = (TypeElement) processingEnvironment.getTypeUtils().asElement(converterClass);
+        if (typeElement.getInterfaces().isEmpty()) {
+            return extractSuperClassTypes(processingEnvironment, typeElement);
+        }
         return getGenericTypes(processingEnvironment, converterClass, ValueConverter.class.getName());
+    }
+
+    private static List<TypeElement> extractSuperClassTypes(ProcessingEnvironment processingEnvironment, TypeElement typeElement) {
+        TypeMirror superclass = typeElement.getSuperclass();
+        if (!superclass.toString().contains(EnumConverter.class.getName())) {
+            throw new ProcessorException("ValueConverter must be a direct interface of the converter! Please implement the interface or use EnumConverter for simple Enum-name based conversion");
+        }
+        String param = superclass.toString().replace(EnumConverter.class.getName(), "")
+                .replace(STARTING_GENERIC, "").replace(ENDING_GENERIC, "")
+                .split(",")[0];
+        String mirror = String.format("%s<java.lang.String, %s>", ValueConverter.class.getName(), param);
+        return getParameters(processingEnvironment, mirror, ValueConverter.class.getName());
     }
 
     private static TypeMirror getConverterClass(ProcessingEnvironment environment, VariableElement variableElement) {
         TypeMirror converterClass;
         Converter converter = variableElement.getAnnotation(Converter.class);
+
+        if (converter == null) {
+            throw new ProcessorException(String.format("Can't find converter class for required conversion on %s.%s", variableElement.getEnclosingElement().getSimpleName(), variableElement.getSimpleName()));
+        }
+
         try {
             // Only way to get class
             Class<?> klass = converter.value();
@@ -572,8 +612,17 @@ public class ProcessorUtils {
         return "";
     }
 
-    public static MethodSpec buildDelegateMethod(ExecutableElement m, TypeElement entity, boolean forEntity) {
+    public static MethodSpec buildDelegateMethod(ProcessingEnvironment environment,
+                                                 ExecutableElement m, TypeElement entity,
+                                                 boolean forEntity, boolean wrappedList, ExecutableElement getter) {
         MethodSpec.Builder builder = MethodSpec.overriding(m)
+                .addAnnotations(
+                        m.getAnnotationMirrors()
+                                .stream()
+                                .map(AnnotationSpec::get)
+                                .filter(el -> !el.type.equals(TypeName.get(Override.class)))
+                                .collect(Collectors.toList())
+                )
                 .addStatement(REQUIRE_NON_NULL, Objects.class);
         String variables = ProcessorUtils.extractParameterNames(m);
 
@@ -581,13 +630,30 @@ public class ProcessorUtils {
             builder.addCode(buildCustomEquals(m.getParameters().get(0).getSimpleName().toString(), entity));
         } else if (m.getReturnType() instanceof NoType) {
             if (forEntity) {
-                builder.addStatement("this.modified = true");
+                if (!m.getParameters().isEmpty()) {
+                    String modifiedGetter = ProcessorUtils.findGetter(environment, entity, m.getParameters().get(0).getSimpleName())
+                                    .getSimpleName().toString();
+                    builder.addStatement("this.modified = this.modified || !$T.equals($L(), $L)", Objects.class, modifiedGetter, m.getParameters().get(0).getSimpleName().toString());
+                } else {
+                    builder.addStatement("this.modified = true");
+                }
             }
-            builder.addStatement("this.entity.$L($L)", m.getSimpleName(), variables);
+            buildWrappedList(m, wrappedList, getter, builder, variables);
         } else {
             builder.addStatement("return this.entity.$L($L)", m.getSimpleName(), variables);
         }
         return builder.build();
+    }
+
+    private static void buildWrappedList(ExecutableElement m, boolean wrappedList, ExecutableElement getter, MethodSpec.Builder builder, String variables) {
+        if (wrappedList && getter != null) {
+            builder.addStatement("this.entity.$L($T.merge(this, this.entity.$L(), $L))", m.getSimpleName(), TrackedList.class, getter.getSimpleName(), variables);
+        } else {
+            if (getter != null) {
+                builder.addStatement("this.tracker.registerRemoved(this.entity.$L())", getter.getSimpleName());
+            }
+            builder.addStatement("this.entity.$L($L)", m.getSimpleName(), variables);
+        }
     }
 
     private static CodeBlock buildCustomEquals(String paramName, TypeElement entity) {

@@ -7,6 +7,14 @@ import io.github.ulisse1996.jaorm.annotation.Table;
 @Table(name = "SELLER")
 public class Seller {
 
+    public Seller() {}
+
+    public Seller(int id, String name, int storeId) {
+        this.id = id;
+        this.name = name;
+        this.storeId = storeId;
+    }
+
     @Id
     @Column(name = "SELLER_ID")
     private int id;

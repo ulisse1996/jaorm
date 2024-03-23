@@ -1,9 +1,10 @@
 package io.github.ulisse1996.jaorm.entity.relationship;
 
+import io.github.ulisse1996.jaorm.entity.EntityDelegate;
 import io.github.ulisse1996.jaorm.entity.event.PostUpdate;
 import io.github.ulisse1996.jaorm.entity.event.PreUpdate;
 import io.github.ulisse1996.jaorm.entity.sql.SqlParameter;
-import io.github.ulisse1996.jaorm.exception.PersistEventException;
+import io.github.ulisse1996.jaorm.exception.UpdateEventException;
 import io.github.ulisse1996.jaorm.spi.DelegatesService;
 import io.github.ulisse1996.jaorm.spi.QueryRunner;
 
@@ -19,24 +20,27 @@ public class UpdateEvent extends PreApplyEvent {
             try {
                 ((PreUpdate<?>) entity).preUpdate();
             } catch (Exception ex) {
-                throw new PersistEventException(ex);
+                throw new UpdateEventException(ex);
             }
         }
         doPreApply(entity, (dao, i) -> {
             dao.update(i);
             return QueryRunner.getInstance(i.getClass()).getUpdatedRows(i);
-        }, true);
+        }, true, EntityEventType.UPDATE);
         updateEntity(entity);
         if (entity instanceof PostUpdate<?>) {
             try {
                 ((PostUpdate<?>) entity).postUpdate();
             } catch (Exception ex) {
-                throw new PersistEventException(ex);
+                throw new UpdateEventException(ex);
             }
         }
     }
 
     public static <T> void updateEntity(T entity) {
+        if (entity instanceof EntityDelegate && !((EntityDelegate<?>) entity).isModified()) {
+            return;
+        }
         List<SqlParameter> parameterList =
                 Stream.concat(DelegatesService.getInstance().asArguments(entity).asSqlParameters().stream(),
                         DelegatesService.getInstance().asWhere(entity).asSqlParameters().stream())
@@ -49,6 +53,6 @@ public class UpdateEvent extends PreApplyEvent {
 
     @Override
     public <T> T applyAndReturn(T entity) {
-        throw new UnsupportedOperationException("ApplyAndReturn is not implemented for PersistEvent");
+        throw new UnsupportedOperationException("ApplyAndReturn is not implemented for UpdateEvent");
     }
 }

@@ -2,7 +2,6 @@ package io.github.ulisse1996.jaorm;
 
 import io.github.ulisse1996.jaorm.entity.Page;
 import io.github.ulisse1996.jaorm.entity.Result;
-import io.github.ulisse1996.jaorm.entity.relationship.EntityEvent;
 import io.github.ulisse1996.jaorm.entity.relationship.EntityEventType;
 import io.github.ulisse1996.jaorm.entity.relationship.Relationship;
 import io.github.ulisse1996.jaorm.entity.sql.SqlParameter;
@@ -17,7 +16,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.function.Executable;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
@@ -27,6 +25,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -360,14 +359,6 @@ class BaseDaoTest {
                     .thenReturn(delegates);
             mkRelationship.when(RelationshipService::getInstance)
                     .thenReturn(relationshipService);
-            Mockito.when(delegates.getUpdateSql(Mockito.any()))
-                    .thenReturn("TEST");
-            Mockito.when(delegates.asArguments(Mockito.any()))
-                    .thenReturn(Arguments.empty());
-            Mockito.when(delegates.asWhere(Mockito.any()))
-                    .thenReturn(Arguments.empty());
-            Mockito.when(runner.update(Mockito.anyString(), Mockito.any()))
-                    .thenReturn(1);
             Mockito.when(runner.getUpdatedRows(Mockito.any())).thenReturn(1);
             
             dao.update(Collections.singletonList(entity));
@@ -542,13 +533,13 @@ class BaseDaoTest {
                     .then(i -> mockDao);
             switch (type) {
                 case 1:
-                    relationship.add(new Relationship.Node<>(Object.class, e -> Result.empty(), true, false, EntityEventType.values()));
+                    relationship.add(new Relationship.Node<>(Object.class, e -> Result.empty(), true, false, "name", Collections.emptyList(), EntityEventType.values()));
                     break;
                 case 2:
-                    relationship.add(new Relationship.Node<>(Object.class, e -> Collections.emptyList(), false, true, EntityEventType.values()));
+                    relationship.add(new Relationship.Node<>(Object.class, e -> Collections.emptyList(), false, true, "name", Collections.emptyList(), EntityEventType.values()));
                     break;
                 default:
-                    relationship.add(new Relationship.Node<>(Object.class, e -> null, false, false, EntityEventType.values()));
+                    relationship.add(new Relationship.Node<>(Object.class, e -> null, false, false, "name", Collections.emptyList(), EntityEventType.values()));
                     break;
             }
             List<DelegatesMock.MyEntity> results = new MyDao().insertWithBatch(entities);
@@ -594,13 +585,13 @@ class BaseDaoTest {
                     .then(i -> mockDao);
             switch (type) {
                 case 1:
-                    relationship.add(new Relationship.Node<>(Object.class, e -> Result.empty(), true, false, EntityEventType.values()));
+                    relationship.add(new Relationship.Node<>(Object.class, e -> Result.empty(), true, false, "name", Collections.emptyList(), EntityEventType.values()));
                     break;
                 case 2:
-                    relationship.add(new Relationship.Node<>(Object.class, e -> Collections.emptyList(), false, true, EntityEventType.values()));
+                    relationship.add(new Relationship.Node<>(Object.class, e -> Collections.emptyList(), false, true, "name", Collections.emptyList(), EntityEventType.values()));
                     break;
                 default:
-                    relationship.add(new Relationship.Node<>(Object.class, e -> null, false, false, EntityEventType.values()));
+                    relationship.add(new Relationship.Node<>(Object.class, e -> null, false, false, "name", Collections.emptyList(), EntityEventType.values()));
                     break;
             }
             List<DelegatesMock.MyEntity> results = new MyDao().updateWithBatch(entities);
@@ -635,52 +626,6 @@ class BaseDaoTest {
                     .thenReturn(false);
             List<DelegatesMock.MyEntity> results = new MyDao().insertWithBatch(entities);
             Assertions.assertSame(results, entities);
-        }
-    }
-
-    @ParameterizedTest
-    @EnumSource(EntityEventType.class)
-    void should_apply_relationship_event(EntityEventType eventType) {
-        final MyDao dao = Mockito.spy(new MyDao());
-        RelationshipService relationshipService = Mockito.mock(RelationshipService.class);
-        EntityEvent event = Mockito.mock(EntityEvent.class);
-        QueryRunner simpleRunner = Mockito.mock(QueryRunner.class);
-        QueryRunner entityRunner = Mockito.mock(QueryRunner.class);
-        try (MockedStatic<RelationshipService> mk = Mockito.mockStatic(RelationshipService.class);
-             MockedStatic<EntityEvent> mkEntity = Mockito.mockStatic(EntityEvent.class);
-             MockedStatic<ListenersService> mkList = Mockito.mockStatic(ListenersService.class);
-             MockedStatic<DelegatesService> mkDelegate = Mockito.mockStatic(DelegatesService.class);
-             MockedStatic<QueryRunner> mkRunner = Mockito.mockStatic(QueryRunner.class)) {
-            mkRunner.when(QueryRunner::getSimple).thenReturn(simpleRunner);
-            mkRunner.when(() -> QueryRunner.getInstance(Mockito.any())).thenReturn(entityRunner);
-            mkDelegate.when(DelegatesService::getInstance).thenReturn(Mockito.mock(DelegatesService.class));
-            mkList.when(ListenersService::getInstance).thenReturn(Mockito.mock(ListenersService.class));
-            mk.when(RelationshipService::getInstance)
-                    .thenReturn(relationshipService);
-            Mockito.when(relationshipService.isEventActive(DelegatesMock.MyEntity.class, eventType))
-                    .thenReturn(true);
-            mkEntity.when(() -> EntityEvent.forType(eventType))
-                    .thenReturn(event);
-            switch (eventType) {
-                case PERSIST:
-                    dao.insert(new DelegatesMock.MyEntity());
-                    break;
-                case REMOVE:
-                    dao.delete(new DelegatesMock.MyEntity());
-                    break;
-                case UPDATE:
-                    Mockito.when(entityRunner.getUpdatedRows(Mockito.any())).thenReturn(1);
-                    dao.update(new DelegatesMock.MyEntity());
-                    break;
-            }
-
-            if (!EntityEventType.PERSIST.equals(eventType)) {
-                Mockito.verify(event, Mockito.times(1))
-                        .apply(Mockito.any());
-            } else {
-                Mockito.verify(event, Mockito.times(1))
-                        .applyAndReturn(Mockito.any());
-            }
         }
     }
 
@@ -846,6 +791,11 @@ class BaseDaoTest {
 
         @Override
         public <T> Relationship<T> getRelationships(Class<T> entityClass) {
+            return null;
+        }
+
+        @Override
+        public Map<Class<?>, Relationship<?>> getAllRelationships() {
             return null;
         }
     }

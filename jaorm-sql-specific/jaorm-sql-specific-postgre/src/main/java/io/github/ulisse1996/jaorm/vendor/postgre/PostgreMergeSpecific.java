@@ -16,11 +16,13 @@ import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
 public class PostgreMergeSpecific extends MergeSpecific {
 
     private static final Singleton<ServerVersion> SERVER_VERSION_SINGLETON = Singleton.instance();
+    private final ReentrantLock lock = new ReentrantLock();
 
     @Override
     public String fromUsing() {
@@ -34,13 +36,15 @@ public class PostgreMergeSpecific extends MergeSpecific {
 
     @Override
     public boolean isStandardMerge() {
-        synchronized (PostgreMergeSpecific.class) {
-
+        lock.lock();
+        try {
             if (!SERVER_VERSION_SINGLETON.isPresent()) {
                 SERVER_VERSION_SINGLETON.set(ServerVersion.fromString(fetchVersion()));
             }
 
             return SERVER_VERSION_SINGLETON.get().getMajor() >= 15;
+        } finally {
+            lock.unlock();
         }
     }
 

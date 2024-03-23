@@ -8,6 +8,18 @@ import java.util.Objects;
 @Table(name = "STORE")
 public class Store {
 
+    public Store() {}
+
+    public Store(int storeId) {
+        this(storeId, null, 0);
+    }
+
+    public Store(int storeId, String name, int cityId) {
+        this.storeId = storeId;
+        this.name = name;
+        this.cityId = cityId;
+    }
+
     @Id
     @Column(name = "STORE_ID")
     private int storeId;

@@ -7,7 +7,7 @@ import io.github.ulisse1996.jaorm.dsl.query.enums.LikeType;
 import io.github.ulisse1996.jaorm.dsl.query.enums.OrderType;
 import io.github.ulisse1996.jaorm.dsl.query.impl.simple.SimpleJoinImpl;
 import io.github.ulisse1996.jaorm.dsl.query.simple.intermediate.SimpleOrder;
-import io.github.ulisse1996.jaorm.dsl.query.simple.trait.WithProjectionResult;
+import io.github.ulisse1996.jaorm.dsl.query.simple.trait.WithResult;
 import io.github.ulisse1996.jaorm.entity.Result;
 import io.github.ulisse1996.jaorm.entity.SqlColumn;
 import io.github.ulisse1996.jaorm.entity.sql.SqlParameter;
@@ -811,7 +811,7 @@ class QueryBuilderSimpleTest extends AbstractQueryBuilderTest {
 
     @ParameterizedTest
     @MethodSource("getWheres")
-    void should_generate_wheres(WithProjectionResult result, String sql) {
+    void should_generate_wheres(WithResult result, String sql) {
         withProjectionRunner((runner, service) -> {
             ArgumentCaptor<String> sqlCapture = ArgumentCaptor.forClass(String.class);
 
@@ -833,7 +833,7 @@ class QueryBuilderSimpleTest extends AbstractQueryBuilderTest {
 
     @ParameterizedTest
     @MethodSource("getLimitOffset")
-    void should_generate_limit_offset(WithProjectionResult result, String sql) {
+    void should_generate_limit_offset(WithResult result, String sql) {
         withProjectionRunner((runner, service) -> {
             ArgumentCaptor<String> sqlCapture = ArgumentCaptor.forClass(String.class);
 
@@ -855,7 +855,7 @@ class QueryBuilderSimpleTest extends AbstractQueryBuilderTest {
 
     @ParameterizedTest
     @MethodSource("getHaving")
-    void should_generate_query_with_having(WithProjectionResult result, String sql) {
+    void should_generate_query_with_having(WithResult result, String sql) {
         withProjectionRunner((runner, service) -> {
             ArgumentCaptor<String> sqlCapture = ArgumentCaptor.forClass(String.class);
 

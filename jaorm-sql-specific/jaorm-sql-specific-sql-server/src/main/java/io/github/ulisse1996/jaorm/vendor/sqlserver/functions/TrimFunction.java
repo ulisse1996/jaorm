@@ -13,12 +13,14 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class TrimFunction implements VendorFunctionWithParams<String> {
 
     private static final Singleton<ServerVersion> SERVER_VERSION_SINGLETON = Singleton.instance();
     private static final char SPACE = ' ';
 
+    private final ReentrantLock lock = new ReentrantLock();
     private final TrimType type;
     private final char character;
     private final Selectable<String> selectable;
@@ -77,8 +79,8 @@ public class TrimFunction implements VendorFunctionWithParams<String> {
     }
 
     private void initServerVersion() {
-        synchronized (TrimFunction.class) {
-
+        lock.lock();
+        try {
             if (!SERVER_VERSION_SINGLETON.isPresent()) {
                 DataSource dataSource = DataSourceProvider.getCurrent().getDataSource();
                 try (Connection connection = dataSource.getConnection();
@@ -90,6 +92,8 @@ public class TrimFunction implements VendorFunctionWithParams<String> {
                     throw new IllegalArgumentException("Can't read server version !");
                 }
             }
+        } finally {
+            lock.unlock();
         }
     }
 

@@ -1,10 +1,13 @@
 package io.github.ulisse1996.jaorm.spi;
 
+import io.github.ulisse1996.jaorm.entity.DirtinessTracker;
 import io.github.ulisse1996.jaorm.entity.EntityDelegate;
 import io.github.ulisse1996.jaorm.entity.EntityMapper;
 import io.github.ulisse1996.jaorm.entity.SqlColumn;
 import io.github.ulisse1996.jaorm.entity.relationship.EntityEventType;
+import io.github.ulisse1996.jaorm.entity.relationship.LazyEntityInfo;
 import io.github.ulisse1996.jaorm.entity.relationship.Relationship;
+import io.github.ulisse1996.jaorm.entity.relationship.RelationshipManager;
 import io.github.ulisse1996.jaorm.schema.TableInfo;
 import io.github.ulisse1996.jaorm.spi.common.Singleton;
 import org.junit.jupiter.api.Assertions;
@@ -20,6 +23,7 @@ import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiPredicate;
@@ -151,6 +155,11 @@ class RelationshipServiceTest {
         }
 
         @Override
+        public void setModified(boolean modified) {
+
+        }
+
+        @Override
         public boolean isDefaultGeneration() {
             return false;
         }
@@ -164,6 +173,31 @@ class RelationshipServiceTest {
         public TableInfo toTableInfo() {
             return null;
         }
+
+        @Override
+        public DirtinessTracker<String> getTracker() {
+            return null;
+        }
+
+        @Override
+        public boolean isLazyEntity() {
+            return false;
+        }
+
+        @Override
+        public LazyEntityInfo getLazyInfo() {
+            return null;
+        }
+
+        @Override
+        public void setLazyInfo(LazyEntityInfo info) {
+
+        }
+
+        @Override
+        public RelationshipManager<String> getRelationshipManager() {
+            return null;
+        }
     }
 
     private static class RelationshipMock extends RelationshipService {
@@ -173,7 +207,7 @@ class RelationshipServiceTest {
         public RelationshipMock() {
             this.map = new HashMap<>();
             Relationship<String> stringRelationshipTree = new Relationship<>(String.class);
-            stringRelationshipTree.add(new Relationship.Node<>(String.class, e -> "", false, false, EntityEventType.PERSIST));
+            stringRelationshipTree.add(new Relationship.Node<>(String.class, e -> "", false, false, "name", Collections.emptyList(), EntityEventType.PERSIST));
             Relationship<BigDecimal> bigDecimalRelationshipTree = new Relationship<>(BigDecimal.class);
             this.map.put(stringRelationshipTree.getEntityClass(), stringRelationshipTree);
             this.map.put(bigDecimalRelationshipTree.getEntityClass(), bigDecimalRelationshipTree);
@@ -183,6 +217,11 @@ class RelationshipServiceTest {
         @SuppressWarnings("unchecked")
         public <T> Relationship<T> getRelationships(Class<T> entityClass) {
             return (Relationship<T>) map.get(entityClass);
+        }
+
+        @Override
+        public Map<Class<?>, Relationship<?>> getAllRelationships() {
+            return map;
         }
     }
 }

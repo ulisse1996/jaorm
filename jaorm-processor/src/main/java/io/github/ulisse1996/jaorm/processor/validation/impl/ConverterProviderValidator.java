@@ -1,5 +1,6 @@
 package io.github.ulisse1996.jaorm.processor.validation.impl;
 
+import io.github.ulisse1996.jaorm.entity.converter.EnumConverter;
 import io.github.ulisse1996.jaorm.entity.converter.ValueConverter;
 import io.github.ulisse1996.jaorm.processor.exception.ProcessorException;
 import io.github.ulisse1996.jaorm.processor.validation.Validator;
@@ -21,7 +22,8 @@ public class ConverterProviderValidator extends Validator {
             TypeElement typeElement = (TypeElement) element;
             TypeElement converterElement = processingEnvironment.getElementUtils().getTypeElement(ValueConverter.class.getName());
             if (typeElement.getInterfaces().stream()
-                    .noneMatch(el -> processingEnvironment.getTypeUtils().asElement(el).equals(converterElement))) {
+                    .noneMatch(el -> processingEnvironment.getTypeUtils().asElement(el).equals(converterElement)) &&
+                !typeElement.getSuperclass().toString().contains(EnumConverter.class.getName())) {
                 throw new ProcessorException(String.format("Type %s is not a valid ValueConverter instance !", typeElement.getSimpleName()));
             }
         }

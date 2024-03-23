@@ -6,6 +6,7 @@ import io.github.ulisse1996.jaorm.ServiceFinder;
 import io.github.ulisse1996.jaorm.entity.event.PostUpdate;
 import io.github.ulisse1996.jaorm.entity.event.PreUpdate;
 import io.github.ulisse1996.jaorm.exception.PersistEventException;
+import io.github.ulisse1996.jaorm.exception.UpdateEventException;
 import io.github.ulisse1996.jaorm.logger.JaormLoggerHandler;
 import io.github.ulisse1996.jaorm.spi.DelegatesService;
 import io.github.ulisse1996.jaorm.spi.QueriesService;
@@ -18,6 +19,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
+import java.util.Collections;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
@@ -95,8 +97,6 @@ class UpdateEventTest extends EventTest {
                     .thenReturn(Arguments.empty());
             Mockito.when(relationshipService.getRelationships(Mockito.any()))
                     .then(onMock -> fakeRel);
-            Mockito.doNothing()
-                    .when(subject).doPreApply(Mockito.any(), Mockito.any(), Mockito.anyBoolean());
             subject.apply(mock);
             Mockito.verify(mock).preUpdate();
         }
@@ -125,8 +125,6 @@ class UpdateEventTest extends EventTest {
                     .thenReturn(Arguments.empty());
             Mockito.when(relationshipService.getRelationships(Mockito.any()))
                     .then(onMock -> fakeRel);
-            Mockito.doNothing()
-                    .when(subject).doPreApply(Mockito.any(), Mockito.any(), Mockito.anyBoolean());
             subject.apply(mock);
             Mockito.verify(mock).postUpdate();
         }
@@ -157,9 +155,7 @@ class UpdateEventTest extends EventTest {
                     .then(onMock -> fakeRel);
             Mockito.doThrow(Exception.class)
                     .when(mock).preUpdate();
-            Mockito.doNothing()
-                    .when(subject).doPreApply(Mockito.any(), Mockito.any(), Mockito.anyBoolean());
-            Assertions.assertThrows(PersistEventException.class, () -> subject.apply(mock));
+            Assertions.assertThrows(UpdateEventException.class, () -> subject.apply(mock));
         }
     }
 
@@ -167,9 +163,9 @@ class UpdateEventTest extends EventTest {
     @Test
     void should_do_insert_for_update_with_0_rows() {
         Relationship<Entity> relationship = new Relationship<>(Entity.class);
-        relationship.add(new Relationship.Node<>(RelEntity.class, Entity::getRelEntity, false, false, EntityEventType.values()));
-        relationship.add(new Relationship.Node<>(RelEntity.class, Entity::getRelEntityOpt, true, false, EntityEventType.values()));
-        relationship.add(new Relationship.Node<>(RelEntity.class, Entity::getRelEntityColl, false, true, EntityEventType.values()));
+        relationship.add(new Relationship.Node<>(RelEntity.class, Entity::getRelEntity, false, false, "name", Collections.emptyList(), EntityEventType.values()));
+        relationship.add(new Relationship.Node<>(RelEntity.class, Entity::getRelEntityOpt, true, false, "name",Collections.emptyList(), EntityEventType.values()));
+        relationship.add(new Relationship.Node<>(RelEntity.class, Entity::getRelEntityColl, false, true, "name",Collections.emptyList(), EntityEventType.values()));
         MyEntityDelegate delegate = new MyEntityDelegate();
         DelegatesService delegatedMock = Mockito.mock(DelegatesService.class);
         QueryRunner mockRunner = Mockito.mock(QueryRunner.class);
@@ -213,9 +209,9 @@ class UpdateEventTest extends EventTest {
     @Test
     void should_not_insert_for_update_with_0_rows() {
         Relationship<Entity> relationship = new Relationship<>(Entity.class);
-        relationship.add(new Relationship.Node<>(RelEntity.class, Entity::getRelEntity, false, false, EntityEventType.UPDATE));
-        relationship.add(new Relationship.Node<>(RelEntity.class, Entity::getRelEntityOpt, true, false, EntityEventType.UPDATE));
-        relationship.add(new Relationship.Node<>(RelEntity.class, Entity::getRelEntityColl, false, true, EntityEventType.UPDATE));
+        relationship.add(new Relationship.Node<>(RelEntity.class, Entity::getRelEntity, false, false, "name", Collections.emptyList(), EntityEventType.UPDATE));
+        relationship.add(new Relationship.Node<>(RelEntity.class, Entity::getRelEntityOpt, true, false, "name",Collections.emptyList(), EntityEventType.UPDATE));
+        relationship.add(new Relationship.Node<>(RelEntity.class, Entity::getRelEntityColl, false, true, "name",Collections.emptyList(), EntityEventType.UPDATE));
         MyEntityDelegate delegate = new MyEntityDelegate();
         DelegatesService delegatedMock = Mockito.mock(DelegatesService.class);
         QueryRunner mockRunner = Mockito.mock(QueryRunner.class);
@@ -291,9 +287,7 @@ class UpdateEventTest extends EventTest {
                     .then(onMock -> fakeRel);
             Mockito.doThrow(Exception.class)
                     .when(mock).postUpdate();
-            Mockito.doNothing()
-                    .when(subject).doPreApply(Mockito.any(), Mockito.any(), Mockito.anyBoolean());
-            Assertions.assertThrows(PersistEventException.class, () -> subject.apply(mock));
+            Assertions.assertThrows(UpdateEventException.class, () -> subject.apply(mock));
         }
     }
 }

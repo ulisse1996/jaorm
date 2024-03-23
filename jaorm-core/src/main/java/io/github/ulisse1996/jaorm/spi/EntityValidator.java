@@ -4,20 +4,28 @@ import io.github.ulisse1996.jaorm.ServiceFinder;
 import io.github.ulisse1996.jaorm.entity.validation.ValidationResult;
 import io.github.ulisse1996.jaorm.spi.common.Singleton;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.ServiceConfigurationError;
+import java.util.concurrent.locks.ReentrantLock;
 
 public abstract class EntityValidator {
 
     private static final Singleton<EntityValidator> INSTANCE = Singleton.instance();
+    private static final ReentrantLock LOCK = new ReentrantLock();
 
-    public static synchronized EntityValidator getInstance() {
-        if (!INSTANCE.isPresent()) {
-            try {
-                INSTANCE.set(ServiceFinder.loadService(EntityValidator.class));
-            } catch (Exception | ServiceConfigurationError ex) {
-                INSTANCE.set(NoOp.INSTANCE);
+    public static EntityValidator getInstance() {
+        LOCK.lock();
+        try {
+            if (!INSTANCE.isPresent() || FrameworkIntegrationService.isReloadRequired(Collections.singleton(INSTANCE.get().getClass()))) {
+                try {
+                    INSTANCE.set(ServiceFinder.loadService(EntityValidator.class));
+                } catch (Exception | ServiceConfigurationError ex) {
+                    INSTANCE.set(NoOp.INSTANCE);
+                }
             }
+        } finally {
+            LOCK.unlock();
         }
 
         return INSTANCE.get();
