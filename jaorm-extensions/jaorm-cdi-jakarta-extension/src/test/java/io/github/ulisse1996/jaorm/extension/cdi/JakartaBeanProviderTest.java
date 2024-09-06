@@ -52,10 +52,8 @@ class JakartaBeanProviderTest {
 
     @Test
     void should_return_global_listener_instance(WeldContainer container) throws Throwable {
-        runInEnvironment(container, () -> Assertions.assertTrue(
-                new JakartaBeanProvider().getBean(GlobalEventListener.class)
-                        instanceof GlobalListenerService
-        ));
+        runInEnvironment(container, () ->
+                Assertions.assertInstanceOf(GlobalListenerService.class, new JakartaBeanProvider().getBean(GlobalEventListener.class)));
     }
 
     @Test

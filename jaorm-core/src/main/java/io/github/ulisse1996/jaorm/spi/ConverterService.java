@@ -10,15 +10,22 @@ import io.github.ulisse1996.jaorm.spi.provider.ConverterProvider;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReentrantLock;
 
 public abstract class ConverterService {
 
     private static final Singleton<ConverterService> INSTANCE = Singleton.instance();
     private final Map<Class<?>, SqlAccessor> cache = new ConcurrentHashMap<>();
+    private static final ReentrantLock LOCK = new ReentrantLock();
 
-    public static synchronized ConverterService getInstance() {
-        if (!INSTANCE.isPresent() || FrameworkIntegrationService.isReloadRequired(INSTANCE.get().getConverters().keySet())) {
-            INSTANCE.set(new DefaultConverters(ServiceFinder.loadServices(ConverterProvider.class)));
+    public static ConverterService getInstance() {
+        LOCK.lock();
+        try {
+            if (!INSTANCE.isPresent() || FrameworkIntegrationService.isReloadRequired(INSTANCE.get().getConverters().keySet())) {
+                INSTANCE.set(new DefaultConverters(ServiceFinder.loadServices(ConverterProvider.class)));
+            }
+        } finally {
+            LOCK.unlock();
         }
 
         return INSTANCE.get();

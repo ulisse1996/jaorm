@@ -2,7 +2,14 @@ package io.github.ulisse1996.jaorm.external.support.mock;
 
 import io.github.ulisse1996.jaorm.external.LombokElementMock;
 
-import javax.lang.model.element.*;
+import javax.lang.model.element.AnnotationValue;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.Modifier;
+import javax.lang.model.element.Name;
+import javax.lang.model.element.TypeParameterElement;
+import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
 import java.util.Collections;
 import java.util.List;
@@ -97,5 +104,10 @@ public abstract class MockAccessor extends LombokElementMock implements Executab
     @Override
     public Element getEnclosingElement() {
         return element.getEnclosingElement();
+    }
+
+    @Override
+    public String toString() {
+        return getSimpleName().toString();
     }
 }

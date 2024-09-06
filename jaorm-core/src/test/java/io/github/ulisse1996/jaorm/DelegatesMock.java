@@ -1,10 +1,13 @@
 package io.github.ulisse1996.jaorm;
 
 import io.github.ulisse1996.jaorm.annotation.Table;
+import io.github.ulisse1996.jaorm.entity.DirtinessTracker;
 import io.github.ulisse1996.jaorm.entity.EntityDelegate;
 import io.github.ulisse1996.jaorm.entity.EntityMapper;
 import io.github.ulisse1996.jaorm.entity.SqlColumn;
 import io.github.ulisse1996.jaorm.entity.event.*;
+import io.github.ulisse1996.jaorm.entity.relationship.LazyEntityInfo;
+import io.github.ulisse1996.jaorm.entity.relationship.RelationshipManager;
 import io.github.ulisse1996.jaorm.schema.TableInfo;
 import io.github.ulisse1996.jaorm.spi.DelegatesService;
 
@@ -176,6 +179,11 @@ public class DelegatesMock extends DelegatesService {
         }
 
         @Override
+        public void setModified(boolean modified) {
+
+        }
+
+        @Override
         public boolean isDefaultGeneration() {
             return false;
         }
@@ -188,6 +196,31 @@ public class DelegatesMock extends DelegatesService {
         @Override
         public TableInfo toTableInfo() {
             return new TableInfo("TAB", MyEntity.class, Table.UNSET);
+        }
+
+        @Override
+        public DirtinessTracker<MyEntity> getTracker() {
+            return null;
+        }
+
+        @Override
+        public boolean isLazyEntity() {
+            return false;
+        }
+
+        @Override
+        public LazyEntityInfo getLazyInfo() {
+            return null;
+        }
+
+        @Override
+        public void setLazyInfo(LazyEntityInfo info) {
+
+        }
+
+        @Override
+        public RelationshipManager<MyEntity> getRelationshipManager() {
+            return null;
         }
     }
 }

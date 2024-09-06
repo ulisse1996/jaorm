@@ -6,16 +6,24 @@ import io.github.ulisse1996.jaorm.spi.common.Singleton;
 import io.github.ulisse1996.jaorm.spi.impl.DefaultProjections;
 
 import java.util.Map;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
 
 public abstract class ProjectionsService {
 
     private static final Singleton<ProjectionsService> INSTANCE = Singleton.instance();
+    private static final ReentrantLock LOCK = new ReentrantLock();
 
-    public static synchronized ProjectionsService getInstance() {
-        if (!INSTANCE.isPresent() || FrameworkIntegrationService.isReloadRequired(INSTANCE.get().getProjections().keySet())) {
-            INSTANCE.set(new DefaultProjections(ServiceFinder.loadServices(ProjectionDelegate.class)));
+    public static ProjectionsService getInstance() {
+        LOCK.lock();
+        try {
+            if (!INSTANCE.isPresent() || FrameworkIntegrationService.isReloadRequired(INSTANCE.get().getProjections().keySet())) {
+                INSTANCE.set(new DefaultProjections(ServiceFinder.loadServices(ProjectionDelegate.class)));
+            }
+        } finally {
+            LOCK.unlock();
         }
+
         return INSTANCE.get();
     }
 

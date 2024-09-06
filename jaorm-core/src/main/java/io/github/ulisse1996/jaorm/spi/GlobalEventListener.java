@@ -5,26 +5,34 @@ import io.github.ulisse1996.jaorm.entity.event.GlobalEventType;
 import io.github.ulisse1996.jaorm.exception.GlobalEventException;
 import io.github.ulisse1996.jaorm.spi.common.Singleton;
 
+import java.util.Collections;
 import java.util.ServiceConfigurationError;
+import java.util.concurrent.locks.ReentrantLock;
 
 public abstract class GlobalEventListener {
 
     private static final Singleton<GlobalEventListener> INSTANCE = Singleton.instance();
+    private static final ReentrantLock LOCK = new ReentrantLock();
 
-    public static synchronized GlobalEventListener getInstance() {
-        BeanProvider provider = BeanProvider.getInstance();
+    public static GlobalEventListener getInstance() {
+        LOCK.lock();
+        try {
+            BeanProvider provider = BeanProvider.getInstance();
 
-        if (provider.isActive()) {
-            return provider.getOptBean(GlobalEventListener.class)
-                    .orElse(NoOp.INSTANCE);
-        }
-
-        if (!INSTANCE.isPresent()) {
-            try {
-                INSTANCE.set(ServiceFinder.loadService(GlobalEventListener.class));
-            } catch (Exception | ServiceConfigurationError ex) {
-                INSTANCE.set(NoOp.INSTANCE);
+            if (provider.isActive()) {
+                return provider.getOptBean(GlobalEventListener.class)
+                        .orElse(NoOp.INSTANCE);
             }
+
+            if (!INSTANCE.isPresent() || FrameworkIntegrationService.isReloadRequired(Collections.singleton(GlobalEventListener.class))) {
+                try {
+                    INSTANCE.set(ServiceFinder.loadService(GlobalEventListener.class));
+                } catch (Exception | ServiceConfigurationError ex) {
+                    INSTANCE.set(NoOp.INSTANCE);
+                }
+            }
+        } finally {
+            LOCK.unlock();
         }
 
         return INSTANCE.get();

@@ -9,15 +9,22 @@ import io.github.ulisse1996.jaorm.spi.impl.DefaultQueries;
 import io.github.ulisse1996.jaorm.spi.provider.QueryProvider;
 
 import java.util.Map;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
 
 public abstract class QueriesService {
 
     private static final Singleton<QueriesService> INSTANCE = Singleton.instance();
+    private static final ReentrantLock LOCK = new ReentrantLock();
 
-    public static synchronized QueriesService getInstance() {
-        if (!INSTANCE.isPresent() || FrameworkIntegrationService.isReloadRequired(INSTANCE.get().getQueries().keySet())) {
-            INSTANCE.set(new DefaultQueries(ServiceFinder.loadServices(QueryProvider.class)));
+    public static QueriesService getInstance() {
+        try {
+            LOCK.lock();
+            if (!INSTANCE.isPresent() || FrameworkIntegrationService.isReloadRequired(INSTANCE.get().getQueries().keySet())) {
+                INSTANCE.set(new DefaultQueries(ServiceFinder.loadServices(QueryProvider.class)));
+            }
+        } finally {
+            LOCK.unlock();
         }
 
         return INSTANCE.get();

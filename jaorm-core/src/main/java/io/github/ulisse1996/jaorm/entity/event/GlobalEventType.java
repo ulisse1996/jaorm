@@ -6,5 +6,7 @@ public enum GlobalEventType {
     POST_UPDATE,
     PRE_UPDATE,
     POST_REMOVE,
-    PRE_REMOVE
+    PRE_REMOVE,
+    PRE_MERGE,
+    POST_MERGE;
 }

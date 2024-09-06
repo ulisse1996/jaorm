@@ -6,28 +6,35 @@ import io.github.ulisse1996.jaorm.metrics.MetricsTracker;
 import io.github.ulisse1996.jaorm.spi.common.Singleton;
 
 import java.util.Set;
+import java.util.concurrent.locks.ReentrantLock;
 
 public abstract class MetricsService {
 
     private static final Singleton<MetricsTracker> INSTANCE = Singleton.instance();
+    private static final ReentrantLock LOCK = new ReentrantLock();
 
     private MetricsService() {}
 
-    public static synchronized MetricsTracker getInstance() {
-        BeanProvider provider = BeanProvider.getInstance();
+    public static MetricsTracker getInstance() {
+        LOCK.lock();
+        try {
+            BeanProvider provider = BeanProvider.getInstance();
 
-        if (provider.isActive()) {
-            return provider.getOptBean(MetricsTracker.class)
-                    .orElse(MetricsService.NoOp.INSTANCE);
-        }
-
-        if (!INSTANCE.isPresent() || FrameworkIntegrationService.isReloadRequired(Set.of(INSTANCE.get().getClass()))) {
-            Iterable<MetricsTracker> trackers = ServiceFinder.loadServices(MetricsTracker.class);
-            if (trackers.iterator().hasNext()) {
-                INSTANCE.set(trackers.iterator().next());
-            } else {
-                INSTANCE.set(NoOp.INSTANCE);
+            if (provider.isActive()) {
+                return provider.getOptBean(MetricsTracker.class)
+                        .orElse(MetricsService.NoOp.INSTANCE);
             }
+
+            if (!INSTANCE.isPresent() || FrameworkIntegrationService.isReloadRequired(Set.of(INSTANCE.get().getClass()))) {
+                Iterable<MetricsTracker> trackers = ServiceFinder.loadServices(MetricsTracker.class);
+                if (trackers.iterator().hasNext()) {
+                    INSTANCE.set(trackers.iterator().next());
+                } else {
+                    INSTANCE.set(NoOp.INSTANCE);
+                }
+            }
+        } finally {
+            LOCK.unlock();
         }
 
         return INSTANCE.get();

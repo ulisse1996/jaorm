@@ -50,6 +50,21 @@ class EntityDelegateTest {
         Assertions.assertSame(object, EntityDelegate.unboxEntity(delegate));
     }
 
+    @Test
+    void should_unwrap_entity_from_delegate() {
+        EntityDelegate<?> delegate = Mockito.mock(EntityDelegate.class);
+        Assertions.assertEquals(
+                delegate,
+                EntityDelegate.unwrap(delegate)
+        );
+    }
+
+    @Test
+    void should_throw_exception_for_bad_entity_unwrap() {
+        Assertions.assertThrows(UnsupportedOperationException.class,
+                () -> EntityDelegate.unwrap(new Object()));
+    }
+
     @SuppressWarnings("unchecked")
     private EntityMapper<Object> prepare(ColumnSetter<Object, Object> notKey, ColumnSetter<Object, Object> key) {
         ColumnGetter<Object, Object> getter = Mockito.mock(ColumnGetter.class);

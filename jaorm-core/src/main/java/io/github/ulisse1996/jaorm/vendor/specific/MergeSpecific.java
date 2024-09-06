@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public abstract class MergeSpecific implements Specific {
+public abstract class MergeSpecific implements Specific { //NOSONAR
 
     public abstract String fromUsing();
     public abstract String appendAdditionalSql();

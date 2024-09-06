@@ -860,7 +860,7 @@ class ProcessorUtilsTest {
         Mockito.when(variableElement.getSimpleName())
                 .thenReturn(nameOf("variable"));
         Mockito.when(variableElement.getAnnotation(Mockito.any()))
-                .then(invocation -> Mockito.mock(invocation.getArgument(0)));
+                .then(invocation -> Mockito.mock(Annotation.class));
         List<Element> found = ProcessorUtils.getAnnotated(environment, element, Column.class);
         Assertions.assertEquals(Collections.singletonList(variableElement), found);
     }
@@ -1011,7 +1011,7 @@ class ProcessorUtilsTest {
         Mockito.when(provider.newByteChannel(Mockito.any(), Mockito.any()))
                 .thenThrow(IOException.class);
         Mockito.doThrow(IOException.class)
-                .when(provider).checkAccess(Mockito.any(), Mockito.any());
+                .when(provider).checkAccess(Mockito.any());
 
         Assertions.assertThrows(ProcessorException.class, //NOSONAR
                 () -> ProcessorUtils.generateSpi(environment, Collections.singletonList(file), Object.class)); //NOSONAR

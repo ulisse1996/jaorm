@@ -8,19 +8,26 @@ import io.github.ulisse1996.jaorm.spi.provider.GeneratorProvider;
 
 import java.sql.SQLException;
 import java.util.*;
+import java.util.concurrent.locks.ReentrantLock;
 
 public abstract class GeneratorsService {
 
     private static final Singleton<GeneratorsService> INSTANCE = Singleton.instance();
+    private static final ReentrantLock LOCK = new ReentrantLock();
 
-    public static synchronized GeneratorsService getInstance() {
-        if (!INSTANCE.isPresent() || FrameworkIntegrationService.isReloadRequired(INSTANCE.get().getGenerated().keySet())) {
-            Iterable<GeneratorProvider> iterable = ServiceFinder.loadServices(GeneratorProvider.class);
-            if (iterable.iterator().hasNext()) {
-                INSTANCE.set(new DefaultGenerators(iterable));
-            } else {
-                INSTANCE.set(NoOp.INSTANCE);
+    public static GeneratorsService getInstance() {
+        LOCK.lock();
+        try {
+            if (!INSTANCE.isPresent() || FrameworkIntegrationService.isReloadRequired(INSTANCE.get().getGenerated().keySet())) {
+                Iterable<GeneratorProvider> iterable = ServiceFinder.loadServices(GeneratorProvider.class);
+                if (iterable.iterator().hasNext()) {
+                    INSTANCE.set(new DefaultGenerators(iterable));
+                } else {
+                    INSTANCE.set(NoOp.INSTANCE);
+                }
             }
+        } finally {
+            LOCK.unlock();
         }
 
         return INSTANCE.get();

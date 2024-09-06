@@ -14,11 +14,30 @@ public class UserRole {
     @Column(name = "ROLE_ID")
     private int roleId;
 
-    @Cascade(CascadeType.ALL)
+    public UserRole() {}
+
+    public UserRole(int userId, int roleId) {
+        this.userId = userId;
+        this.roleId = roleId;
+    }
+
+    @Relationship(
+            columns = @Relationship.RelationshipColumn(sourceColumn = "USER_ID", targetColumn = "USER_ID")
+    )
+    private User user;
+
     @Relationship(
             columns = @Relationship.RelationshipColumn(sourceColumn = "ROLE_ID", targetColumn = "ROLE_ID")
     )
     private Role role;
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
 
     public int getUserId() {
         return userId;

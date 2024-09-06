@@ -6,9 +6,7 @@ import io.github.ulisse1996.jaorm.entity.EntityComparator;
 import io.github.ulisse1996.jaorm.entity.Page;
 import io.github.ulisse1996.jaorm.entity.Result;
 import io.github.ulisse1996.jaorm.integration.test.entity.*;
-import io.github.ulisse1996.jaorm.integration.test.query.AutoGenDao;
-import io.github.ulisse1996.jaorm.integration.test.query.ProgressiveDao;
-import io.github.ulisse1996.jaorm.integration.test.query.UserDAO;
+import io.github.ulisse1996.jaorm.integration.test.query.*;
 import io.github.ulisse1996.jaorm.spi.FeatureConfigurator;
 import io.github.ulisse1996.jaorm.spi.QueriesService;
 import org.jetbrains.annotations.NotNull;
@@ -16,6 +14,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -25,6 +24,12 @@ import java.util.Optional;
 public abstract class CoreIT extends AbstractIT {
 
     private final UserDAO userDAO = QueriesService.getInstance().getQuery(UserDAO.class);
+    private final RoleDAO roleDAO = QueriesService.getInstance().getQuery(RoleDAO.class);
+    private final UserRoleDAO userRoleDAO = QueriesService.getInstance().getQuery(UserRoleDAO.class);
+    private final CityDAO cityDAO = QueriesService.getInstance().getQuery(CityDAO.class);
+    private final SellerDao sellerDao = QueriesService.getInstance().getQuery(SellerDao.class);
+    private final StoreDAO storeDAO = QueriesService.getInstance().getQuery(StoreDAO.class);
+    private final TransactionDao transactionDao = QueriesService.getInstance().getQuery(TransactionDao.class);
 
     @Override
     protected void afterInit() throws Exception {
@@ -113,10 +118,10 @@ public abstract class CoreIT extends AbstractIT {
     void should_delete_user() {
         User user = userDAO.readByKey(99); // 1
 
-        userDAO.delete(user); // 2
+        userDAO.delete(user); // 4 Delete Role, Specific, User
 
-        Assertions.assertFalse(userDAO.readOptByKey(99).isPresent()); // 3
-        assertTotalInvocations(3);
+        Assertions.assertFalse(userDAO.readOptByKey(99).isPresent()); // 5
+        assertTotalInvocations(5);
     }
 
     // CURD - Create
@@ -215,16 +220,21 @@ public abstract class CoreIT extends AbstractIT {
     @Test
     void should_get_full_user() {
         User user = createGraph();
+        Role role = new Role();
+        role.setRoleName("NAME");
+        role.setRoleId(1);
 
-        userDAO.insert(user); // 3 User, UserRole and UserSpecific
+        roleDAO.insert(role); // 1 Role
 
-        Optional<User> result = User.USER_FULL.fetchOpt(createPair().getKey()); // 4
+        userDAO.insert(user); // 4 User, UserRole and UserSpecific
+
+        Optional<User> result = User.USER_FULL.fetchOpt(createPair().getKey()); // 5
 
         Assertions.assertTrue(result.isPresent());
         Assertions.assertTrue(result.get().getUserSpecific().isPresent());
         Assertions.assertEquals(1, result.get().getRoles().size());
         assertSame(user, result.get());
-        assertTotalInvocations(4);
+        assertTotalInvocations(5);
     }
 
     //@Test Should be available when we implement sub graphs
@@ -245,6 +255,161 @@ public abstract class CoreIT extends AbstractIT {
         Assertions.assertNotNull(result.get().getRoles().get(0).getRole());
         assertSame(user, result.get());
         assertTotalInvocations(5);
+    }
+
+    // Relationships
+    @Test
+    void should_delete_not_fetched_relationships() {
+        User user = new User();
+        Role role = new Role();
+        role.setRoleId(1);
+        role.setRoleName("NAME");
+        Role role2 = new Role();
+        role2.setRoleId(2);
+        role2.setRoleName("NAME2");
+        Role role3 = new Role();
+        role3.setRoleId(3);
+        role3.setRoleName("NAME3");
+
+        user.setId(1);
+        user.setName("NAME");
+        user.setRoles(List.of(new UserRole(1, 1), new UserRole(1, 2), new UserRole(1, 3)));
+
+
+        roleDAO.insert(List.of(role, role2, role3)); // 3 Roles
+        userDAO.insert(user); // 7 User, UserRole (3)
+
+        Optional<UserRole> optUserRole = userRoleDAO.readOptByKeys(1, 1); // 8
+        Optional<UserRole> optUserRole2 = userRoleDAO.readOptByKeys(2, 1); // 9
+        Optional<UserRole> optUserRole3 = userRoleDAO.readOptByKeys(3, 1); // 10
+
+        Assertions.assertTrue(optUserRole.isPresent());
+        Assertions.assertTrue(optUserRole2.isPresent());
+        Assertions.assertTrue(optUserRole3.isPresent());
+
+        User u = userDAO.readByKey(1); // 11
+
+        userDAO.delete(u); // 14 Delete UserRole (1 query for 3 delete), Delete UserSpecific, Delete User
+
+        optUserRole = userRoleDAO.readOptByKeys(1, 1); // 15
+        optUserRole2 = userRoleDAO.readOptByKeys(2, 1); // 16
+        optUserRole3 = userRoleDAO.readOptByKeys(3, 1); // 17
+
+        Assertions.assertFalse(optUserRole.isPresent());
+        Assertions.assertFalse(optUserRole2.isPresent());
+        Assertions.assertFalse(optUserRole3.isPresent());
+        assertTotalInvocations(17);
+    }
+
+    @Test
+    void should_delete_not_fetched_relationships_recursively() {
+        City city = createCityWithStores();
+
+        cityDAO.insert(city); // 7 City, Store (2), Seller (4)
+
+        Assertions.assertEquals(4, sellerDao.readAll().size()); // 8
+
+        cityDAO.deleteByKey(1); // 11 City, Store (1), Seller (1)
+
+        Assertions.assertEquals(0, sellerDao.readAll().size()); // 12
+        assertTotalInvocations(12);
+    }
+
+    @Test
+    void should_merge_city_with_removed_stores() {
+        City city = createCityWithStores();
+
+        cityDAO.insert(city); // 7 City, Store (2), Seller (4)
+
+        Assertions.assertEquals(4, sellerDao.readAll().size()); // 8
+
+        city = cityDAO.read(city); // 9
+        city.getStores().clear(); // 10
+        cityDAO.merge(city); // 18
+
+        Assertions.assertEquals(0, sellerDao.readAll().size()); // 19
+        assertTotalInvocations(19);
+    }
+
+    @Test
+    void should_merge_city_with_removed_store_and_new_store() {
+        Store store3 = new Store(3, "NAME3", 1);
+        store3.setSellers(List.of(new Seller(4, "SELLER1", 3), new Seller(5, "SELLER2", 3)));
+        City city = createCityWithStores();
+
+        cityDAO.insert(city); // 7 City, Store (2), Seller (4)
+
+        Assertions.assertEquals(2, storeDAO.readAll().size()); // 8
+
+        city = cityDAO.read(city); // 9
+        city.getStores().set(1, store3); // 10
+
+        cityDAO.merge(city); // 15, 2 delete (store2 + seller), 3 insert (store3 + seller)
+
+        Assertions.assertFalse(storeDAO.readOpt(new Store(2)).isPresent()); // 16
+
+        Optional<Store> s = storeDAO.readOpt(store3); // 17
+
+        Assertions.assertTrue(s.isPresent());
+        Assertions.assertEquals(2, s.get().getSellers().size()); // 18
+
+        assertTotalInvocations(18);
+    }
+
+    @Test
+    void should_create_a_full_transaction_with_relationships() {
+        Transaction transaction = getTransaction();
+
+        Transaction t1 = new Transaction();
+        t1.setId(BigInteger.ONE);
+        Optional<Transaction> opt = transactionDao.readOpt(t1);
+
+        Assertions.assertAll(
+                () -> Assertions.assertTrue(opt.isPresent()),
+                () -> Assertions.assertEquals(BigInteger.ONE, transaction.getReservationId()),
+                () -> Assertions.assertEquals(BigInteger.ONE, transaction.getPaymentId()),
+                () -> Assertions.assertEquals(BigInteger.ONE, transaction.getPayment().getId()),
+                () -> Assertions.assertEquals(BigInteger.ONE, transaction.getReservation().getId())
+        );
+
+        assertTotalInvocations(4);
+    }
+
+    @Test
+    void should_delete_transaction_with_payment_and_reservation() {
+        Transaction transaction = getTransaction();
+        transactionDao.delete(transaction);
+
+        assertTotalInvocations(6);
+    }
+
+    private Transaction getTransaction() {
+        Reservation reservation = new Reservation();
+        reservation.setName("NAME");
+
+        Payment payment = new Payment();
+        payment.setType("TYPE");
+
+        Transaction transaction = new Transaction();
+        transaction.setReservation(reservation);
+        transaction.setPayment(payment);
+
+        transaction = transactionDao.merge(transaction);
+        return transaction;
+    }
+
+    @NotNull
+    private City createCityWithStores() {
+        Store store = new Store(1, "NAME", 1);
+        store.setSellers(List.of(new Seller(1, "SELLER1", 1), new Seller(2, "SELLER2", 1)));
+        Store store2 = new Store(2, "NAME2", 1);
+        store2.setSellers(List.of(new Seller(3, "SELLER1", 2), new Seller(4, "SELLER2", 2)));
+
+        City city = new City();
+        city.setCityId(1);
+        city.setName("NAME");
+        city.setStores(List.of(store, store2));
+        return city;
     }
 
     // Utils

@@ -1,7 +1,6 @@
 package io.github.ulisse1996.jaorm.dsl.query.common.intermediate;
 
 import io.github.ulisse1996.jaorm.dsl.query.common.SelectedOn;
-import io.github.ulisse1996.jaorm.dsl.query.enums.LikeType;
 import io.github.ulisse1996.jaorm.entity.SqlColumn;
 
 public interface IntermediateJoin<T, R, L> {

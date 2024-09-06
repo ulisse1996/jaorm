@@ -4,10 +4,7 @@ import io.github.ulisse1996.jaorm.entity.EntityDelegate;
 import io.github.ulisse1996.jaorm.entity.Page;
 import io.github.ulisse1996.jaorm.entity.Result;
 import io.github.ulisse1996.jaorm.entity.event.*;
-import io.github.ulisse1996.jaorm.entity.relationship.EntityEvent;
-import io.github.ulisse1996.jaorm.entity.relationship.EntityEventType;
-import io.github.ulisse1996.jaorm.entity.relationship.Relationship;
-import io.github.ulisse1996.jaorm.entity.relationship.UpdateEvent;
+import io.github.ulisse1996.jaorm.entity.relationship.*;
 import io.github.ulisse1996.jaorm.entity.sql.SqlAccessor;
 import io.github.ulisse1996.jaorm.entity.sql.SqlParameter;
 import io.github.ulisse1996.jaorm.entity.validation.ValidationResult;
@@ -74,26 +71,30 @@ public interface BaseDao<R> {
                     .apply(entity);
             checkUpsert(entity);
         } else {
-            if (entity instanceof PreUpdate) {
-                try {
-                    ((PreUpdate<?>) entity).preUpdate();
-                } catch (Exception ex) {
-                    throw new UpdateEventException(ex);
-                }
-            }
-            ListenersService.getInstance().fireEvent(entity, GlobalEventType.PRE_UPDATE);
-            UpdateEvent.updateEntity(entity);
-            checkUpsert(entity);
-            if (entity instanceof PostUpdate) {
-                try {
-                    ((PostUpdate<?>) entity).postUpdate();
-                } catch (Exception ex) {
-                    throw new UpdateEventException(ex);
-                }
-            }
+            handleSimpleUpdate(entity);
         }
         ListenersService.getInstance().fireEvent(entity, GlobalEventType.POST_UPDATE);
         return entity;
+    }
+
+    default void handleSimpleUpdate(R entity) {
+        if (entity instanceof PreUpdate) {
+            try {
+                ((PreUpdate<?>) entity).preUpdate();
+            } catch (Exception ex) {
+                throw new UpdateEventException(ex);
+            }
+        }
+        ListenersService.getInstance().fireEvent(entity, GlobalEventType.PRE_UPDATE);
+        UpdateEvent.updateEntity(entity);
+        checkUpsert(entity);
+        if (entity instanceof PostUpdate) {
+            try {
+                ((PostUpdate<?>) entity).postUpdate();
+            } catch (Exception ex) {
+                throw new UpdateEventException(ex);
+            }
+        }
     }
 
     default void checkUpsert(R entity) {
@@ -104,6 +105,37 @@ public interface BaseDao<R> {
                 insert(entity);
             }
         }
+    }
+
+    default R merge(R entity) {
+        Objects.requireNonNull(entity);
+        doValidation(entity);
+        RelationshipService relationshipService = RelationshipService.getInstance();
+        if (relationshipService.isEventActive(entity.getClass(), EntityEventType.MERGE)) {
+            ListenersService.getInstance().fireEvent(entity, GlobalEventType.PRE_MERGE);
+            EntityEvent.forType(EntityEventType.MERGE)
+                    .apply(entity);
+        } else {
+            if (entity instanceof PreMerge) {
+                try {
+                    ((PreMerge<?>) entity).preMerge();
+                } catch (Exception ex) {
+                    throw new UpdateEventException(ex);
+                }
+            }
+            ListenersService.getInstance().fireEvent(entity, GlobalEventType.PRE_MERGE);
+            MergeEvent.mergeEntity(entity);
+            checkUpsert(entity);
+            if (entity instanceof PostMerge) {
+                try {
+                    ((PostMerge<?>) entity).postMerge();
+                } catch (Exception ex) {
+                    throw new UpdateEventException(ex);
+                }
+            }
+        }
+        ListenersService.getInstance().fireEvent(entity, GlobalEventType.POST_MERGE);
+        return entity;
     }
 
     default R insert(R entity) {
@@ -162,6 +194,11 @@ public interface BaseDao<R> {
     default void delete(List<R> entities) {
         Objects.requireNonNull(entities);
         entities.forEach(this::delete);
+    }
+
+    default List<R> merge(List<R> entities) {
+        Objects.requireNonNull(entities);
+        return entities.stream().map(this::merge).collect(Collectors.toList());
     }
 
     default List<R> insert(List<R> entities) {
@@ -223,19 +260,19 @@ public interface BaseDao<R> {
                 if (node.isOpt()) {
                     results = entities.stream()
                             .map(EntityDelegate::unboxEntity)
-                            .map(node::getAsOpt)
+                            .map(i -> node.getAsOpt(i, eventType))
                             .filter(Result::isPresent)
                             .map(Result::get)
                             .collect(Collectors.toList());
                 } else if (node.isCollection()) {
                     results = entities.stream()
                             .map(EntityDelegate::unboxEntity)
-                            .flatMap(e -> Optional.ofNullable(node.getAsCollection(e)).orElse(Collections.emptyList()).stream())
+                            .flatMap(e -> Optional.ofNullable(node.getAsCollection(e, eventType)).orElse(Collections.emptyList()).stream())
                             .collect(Collectors.toList());
                 } else {
                     results = entities.stream()
                             .map(EntityDelegate::unboxEntity)
-                            .map(node::get)
+                            .map(i -> node.get(i, eventType))
                             .filter(Objects::nonNull)
                             .collect(Collectors.toList());
                 }

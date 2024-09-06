@@ -9,14 +9,15 @@ public class SubQueryImpl<T, R> extends SelectedImpl<T, R> implements WithSubQue
     private final String colum;
 
     @SuppressWarnings("unchecked")
-    public SubQueryImpl(SqlColumn<?, R> column, QueryConfig config) {
-        super((Class<T>) column.getEntity(), config);
+    public SubQueryImpl(SqlColumn<?, R> column, QueryConfig config, boolean distinct) {
+        super((Class<T>) column.getEntity(), config, distinct);
         this.colum = column.getName();
     }
 
     @Override
     public String getSql() {
         StringBuilder builder = new StringBuilder("SELECT ")
+                .append(this.distinct ? "DISTINCT " : "")
                 .append(this.table)
                 .append(".")
                 .append(colum)

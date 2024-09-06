@@ -78,4 +78,15 @@ class EntityGeneratorTest extends CompilerTest {
                         )
         );
     }
+
+    @Test
+    void should_generate_enum_with_abstract_class() {
+        checkCompilation(
+                Compiler.javac()
+                        .withProcessors(new JaormProcessor())
+                        .compile(
+                                getFile("entity", "EntityWithEnum.java")
+                        )
+        );
+    }
 }

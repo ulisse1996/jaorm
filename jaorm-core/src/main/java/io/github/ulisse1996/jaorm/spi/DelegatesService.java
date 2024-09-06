@@ -8,16 +8,23 @@ import io.github.ulisse1996.jaorm.spi.common.Singleton;
 import io.github.ulisse1996.jaorm.spi.impl.DefaultDelegates;
 
 import java.util.Map;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
 
 public abstract class DelegatesService {
 
     private static final Singleton<DelegatesService> INSTANCE = Singleton.instance();
+    private static final ReentrantLock LOCK = new ReentrantLock();
 
-    public static synchronized DelegatesService getInstance() {
-        if (!INSTANCE.isPresent() || FrameworkIntegrationService.isReloadRequired(INSTANCE.get().getDelegates().keySet())) {
-            @SuppressWarnings("rawtypes") Iterable<EntityDelegate> delegates = ServiceFinder.loadServices(EntityDelegate.class);
-            INSTANCE.set(new DefaultDelegates(delegates));
+    public static DelegatesService getInstance() {
+        LOCK.lock();
+        try {
+            if (!INSTANCE.isPresent() || FrameworkIntegrationService.isReloadRequired(INSTANCE.get().getDelegates().keySet())) {
+                @SuppressWarnings("rawtypes") Iterable<EntityDelegate> delegates = ServiceFinder.loadServices(EntityDelegate.class);
+                INSTANCE.set(new DefaultDelegates(delegates));
+            }
+        } finally {
+            LOCK.unlock();
         }
 
         return INSTANCE.get();
@@ -41,7 +48,7 @@ public abstract class DelegatesService {
                     .stream()
                     .filter(el -> el.getKey().isAssignableFrom(delegateClass))
                     .findFirst()
-                    .map(Map.Entry::getKey)
+                    .map(e -> e.getValue().get().toTableInfo().getEntity())
                     .orElseThrow(() -> new IllegalArgumentException("Can't find real class from delegate " + delegateClass));
         }
     }

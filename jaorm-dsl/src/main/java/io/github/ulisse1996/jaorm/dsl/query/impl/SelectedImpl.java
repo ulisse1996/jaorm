@@ -41,18 +41,19 @@ public class SelectedImpl<T, N> extends AbstractLimitOffsetImpl
     private final List<OrderImpl> orders;
     private final boolean caseInsensitiveLike;
     private final List<WithResult<T>> unions;
+    protected final boolean distinct;
     private WhereChecker checker;
     private WhereImpl<T, ?> lastWhere;
     private JoinImpl<T, ?, ?> lastJoin;
     private int limit;
     private int offset;
 
-    public SelectedImpl(Class<T> klass, QueryConfig config) {
-        this(klass, config.isCaseInsensitive());
+    public SelectedImpl(Class<T> klass, QueryConfig config, boolean distinct) {
+        this(klass, config.isCaseInsensitive(), distinct);
         this.checker = config.getChecker();
     }
 
-    public SelectedImpl(Class<T> klass, boolean caseInsensitiveLike) {
+    public SelectedImpl(Class<T> klass, boolean caseInsensitiveLike, boolean distinct) {
         EntityDelegate<?> delegate = DelegatesService.getInstance()
                 .searchDelegate(klass).get();
         this.klass = klass;
@@ -64,6 +65,7 @@ public class SelectedImpl<T, N> extends AbstractLimitOffsetImpl
         this.orders = new ArrayList<>();
         this.unions = new ArrayList<>();
         this.checker = new DefaultWhereChecker();
+        this.distinct = distinct;
     }
 
     public boolean isCaseInsensitiveLike() {
@@ -112,6 +114,11 @@ public class SelectedImpl<T, N> extends AbstractLimitOffsetImpl
     public long count() {
         Pair<String, List<SqlParameter>> pair = doBuild(true);
         return QueryRunner.getSimple().read(long.class, pair.getKey(), pair.getValue());
+    }
+
+    @Override
+    public boolean hasResults() {
+        return count() > 0;
     }
 
     public List<SqlParameter> getParameters() {
@@ -354,6 +361,7 @@ public class SelectedImpl<T, N> extends AbstractLimitOffsetImpl
 
     public String asString(boolean count) {
         StringBuilder builder = new StringBuilder("SELECT ")
+                .append(distinct && !count ? "DISTINCT " : "")
                 .append(count ? createCount() : asSelectColumns())
                 .append("FROM ")
                 .append(this.table);

@@ -8,14 +8,24 @@ import io.github.ulisse1996.jaorm.spi.common.Singleton;
 import io.github.ulisse1996.jaorm.spi.impl.DefaultRelationships;
 import io.github.ulisse1996.jaorm.spi.provider.RelationshipProvider;
 
+import java.util.Map;
+import java.util.concurrent.locks.ReentrantLock;
+
 public abstract class RelationshipService {
 
     private static final Singleton<RelationshipService> INSTANCE = Singleton.instance();
+    private static final ReentrantLock LOCK = new ReentrantLock();
 
-    public static synchronized RelationshipService getInstance() {
-        if (!INSTANCE.isPresent()) {
-            INSTANCE.set(new DefaultRelationships(ServiceFinder.loadServices(RelationshipProvider.class)));
+    public static RelationshipService getInstance() {
+        LOCK.lock();
+        try {
+            if (!INSTANCE.isPresent() || FrameworkIntegrationService.isReloadRequired(RelationshipService.INSTANCE.get().getAllRelationships().keySet())) {
+                INSTANCE.set(new DefaultRelationships(ServiceFinder.loadServices(RelationshipProvider.class)));
+            }
+        } finally {
+            LOCK.unlock();
         }
+
         return INSTANCE.get();
     }
 
@@ -36,4 +46,5 @@ public abstract class RelationshipService {
     }
 
     public abstract <T> Relationship<T> getRelationships(Class<T> entityClass);
+    public abstract Map<Class<?>, Relationship<?>> getAllRelationships(); //NOSONAR
 }

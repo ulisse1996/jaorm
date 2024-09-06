@@ -9,15 +9,24 @@ import io.github.ulisse1996.jaorm.spi.provider.GraphProvider;
 
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Collectors;
 
 public abstract class GraphsService {
 
     private static final Singleton<GraphsService> INSTANCE = Singleton.instance();
+    private static final ReentrantLock LOCK = new ReentrantLock();
 
-    public static synchronized GraphsService getInstance() {
-        if (!INSTANCE.isPresent()) {
-            Iterable<GraphProvider> providers = ServiceFinder.loadServices(GraphProvider.class);
-            INSTANCE.set(new DefaultGraphs(providers));
+    public static GraphsService getInstance() {
+        LOCK.lock();
+        try {
+            if (!INSTANCE.isPresent() || FrameworkIntegrationService.isReloadRequired(
+                    INSTANCE.get().getEntityGraphs().keySet().stream().map(GraphPair::getEntity).collect(Collectors.toSet()))) {
+                Iterable<GraphProvider> providers = ServiceFinder.loadServices(GraphProvider.class);
+                INSTANCE.set(new DefaultGraphs(providers));
+            }
+        } finally {
+            LOCK.unlock();
         }
 
         return INSTANCE.get();

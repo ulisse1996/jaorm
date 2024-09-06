@@ -10,12 +10,12 @@ public class TransactionManagerImpl implements TransactionManager {
             new InheritableThreadLocal<>();
 
     @Override
-    public synchronized Transaction getCurrentTransaction() {
+    public Transaction getCurrentTransaction() {
         return TRANSACTION_THREAD_LOCAL.get();
     }
 
     @Override
-    public synchronized void createTransaction() {
+    public void createTransaction() {
         TRANSACTION_THREAD_LOCAL.set(new TransactionImpl());
     }
 

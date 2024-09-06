@@ -1,5 +1,6 @@
 package io.github.ulisse1996.jaorm.vendor;
 
+import java.util.Collections;
 import java.util.List;
 
 public class VendorFunctionWithAlias<R> implements VendorFunctionWithParams<R> {
@@ -35,7 +36,7 @@ public class VendorFunctionWithAlias<R> implements VendorFunctionWithParams<R> {
         if (function instanceof VendorFunctionWithParams) {
             return ((VendorFunctionWithParams<R>) function).getParams();
         } else {
-            throw new UnsupportedOperationException("Can't get params from unsupported function !");
+            return Collections.emptyList();
         }
     }
 

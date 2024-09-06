@@ -38,4 +38,9 @@ public class DefaultRelationships extends RelationshipService {
                 .map(Map.Entry::getValue)
                 .orElse(null);
     }
+
+    @Override
+    public Map<Class<?>, Relationship<?>> getAllRelationships() {
+        return this.relationships;
+    }
 }

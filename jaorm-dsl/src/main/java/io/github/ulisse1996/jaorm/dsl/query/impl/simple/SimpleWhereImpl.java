@@ -7,7 +7,7 @@ import io.github.ulisse1996.jaorm.dsl.query.enums.Operation;
 import io.github.ulisse1996.jaorm.dsl.query.impl.AbstractWhereImpl;
 import io.github.ulisse1996.jaorm.dsl.query.simple.intermediate.IntermediateSimpleWhere;
 import io.github.ulisse1996.jaorm.dsl.query.simple.intermediate.SimpleSelectedWhere;
-import io.github.ulisse1996.jaorm.dsl.query.simple.trait.WithProjectionResult;
+import io.github.ulisse1996.jaorm.dsl.query.simple.trait.WithResult;
 import io.github.ulisse1996.jaorm.entity.SqlColumn;
 
 public class SimpleWhereImpl<R> extends AbstractWhereImpl<Object, R> implements IntermediateSimpleWhere<R> {
@@ -81,17 +81,17 @@ public class SimpleWhereImpl<R> extends AbstractWhereImpl<Object, R> implements 
 
     @Override
     public SimpleSelectedWhere in(Iterable<R> iterable) {
-        this.valid = this.parent.getConfiguration().getChecker().isValidWhere(this.column, op, iterable);
         this.op = Operation.IN;
         this.iterable = iterable;
+        this.valid = this.parent.getConfiguration().getChecker().isValidWhere(this.column, op, iterable);
         return this.parent;
     }
 
     @Override
     public SimpleSelectedWhere notIn(Iterable<R> iterable) {
-        this.valid = this.parent.getConfiguration().getChecker().isValidWhere(this.column, op, iterable);
         this.op = Operation.NOT_IN;
         this.iterable = iterable;
+        this.valid = this.parent.getConfiguration().getChecker().isValidWhere(this.column, op, iterable);
         return this.parent;
     }
 
@@ -106,7 +106,7 @@ public class SimpleWhereImpl<R> extends AbstractWhereImpl<Object, R> implements 
     }
 
     @Override
-    public SimpleSelectedWhere in(WithProjectionResult subQuery) {
+    public SimpleSelectedWhere in(WithResult subQuery) {
         this.valid = this.parent.getConfiguration().getChecker().isValidWhere(this.column, op, subQuery);
         this.op = Operation.IN;
         this.subQuery = assertIsSubQuery(subQuery);
@@ -114,7 +114,7 @@ public class SimpleWhereImpl<R> extends AbstractWhereImpl<Object, R> implements 
     }
 
     @Override
-    public SimpleSelectedWhere notIn(WithProjectionResult subQuery) {
+    public SimpleSelectedWhere notIn(WithResult subQuery) {
         this.valid = this.parent.getConfiguration().getChecker().isValidWhere(this.column, op, subQuery);
         this.op = Operation.NOT_IN;
         this.subQuery = assertIsSubQuery(subQuery);

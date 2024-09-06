@@ -12,11 +12,11 @@ public interface EntityEvent {
         return type.getEntityEvent();
     }
 
-    default <T> boolean isDelegate(T entity) {
+    static  <T> boolean isDelegate(T entity) {
         return entity instanceof EntityDelegate;
     }
 
-    default Class<?> getRealClass(Class<?> klass) {
+    static Class<?> getRealClass(Class<?> klass) {
         return DelegatesService.getInstance().getEntityClass(klass);
     }
 

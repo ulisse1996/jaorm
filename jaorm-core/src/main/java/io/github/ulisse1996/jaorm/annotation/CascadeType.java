@@ -7,5 +7,6 @@ public enum CascadeType {
     ALL,
     PERSIST,
     REMOVE,
-    UPDATE
+    UPDATE,
+    MERGE
 }

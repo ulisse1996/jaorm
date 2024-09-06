@@ -324,15 +324,19 @@ public class QueryGenerator extends Generator {
     private Map.Entry<String, Object[]> checkType(List<TypeElement> entities, String sql, ExecutableElement method,
                                                   boolean collectionNames) {
         String sqlParam = collectionNames ? "$L" : "$S";
-        if (sql.toUpperCase().startsWith("SELECT")) {
+        if (isValidSelect(sql)) {
             return checkSelect(entities, sql, method, collectionNames, sqlParam);
-        } else if (sql.toUpperCase().startsWith("DELETE")) {
+        } else if (sql.trim().toUpperCase().startsWith("DELETE")) {
             return new AbstractMap.SimpleImmutableEntry<>(String.format("$T.getSimple().delete(%s, params)", sqlParam),
                     new Object[] {QueryRunner.class, collectionNames ? "sql" : sql});
         } else {
             return new AbstractMap.SimpleImmutableEntry<>(String.format("$T.getSimple().update(%s, params)", sqlParam),
                     new Object[] {QueryRunner.class, collectionNames ? "sql" : sql});
         }
+    }
+
+    private boolean isValidSelect(String sql) {
+        return sql.trim().toUpperCase().startsWith("SELECT") || sql.trim().toUpperCase().startsWith("WITH");
     }
 
     private Map.Entry<String, Object[]> checkSelect(List<TypeElement> entities, String sql, ExecutableElement method,

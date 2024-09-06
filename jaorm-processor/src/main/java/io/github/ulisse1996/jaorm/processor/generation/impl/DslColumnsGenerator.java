@@ -15,7 +15,6 @@ import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
-import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
 import java.util.*;
 import java.util.function.Function;
@@ -129,7 +128,7 @@ public class DslColumnsGenerator extends Generator {
             }
 
             if (el.getAnnotation(Converter.class) != null) {
-                converter = ProcessorUtils.getConverterCaller(processingEnvironment, (VariableElement) el);
+                converter = ProcessorUtils.getConverterCaller(processingEnvironment, el);
             }
             values.add(new EntityColumn(name, result, converter));
         }
